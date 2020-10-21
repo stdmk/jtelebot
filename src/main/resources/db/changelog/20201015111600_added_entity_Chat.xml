@@ -8,6 +8,9 @@
             <column name="chatid" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <column name="accesslevel" type="int">
                 <constraints nullable="true" />
             </column>

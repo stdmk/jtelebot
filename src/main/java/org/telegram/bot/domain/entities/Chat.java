@@ -18,6 +18,9 @@ public class Chat {
     @Column(name = "chatid")
     private Long chatId;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "accesslevel")
     private Integer accessLevel;
 }
