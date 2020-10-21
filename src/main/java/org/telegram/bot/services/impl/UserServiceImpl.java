@@ -20,7 +20,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User get(Integer userId) {
         log.debug("Request to get User by userId: {} ", userId);
-        return userRepository.findById(userId).orElse(null);
+        return userRepository.findByUserId(userId);
     }
 
     @Override
