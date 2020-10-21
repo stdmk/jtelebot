@@ -32,9 +32,11 @@ public class Parser extends Thread {
         try {
             PartialBotApiMethod method = command.parse(update);
             if (method instanceof SendMessage) {
+                log.info("To " + update.getMessage().getChatId() + ": " + ((SendMessage) method).getText());
                 bot.execute((SendMessage) method);
             }
             else if (method instanceof SendPhoto) {
+                log.info("To " + update.getMessage().getChatId() + ": sended photo " + ((SendPhoto) method).getCaption());
                 bot.execute((SendPhoto) command.parse(update));
             }
         } catch (TelegramApiException e) {

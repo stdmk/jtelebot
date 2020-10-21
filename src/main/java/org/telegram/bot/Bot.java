@@ -38,9 +38,10 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
+        Long chatId = update.getMessage().getChatId();
         User user = checkUserInfoUpdates(update.getMessage().getFrom());
 
-        log.info("I have a message from " + user.getUsername() + " (" + user.getUserId() + "): " + textOfMessage);
+        log.info("From " + chatId + " (" + user.getUsername() + "-" + user.getUserId() + "): " + textOfMessage);
 
         AccessLevels userAccessLevel = getCurrentAccessLevel(user.getUserId(), update.getMessage().getChatId());
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
