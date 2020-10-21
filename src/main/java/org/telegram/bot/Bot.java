@@ -80,7 +80,7 @@ public class Bot extends TelegramLongPollingBot {
             Scanner scanner = new Scanner(System.in);
             String newToken = scanner.nextLine();
             System.out.println("Enter the telegram id of the future owner of the bot: ");
-            Long adminId = scanner.nextLong();
+            Integer adminId = scanner.nextInt();
 
             telegramBotApiToken = new Token();
             telegramBotApiToken.setToken(newToken);
@@ -104,7 +104,7 @@ public class Bot extends TelegramLongPollingBot {
             username = userFrom.getFirstName();
         }
 
-        Long userId = userFrom.getId().longValue();
+        Integer userId = userFrom.getId();
 
         User user = userService.get(userId);
 
@@ -124,7 +124,7 @@ public class Bot extends TelegramLongPollingBot {
         return user;
     }
 
-    private AccessLevels getCurrentAccessLevel(Long userId, Long chatId) {
+    private AccessLevels getCurrentAccessLevel(Integer userId, Long chatId) {
         AccessLevels level = AccessLevels.BANNED;
 
         Integer userLevel = userService.getUserAccessLevel(userId);

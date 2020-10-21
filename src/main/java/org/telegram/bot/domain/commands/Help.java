@@ -41,7 +41,7 @@ public class Help extends CommandParent<SendMessage> {
             responseText.append("*Без паники!*\n");
 
             Integer accessLevel;
-            Integer userAccessLevel = userService.getUserAccessLevel(update.getMessage().getChat().getId());
+            Integer userAccessLevel = userService.getUserAccessLevel(update.getMessage().getFrom().getId());
             Integer chatAccessLevel = chatService.getChatAccessLevel(update.getMessage().getChatId());
             if (userAccessLevel > chatAccessLevel) {
                 accessLevel = userAccessLevel;

@@ -13,7 +13,7 @@ public interface UserService {
      * @param userId of User to get.
      * @return the persisted entity.
      */
-    User get(Long userId);
+    User get(Integer userId);
 
     /**
      * Get a User.
@@ -37,5 +37,5 @@ public interface UserService {
      * @param userId of entity.
      * @return the persisted entity.
      */
-    Integer getUserAccessLevel(Long userId);
+    Integer getUserAccessLevel(Integer userId);
 }

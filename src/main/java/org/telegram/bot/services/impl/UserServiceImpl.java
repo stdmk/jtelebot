@@ -18,7 +18,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User get(Long userId) {
+    public User get(Integer userId) {
         log.debug("Request to get User by userId: {} ", userId);
         return userRepository.findById(userId).orElse(null);
     }
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer getUserAccessLevel(Long userId) {
+    public Integer getUserAccessLevel(Integer userId) {
         log.debug("Request to get userLevel for userId {} ", userId);
         User user = get(userId);
         if (user == null) {
