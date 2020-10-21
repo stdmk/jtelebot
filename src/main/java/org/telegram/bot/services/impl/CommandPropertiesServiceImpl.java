@@ -49,7 +49,7 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     @Override
     public List<CommandProperties> getAvailableCommandsForLevel(Integer accessLevel) {
         log.debug("Request to get available commands for level {}", accessLevel);
-        return commandPropertiesRepository.findByAccessLevelGreaterThanEqual(accessLevel);
+        return commandPropertiesRepository.findByAccessLevelLessThanEqual(accessLevel);
     }
 
     @Override

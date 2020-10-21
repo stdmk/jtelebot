@@ -23,5 +23,5 @@ public interface CommandPropertiesRepository extends JpaRepository<CommandProper
 
     CommandProperties findByClassName(String className);
 
-    List<CommandProperties> findByAccessLevelGreaterThanEqual(Integer level);
+    List<CommandProperties> findByAccessLevelLessThanEqual(Integer level);
 }
