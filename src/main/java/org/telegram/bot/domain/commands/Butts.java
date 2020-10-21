@@ -49,8 +49,10 @@ public class Butts extends CommandParent<SendPhoto> {
         }
         InputStream butts = new ByteArrayInputStream(imageBytes);
 
+        String caption = update.getMessage().getText();
         return new SendPhoto()
-                .setPhoto("Попка", butts)
+                .setPhoto(caption, butts)
+                .setCaption(caption)
                 .setReplyToMessageId(update.getMessage().getMessageId())
                 .setChatId(update.getMessage().getChatId());
     }

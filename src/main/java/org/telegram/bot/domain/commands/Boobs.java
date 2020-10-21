@@ -48,8 +48,10 @@ public class Boobs extends CommandParent<SendPhoto> {
         }
         InputStream boobs = new ByteArrayInputStream(imageBytes);
 
+        String caption = update.getMessage().getText();
         return new SendPhoto()
-                .setPhoto("Сиськи", boobs)
+                .setPhoto(caption, boobs)
+                .setCaption(caption)
                 .setReplyToMessageId(update.getMessage().getMessageId())
                 .setChatId(update.getMessage().getChatId());
     }
