@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201016120600-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="2"/>
+            <column name="commandname" value="level"/>
+            <column name="russifiedname" value="левел"/>
+            <column name="enruname" value="ktdtk"/>
+            <column name="classname" value="level"/>
+            <column name="accesslevel" value="10"/>
+            <column name="help" value="Левел,Изменение уровня доступа к боту для чата или пользователя,[username] level,Левел 5; левел @username 3,Посмотреть текущий уровень можно с помощью команды Помощь без параметров"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <include file="db/changelog/00000000000000_initial_schema.xml"/>
+    <include file="db/changelog/20201007114600_added_entity_Token.xml"/>
+    <include file="db/changelog/20201008114400_added_entity_CommandProperties.xml"/>
+    <include file="db/changelog/20201008121300_added_command_Echo.xml"/>
+    <include file="db/changelog/20201014111200_added_entity_User.xml"/>
+    <include file="db/changelog/20201015111600_added_entity_Chat.xml"/>
+    <include file="db/changelog/20201015164400_added_entity_Speech.xml"/>
+    <include file="db/changelog/20201016120600_added_command_Level.xml"/>
+    <include file="db/changelog/20201020094700_added_command_Boobs.xml"/>
+    <include file="db/changelog/20201020113900_added_command_Butts.xml"/>
+    <include file="db/changelog/20201020160800_added_command_Help.xml"/>
+</databaseChangeLog>

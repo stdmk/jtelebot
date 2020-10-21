@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201015164400-1" author="stdmk">
+        <createTable tableName="speech" schemaName="bot">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tag" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="message" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20201015164400-2" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="1"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="а?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="2"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Чего?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="3"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Где бот?! 😱"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="4"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Нету меня"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="5"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Пара па, па паааа..."/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="6"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Щито?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="7"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Чо хочу?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="8"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Чо надо?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="9"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Нету тут никаких ботов"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="10"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Да-да?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="11"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="👀"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="12"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="😴"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="13"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="😶"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="14"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="👳"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="15"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="💤"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="16"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="🏃"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="17"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="👯"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="18"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="⛄"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="19"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="👻"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="20"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="🔞"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="21"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="🚷"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="22"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="⛔"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="23"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Чо?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="24"/>
+            <column name="tag" value="echo"/>
+            <column name="message" value="Чо блин?"/>
+        </insert>
+
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="25"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="ты что-то неправильно ввёл"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="26"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="что-то тут не так, почитай-ка ты помощь по этой команде"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="27"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="неверный ввод. Читай помощь по команде"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="28"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="по-моему ты ерунду какую-то написал. Посмотри в помощи как нужно было"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="29"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="ты неправильно что-то ввёл. Кури помощь"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="30"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="угу. молодец. а теперь еще раз, только правильно введи команду"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="31"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="🤦‍♂️я не понимаю что ты тут написал"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="32"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="Шарик, ты балбес ©"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="33"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="ничего не понятно. Ты, наверное неправильно параметры указал."/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="34"/>
+            <column name="tag" value="wrongInput"/>
+            <column name="message" value="ошибка! Не могу обработать твою команду. И виноват в этом явно не я"/>
+        </insert>
+
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="35"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="сохранил"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="36"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="запомнил"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="37"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="записал"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="38"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="ок"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="39"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="готово"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="40"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="сделано"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="41"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="да, босс"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="42"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="так точно"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="43"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="принято"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="44"/>
+            <column name="tag" value="saved"/>
+            <column name="message" value="окей"/>
+        </insert>
+
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="45"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="не нашёл в базе данных такого пользователя"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="46"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="кто-кто? Я такого не знаю"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="47"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="кто это ещё такой? Я такого не знаю"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="48"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="впервые слышу о таком пользователе. Может ты ошибся"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="49"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="я не знаю такого. Перепроверь"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="50"/>
+            <column name="tag" value="userNotFount"/>
+            <column name="message" value="ммммм... Наверное ты в username ошибся. Я такого юзера не знаю"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="51"/>
+            <column name="tag" value="NoResponse"/>
+            <column name="message" value="сервис не отвечает. Попробуй позже"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="52"/>
+            <column name="tag" value="NoResponse"/>
+            <column name="message" value="сервис недоступен. Попробуй позже или админам напиши"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="53"/>
+            <column name="tag" value="NoResponse"/>
+            <column name="message" value="не удалось подключиться к сервису. Давай позже ещё раз попробуем"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="54"/>
+            <column name="tag" value="NoResponse"/>
+            <column name="message" value="не удалось получить данные. Давай позже"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="55"/>
+            <column name="tag" value="NoResponse"/>
+            <column name="message" value="что-то нет ответа от сервиса. Давай попозже или пиши админам"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

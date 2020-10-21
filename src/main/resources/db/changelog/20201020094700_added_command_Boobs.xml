@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201020094700-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="3"/>
+            <column name="commandname" value="boobs"/>
+            <column name="russifiedname" value="сиськи"/>
+            <column name="enruname" value="cbcmrb"/>
+            <column name="classname" value="boobs"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Сиськи,Бот присылает случайную фотографию эротического характера,Отсутствуют,сиськи,Картинки берутся с сайта oboobs.ru"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
