@@ -29,7 +29,14 @@ public class Level extends CommandParent<SendMessage> {
         String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
         int i;
         if (textMessage == null) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            Long chatId = update.getMessage().getChatId();
+            if (chatId > 0) {
+                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            }
+            return new SendMessage()
+                    .setChatId(chatId)
+                    .setReplyToMessageId(update.getMessage().getMessageId())
+                    .setText("Уровень этого чата - " + chatService.getChatAccessLevel(chatId));
         } else {
             i = textMessage.indexOf(" ");
         }
