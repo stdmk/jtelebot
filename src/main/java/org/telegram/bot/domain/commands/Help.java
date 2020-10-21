@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.UserService;
@@ -69,14 +70,14 @@ public class Help extends CommandParent<SendMessage> {
 
             return new SendMessage()
                     .setChatId(update.getMessage().getChatId())
-                    .setText(responseText.toString())
-                    .setParseMode("Markdown");
+                    .setParseMode(ParseModes.MARKDOWN.getValue())
+                    .setText(responseText.toString());
         } else {
             log.debug("Request to get help for command: {}", textMessage);
             return new SendMessage()
                     .setChatId(update.getMessage().getChatId())
-                    .setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()))
-                    .setParseMode("Markdown");
+                    .setParseMode(ParseModes.MARKDOWN.getValue())
+                    .setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
         }
     }
 

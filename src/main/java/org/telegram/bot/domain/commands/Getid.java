@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -22,7 +23,7 @@ public class Getid extends CommandParent<SendMessage> {
         return new SendMessage()
                 .setChatId(chatId)
                 .setReplyToMessageId(update.getMessage().getMessageId())
-                .setParseMode("Markdown")
+                .setParseMode(ParseModes.MARKDOWN.getValue())
                 .setText(responseText.toString());
     }
 }
