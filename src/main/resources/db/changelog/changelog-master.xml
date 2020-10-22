@@ -15,4 +15,5 @@
     <include file="db/changelog/20201020113900_added_command_Butts.xml"/>
     <include file="db/changelog/20201020160800_added_command_Help.xml"/>
     <include file="db/changelog/20201021110800_added_command_Getid.xml"/>
+    <include file="db/changelog/20201022174800_added_command_Start.xml"/>
 </databaseChangeLog>
