@@ -10,12 +10,10 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.Token;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.TokenService;
-import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Scanner;
 
@@ -26,7 +24,7 @@ public class Bot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(Bot.class);
 
     private final ApplicationContext context;
-    private final TokenService tokenService;
+    private final PropertiesService propertiesService;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
@@ -75,28 +73,12 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        Token telegramBotApiToken = tokenService.get("telegramBotApiToken");
-        if (telegramBotApiToken == null) {
-            System.out.println("Enter telegram bot api token here: ");
-            Scanner scanner = new Scanner(System.in);
-            String newToken = scanner.nextLine();
-            System.out.println("Enter the telegram id of the future owner of the bot: ");
-            Integer adminId = scanner.nextInt();
-
-            telegramBotApiToken = new Token();
-            telegramBotApiToken.setToken(newToken);
-            telegramBotApiToken.setName("telegramBotApiToken");
-            telegramBotApiToken.setDescription("Telegram bot api token");
-            telegramBotApiToken = tokenService.save(telegramBotApiToken);
-
-            User admin = new User();
-            admin.setUserId(adminId);
-            admin.setUsername("");
-            admin.setAccessLevel(AccessLevels.ADMIN.getValue());
-            userService.save(admin);
+        String telegramBotApiToken = propertiesService.get("telegramBotApiToken");
+        if (telegramBotApiToken.equals("null")) {
+            log.info("Can't find telegram bot api token. See the properties.properties file");
         }
 
-        return telegramBotApiToken.getToken();
+        return telegramBotApiToken;
     }
 
     private User checkUserInfoUpdates(org.telegram.telegrambots.meta.api.objects.User userFrom) {
