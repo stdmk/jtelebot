@@ -8,6 +8,7 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.repositories.CommandPropertiesRepository;
 import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -25,14 +26,7 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     public CommandProperties findCommandInText(String textOfMessage) {
         log.debug("Request to find commands in text {}", textOfMessage);
 
-        Pattern pattern = Pattern.compile("^\\w+(\\W|$)", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher matcher = pattern.matcher(textOfMessage);
-        String nameOfCommand = null;
-        if (matcher.find()) {
-            nameOfCommand = matcher.group(0).trim();
-        }
-
-        return findCommandByName(nameOfCommand);
+        return findCommandByName(TextUtils.getPotentialCommandInText(textOfMessage));
     }
 
     @Override
