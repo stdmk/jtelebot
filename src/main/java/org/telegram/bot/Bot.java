@@ -7,15 +7,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.entities.Token;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.util.Scanner;
+import org.telegram.telegrambots.meta.api.objects.User;
 
 @Component
 @AllArgsConstructor
@@ -28,6 +24,7 @@ public class Bot extends TelegramLongPollingBot {
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
+    private final UserStatsService userStatsService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -36,12 +33,12 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        Long chatId = update.getMessage().getChatId();
-        User user = checkUserInfoUpdates(update.getMessage().getFrom());
+        userStatsService.updateEntitiesInfo(update);
 
-        log.info("From " + chatId + " (" + user.getUsername() + "-" + user.getUserId() + "): " + textOfMessage);
+        User user = update.getMessage().getFrom();
+        log.info("From " + update.getMessage().getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
 
-        AccessLevels userAccessLevel = getCurrentAccessLevel(user.getUserId(), update.getMessage().getChatId());
+        AccessLevels userAccessLevel = getCurrentAccessLevel(user.getId(), update.getMessage().getChatId());
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
             log.info("Banned user. Ignoring...");
             return;
@@ -79,32 +76,6 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         return telegramBotApiToken;
-    }
-
-    private User checkUserInfoUpdates(org.telegram.telegrambots.meta.api.objects.User userFrom) {
-        String username = userFrom.getUserName();
-        if (username == null) {
-            username = userFrom.getFirstName();
-        }
-
-        Integer userId = userFrom.getId();
-
-        User user = userService.get(userId);
-
-        if (user == null) {
-            user = new User();
-            user.setUserId(userId);
-            user.setUsername(username);
-            user.setAccessLevel(AccessLevels.NEWCOMER.getValue());
-            user = userService.save(user);
-        }
-
-        else if (!user.getUsername().equals(username)) {
-            user.setUsername(username);
-            user = userService.save(user);
-        }
-
-        return user;
     }
 
     private AccessLevels getCurrentAccessLevel(Integer userId, Long chatId) {

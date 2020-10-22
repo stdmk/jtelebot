@@ -4,8 +4,8 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <changeSet id="20201022115800-1" author="stdmk">
-        <createTable tableName="chat" schemaName="bot">
-            <column name="id" type="bigint">
+        <createTable tableName="lastmessage" schemaName="bot">
+            <column name="id" autoIncrement="true" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="messageid" type="int">

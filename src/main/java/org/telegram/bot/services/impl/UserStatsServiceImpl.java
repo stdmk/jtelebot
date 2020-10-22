@@ -30,10 +30,10 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final LastMessageService lastMessageService;
 
     @Override
-    public UserStats get(Chat chat, User user) {
-        log.debug("Request to get entity by Chat {} and {} User", chat, user);
+    public UserStats get(Long chatId, Integer userId) {
+        log.debug("Request to get entity by Chat {} and {} User", chatId, userId);
 
-        return userStatsRepository.findByChatAndUser(chat, user);
+        return userStatsRepository.findByChatIdAndUserUserId(chatId, userId);
     }
 
     @Override
@@ -97,6 +97,8 @@ public class UserStatsServiceImpl implements UserStatsService {
             chat = new Chat();
             chat.setChatId(chatId);
             chat.setName(chatName);
+            chat.setAccessLevel(AccessLevels.NEWCOMER.getValue());
+            chat = chatService.save(chat);
         }
 
         else if (!chat.getName().equals(chatName)) {
@@ -108,22 +110,23 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     private void updateUserStats(Chat chat, User user, Message message) {
-        UserStats userStats = get(chat, user);
+        UserStats userStats = get(chat.getChatId(), user.getUserId());
         if (userStats == null) {
             LastMessage lastMessage = new LastMessage();
 
             userStats = new UserStats();
-            userStats.setChat(chat);
+            userStats.setChatId(chat.getChatId());
             userStats.setUser(user);
             userStats.setNumberOfMessages(1);
             userStats.setNumberOfAllMessages(1L);
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
-        }
-        LastMessage lastMessage = userStats.getLastMessage();
+        } else {
+            LastMessage lastMessage = userStats.getLastMessage();
 
-        userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1);
-        userStats.setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
-        userStats.setLastMessage(lastMessageService.update(lastMessage, message));
+            userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1);
+            userStats.setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
+            userStats.setLastMessage(lastMessageService.update(lastMessage, message));
+        }
 
         save(userStats);
     }

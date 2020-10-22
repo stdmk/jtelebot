@@ -16,13 +16,12 @@ public class UserStats {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "userid")
+    @OneToOne(optional = false, mappedBy="userStats")
+    @JoinColumn(name = "userId")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "chatid")
-    private Chat chat;
+    @Column(name = "chatid")
+    private Long chatId;
 
     @Column(name = "numberofmessages")
     private Integer numberOfMessages;
@@ -30,7 +29,7 @@ public class UserStats {
     @Column(name = "numberofallmessages")
     private Long numberOfAllMessages;
 
-    @ManyToOne
-    @JoinColumn(name = "lastMessage")
+    @OneToOne
+    @JoinColumn(name = "lastmessage")
     private LastMessage lastMessage;
 }

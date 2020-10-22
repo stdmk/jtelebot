@@ -20,4 +20,8 @@ public class User {
 
     @Column(name = "accesslevel")
     private Integer accessLevel;
+
+    @OneToOne
+    @JoinColumn(name="userstats")
+    private UserStats userStats;
 }

@@ -13,11 +13,11 @@ public interface UserStatsService {
 
     /**
      * Get UserStats by Chat and User.
-     * @param chat - current chat entity.
-     * @param user - current user entity.
+     * @param chatId - current chat id.
+     * @param userId - current user id.
      * @return the persisted entity.
      */
-    UserStats get(Chat chat, User user);
+    UserStats get(Long chatId, Integer userId);
 
     /**
      * Save the UserStats.

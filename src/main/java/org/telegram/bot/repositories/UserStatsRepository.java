@@ -5,6 +5,8 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 
+import java.util.LinkedHashMap;
+
 public interface UserStatsRepository extends JpaRepository<UserStats, Long> {
-    UserStats findByChatAndUser(Chat chat, User user);
+    UserStats findByChatIdAndUserUserId(Long chatId, Integer userId);
 }
