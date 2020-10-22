@@ -21,28 +21,13 @@ public class Getid extends CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         StringBuilder responseText = new StringBuilder();
-
         Long chatId = update.getMessage().getChatId();
-        Integer userId = update.getMessage().getFrom().getId();
-        int adminId;
-        try {
-            adminId = Integer.parseInt(propertiesService.get("adminId"));
-        } catch (Exception e) {
-            adminId = 0;
-        }
-
-        User user = userService.get(userId);
-        if (user.getUserId().equals(adminId) && !user.getAccessLevel().equals(AccessLevels.ADMIN.getValue())) {
-            user.setAccessLevel(AccessLevels.ADMIN.getValue());
-            userService.save(user);
-            responseText.append("Права администратора успешно назначены\n");
-        }
 
         if (chatId < 0) {
             responseText.append("Айди этого чата: `").append(chatId).append("`\n");
         }
 
-        responseText.append("Твой айди: `").append(userId).append("`");
+        responseText.append("Твой айди: `").append(update.getMessage().getFrom().getId()).append("`");
 
         return new SendMessage()
                 .setChatId(chatId)

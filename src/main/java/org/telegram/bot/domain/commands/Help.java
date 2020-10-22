@@ -1,26 +1,23 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.util.csv.CSVReader;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.PropertiesService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @AllArgsConstructor
@@ -31,14 +28,20 @@ public class Help extends CommandParent<SendMessage> {
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
+    private final PropertiesService propertiesService;
 
     @Override
     public SendMessage parse(Update update) {
         String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
 
         if (textMessage == null || textMessage.length() == 0) {
-            log.debug("Requst to get general help");
             StringBuilder responseText = new StringBuilder();
+            if (checkIsThatAdmin(update)) {
+                responseText.append("Права администратора успешно предоставлены\n\n");
+            }
+
+            log.debug("Requst to get general help");
+
             responseText.append("*Без паники!*\n");
 
             Integer accessLevel;
@@ -99,5 +102,24 @@ public class Help extends CommandParent<SendMessage> {
         preparedText.append("Примечания*:* ").append(helpData.substring(examplesEndIndex + 1));
 
         return preparedText.toString();
+    }
+
+    private Boolean checkIsThatAdmin(Update update) {
+        Integer userId = update.getMessage().getFrom().getId();
+        int adminId;
+        try {
+            adminId = Integer.parseInt(propertiesService.get("adminId"));
+        } catch (Exception e) {
+            return false;
+        }
+
+        User user = userService.get(userId);
+        if (user.getUserId().equals(adminId) && !user.getAccessLevel().equals(AccessLevels.ADMIN.getValue())) {
+            user.setAccessLevel(AccessLevels.ADMIN.getValue());
+            userService.save(user);
+            return true;
+        }
+
+        return false;
     }
 }
