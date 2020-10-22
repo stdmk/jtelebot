@@ -33,17 +33,6 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Integer getChatAccessLevel(Long chatId) {
         log.debug("Request to get chatLevel for chatId {} ", chatId);
-        if (chatId > 0) {
-            return AccessLevels.NEWCOMER.getValue();
-        }
-        Chat chat = get(chatId);
-        if (chat == null) {
-            Chat newChat = new Chat();
-            newChat.setChatId(chatId);
-            newChat.setAccessLevel(AccessLevels.NEWCOMER.getValue());
-            return save(newChat).getAccessLevel();
-        }
-
-        return chat.getAccessLevel();
+        return get(chatId).getAccessLevel();
     }
 }
