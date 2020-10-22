@@ -35,7 +35,7 @@ public class TextUtils {
         Pattern pattern = Pattern.compile("^\\w+(\\W|$)", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
-            return matcher.group(0).trim();
+            return matcher.group(0).trim().replaceAll("\\W$", "");
         }
 
         return null;
