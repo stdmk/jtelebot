@@ -14,9 +14,6 @@
             <column name="accesslevel" type="int">
                 <constraints nullable="true" />
             </column>
-            <column name="userstats" type="int">
-                <constraints nullable="true" />
-            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>

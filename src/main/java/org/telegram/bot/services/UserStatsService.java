@@ -5,6 +5,8 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.UserStats}.
  */
@@ -32,4 +34,12 @@ public interface UserStatsService {
      * @param update - received from api update.
      */
     void updateEntitiesInfo(Update update);
+
+    /**
+     * Get list of users of chat.
+     *
+     * @param chatId - id of chat with users
+     * @return list of users of chat
+     */
+    List<UserStats> getUsersByChatId(Long chatId);
 }

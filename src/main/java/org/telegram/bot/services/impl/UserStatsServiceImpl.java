@@ -17,6 +17,9 @@ import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import javax.transaction.Transactional;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class UserStatsServiceImpl implements UserStatsService {
@@ -44,11 +47,18 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    @Transactional
     public void updateEntitiesInfo(Update update) {
         log.debug("Request to updates entities info");
         User user = updateUserInfo(update.getMessage().getFrom());
         Chat chat = updateChatInfo(update.getMessage().getChat());
         updateUserStats(chat, user, update.getMessage());
+    }
+
+    @Override
+    public List<UserStats> getUsersByChatId(Long chatId) {
+        log.debug("Request to get users of chat with id {}", chatId);
+        return userStatsRepository.findByChatId(chatId);
     }
 
     private User updateUserInfo(org.telegram.telegrambots.meta.api.objects.User userFrom) {

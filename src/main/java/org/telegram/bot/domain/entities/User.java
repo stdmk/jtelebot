@@ -3,6 +3,7 @@ package org.telegram.bot.domain.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * User entity.
@@ -21,7 +22,6 @@ public class User {
     @Column(name = "accesslevel")
     private Integer accessLevel;
 
-    @OneToOne
-    @JoinColumn(name="userstats")
-    private UserStats userStats;
+    @OneToMany(mappedBy = "user")
+    private Set<UserStats> userStats;
 }

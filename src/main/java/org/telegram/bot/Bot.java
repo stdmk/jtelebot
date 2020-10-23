@@ -7,7 +7,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;

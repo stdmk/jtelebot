@@ -16,8 +16,8 @@ public class UserStats {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false, mappedBy="userStats")
-    @JoinColumn(name = "userId")
+    @ManyToOne
+    @JoinColumn(name = "userid", nullable = false)
     private User user;
 
     @Column(name = "chatid")
