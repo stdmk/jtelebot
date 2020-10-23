@@ -7,15 +7,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.entities.Token;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.Scanner;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 @Component
 @AllArgsConstructor
@@ -24,7 +24,7 @@ public class Bot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(Bot.class);
 
     private final ApplicationContext context;
-    private final PropertiesService propertiesService;
+    private final PropertiesConfig propertiesConfig;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
@@ -73,9 +73,10 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        String telegramBotApiToken = propertiesService.get("telegramBotApiToken");
-        if (telegramBotApiToken.equals("null")) {
+        String telegramBotApiToken = propertiesConfig.getTelegramBotApiToken();
+        if (telegramBotApiToken.equals("")) {
             log.info("Can't find telegram bot api token. See the properties.properties file");
+            createDefaulPropertiesFile();
         }
 
         return telegramBotApiToken;
@@ -127,5 +128,16 @@ public class Bot extends TelegramLongPollingBot {
 
     private Boolean isUserHaveAccessForCommand(Integer userAccessLevel, Integer commandAccessLevel) {
         return userAccessLevel >= commandAccessLevel;
+    }
+
+    private void createDefaulPropertiesFile() {
+        Properties properties = new Properties();
+        properties.setProperty("telegramBotApiToken", "");
+        properties.setProperty("adminId", "0");
+        try {
+            properties.store(new FileOutputStream("properties.properties"), null);
+        } catch (IOException fileNotFoundException) {
+            fileNotFoundException.printStackTrace();
+        }
     }
 }
