@@ -29,10 +29,19 @@ public class TextUtils {
      * @return potential command without rest text.
      */
     public static String getPotentialCommandInText(String text) {
+        if (text.charAt(0) == '/') {
+            text = text.substring(1);
+        }
         Pattern pattern = Pattern.compile("^\\w+(\\W|$)", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
-            return matcher.group(0).trim();
+            String buf = matcher.group(0).trim();
+            pattern = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
+            matcher = pattern.matcher(buf);
+            if (matcher.find()) {
+                return buf.substring(0, buf.length() - 1);
+            }
+            return buf;
         }
 
         return null;
