@@ -9,10 +9,7 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.PropertiesService;
-import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -28,7 +25,7 @@ public class Help extends CommandParent<SendMessage> {
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
-    private final PropertiesService propertiesService;
+    private final PropertiesConfig propertiesConfig;
 
     @Override
     public SendMessage parse(Update update) {
@@ -106,9 +103,9 @@ public class Help extends CommandParent<SendMessage> {
 
     private Boolean checkIsThatAdmin(Update update) {
         Integer userId = update.getMessage().getFrom().getId();
-        int adminId;
+        Integer adminId;
         try {
-            adminId = Integer.parseInt(propertiesService.get("adminId"));
+            adminId = propertiesConfig.getAdminId();
         } catch (Exception e) {
             return false;
         }
