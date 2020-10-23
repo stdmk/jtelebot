@@ -77,6 +77,13 @@ public class Top extends CommandParent<SendMessage> {
         StringBuilder responseText = new StringBuilder();
         List<UserStats> userList = userStatsService.getUsersByChatId(chatId);
 
+        int spacesCount = userList.stream()
+                .map(UserStats::getNumberOfMessages)
+                .max(Integer::compareTo)
+                .orElse(6)
+                .toString()
+                .length();
+
         if (param.equals(PARAMS.get(0))) {
             userList = userList.stream()
                     .sorted(Comparator.comparing(UserStats::getNumberOfMessages).reversed())
@@ -91,7 +98,7 @@ public class Top extends CommandParent<SendMessage> {
         AtomicInteger counter = new AtomicInteger(1);
         responseText.append("*Топ по общению за ").append(param).append(":*\n```\n");
         userList.forEach(userStats -> responseText.append(counter.getAndIncrement()).append(") ")
-                .append(userStats.getNumberOfMessages()).append(" ")
+                .append(String.format("%-" + spacesCount + "s", userStats.getNumberOfMessages().toString())).append(" ")
                 .append(userStats.getUser().getUsername()).append("\n"));
 
         return responseText.append("```").toString();
