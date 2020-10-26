@@ -11,7 +11,7 @@
             <column name="messageid" type="int">
                 <constraints nullable="true" />
             </column>
-            <column name="text" type="varchar(255)">
+            <column name="text" type="varchar(5000)">
                 <constraints nullable="true" />
             </column>
             <column name="date" type="datetime">

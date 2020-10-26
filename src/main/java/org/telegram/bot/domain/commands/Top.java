@@ -58,6 +58,13 @@ public class Top extends CommandParent<SendMessage> {
                 .setText(responseText);
     }
 
+    public SendMessage getTopByChatId(Long chatId) {
+        return new SendMessage()
+                .setChatId(chatId)
+                .setParseMode(ParseModes.MARKDOWN.getValue())
+                .setText(getTopListOfUsers(chatId, PARAMS.get(0)));
+    }
+
     private String getTopOfUsername(Long chatId, String username) throws BotException {
         log.debug("Request to get top of user by username {}", username);
         User user = userService.get(username);

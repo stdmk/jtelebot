@@ -3,24 +3,15 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <changeSet id="20201022120000-1" author="stdmk">
-        <createTable tableName="userstats" schemaName="bot">
+    <changeSet id="20201026115200-1" author="stdmk">
+        <createTable tableName="timer" schemaName="bot">
             <column name="id" autoIncrement="true" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="userid" type="bigint">
+            <column name="name" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
-            <column name="chatid" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <column name="numberofmessages" type="int">
-                <constraints nullable="true" />
-            </column>
-            <column name="numberofallmessages" type="int">
-                <constraints nullable="true" />
-            </column>
-            <column name="lastMessage" type="int">
+            <column name="lastalarmdt" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
         </createTable>

@@ -1,8 +1,7 @@
 package org.telegram.bot.services;
 
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
@@ -20,6 +19,12 @@ public interface UserStatsService {
      * @return the persisted entity.
      */
     UserStats get(Long chatId, Integer userId);
+
+    /**
+     * Get all group UserStats.
+     * @return the persisted entities.
+     */
+    List<UserStats> getAllGroupStats();
 
     /**
      * Save the UserStats.
@@ -42,4 +47,11 @@ public interface UserStatsService {
      * @return list of users of chat
      */
     List<UserStats> getUsersByChatId(Long chatId);
+
+    /**
+     * Clear user stats by last Month.
+     *
+     * @return list of tops for send its to chats
+     */
+    List<SendMessage> clearMonthlyStats();
 }

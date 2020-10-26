@@ -5,9 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.repositories.ChatRepository;
 import org.telegram.bot.services.ChatService;
+
+import java.util.List;
 
 
 @Service
@@ -22,6 +23,12 @@ public class ChatServiceImpl implements ChatService {
     public Chat get(Long chatId) {
         log.debug("Request to get Chat by chatId: {} ", chatId);
         return chatRepository.findByChatId(chatId);
+    }
+
+    @Override
+    public List<Chat> getAllGroups() {
+        log.debug("Request to get all group-chats");
+        return chatRepository.findByChatIdLessThan(0);
     }
 
     @Override
