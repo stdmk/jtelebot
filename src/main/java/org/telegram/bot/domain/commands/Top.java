@@ -75,7 +75,7 @@ public class Top extends CommandParent<SendMessage> {
         UserStats userStats = userStatsService.get(chatId, user.getUserId());
 
         return "*" + user.getUsername() + "*\n" +
-                "Сообщений: " + userStats.getNumberOfMessages() +
+                "Сообщений: " + userStats.getNumberOfMessages() + "\n" +
                 "Всего сообщений: " + userStats.getNumberOfAllMessages();
     }
 

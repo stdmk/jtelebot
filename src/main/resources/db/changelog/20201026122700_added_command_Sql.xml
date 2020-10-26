@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201026122700-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="9"/>
+            <column name="commandname" value="sql"/>
+            <column name="russifiedname" value="скл"/>
+            <column name="enruname" value="crk"/>
+            <column name="classname" value="sql"/>
+            <column name="accesslevel" value="10"/>
+            <column name="help" value="SQL,Обработка sql-запросов,запрос,sql drop schema bot,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
