@@ -39,9 +39,9 @@ public class TextUtils {
             pattern = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
             matcher = pattern.matcher(buf);
             if (matcher.find()) {
-                return buf.substring(0, buf.length() - 1);
+                return buf.substring(0, buf.length() - 1).toLowerCase();
             }
-            return buf;
+            return buf.toLowerCase();
         }
 
         return null;

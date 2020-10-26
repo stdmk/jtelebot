@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201023123456-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="8"/>
+            <column name="commandname" value="top"/>
+            <column name="russifiedname" value="топ"/>
+            <column name="enruname" value="njg"/>
+            <column name="classname" value="top"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Топ,Различная статистика пользователей,@username; месяц;,Топ месяц; топ @username,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

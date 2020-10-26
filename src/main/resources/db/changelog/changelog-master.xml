@@ -15,5 +15,9 @@
     <include file="db/changelog/20201020113900_added_command_Butts.xml"/>
     <include file="db/changelog/20201020160800_added_command_Help.xml"/>
     <include file="db/changelog/20201021110800_added_command_Getid.xml"/>
+    <include file="db/changelog/20201022115800_added_entity_LastMessage.xml"/>
+    <include file="db/changelog/20201022120000_added_entity_UserStats.xml"/>
     <include file="db/changelog/20201022174800_added_command_Start.xml"/>
+    <include file="db/changelog/20201023123456_added_command_Top.xml"/>
+    <include file="db/changelog/20201026115200_added_entity_Timer.xml"/>
 </databaseChangeLog>

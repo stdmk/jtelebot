@@ -2,6 +2,8 @@ package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Chat;
 
+import java.util.List;
+
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.User}.
  */
@@ -15,6 +17,13 @@ public interface ChatService {
      * @return the persisted entity.
      */
     Chat get(Long chatId);
+
+    /**
+     * Get all chat-groups.
+     *
+     * @return the persisted entities.
+     */
+    List<Chat> getAllGroups();
 
     /**
      * Save a Chat.

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20201026115200-1" author="stdmk">
+        <createTable tableName="timer" schemaName="bot">
+            <column name="id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="lastalarmdt" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
