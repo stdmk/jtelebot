@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
+
 @Component
 @AllArgsConstructor
 public class Top extends CommandParent<SendMessage> {
@@ -37,7 +39,7 @@ public class Top extends CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) throws BotException {
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
         String responseText;
 
         //TODO переделать на айди, если пользователь без юзернейма

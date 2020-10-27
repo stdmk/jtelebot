@@ -10,9 +10,10 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TodoService;
 import org.telegram.bot.services.UserService;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
 
 @Component
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class Todo extends CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) throws BotException {
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
         String responseText;
         if (textMessage == null) {
             log.debug("Request to get all todo list");

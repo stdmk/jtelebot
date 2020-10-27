@@ -7,9 +7,10 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Speech;
 import org.telegram.bot.repositories.SpeechRepository;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.MathUtils;
 
 import java.util.List;
+
+import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +25,6 @@ public class SpeechServiceImpl implements SpeechService {
         log.debug("Request to get random speech message by tag: {}", tag);
         List<Speech> speeches = speechRepository.findByTag(tag);
 
-        return speeches.get(MathUtils.getRandomInRange(0, speeches.size())).getMessage();
+        return speeches.get(getRandomInRange(0, speeches.size())).getMessage();
     }
 }

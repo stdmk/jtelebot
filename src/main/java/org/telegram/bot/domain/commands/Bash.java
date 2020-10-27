@@ -10,9 +10,11 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
+import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
 @Component
 @AllArgsConstructor
@@ -24,7 +26,7 @@ public class Bash extends CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) throws Exception {
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
         String quot;
 
         if (textMessage == null) {
@@ -90,7 +92,7 @@ public class Bash extends CommandParent<SendMessage> {
     }
 
     private String buildResultMessage(String quot, String quotNumber) {
-        quot = TextUtils.cutMarkdownSymbolsInText(quot);
+        quot = cutMarkdownSymbolsInText(quot);
         quot = quot.replace("&lt;", "<").replace("&gt;", ">");
         return "[Цитата #" + quotNumber + "](http://bash.im/quote/" + quotNumber + ")\n" + quot;
     }

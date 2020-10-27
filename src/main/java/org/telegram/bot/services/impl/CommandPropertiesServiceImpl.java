@@ -8,11 +8,10 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.repositories.CommandPropertiesRepository;
 import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 
 @Service
 @AllArgsConstructor
@@ -26,7 +25,7 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     public CommandProperties findCommandInText(String textOfMessage) {
         log.debug("Request to find commands in text {}", textOfMessage);
 
-        return findCommandByName(TextUtils.getPotentialCommandInText(textOfMessage));
+        return findCommandByName(getPotentialCommandInText(textOfMessage));
     }
 
     @Override

@@ -6,7 +6,6 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -14,6 +13,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
 
 @Component
 @AllArgsConstructor
@@ -27,7 +28,7 @@ public class Sql extends CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) throws Exception {
         String responseText;
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
         if (textMessage == null || textMessage.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
         }

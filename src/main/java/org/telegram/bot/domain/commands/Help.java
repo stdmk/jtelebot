@@ -10,11 +10,12 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.*;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
+
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
 
 @Component
 @AllArgsConstructor
@@ -29,7 +30,7 @@ public class Help extends CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
 
         if (textMessage == null || textMessage.length() == 0) {
             StringBuilder responseText = new StringBuilder();

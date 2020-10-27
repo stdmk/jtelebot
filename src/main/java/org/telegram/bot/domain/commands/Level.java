@@ -12,7 +12,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.bot.utils.TextUtils;
+
+import static org.telegram.bot.utils.TextUtils.cutCommandInText;
 
 @Component
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class Level extends CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) throws Exception {
-        String textMessage = TextUtils.cutCommandInText(update.getMessage().getText());
+        String textMessage = cutCommandInText(update.getMessage().getText());
         int i;
         if (textMessage == null) {
             Long chatId = update.getMessage().getChatId();

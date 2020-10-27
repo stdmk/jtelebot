@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import org.telegram.bot.utils.MathUtils;
+import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @AllArgsConstructor
@@ -37,13 +37,15 @@ public class Boobs extends CommandParent<SendPhoto> {
 
         BoobsCount[] boobsCounts = response.getBody();
         if (boobsCounts == null) {
+            log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
-        Integer numberOfPhoto = MathUtils.getRandomInRange(1, boobsCounts[0].getCount());
+        Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
         byte[] imageBytes = restTemplate.getForObject(BOOBS_IMAGE_URL + nameOfImage, byte[].class);
         if (imageBytes == null) {
+            log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
         InputStream boobs = new ByteArrayInputStream(imageBytes);

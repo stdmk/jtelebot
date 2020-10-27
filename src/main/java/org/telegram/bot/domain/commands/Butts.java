@@ -7,18 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.MathUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.generics.BotSession;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
+
+import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @AllArgsConstructor
@@ -38,13 +37,15 @@ public class Butts extends CommandParent<SendPhoto> {
 
         Butts.ButtsCount[] buttsCounts = response.getBody();
         if (buttsCounts == null) {
+            log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
-        Integer numberOfPhoto = MathUtils.getRandomInRange(1, buttsCounts[0].getCount());
+        Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
         byte[] imageBytes = restTemplate.getForObject(BUTTS_IMAGE_URL + nameOfImage, byte[].class);
         if (imageBytes == null) {
+            log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
         InputStream butts = new ByteArrayInputStream(imageBytes);
