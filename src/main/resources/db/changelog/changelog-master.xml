@@ -21,4 +21,5 @@
     <include file="db/changelog/20201023123456_added_command_Top.xml"/>
     <include file="db/changelog/20201026115200_added_entity_Timer.xml"/>
     <include file="db/changelog/20201026122700_added_command_Sql.xml"/>
+    <include file="db/changelog/20201027091500_added_command_Bash.xml"/>
 </databaseChangeLog>

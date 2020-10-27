@@ -46,4 +46,8 @@ public class TextUtils {
 
         return null;
     }
+
+    public static String cutMarkdownSymbolsInText(String text) {
+        return text.replaceAll("[*_`\\[\\]()]", "").replaceAll("<.*?>","");
+    }
 }
