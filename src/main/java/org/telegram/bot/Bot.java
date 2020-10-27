@@ -13,10 +13,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 @Component
 @AllArgsConstructor
 public class Bot extends TelegramLongPollingBot {
@@ -77,7 +73,6 @@ public class Bot extends TelegramLongPollingBot {
         String telegramBotApiToken = propertiesConfig.getTelegramBotApiToken();
         if (telegramBotApiToken.equals("")) {
             log.info("Can't find telegram bot api token. See the properties.properties file");
-            createDefaulPropertiesFile();
         }
 
         return telegramBotApiToken;
@@ -103,16 +98,5 @@ public class Bot extends TelegramLongPollingBot {
 
     private Boolean isUserHaveAccessForCommand(Integer userAccessLevel, Integer commandAccessLevel) {
         return userAccessLevel >= commandAccessLevel;
-    }
-
-    private void createDefaulPropertiesFile() {
-        Properties properties = new Properties();
-        properties.setProperty("telegramBotApiToken", "");
-        properties.setProperty("adminId", "0");
-        try {
-            properties.store(new FileOutputStream("properties.properties"), null);
-        } catch (IOException fileNotFoundException) {
-            fileNotFoundException.printStackTrace();
-        }
     }
 }
