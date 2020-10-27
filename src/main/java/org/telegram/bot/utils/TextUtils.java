@@ -4,23 +4,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextUtils {
-    /**
-     * Cuts a command from text.
-     *
-     * @param text - text to be processed.
-     * @return text without command.
-     */
-    public static String cutCommandInText(String text) {
-        String cuttedText = getPotentialCommandInText(text);
-        if (cuttedText != null) {
-            if (text.equals(cuttedText)) {
-                return null;
-            }
-            return text.replace(cuttedText, "").substring(1);
-        }
-
-        return null;
-    }
 
     /**
      * Gets a potential command from text.

@@ -13,12 +13,11 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import static org.telegram.bot.utils.TextUtils.cutCommandInText;
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
 @Component
 @AllArgsConstructor
-public class Bash extends CommandParent<SendMessage> {
+public class Bash implements CommandParent<SendMessage> {
 
     private final Logger log = LoggerFactory.getLogger(Bash.class);
 

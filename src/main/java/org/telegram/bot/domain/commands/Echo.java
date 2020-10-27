@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @AllArgsConstructor
-public class Echo extends CommandParent<SendMessage> {
+public class Echo implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override

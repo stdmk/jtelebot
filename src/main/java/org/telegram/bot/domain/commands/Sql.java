@@ -14,11 +14,9 @@ import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.telegram.bot.utils.TextUtils.cutCommandInText;
-
 @Component
 @AllArgsConstructor
-public class Sql extends CommandParent<SendMessage> {
+public class Sql implements CommandParent<SendMessage> {
 
     @PersistenceContext
     EntityManager entityManager;

@@ -23,11 +23,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.cutCommandInText;
-
 @Component
 @AllArgsConstructor
-public class Top extends CommandParent<SendMessage> {
+public class Top implements CommandParent<SendMessage> {
 
     private final Logger log = LoggerFactory.getLogger(Top.class);
 

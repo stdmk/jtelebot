@@ -13,11 +13,9 @@ import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import static org.telegram.bot.utils.TextUtils.cutCommandInText;
-
 @Component
 @AllArgsConstructor
-public class Level extends CommandParent<SendMessage> {
+public class Level implements CommandParent<SendMessage> {
 
     private final Logger log = LoggerFactory.getLogger(Level.class);
 

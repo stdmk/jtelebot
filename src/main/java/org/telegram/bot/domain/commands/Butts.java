@@ -21,7 +21,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @AllArgsConstructor
-public class Butts extends CommandParent<SendPhoto> {
+public class Butts implements CommandParent<SendPhoto> {
 
     private final Logger log = LoggerFactory.getLogger(Butts.class);
 

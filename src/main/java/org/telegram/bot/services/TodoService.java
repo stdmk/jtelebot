@@ -1,7 +1,6 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Todo;
-import org.telegram.bot.domain.entities.User;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public interface TodoService {
     Todo get(Long todoId);
 
     /**
-     * Save a User.
+     * Save a Todo.
      *
      * @param todo the entity to save.
      * @return the persisted entity.

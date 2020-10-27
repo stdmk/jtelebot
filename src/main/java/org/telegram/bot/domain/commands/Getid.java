@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @AllArgsConstructor
-public class Getid extends CommandParent<SendMessage> {
+public class Getid implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {

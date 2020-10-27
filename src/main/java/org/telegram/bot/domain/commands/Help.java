@@ -15,11 +15,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
-import static org.telegram.bot.utils.TextUtils.cutCommandInText;
-
 @Component
 @AllArgsConstructor
-public class Help extends CommandParent<SendMessage> {
+public class Help implements CommandParent<SendMessage> {
 
     private final Logger log = LoggerFactory.getLogger(Help.class);
 
