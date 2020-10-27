@@ -94,9 +94,9 @@ public class Help extends CommandParent<SendMessage> {
         preparedText.append("*Параметры:* ").append(helpData, descEndIndex + 1, paramsEndIndex).append("\n");
 
         int examplesEndIndex = helpData.indexOf(",", paramsEndIndex + 1);
-        preparedText.append("Примеры*:* ").append(helpData, paramsEndIndex + 1, examplesEndIndex).append("\n");
+        preparedText.append("*Примеры:* ").append(helpData, paramsEndIndex + 1, examplesEndIndex).append("\n");
 
-        preparedText.append("Примечания*:* ").append(helpData.substring(examplesEndIndex + 1));
+        preparedText.append("*Примечания:* ").append(helpData.substring(examplesEndIndex + 1));
 
         return preparedText.toString();
     }
