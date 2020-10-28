@@ -12,10 +12,10 @@ public interface CommandParent<T extends PartialBotApiMethod> {
     default String cutCommandInText(String text) {
         String cuttedText = getPotentialCommandInText(text);
         if (cuttedText != null) {
-            if (text.equals(cuttedText)) {
+            if (text.toLowerCase().equals(cuttedText)) {
                 return null;
             }
-            return text.replace(cuttedText, "").substring(1);
+            return text.replace(cuttedText, "").substring(1).toLowerCase();
         }
 
         return null;
