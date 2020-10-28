@@ -29,6 +29,54 @@ public class UserStats {
     @Column(name = "numberofallmessages")
     private Long numberOfAllMessages;
 
+    @Column(name = "numberofphotos")
+    private Integer numberOfPhotos;
+
+    @Column(name = "numberofallphotos")
+    private Long numberOfAllPhotos;
+
+    @Column(name = "numberofanimations")
+    private Integer numberOfAnimations;
+
+    @Column(name = "numberofallanimations")
+    private Long numberOfAllAnimations;
+
+    @Column(name = "numberofaudio")
+    private Integer numberOfAudio;
+
+    @Column(name = "numberofallaudio")
+    private Long numberOfAllAudio;
+
+    @Column(name = "numberofdocuments")
+    private Integer numberOfDocuments;
+
+    @Column(name = "numberofalldocuments")
+    private Long numberOfAllDocuments;
+
+    @Column(name = "numberofvideos")
+    private Integer numberOfVideos;
+
+    @Column(name = "numberofallvideos")
+    private Long numberOfAllVideos;
+
+    @Column(name = "numberofvideonotes")
+    private Integer numberOfVideoNotes;
+
+    @Column(name = "numberofallvideonotes")
+    private Long numberOfAllVideoNotes;
+
+    @Column(name = "numberofvoices")
+    private Integer numberOfVoices;
+
+    @Column(name = "numberofallvoices")
+    private Long numberOfAllVoices;
+
+    @Column(name = "numberofcommands")
+    private Integer numberOfCommands;
+
+    @Column(name = "numberofallcommands")
+    private Long numberOfAllCommands;
+
     @OneToOne
     @JoinColumn(name = "lastmessage")
     private LastMessage lastMessage;

@@ -23,17 +23,11 @@ public class Bot extends TelegramLongPollingBot {
     private final PropertiesConfig propertiesConfig;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
-    private final ChatService chatService;
     private final UserStatsService userStatsService;
 
     @Override
     public void onUpdateReceived(Update update) {
         String textOfMessage = update.getMessage().getText();
-        if (textOfMessage == null || textOfMessage.equals("")) {
-            return;
-        }
-
-        userStatsService.updateEntitiesInfo(update);
 
         User user = update.getMessage().getFrom();
         log.info("From " + update.getMessage().getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
@@ -41,6 +35,12 @@ public class Bot extends TelegramLongPollingBot {
         AccessLevels userAccessLevel = userService.getCurrentAccessLevel(user.getId(), update.getMessage().getChatId());
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
             log.info("Banned user. Ignoring...");
+            return;
+        }
+
+        userStatsService.updateEntitiesInfo(update);
+
+        if (textOfMessage == null || textOfMessage.equals("")) {
             return;
         }
 
@@ -57,6 +57,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
+            userStatsService.incrementUserStatsCommands(update.getMessage().getChatId(), user.getId());
             Parser parser = new Parser(this, command, update);
             parser.start();
         }

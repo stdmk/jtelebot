@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20201028114400" author="stdmk">
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofphotos" type="int"/>
+            <column name="numberofallphotos" type="bigint"/>
+            <column name="numberofanimations" type="int"/>
+            <column name="numberofallanimations" type="bigint"/>
+            <column name="numberofaudio" type="int"/>
+            <column name="numberofallaudio" type="bigint"/>
+            <column name="numberofdocuments" type="int"/>
+            <column name="numberofalldocuments" type="bigint"/>
+            <column name="numberofvideos" type="int"/>
+            <column name="numberofallvideos" type="bigint"/>
+            <column name="numberofvideonotes" type="int"/>
+            <column name="numberofallvideonotes" type="bigint"/>
+            <column name="numberofvoices" type="int"/>
+            <column name="numberofallvoices" type="bigint"/>
+            <column name="numberofcommands" type="int"/>
+            <column name="numberofallcommands" type="bigint"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
