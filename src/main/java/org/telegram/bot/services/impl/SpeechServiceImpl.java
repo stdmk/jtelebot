@@ -24,6 +24,9 @@ public class SpeechServiceImpl implements SpeechService {
     public String getRandomMessageByTag(String tag) {
         log.debug("Request to get random speech message by tag: {}", tag);
         List<Speech> speeches = speechRepository.findByTag(tag);
+        if (speeches.isEmpty()) {
+            return "что-то пошло не так";
+        }
 
         return speeches.get(getRandomInRange(0, speeches.size())).getMessage();
     }

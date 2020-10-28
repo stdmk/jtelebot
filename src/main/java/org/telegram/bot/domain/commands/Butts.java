@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
@@ -43,7 +44,14 @@ public class Butts implements CommandParent<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        byte[] imageBytes = restTemplate.getForObject(BUTTS_IMAGE_URL + nameOfImage, byte[].class);
+        byte[] imageBytes;
+        try {
+            imageBytes = restTemplate.getForObject(BUTTS_IMAGE_URL + nameOfImage, byte[].class);
+        } catch (RestClientException e) {
+            log.debug("No response from service");
+            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+        }
+
         if (imageBytes == null) {
             log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));

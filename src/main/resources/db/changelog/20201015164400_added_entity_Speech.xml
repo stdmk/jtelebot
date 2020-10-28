@@ -274,27 +274,27 @@
         </insert>
         <insert schemaName="bot" tableName="speech">
             <column name="id" value="51"/>
-            <column name="tag" value="NoResponse"/>
+            <column name="tag" value="noResponse"/>
             <column name="message" value="сервис не отвечает. Попробуй позже"/>
         </insert>
         <insert schemaName="bot" tableName="speech">
             <column name="id" value="52"/>
-            <column name="tag" value="NoResponse"/>
+            <column name="tag" value="noResponse"/>
             <column name="message" value="сервис недоступен. Попробуй позже или админам напиши"/>
         </insert>
         <insert schemaName="bot" tableName="speech">
             <column name="id" value="53"/>
-            <column name="tag" value="NoResponse"/>
+            <column name="tag" value="noResponse"/>
             <column name="message" value="не удалось подключиться к сервису. Давай позже ещё раз попробуем"/>
         </insert>
         <insert schemaName="bot" tableName="speech">
             <column name="id" value="54"/>
-            <column name="tag" value="NoResponse"/>
+            <column name="tag" value="noResponse"/>
             <column name="message" value="не удалось получить данные. Давай позже"/>
         </insert>
         <insert schemaName="bot" tableName="speech">
             <column name="id" value="55"/>
-            <column name="tag" value="NoResponse"/>
+            <column name="tag" value="noResponse"/>
             <column name="message" value="что-то нет ответа от сервиса. Давай попозже или пиши админам"/>
         </insert>
     </changeSet>

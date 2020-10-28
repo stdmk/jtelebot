@@ -48,9 +48,8 @@ public class Parser extends Thread {
                         .setChatId(update.getMessage().getChatId())
                         .setText(botException.getMessage()));
             } catch (TelegramApiException e) {
-            log.error("Error: cannot send response: {}", e.getMessage());
+                log.error("Error: cannot send response: {}", e.getMessage());
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
