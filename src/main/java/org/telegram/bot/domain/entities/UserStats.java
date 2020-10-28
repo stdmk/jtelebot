@@ -29,6 +29,12 @@ public class UserStats {
     @Column(name = "numberofallmessages")
     private Long numberOfAllMessages;
 
+    @Column(name = "numberofstickers")
+    private Integer numberOfStickers;
+
+    @Column(name = "numberofallstickers")
+    private Long numberOfAllStickers;
+
     @Column(name = "numberofphotos")
     private Integer numberOfPhotos;
 

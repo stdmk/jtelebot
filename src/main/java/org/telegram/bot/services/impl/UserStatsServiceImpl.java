@@ -172,6 +172,8 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setUser(user);
             userStats.setNumberOfMessages(0);
             userStats.setNumberOfAllMessages(0L);
+            userStats.setNumberOfStickers(0);
+            userStats.setNumberOfAllStickers(0L);
             userStats.setNumberOfPhotos(0);
             userStats.setNumberOfAllPhotos(0L);
             userStats.setNumberOfAnimations(0);
@@ -196,6 +198,10 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
             LastMessage lastMessage = userStats.getLastMessage();
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
+        }
+        else if (message.hasSticker()) {
+            userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1);
+            userStats.setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1);
         }
         else if (message.hasPhoto()) {
             userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1);

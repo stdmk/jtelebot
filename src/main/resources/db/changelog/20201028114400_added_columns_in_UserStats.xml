@@ -6,6 +6,8 @@
     <changeSet id="20201028114400" author="stdmk">
         <addColumn schemaName="bot"
                    tableName="userstats">
+            <column name="numberofstickers" type="int"/>
+            <column name="numberofallstickers" type="bigint"/>
             <column name="numberofphotos" type="int"/>
             <column name="numberofallphotos" type="bigint"/>
             <column name="numberofanimations" type="int"/>

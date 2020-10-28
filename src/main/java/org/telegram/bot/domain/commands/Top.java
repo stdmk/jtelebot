@@ -84,6 +84,7 @@ public class Top implements CommandParent<SendMessage> {
         }
 
         fieldsOfStats.put("Сообщений", userStats.getNumberOfMessages().toString());
+        fieldsOfStats.put("Стикеров", userStats.getNumberOfStickers().toString());
         fieldsOfStats.put("Изображений", userStats.getNumberOfPhotos().toString());
         fieldsOfStats.put("Анимаций", userStats.getNumberOfAnimations().toString());
         fieldsOfStats.put("Музыки", userStats.getNumberOfAudio().toString());
@@ -105,6 +106,7 @@ public class Top implements CommandParent<SendMessage> {
         buf.append("*Всего:*\n");
 
         fieldsOfStats.put("Сообщений", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put("Стикеров", userStats.getNumberOfAllStickers().toString());
         fieldsOfStats.put("Изображений", userStats.getNumberOfAllPhotos().toString());
         fieldsOfStats.put("Анимаций", userStats.getNumberOfAllAnimations().toString());
         fieldsOfStats.put("Музыки", userStats.getNumberOfAllAudio().toString());
