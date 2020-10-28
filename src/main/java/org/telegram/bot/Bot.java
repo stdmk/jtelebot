@@ -38,7 +38,7 @@ public class Bot extends TelegramLongPollingBot {
         User user = update.getMessage().getFrom();
         log.info("From " + update.getMessage().getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
 
-        AccessLevels userAccessLevel = getCurrentAccessLevel(user.getId(), update.getMessage().getChatId());
+        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(user.getId(), update.getMessage().getChatId());
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
             log.info("Banned user. Ignoring...");
             return;
@@ -56,7 +56,7 @@ public class Bot extends TelegramLongPollingBot {
             log.error(e.getMessage());
         }
 
-        if (isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
+        if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
             Parser parser = new Parser(this, command, update);
             parser.start();
         }
@@ -76,27 +76,5 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         return telegramBotApiToken;
-    }
-
-    private AccessLevels getCurrentAccessLevel(Integer userId, Long chatId) {
-        AccessLevels level = AccessLevels.BANNED;
-
-        Integer userLevel = userService.getUserAccessLevel(userId);
-        if (userLevel < 0) {
-            return level;
-        }
-        Integer chatLevel = chatService.getChatAccessLevel(chatId);
-
-        if (userLevel > chatLevel) {
-            level = AccessLevels.getUserLevelByValue(userLevel);
-        } else {
-            level = AccessLevels.getUserLevelByValue(chatLevel);
-        }
-
-        return level;
-    }
-
-    private Boolean isUserHaveAccessForCommand(Integer userAccessLevel, Integer commandAccessLevel) {
-        return userAccessLevel >= commandAccessLevel;
     }
 }

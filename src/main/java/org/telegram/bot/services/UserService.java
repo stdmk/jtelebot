@@ -1,6 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.AccessLevels;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.User}.
@@ -38,4 +39,20 @@ public interface UserService {
      * @return the persisted entity.
      */
     Integer getUserAccessLevel(Integer userId);
+
+    /**
+     * Get user access level based on userAccessLevel and chatAccessLevel.
+     * @param userId id of User entity
+     * @param chatId id of Chat entity
+     * @return the highest of access levels
+     */
+    AccessLevels getCurrentAccessLevel(Integer userId, Long chatId);
+
+    /**
+     * Сhecks if the access level is sufficient for command.
+     * @param userAccessLevel access level of User
+     * @param commandAccessLevel access level to command
+     * @return true if sufficient
+     */
+    Boolean isUserHaveAccessForCommand(Integer userAccessLevel, Integer commandAccessLevel);
 }

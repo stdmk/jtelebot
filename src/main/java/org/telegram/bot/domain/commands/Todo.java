@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -42,6 +43,11 @@ public class Todo implements CommandParent<SendMessage> {
                     throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
                 }
                 log.debug("Request to delete todo by id " + todoId);
+                if (!userService.isUserHaveAccessForCommand(
+                        userService.get(update.getMessage().getFrom().getId()).getAccessLevel(),
+                        AccessLevels.ADMIN.getValue())) {
+                    throw new BotException("Удалять может только админ");
+                }
                 if (todoService.remove(todoId)) {
                     responseText = "Задача успешно удалена";
                 } else {

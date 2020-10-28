@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.repositories.UserRepository;
+import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.UserService;
 
 @Service
@@ -16,6 +17,7 @@ public class UserServiceImpl implements UserService {
     private final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
+    private final ChatService chatService;
 
     @Override
     public User get(Integer userId) {
@@ -45,4 +47,29 @@ public class UserServiceImpl implements UserService {
 
         return user.getAccessLevel();
     }
+
+    @Override
+    public AccessLevels getCurrentAccessLevel(Integer userId, Long chatId) {
+        AccessLevels level = AccessLevels.BANNED;
+
+        Integer userLevel = getUserAccessLevel(userId);
+        if (userLevel < 0) {
+            return level;
+        }
+        Integer chatLevel = chatService.getChatAccessLevel(chatId);
+
+        if (userLevel > chatLevel) {
+            level = AccessLevels.getUserLevelByValue(userLevel);
+        } else {
+            level = AccessLevels.getUserLevelByValue(chatLevel);
+        }
+
+        return level;
+    }
+
+    @Override
+    public Boolean isUserHaveAccessForCommand(Integer userAccessLevel, Integer commandAccessLevel) {
+        return userAccessLevel >= commandAccessLevel;
+    }
+
 }
