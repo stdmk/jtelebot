@@ -54,4 +54,11 @@ public interface UserStatsService {
      * @return list of tops for send its to chats
      */
     List<SendMessage> clearMonthlyStats();
+
+    /**
+     * Increment the user statistics of using commands.
+     * @param chatId id of Chat where is User
+     * @param userId id of User whose stats will be incremented
+     */
+    void incrementUserStatsCommands(Long chatId, Integer userId);
 }

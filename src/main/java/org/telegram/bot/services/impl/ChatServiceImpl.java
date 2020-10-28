@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.repositories.ChatRepository;
 import org.telegram.bot.services.ChatService;
 
@@ -40,6 +41,11 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Integer getChatAccessLevel(Long chatId) {
         log.debug("Request to get chatLevel for chatId {} ", chatId);
+        Chat chat = get(chatId);
+        if (chat == null) {
+            return AccessLevels.NEWCOMER.getValue();
+        }
+
         return get(chatId).getAccessLevel();
     }
 }

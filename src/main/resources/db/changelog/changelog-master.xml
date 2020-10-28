@@ -24,4 +24,5 @@
     <include file="db/changelog/20201027091500_added_command_Bash.xml"/>
     <include file="db/changelog/20201027110700_added_entity_Todo.xml"/>
     <include file="db/changelog/20201027110800_added_command_Todo.xml"/>
+    <include file="db/changelog/20201028114400_added_columns_in_UserStats.xml"/>
 </databaseChangeLog>

@@ -75,10 +75,33 @@ public class UserStatsServiceImpl implements UserStatsService {
                 .collect(Collectors.toList());
 
         userStatsRepository.saveAll(getAllGroupStats().stream()
-                .peek(userStats -> userStats.setNumberOfMessages(0))
+                .peek(this::clearUserStatsFields)
                 .collect(Collectors.toList()));
 
         return response;
+    }
+
+    private void clearUserStatsFields(UserStats userStats) {
+        userStats.setNumberOfMessages(0);
+        userStats.setNumberOfPhotos(0);
+        userStats.setNumberOfAnimations(0);
+        userStats.setNumberOfAudio(0);
+        userStats.setNumberOfDocuments(0);
+        userStats.setNumberOfVideos(0);
+        userStats.setNumberOfVideoNotes(0);
+        userStats.setNumberOfVoices(0);
+        userStats.setNumberOfCommands(0);
+    }
+
+    @Override
+    public void incrementUserStatsCommands(Long chatId, Integer userId) {
+        log.debug("Request to increment users stats commands using");
+
+        UserStats userStats = get(chatId, userId);
+        userStats.setNumberOfCommands(userStats.getNumberOfCommands() + 1);
+        userStats.setNumberOfAllCommands(userStats.getNumberOfAllCommands() + 1);
+
+        save(userStats);
     }
 
     private User updateUserInfo(org.telegram.telegrambots.meta.api.objects.User userFrom) {
@@ -147,21 +170,62 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats = new UserStats();
             userStats.setChatId(chat.getChatId());
             userStats.setUser(user);
-            userStats.setNumberOfMessages(1);
-            userStats.setNumberOfAllMessages(1L);
-            userStats.setLastMessage(lastMessageService.update(lastMessage, message));
-        } else {
-            LastMessage lastMessage = userStats.getLastMessage();
-
-            userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1);
-            userStats.setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
+            userStats.setNumberOfMessages(0);
+            userStats.setNumberOfAllMessages(0L);
+            userStats.setNumberOfPhotos(0);
+            userStats.setNumberOfAllPhotos(0L);
+            userStats.setNumberOfAnimations(0);
+            userStats.setNumberOfAllAnimations(0L);
+            userStats.setNumberOfAudio(0);
+            userStats.setNumberOfAllAudio(0L);
+            userStats.setNumberOfDocuments(0);
+            userStats.setNumberOfAllDocuments(0L);
+            userStats.setNumberOfVideos(0);
+            userStats.setNumberOfAllVideos(0L);
+            userStats.setNumberOfVideoNotes(0);
+            userStats.setNumberOfAllVideoNotes(0L);
+            userStats.setNumberOfVoices(0);
+            userStats.setNumberOfAllVoices(0L);
+            userStats.setNumberOfCommands(0);
+            userStats.setNumberOfAllCommands(0L);
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
         }
 
+        if (message.hasText()) {
+            userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1);
+            userStats.setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
+            LastMessage lastMessage = userStats.getLastMessage();
+            userStats.setLastMessage(lastMessageService.update(lastMessage, message));
+        }
+        else if (message.hasPhoto()) {
+            userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1);
+            userStats.setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1);
+        }
+        else if (message.hasAnimation()) {
+            userStats.setNumberOfAnimations(userStats.getNumberOfAnimations() + 1);
+            userStats.setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1);
+        }
+        else if (message.hasAudio()) {
+            userStats.setNumberOfAudio(userStats.getNumberOfAudio() + 1);
+            userStats.setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1);
+        }
+        else if (message.hasDocument()) {
+            userStats.setNumberOfDocuments(userStats.getNumberOfDocuments() + 1);
+            userStats.setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1);
+        }
+        else if (message.hasVideo()) {
+            userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1);
+            userStats.setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1);
+        }
+        else if (message.hasVideoNote()) {
+            userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1);
+            userStats.setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1);
+        }
+        else if (message.hasVoice()) {
+            userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1);
+            userStats.setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1);
+        }
+
         save(userStats);
-    }
-
-    private void clearUserStats() {
-
     }
 }
