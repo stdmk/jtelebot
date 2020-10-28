@@ -89,7 +89,7 @@ public class Top implements CommandParent<SendMessage> {
                 .max(Integer::compareTo)
                 .orElse(6)
                 .toString()
-                .length();
+                .length() + String.valueOf(userList.size()).length() - 1;
 
         if (param.equals(PARAMS.get(0))) {
             userList = userList.stream()
