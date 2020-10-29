@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsSource;
 
 import java.util.List;
@@ -11,34 +12,38 @@ public interface NewsSourceService {
     /**
      * Get a NewsSource.
      *
+     * @param chat entity for which gets NewsSource
      * @param newsSourceId of NewsSource to get.
      * @return the persisted entity.
      */
-    NewsSource get(Long newsSourceId);
+    NewsSource get(Chat chat, Long newsSourceId);
 
     /**
      * Get a NewsSources by Name.
      *
+     * @param chat entity for which gets NewsSource
      * @param newsSourceName name of NewsSource to get.
      * @return the persisted entity.
      */
-    NewsSource get(String newsSourceName);
+    NewsSource get(Chat chat, String newsSourceName);
 
     /**
      * Get a NewsSources by Name or Url.
      *
+     * @param chat entity for which gets NewsSource
      * @param newsSourceName name of NewsSource to get.
      * @param newsSourceUrl url of NewsSource to get.
      * @return the persisted entity.
      */
-    NewsSource get(String newsSourceName, String newsSourceUrl);
+    NewsSource get(Chat chat, String newsSourceName, String newsSourceUrl);
 
     /**
-     * Get all NewsSources.
+     * Get all NewsSources for Chat.
      *
+     * @param chat entity for which gets NewsSources
      * @return the persisted entities.
      */
-    List<NewsSource> getAll();
+    List<NewsSource> getAll(Chat chat);
 
     /**
      * Save a NewsSource.
@@ -51,16 +56,18 @@ public interface NewsSourceService {
     /**
      * Remove a NewsSource.
      *
+     * @param chat entity for which remove NewsSource
      * @param newsSourceId of NewsSource to remove.
      * @return true if remove.
      */
-    Boolean remove(Long newsSourceId);
+    Boolean remove(Chat chat, Long newsSourceId);
 
     /**
      * Remove a NewsSource.
      *
+     * @param chat entity for which remove NewsSource
      * @param newsSourceName of NewsSource to remove.
      * @return true if remove.
      */
-    Boolean remove(String newsSourceName);
+    Boolean remove(Chat chat, String newsSourceName);
 }

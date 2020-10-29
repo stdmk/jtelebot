@@ -3,6 +3,9 @@ package org.telegram.bot.domain.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * News entity.
@@ -25,15 +28,11 @@ public class News {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "pubDate")
-    private String pubDate;
+    @Column(name = "pubdate")
+    private Date pubDate;
 
     @Column(name = "attachurl")
     private String attachUrl;
-
-    @ManyToOne
-    @JoinColumn(name = "chatid", nullable = false)
-    private Chat chat;
 
     @Column(name = "messageid")
     private Integer messageId;

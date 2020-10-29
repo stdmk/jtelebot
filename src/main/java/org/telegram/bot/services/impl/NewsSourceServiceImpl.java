@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.repositories.NewsSourceRepository;
 import org.telegram.bot.services.NewsSourceService;
@@ -19,27 +20,30 @@ public class NewsSourceServiceImpl implements NewsSourceService {
     private final NewsSourceRepository newsSourceRepository;
 
     @Override
-    public NewsSource get(Long newsSourceId) {
-        log.debug("Request to get NewsSource by its id: {} ", newsSourceId);
-        return newsSourceRepository.findById(newsSourceId).orElse(null);
+    public NewsSource get(Chat chat, Long newsSourceId) {
+        log.debug("Request to get NewsSource by its id: {} for Chat {}", newsSourceId, chat.getChatId());
+        return newsSourceRepository.findByChatAndId(chat, newsSourceId);
     }
 
     @Override
-    public NewsSource get(String newsSourceName) {
-        log.debug("Request to get NewsSource by its name: {} ", newsSourceName);
-        return newsSourceRepository.findByName(newsSourceName);
+    public NewsSource get(Chat chat, String newsSourceName) {
+        log.debug("Request to get NewsSource by its name: {}  for Chat {}", newsSourceName, chat.getChatId());
+        return newsSourceRepository.findByChatAndName(chat, newsSourceName);
     }
 
     @Override
-    public NewsSource get(String newsSourceName, String newsSourceUrl) {
-        log.debug("Request to get NewsSource by its name {} or url {}", newsSourceName, newsSourceUrl);
-        return newsSourceRepository.findFirstByNameOrUrl(newsSourceName, newsSourceUrl);
+    public NewsSource get(Chat chat, String newsSourceName, String newsSourceUrl) {
+        log.debug("Request to get NewsSource by its name {} or url {} for Chat {}", newsSourceName, newsSourceUrl, chat.getChatId());
+        return getAll(chat)
+                .stream()
+                .filter(newsSource -> newsSource.getName().equals(newsSourceName) || newsSource.getUrl().equals(newsSourceUrl))
+                .findFirst().orElse(null);
     }
 
     @Override
-    public List<NewsSource> getAll() {
-        log.debug("Request to get all NewsSources");
-        return newsSourceRepository.findAll();
+    public List<NewsSource> getAll(Chat chat) {
+        log.debug("Request to get all NewsSources for chat {}", chat.getChatId());
+        return newsSourceRepository.findByChat(chat);
     }
 
     @Override
@@ -49,9 +53,9 @@ public class NewsSourceServiceImpl implements NewsSourceService {
     }
 
     @Override
-    public Boolean remove(Long newsSourceId) {
+    public Boolean remove(Chat chat, Long newsSourceId) {
         log.debug("Request to delete NewsSource by id {}", newsSourceId);
-        NewsSource newsSource = get(newsSourceId);
+        NewsSource newsSource = get(chat, newsSourceId);
         if (newsSource == null) {
             return false;
         }
@@ -61,9 +65,9 @@ public class NewsSourceServiceImpl implements NewsSourceService {
     }
 
     @Override
-    public Boolean remove(String newsSourceName) {
+    public Boolean remove(Chat chat, String newsSourceName) {
         log.debug("Request to delete NewsSource by name {}", newsSourceName);
-        NewsSource newsSource = get(newsSourceName);
+        NewsSource newsSource = get(chat, newsSourceName);
         if (newsSource == null) {
             return false;
         }

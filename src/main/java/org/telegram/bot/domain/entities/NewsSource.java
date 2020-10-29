@@ -3,6 +3,7 @@ package org.telegram.bot.domain.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * NewsSource entity.
@@ -19,6 +20,11 @@ public class NewsSource {
     @Column(name = "name")
     private String name;
 
+    @NotNull
     @Column(name = "url")
     private String url;
+
+    @ManyToOne
+    @JoinColumn(name = "chatid", nullable = false)
+    private Chat chat;
 }
