@@ -6,7 +6,7 @@
 
     <changeSet id="20201029121700-1" author="stdmk">
         <insert schemaName="bot" tableName="commandproperties">
-            <column name="id" value="13"/>
+            <column name="id" value="12"/>
             <column name="commandname" value="news"/>
             <column name="russifiedname" value="новости"/>
             <column name="enruname" value="yjdjcnb"/>

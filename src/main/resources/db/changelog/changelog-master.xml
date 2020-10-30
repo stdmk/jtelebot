@@ -25,8 +25,8 @@
     <include file="db/changelog/20201027110700_added_entity_Todo.xml"/>
     <include file="db/changelog/20201027110800_added_command_Todo.xml"/>
     <include file="db/changelog/20201028114400_added_columns_in_UserStats.xml"/>
-    <include file="db/changelog/20201028161800_added_command_Source.xml"/>
     <include file="db/changelog/20201028163500_added_entity_NewsSource.xml"/>
     <include file="db/changelog/20201029121700_added_command_News.xml"/>
-    <include file="db/changelog/20201029122700_added_entity_News.xml"/>
+    <include file="db/changelog/20201029122700_added_entity_NewsMessage.xml"/>
+    <include file="db/changelog/20201030144500_added_entity_News.xml"/>
 </databaseChangeLog>

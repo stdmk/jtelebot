@@ -1,37 +1,32 @@
 package org.telegram.bot.domain.commands;
 
+import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.FeedException;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.NewsService;
-import org.telegram.bot.services.NewsSourceService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.NetworkUtils.getImageFromUrl;
-import static org.telegram.bot.utils.TextUtils.reduceSpaces;
+import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
+import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -39,22 +34,97 @@ public class News implements CommandParent {
 
     private final Logger log = LoggerFactory.getLogger(News.class);
 
-    private final NewsService newsService;
     private final NewsSourceService newsSourceService;
+    private final NewsService newsService;
+    private final NewsMessageService newsMessageService;
     private final ChatService chatService;
     private final SpeechService speechService;
 
+    private static final List<String> PARAMS = Arrays.asList("добавить", "удалить");
+
     @Override
-    public PartialBotApiMethod parse(Update update) throws Exception {
+    public PartialBotApiMethod parse(Update update) throws BotException {
         String textMessage = cutCommandInText(update.getMessage().getText());
         Chat chat = chatService.get(update.getMessage().getChatId());
         String responseText;
 
         if (textMessage == null) {
-            log.debug("Request to list all last news for this chat: {}", chat.getChatId());
-            responseText = "<b>Список последних новостей:\n</b>" + buildListOfNewsMessageText(getLastNewsForChat(chat));
+            log.debug("Request to list all news sources for chat {}", chat.getChatId());
+            final StringBuilder buf = new StringBuilder();
+            buf.append("<b>Список новостных источников:</b>\n");
+            newsService.getAll(chat)
+                    .forEach(news -> buf.append(news.getId()).append(") ")
+                                            .append("<a href\"").append(news.getName()).append("\">]")
+                                            .append(news.getNewsSource().getUrl()).append("</a>\n"));
+            responseText = buf.toString();
         } else {
-            if (textMessage.startsWith("_")) {
+            if (textMessage.startsWith(PARAMS.get(0))) {
+                log.debug("Request to add new news resource");
+                String params = textMessage.substring(9);
+                int i = params.indexOf(" ");
+                if (i < 0) {
+                    throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                }
+
+                String name;
+                URL url;
+                if (!params.startsWith("http") && !params.substring(i + 1).startsWith("http")) {
+                    throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                }
+
+                try {
+                    url = new URL(params.substring(0, i));
+                    name = params.substring(i + 1);
+                } catch (MalformedURLException e) {
+                    try {
+                        url = new URL(params.substring(i + 1));
+                        name = params.substring(0, i);
+                    } catch (MalformedURLException malformedURLException) {
+                        throw new BotException("Ошибочный адрес url источника");
+                    }
+                }
+
+                NewsSource newsSource = newsSourceService.get(url.toString());
+                if (newsSource == null) {
+                    newsSource = new NewsSource();
+                    newsSource.setUrl(url.toString());
+                }
+
+                org.telegram.bot.domain.entities.News news = newsService.get(chat, name, newsSource);
+                if (news != null) {
+                    throw new BotException("Такой источник уже существует: " + news.getName() + " - " + news.getNewsSource().getUrl());
+                }
+
+                if (newsSource.getId() == null) {
+                    newsSource = newsSourceService.save(newsSource);
+                }
+
+                news = new org.telegram.bot.domain.entities.News();
+                news.setName(name);
+                news.setNewsSource(newsSource);
+                news.setChat(chat);
+                newsService.save(news);
+                responseText = speechService.getRandomMessageByTag("saved");
+            }
+            else if (textMessage.startsWith(PARAMS.get(1))) {
+                log.debug("Request to delete news resource");
+                String params = textMessage.substring(8);
+                try {
+                    Long newsSourceId = Long.parseLong(params);
+                    if (newsService.remove(chat, newsSourceId)) {
+                        responseText = speechService.getRandomMessageByTag("saved");
+                    } else {
+                        responseText = speechService.getRandomMessageByTag("wrongInput");
+                    }
+                } catch (Exception e) {
+                    if (newsService.remove(chat, params)) {
+                        responseText = speechService.getRandomMessageByTag("saved");
+                    } else {
+                        responseText = speechService.getRandomMessageByTag("wrongInput");
+                    }
+                }
+            }
+            else if (textMessage.startsWith("_")) {
                 long newsId;
                 try {
                     newsId = Long.parseLong(textMessage.substring(1));
@@ -62,19 +132,23 @@ public class News implements CommandParent {
                     throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
                 }
 
-                org.telegram.bot.domain.entities.News news = newsService.get(newsId);
-                if (news == null) {
+                NewsMessage newsMessage = newsMessageService.get(newsId);
+                if (newsMessage == null) {
                     throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
                 }
 
-                responseText = buildFullNewsMessageText(news);
+                responseText = newsMessageService.buildFullNewsMessageText(newsMessage);
+                Integer messageId = newsMessage.getMessageId();
+                if (messageId == null) {
+                    messageId = update.getMessage().getMessageId();
+                }
                 InputStream image;
                 try {
-                    image = getImageFromUrl(news.getAttachUrl());
+                    image = getFileFromUrl(newsMessage.getAttachUrl());
                 } catch (Exception e) {
                     return new SendMessage()
                             .setChatId(update.getMessage().getChatId())
-                            .setReplyToMessageId(update.getMessage().getMessageId())
+                            .setReplyToMessageId(messageId)
                             .setParseMode(ParseModes.HTML.getValue())
                             .setText(responseText);
                 }
@@ -83,82 +157,44 @@ public class News implements CommandParent {
                         .setPhoto("news", image)
                         .setCaption(responseText)
                         .setParseMode(ParseModes.HTML.getValue())
-                        .setReplyToMessageId(update.getMessage().getMessageId())
+                        .setReplyToMessageId(messageId)
                         .setChatId(update.getMessage().getChatId());
             }
-            if (textMessage.startsWith("http")) {
+            else if (textMessage.startsWith("http")) {
                 log.debug("Request to get news by url {}", textMessage);
                 responseText = getAllNews(textMessage);
-            } else {
-                NewsSource newsSource = newsSourceService.get(chat, textMessage);
-                if (newsSource == null) {
-                    responseText = speechService.getRandomMessageByTag("wrongInput");
-                } else {
-                    log.debug("Request to get news by NewsSource {}", newsSource);
-                    responseText = getAllNews(newsSource.getUrl());
-                }
+            }
+            else {
+                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
             }
         }
 
-        return new SendMessage()
+        return new SendMessage().setReplyToMessageId(update.getMessage().getMessageId())
                 .setChatId(update.getMessage().getChatId())
-                .setReplyToMessageId(update.getMessage().getMessageId())
                 .setParseMode(ParseModes.HTML.getValue())
                 .setText(responseText);
     }
 
-    private List<org.telegram.bot.domain.entities.News> getLastNewsForChat(Chat chat) {
-        return new ArrayList<>();
-    }
-
     private String getAllNews(String url) {
-        SyndFeedInput input = new SyndFeedInput();
-        SyndFeed feed = null;
-        try {
-            feed = input.build(new XmlReader(new URL(url)));
-        } catch (FeedException | IOException e) {
-            log.error(e.getLocalizedMessage());
-        }
-
+        SyndFeed feed = getRssFeedFromUrl(url);
         if (feed == null) {
             return speechService.getRandomMessageByTag("noResponse");
         }
 
-        List<org.telegram.bot.domain.entities.News> newsList = newsService.save(feed.getEntries()
-                .stream()
-                .map(syndEntry -> {
-                    org.telegram.bot.domain.entities.News news = new org.telegram.bot.domain.entities.News();
-                    news.setTitle(syndEntry.getTitle());
-                    news.setLink(syndEntry.getLink());
-                    news.setDescription(reduceSpaces(syndEntry.getDescription().getValue()));
-                    news.setPubDate(syndEntry.getPublishedDate());
-                    news.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());
-
-                    return news;
-                })
-                .collect(Collectors.toList()));
-
-        return buildListOfNewsMessageText(newsList);
-
+        return buildListOfNewsMessageText(feed.getEntries());
     }
 
-    private String buildListOfNewsMessageText(List<org.telegram.bot.domain.entities.News> newsList) {
+    private String buildListOfNewsMessageText(List<SyndEntry> entries) {
+        List<NewsMessage> newsMessages = entries
+                .stream()
+                .map(newsMessageService::buildNewsMessageFromSyndEntry)
+                .collect(Collectors.toList());
+
+        newsMessages = newsMessageService.save(newsMessages);
+
         StringBuilder buf = new StringBuilder();
-        newsList.forEach(news -> buf.append(buildShortNewsMessageText(news)));
+        newsMessages.forEach(newsMessage -> buf.append(newsMessageService.buildShortNewsMessageText(newsMessage)));
 
         return buf.toString();
-    }
-
-    private String buildShortNewsMessageText(org.telegram.bot.domain.entities.News news) {
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-        return "<b>" + news.getTitle() + "</b>\n" + dateTimeFormat.format(news.getPubDate()) + " /news_" + news.getId() + "\n\n";
-    }
-
-    private String buildFullNewsMessageText(org.telegram.bot.domain.entities.News news) {
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-        return "<b>" + news.getTitle() + "</b>\n" +
-                "<i>" + dateTimeFormat.format(news.getPubDate()) + "</i>\n" +
-                news.getDescription() +
-                "\n<a href=\"" + news.getLink() + "\">Читать полностью</a>";
     }
 }

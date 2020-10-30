@@ -8,13 +8,10 @@
             <column name="id" autoIncrement="true" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
+            <column name="url" type="varchar(1024)">
                 <constraints nullable="true" />
             </column>
-            <column name="url" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
-            <column name="chatid" type="bigint">
+            <column name="newsmessageid" type="bigint">
                 <constraints nullable="true" />
             </column>
         </createTable>

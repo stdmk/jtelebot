@@ -15,7 +15,16 @@ public interface CommandParent<T extends PartialBotApiMethod> {
             if (text.toLowerCase().equals(cuttedText)) {
                 return null;
             }
-            return text.replace(cuttedText, "").substring(1).toLowerCase();
+            int i = text.indexOf("@");
+            if (i > 0) {
+                text = text.substring(0, i);
+            }
+            text = text.replace(cuttedText, "").toLowerCase();
+            if (text.startsWith("_")) {
+                return text;
+            }
+
+            return text.substring(1);
         }
 
         return null;

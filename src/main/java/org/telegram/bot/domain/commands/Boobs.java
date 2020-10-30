@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
@@ -18,7 +17,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
-import static org.telegram.bot.utils.NetworkUtils.getImageFromUrl;
+import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -44,7 +43,13 @@ public class Boobs implements CommandParent<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        InputStream boobs = getImageFromUrl(BOOBS_IMAGE_URL + nameOfImage);
+        InputStream boobs;
+        try {
+            boobs = getFileFromUrl(BOOBS_IMAGE_URL + nameOfImage);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+        }
+
 
         String caption = update.getMessage().getText();
         return new SendPhoto()

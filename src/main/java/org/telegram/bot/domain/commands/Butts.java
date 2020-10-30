@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
-import static org.telegram.bot.utils.NetworkUtils.getImageFromUrl;
+import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -44,7 +44,13 @@ public class Butts implements CommandParent<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        InputStream butts = getImageFromUrl(BUTTS_IMAGE_URL + nameOfImage);
+        InputStream butts;
+        try {
+            butts = getFileFromUrl(BUTTS_IMAGE_URL + nameOfImage);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+        }
+
 
         String caption = update.getMessage().getText();
         return new SendPhoto()

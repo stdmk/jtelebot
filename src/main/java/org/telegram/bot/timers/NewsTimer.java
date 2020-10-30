@@ -1,12 +1,28 @@
 package org.telegram.bot.timers;
 
+import com.google.common.collect.Lists;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.NewsMessage;
+import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.enums.ParseModes;
+import org.telegram.bot.services.NewsMessageService;
+import org.telegram.bot.services.NewsService;
+import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.TimerService;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.List;
+
+import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -16,10 +32,41 @@ public class NewsTimer extends TimerParent {
 
     private final ApplicationContext context;
     private final TimerService timerService;
+    private final NewsService newsService;
+    private final NewsMessageService newsMessageService;
+    private final NewsSourceService newsSourceService;
 
     @Override
     @Scheduled(fixedRate = 300000)
     public void execute() {
+        Bot bot = (Bot) context.getBean("bot");
+        List<NewsSource> newsSources = newsSourceService.getAll();
+
+        newsSources.forEach(newsSource -> {
+            SyndFeed syndFeed = getRssFeedFromUrl(newsSource.getUrl());
+            syndFeed.getEntries().forEach(syndEntry -> {
+                NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
+
+                if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().after(newsMessage.getPubDate())) {
+                    newsMessage = newsMessageService.save(newsMessage);
+                    newsSource.setNewsMessage(newsMessage);
+                    newsSourceService.save(newsSource);
+                    NewsMessage finalNewsMessage = newsMessage;
+                    newsService.getAll(newsSource)
+                            .forEach(news -> {
+                                try {
+                                    bot.execute(new SendMessage()
+                                            .setChatId(news.getChat().getChatId())
+                                            .setParseMode(ParseModes.HTML.getValue())
+                                            .setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage)));
+                                } catch (TelegramApiException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                }
+            });
+        });
+
 
     }
 }

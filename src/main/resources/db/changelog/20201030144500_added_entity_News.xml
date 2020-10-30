@@ -3,30 +3,18 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <changeSet id="20201029122700-1" author="stdmk">
+    <changeSet id="20201030144500-1" author="stdmk">
         <createTable tableName="news" schemaName="bot">
             <column name="id" autoIncrement="true" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="title" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
-            <column name="link" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
-            <column name="description" type="varchar(1024)">
-                <constraints nullable="true" />
-            </column>
-            <column name="pubdate" type="datetime">
-                <constraints nullable="true" />
-            </column>
-            <column name="attachurl" type="varchar(1024)">
-                <constraints nullable="true" />
-            </column>
-            <column name="messageid" type="int">
+            <column name="name" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
             <column name="newssourceid" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="chatid" type="bigint">
                 <constraints nullable="true" />
             </column>
         </createTable>

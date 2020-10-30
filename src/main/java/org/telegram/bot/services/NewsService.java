@@ -3,20 +3,64 @@ package org.telegram.bot.services;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 
 import java.util.List;
 
 /**
- * Service Interface for managing {@link org.telegram.bot.domain.entities.News}.
+ * Service Interface for managing {@link News}.
  */
 public interface NewsService {
     /**
      * Get a News.
      *
+     * @param chat entity for which gets News
      * @param newsId of News to get.
      * @return the persisted entity.
      */
-    News get(Long newsId);
+    News get(Chat chat, Long newsId);
+
+    /**
+     * Get a News by Name.
+     *
+     * @param chat entity for which gets News
+     * @param newsName name of News to get.
+     * @return the persisted entity.
+     */
+    News get(Chat chat, String newsName);
+
+    /**
+     * Get a News by Name or Url.
+     *
+     * @param chat entity for which gets News
+     * @param newsName name of News to get.
+     * @param newsSource NewsSource of News to get.
+     * @return the persisted entity.
+     */
+    News get(Chat chat, String newsName, NewsSource newsSource);
+
+    /**
+     * Get all News.
+     *
+     * @return the persisted entities.
+     */
+    List<News> getAll();
+
+    /**
+     * Get all News for Chat.
+     *
+     * @param chat entity for which gets News
+     * @return the persisted entities.
+     */
+    List<News> getAll(Chat chat);
+
+    /**
+     * Get a News by NewsSource.
+     *
+     * @param newsSource entity for which gets News
+     * @return the persisted entity.
+     */
+    List<News> getAll(NewsSource newsSource);
 
     /**
      * Save a News.
@@ -27,10 +71,20 @@ public interface NewsService {
     News save(News news);
 
     /**
-     * Save a list of News.
+     * Remove a News.
      *
-     * @param newsList a list the entities to save.
-     * @return the persisted entities.
+     * @param chat entity for which remove News
+     * @param newsId of News to remove.
+     * @return true if remove.
      */
-    List<News> save(List<News> newsList);
+    Boolean remove(Chat chat, Long newsId);
+
+    /**
+     * Remove a News.
+     *
+     * @param chat entity for which remove News
+     * @param newsName of News to remove.
+     * @return true if remove.
+     */
+    Boolean remove(Chat chat, String newsName);
 }
