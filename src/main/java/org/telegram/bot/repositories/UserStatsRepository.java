@@ -8,5 +8,5 @@ import java.util.List;
 public interface UserStatsRepository extends JpaRepository<UserStats, Long> {
     UserStats findByChatIdAndUserUserId(Long chatId, Integer userId);
     List<UserStats> findByChatId(Long chatId);
-    List<UserStats> findByChatIdLessThan(Integer groupAttribute);
+    List<UserStats> findByChatIdLessThan(Long groupAttribute);
 }

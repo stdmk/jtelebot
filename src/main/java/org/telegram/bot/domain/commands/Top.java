@@ -153,8 +153,8 @@ public class Top implements CommandParent<SendMessage> {
 
         AtomicInteger counter = new AtomicInteger(1);
         responseText.append("*Топ по общению за ").append(param).append(":*\n```\n");
-        userList.forEach(userStats ->
-                responseText.append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
+        userList.forEach(userStats -> responseText
+                .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
                 .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", userStats.getNumberOfMessages().toString()))
                 .append(userStats.getUser().getUsername()).append("\n"));
 

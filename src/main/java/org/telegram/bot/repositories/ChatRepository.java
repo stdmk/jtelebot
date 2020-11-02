@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
     Chat findByChatId(Long chatId);
-    List<Chat> findByChatIdLessThan(Integer groupAttribute);
+    List<Chat> findByChatIdLessThan(Long groupAttribute);
 }

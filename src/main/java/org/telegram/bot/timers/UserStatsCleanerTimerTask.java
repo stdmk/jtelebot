@@ -37,7 +37,7 @@ public class UserStatsCleanerTimerTask extends TimerParent {
         }
 
         LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1);
+        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1).withDayOfMonth(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");

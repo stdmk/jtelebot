@@ -29,7 +29,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<Chat> getAllGroups() {
         log.debug("Request to get all group-chats");
-        return chatRepository.findByChatIdLessThan(0);
+        return chatRepository.findByChatIdLessThan(0L);
     }
 
     @Override

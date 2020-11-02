@@ -42,13 +42,12 @@ public class UserStatsServiceImpl implements UserStatsService {
     @Override
     public List<UserStats> getAllGroupStats() {
         log.debug("Request to get all group-stats entities");
-        return userStatsRepository.findByChatIdLessThan(-1);
+        return userStatsRepository.findByChatIdLessThan(-1L);
     }
 
     @Override
     public UserStats save(UserStats userStats) {
         log.debug("Request to save UserStats {}", userStats);
-
         return userStatsRepository.save(userStats);
     }
 
