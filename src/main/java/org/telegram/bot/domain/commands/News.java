@@ -150,6 +150,7 @@ public class News implements CommandParent {
                             .setChatId(update.getMessage().getChatId())
                             .setReplyToMessageId(messageId)
                             .setParseMode(ParseModes.HTML.getValue())
+                            .disableWebPagePreview()
                             .setText(responseText);
                 }
 

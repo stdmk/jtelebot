@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
+import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
 @Service
 @AllArgsConstructor
@@ -52,7 +53,11 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         NewsMessage newsMessage = new NewsMessage();
         newsMessage.setTitle(syndEntry.getTitle());
         newsMessage.setLink(syndEntry.getLink());
-        newsMessage.setDescription(reduceSpaces(syndEntry.getDescription().getValue()));
+        String descBuf = syndEntry.getDescription().getValue();
+        if (descBuf.length() > 1024) {
+            descBuf = descBuf.substring(0, 1000) + "...";
+        }
+        newsMessage.setDescription(reduceSpaces(cutHtmlTags(descBuf)));
         newsMessage.setPubDate(syndEntry.getPublishedDate());
         if (!syndEntry.getEnclosures().isEmpty()) {
             newsMessage.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());

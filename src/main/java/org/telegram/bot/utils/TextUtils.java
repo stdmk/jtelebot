@@ -41,4 +41,8 @@ public class TextUtils {
 
         return text.trim();
     }
+
+    public static String cutHtmlTags(String text) {
+        return text.replaceAll("<.*?>","");
+    }
 }
