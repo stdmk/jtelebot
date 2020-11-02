@@ -47,7 +47,7 @@ public class NewsTimer extends TimerParent {
             syndFeed.getEntries().forEach(syndEntry -> {
                 NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
 
-                if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().after(newsMessage.getPubDate())) {
+                if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().before(newsMessage.getPubDate())) {
                     newsMessage = newsMessageService.save(newsMessage);
                     newsSource.setNewsMessage(newsMessage);
                     newsSourceService.save(newsSource);

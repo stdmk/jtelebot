@@ -53,9 +53,9 @@ public class News implements CommandParent {
             final StringBuilder buf = new StringBuilder();
             buf.append("<b>Список новостных источников:</b>\n");
             newsService.getAll(chat)
-                    .forEach(news -> buf.append(news.getId()).append(") ")
-                                            .append("<a href\"").append(news.getName()).append("\">]")
-                                            .append(news.getNewsSource().getUrl()).append("</a>\n"));
+                    .forEach(news -> buf.append(news.getId()).append(" - ")
+                                            .append("<a href=\"").append(news.getNewsSource().getUrl()).append("\">")
+                                            .append(news.getName()).append("</a>\n"));
             responseText = buf.toString();
         } else {
             if (textMessage.startsWith(PARAMS.get(0))) {
