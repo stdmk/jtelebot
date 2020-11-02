@@ -54,8 +54,8 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         newsMessage.setTitle(syndEntry.getTitle());
         newsMessage.setLink(syndEntry.getLink());
         String descBuf = cutHtmlTags(syndEntry.getDescription().getValue());
-        if (descBuf.length() > 1024) {
-            descBuf = descBuf.substring(0, 1000) + "...";
+        if (descBuf.length() > 768) {
+            descBuf = descBuf.substring(0, 767) + "...";
         }
         newsMessage.setDescription(reduceSpaces(descBuf));
         newsMessage.setPubDate(syndEntry.getPublishedDate());
