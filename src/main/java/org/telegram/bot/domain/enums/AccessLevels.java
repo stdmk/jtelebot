@@ -10,6 +10,7 @@ public enum AccessLevels {
     NEWCOMER(0),
     FAMILIAR(1),
     TRUSTED(5),
+    MODERATOR(8),
     ADMIN(10);
 
     private final Integer value;

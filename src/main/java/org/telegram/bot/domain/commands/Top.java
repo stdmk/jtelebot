@@ -64,7 +64,7 @@ public class Top implements CommandParent<SendMessage> {
         return new SendMessage()
                 .setChatId(chatId)
                 .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(getTopListOfUsers(chatId, PARAMS.get(0)));
+                .setText(getTopListOfUsers(chatId, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
     }
 
     @Transactional
