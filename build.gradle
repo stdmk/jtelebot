@@ -27,6 +27,7 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.rometools', name: 'rome', version: '1.15.0'
 }
 
 test {

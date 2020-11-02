@@ -10,8 +10,10 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 @AllArgsConstructor
@@ -44,7 +46,7 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage);
+        CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
         if (commandProperties == null) {
             return;
         }
@@ -66,7 +68,14 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "jtelebot";
+        User botUser;
+        try {
+            botUser = this.execute(new GetMe());
+        } catch (TelegramApiException e) {
+            return "jtelebot";
+        }
+
+        return botUser.getUserName();
     }
 
     @Override

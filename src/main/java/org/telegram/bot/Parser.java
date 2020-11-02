@@ -37,7 +37,7 @@ public class Parser extends Thread {
             }
             else if (method instanceof SendPhoto) {
                 log.info("To " + update.getMessage().getChatId() + ": sended photo " + ((SendPhoto) method).getCaption());
-                bot.execute((SendPhoto) command.parse(update));
+                bot.execute((SendPhoto) method);
             }
         } catch (TelegramApiException e) {
             log.error("Error: cannot send response: {}", e.getMessage());

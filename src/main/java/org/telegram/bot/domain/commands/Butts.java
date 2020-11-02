@@ -14,11 +14,11 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
+import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -44,19 +44,13 @@ public class Butts implements CommandParent<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
 
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        byte[] imageBytes;
+        InputStream butts;
         try {
-            imageBytes = restTemplate.getForObject(BUTTS_IMAGE_URL + nameOfImage, byte[].class);
-        } catch (RestClientException e) {
-            log.debug("No response from service");
+            butts = getFileFromUrl(BUTTS_IMAGE_URL + nameOfImage);
+        } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
 
-        if (imageBytes == null) {
-            log.debug("No response from service");
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
-        }
-        InputStream butts = new ByteArrayInputStream(imageBytes);
 
         String caption = update.getMessage().getText();
         return new SendPhoto()

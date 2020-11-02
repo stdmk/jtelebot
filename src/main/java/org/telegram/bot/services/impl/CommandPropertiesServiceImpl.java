@@ -22,8 +22,17 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     private final CommandPropertiesRepository commandPropertiesRepository;
 
     @Override
-    public CommandProperties findCommandInText(String textOfMessage) {
+    public CommandProperties findCommandInText(String textOfMessage, String botUsername) {
         log.debug("Request to find commands in text {}", textOfMessage);
+
+        int i = textOfMessage.indexOf("@");
+        if (i > 0) {
+            if (!textOfMessage.substring(i + 1).equals(botUsername)) {
+                return null;
+            } else {
+                textOfMessage = textOfMessage.replace("@" + botUsername, "");
+            }
+        }
 
         return findCommandByName(getPotentialCommandInText(textOfMessage));
     }

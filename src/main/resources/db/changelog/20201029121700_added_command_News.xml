@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201029121700-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="12"/>
+            <column name="commandname" value="news"/>
+            <column name="russifiedname" value="новости"/>
+            <column name="enruname" value="yjdjcnb"/>
+            <column name="classname" value="news"/>
+            <column name="accesslevel" value="8"/>
+            <column name="help" value="Новости,Управление списком источников новосей чата,Добавить; удалить; имя; ссылка, новости; новости добавить лента; новости удалить лента; новости лента; новости https://lenta.ru/rss/last24,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
