@@ -19,7 +19,7 @@ public interface CommandParent<T extends PartialBotApiMethod> {
             if (i > 0) {
                 text = text.substring(0, i);
             }
-            text = text.replace(cuttedText, "").toLowerCase();
+            text = text.substring(cuttedText.length());
             if (text.startsWith("_")) {
                 return text;
             }
