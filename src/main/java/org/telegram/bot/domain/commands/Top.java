@@ -139,11 +139,13 @@ public class Top implements CommandParent<SendMessage> {
 
         if (param.equals(PARAMS.get(0))) {
             userList = userList.stream()
+                    .filter(userStats -> userStats.getNumberOfMessages() != 0)
                     .sorted(Comparator.comparing(UserStats::getNumberOfMessages).reversed())
                     .collect(Collectors.toList());
         }
         else if (param.equals(PARAMS.get(1)) || param.equals(PARAMS.get(2))) {
             userList = userList.stream()
+                    .filter(userStats -> userStats.getNumberOfAllMessages() != 0)
                     .sorted(Comparator.comparing(UserStats::getNumberOfAllMessages).reversed())
                     .collect(Collectors.toList());
         }
