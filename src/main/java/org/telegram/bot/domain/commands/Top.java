@@ -130,12 +130,13 @@ public class Top implements CommandParent<SendMessage> {
         StringBuilder responseText = new StringBuilder();
         List<UserStats> userList = userStatsService.getUsersByChatId(chatId);
 
-        int spacesCount = userList.stream()
+        int spacesAfterSerialNumberCount = String.valueOf(userList.size()).length() + 2;
+        int spacesAfterNuberOfMessageCount = userList.stream()
                 .map(UserStats::getNumberOfMessages)
                 .max(Integer::compareTo)
                 .orElse(6)
                 .toString()
-                .length() + String.valueOf(userList.size()).length() - 1;
+                .length() + 1;
 
         if (param.equals(PARAMS.get(0))) {
             userList = userList.stream()
@@ -152,8 +153,9 @@ public class Top implements CommandParent<SendMessage> {
 
         AtomicInteger counter = new AtomicInteger(1);
         responseText.append("*Топ по общению за ").append(param).append(":*\n```\n");
-        userList.forEach(userStats -> responseText.append(counter.getAndIncrement()).append(") ")
-                .append(String.format("%-" + spacesCount + "s", userStats.getNumberOfMessages().toString())).append(" ")
+        userList.forEach(userStats ->
+                responseText.append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
+                .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", userStats.getNumberOfMessages().toString()))
                 .append(userStats.getUser().getUsername()).append("\n"));
 
         return responseText.append("```").toString();
