@@ -29,4 +29,5 @@
     <include file="db/changelog/20201029121700_added_command_News.xml"/>
     <include file="db/changelog/20201029122700_added_entity_NewsMessage.xml"/>
     <include file="db/changelog/20201030144500_added_entity_News.xml"/>
+    <include file="db/changelog/20201103095000_lower_AccessLevel_News.xml"/>
 </databaseChangeLog>

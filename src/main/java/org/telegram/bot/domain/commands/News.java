@@ -10,6 +10,8 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
@@ -38,6 +40,7 @@ public class News implements CommandParent {
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final ChatService chatService;
+    private final UserService userService;
     private final SpeechService speechService;
 
     private static final List<String> PARAMS = Arrays.asList("добавить", "удалить");
@@ -60,6 +63,11 @@ public class News implements CommandParent {
         } else {
             if (textMessage.startsWith(PARAMS.get(0))) {
                 log.debug("Request to add new news resource");
+                User user = userService.get(update.getMessage().getFrom().getId());
+                if (!userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.MODERATOR.getValue())) {
+                    throw new BotException(speechService.getRandomMessageByTag("noAccess"));
+                }
+
                 String params = textMessage.substring(9);
                 int i = params.indexOf(" ");
                 if (i < 0) {
@@ -108,6 +116,11 @@ public class News implements CommandParent {
             }
             else if (textMessage.startsWith(PARAMS.get(1))) {
                 log.debug("Request to delete news resource");
+                User user = userService.get(update.getMessage().getFrom().getId());
+                if (!userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.MODERATOR.getValue())) {
+                    throw new BotException(speechService.getRandomMessageByTag("noAccess"));
+                }
+
                 String params = textMessage.substring(8);
                 try {
                     Long newsSourceId = Long.parseLong(params);
