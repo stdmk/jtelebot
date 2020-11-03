@@ -44,8 +44,8 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     @Override
     public String buildShortNewsMessageText(NewsMessage newsMessage) {
         SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-        return "<b>" + newsMessage.getTitle() + "</b>\n" +
-                dateTimeFormat.format(newsMessage.getPubDate()) + " /news_" + newsMessage.getId() + "\n\n";
+        return "<b>" + newsMessage.getTitle() + "</b>\n<i>" +
+                dateTimeFormat.format(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }
 
     @Override
