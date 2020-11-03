@@ -1,7 +1,5 @@
 package org.telegram.bot.timers;
 
-import com.google.common.collect.Lists;
-import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -10,6 +8,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.domain.enums.ParseModes;
@@ -21,6 +20,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
@@ -40,7 +40,11 @@ public class NewsTimer extends TimerParent {
     @Scheduled(fixedRate = 300000)
     public void execute() {
         Bot bot = (Bot) context.getBean("bot");
-        List<NewsSource> newsSources = newsSourceService.getAll();
+        List<NewsSource> newsSources = newsService.getAll()
+                .stream()
+                .map(News::getNewsSource)
+                .distinct()
+                .collect(Collectors.toList());
 
         newsSources.forEach(newsSource -> {
             SyndFeed syndFeed = getRssFeedFromUrl(newsSource.getUrl());

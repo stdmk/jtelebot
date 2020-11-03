@@ -9,17 +9,11 @@ import java.util.List;
  */
 public interface NewsSourceService {
     /**
-     * Get NewsSource by irs url.
+     * Get NewsSource by its url.
      * @param url - url of NewsSource.
      * @return the persisted entity.
      */
     NewsSource get(String url);
-
-    /**
-     * Get all NewsSources.
-     * @return the persisted entities.
-     */
-    List<NewsSource> getAll();
 
     /**
      * Save the NewsSource.

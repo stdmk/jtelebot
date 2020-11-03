@@ -25,12 +25,6 @@ public class NewsSourceServiceImpl implements NewsSourceService {
     }
 
     @Override
-    public List<NewsSource> getAll() {
-        log.debug("Request to get all NewsSources");
-        return newsSourceRepository.findAll();
-    }
-
-    @Override
     public NewsSource save(NewsSource newsSource) {
         log.debug("Request to save NewsSource {}", newsSource);
         return newsSourceRepository.save(newsSource);
