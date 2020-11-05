@@ -68,14 +68,19 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        User botUser;
-        try {
-            botUser = this.execute(new GetMe());
-        } catch (TelegramApiException e) {
-            return "jtelebot";
+        String botUserName = propertiesConfig.getTelegramBotUsername();
+        if (botUserName == null) {
+            User botUser;
+            try {
+                botUser = this.execute(new GetMe());
+                botUserName = botUser.getUserName();
+                propertiesConfig.setTelegramBotUsername(botUserName);
+            } catch (TelegramApiException e) {
+                botUserName = "jtelebot";
+            }
         }
 
-        return botUser.getUserName();
+        return botUserName;
     }
 
     @Override
