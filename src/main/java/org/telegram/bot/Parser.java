@@ -17,7 +17,7 @@ public class Parser extends Thread {
     private final Logger log = LoggerFactory.getLogger(Parser.class);
 
     private final Bot bot;
-    private final CommandParent command;
+    private final CommandParent<?> command;
     private final Update update;
 
     @Override
@@ -28,14 +28,16 @@ public class Parser extends Thread {
         log.debug("Find a command {}", command.toString());
 
         try {
-            PartialBotApiMethod method = command.parse(update);
+            PartialBotApiMethod<?> method = command.parse(update);
             if (method instanceof SendMessage) {
-                log.info("To " + update.getMessage().getChatId() + ": " + ((SendMessage) method).getText());
-                bot.execute((SendMessage) method);
+                SendMessage sendMessage = (SendMessage) method;
+                log.info("To " + update.getMessage().getChatId() + ": " + (sendMessage).getText());
+                bot.execute(sendMessage);
             }
             else if (method instanceof SendPhoto) {
-                log.info("To " + update.getMessage().getChatId() + ": sended photo " + ((SendPhoto) method).getCaption());
-                bot.execute((SendPhoto) method);
+                SendPhoto sendPhoto = ((SendPhoto) method);
+                log.info("To " + update.getMessage().getChatId() + ": sended photo " + (sendPhoto).getCaption());
+                bot.execute(sendPhoto);
             }
         } catch (TelegramApiException e) {
             log.error("Error: cannot send response: {}", e.getMessage());

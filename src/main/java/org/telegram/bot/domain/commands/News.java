@@ -32,7 +32,7 @@ import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
 @Component
 @AllArgsConstructor
-public class News implements CommandParent {
+public class News implements CommandParent<PartialBotApiMethod<?>> {
 
     private final Logger log = LoggerFactory.getLogger(News.class);
 
@@ -46,7 +46,7 @@ public class News implements CommandParent {
     private static final List<String> PARAMS = Arrays.asList("добавить", "удалить");
 
     @Override
-    public PartialBotApiMethod parse(Update update) throws BotException {
+    public PartialBotApiMethod<?> parse(Update update) throws BotException {
         String textMessage = cutCommandInText(update.getMessage().getText());
         Chat chat = chatService.get(update.getMessage().getChatId());
         String responseText;

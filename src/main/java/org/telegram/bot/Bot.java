@@ -27,6 +27,7 @@ public class Bot extends TelegramLongPollingBot {
     private final UserService userService;
     private final UserStatsService userStatsService;
 
+    @SuppressWarnings("rawtypes")
     @Override
     public void onUpdateReceived(Update update) {
         String textOfMessage = update.getMessage().getText();

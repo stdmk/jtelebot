@@ -42,11 +42,11 @@ public class Sql implements CommandParent<SendMessage> {
         if (textMessage.toLowerCase().startsWith("select")) {
             try {
                 StringBuilder buf = new StringBuilder();
-                List resultList = entityManager.createNativeQuery(textMessage).getResultList();
+                List<?> resultList = entityManager.createNativeQuery(textMessage).getResultList();
                 try {
-                    ((List<Object[]>) resultList).forEach(results -> {
+                    resultList.forEach(results -> {
                         buf.append("[");
-                        Arrays.stream(results).forEach(result -> buf.append(result.toString()).append(", "));
+                        Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
                         buf.append("]\n");
                     });
                 } catch (Exception e) {

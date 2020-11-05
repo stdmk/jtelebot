@@ -1,7 +1,6 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -13,7 +12,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 

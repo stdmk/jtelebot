@@ -8,8 +8,6 @@ import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.repositories.NewsSourceRepository;
 import org.telegram.bot.services.NewsSourceService;
 
-import java.util.List;
-
 @Service
 @AllArgsConstructor
 public class NewsSourceServiceImpl implements NewsSourceService {

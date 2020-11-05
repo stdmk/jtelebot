@@ -2,8 +2,6 @@ package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.NewsSource;
 
-import java.util.List;
-
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.NewsSource}.
  */

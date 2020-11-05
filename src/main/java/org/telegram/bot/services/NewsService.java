@@ -3,7 +3,6 @@ package org.telegram.bot.services;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsSource;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 
 import java.util.List;
 
