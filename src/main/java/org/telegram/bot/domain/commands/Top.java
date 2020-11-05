@@ -13,7 +13,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
@@ -36,24 +36,24 @@ public class Top implements CommandParent<SendMessage> {
     private static final List<String> PARAMS = Arrays.asList("месяц", "все", "всё");
 
     @Override
-    public SendMessage parse(Update update) throws BotException {
-        String textMessage = cutCommandInText(update.getMessage().getText());
+    public SendMessage parse(Message message) throws BotException {
+        String textMessage = cutCommandInText(message.getText());
         String responseText;
 
         //TODO переделать на айди, если пользователь без юзернейма
         if (textMessage == null) {
-            responseText = getTopOfUsername(update.getMessage().getChatId(), update.getMessage().getFrom().getUserName());
+            responseText = getTopOfUsername(message.getChatId(), message.getFrom().getUserName());
         } else {
             if (PARAMS.contains(textMessage)) {
-                responseText = getTopListOfUsers(update.getMessage().getChatId(), textMessage);
+                responseText = getTopListOfUsers(message.getChatId(), textMessage);
             } else {
-                responseText = getTopOfUsername(update.getMessage().getChatId(), textMessage);
+                responseText = getTopOfUsername(message.getChatId(), textMessage);
             }
         }
 
         return new SendMessage()
-                .setChatId(update.getMessage().getChatId())
-                .setReplyToMessageId(update.getMessage().getMessageId())
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(message.getMessageId())
                 .setParseMode(ParseModes.MARKDOWN.getValue())
                 .setText(responseText);
     }

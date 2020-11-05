@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.io.File;
 
@@ -14,10 +14,10 @@ import java.io.File;
 public class Logs implements CommandParent<SendDocument> {
 
     @Override
-    public SendDocument parse(Update update) throws Exception {
-        Long chatId = update.getMessage().getChatId();
+    public SendDocument parse(Message message) throws Exception {
+        Long chatId = message.getChatId();
         if (chatId < 0) {
-            chatId = update.getMessage().getFrom().getId().longValue();
+            chatId = message.getFrom().getId().longValue();
         }
 
         File logs = new File("logs/log.log");

@@ -11,7 +11,7 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Component
 @AllArgsConstructor
@@ -24,17 +24,17 @@ public class Level implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
-        String textMessage = cutCommandInText(update.getMessage().getText());
+    public SendMessage parse(Message message) throws Exception {
+        String textMessage = cutCommandInText(message.getText());
         int i;
         if (textMessage == null) {
-            Long chatId = update.getMessage().getChatId();
+            Long chatId = message.getChatId();
             if (chatId > 0) {
                 throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
             }
             return new SendMessage()
                     .setChatId(chatId)
-                    .setReplyToMessageId(update.getMessage().getMessageId())
+                    .setReplyToMessageId(message.getMessageId())
                     .setText("Уровень этого чата - " + chatService.getChatAccessLevel(chatId));
         } else {
             i = textMessage.indexOf(" ");
@@ -64,17 +64,17 @@ public class Level implements CommandParent<SendMessage> {
             userService.save(userToUpdate);
 
             return new SendMessage()
-                    .setChatId(update.getMessage().getChatId())
+                    .setChatId(message.getChatId())
                     .setText(speechService.getRandomMessageByTag("saved"));
         } else {
-            org.telegram.bot.domain.entities.Chat chatToUpdate = chatService.get(update.getMessage().getChatId());
+            org.telegram.bot.domain.entities.Chat chatToUpdate = chatService.get(message.getChatId());
 
             log.debug("Request to change level of chat {} from {} to {}", chatToUpdate.getChatId(), chatToUpdate.getAccessLevel(), level);
             chatToUpdate.setAccessLevel(level);
             chatService.save(chatToUpdate);
 
-            return new SendMessage().setReplyToMessageId(update.getMessage().getMessageId())
-                    .setChatId(update.getMessage().getChatId())
+            return new SendMessage().setReplyToMessageId(message.getMessageId())
+                    .setChatId(message.getChatId())
                     .setText(speechService.getRandomMessageByTag("saved"));
         }
     }

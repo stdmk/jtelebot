@@ -11,7 +11,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -30,7 +30,7 @@ public class Boobs implements CommandParent<SendPhoto> {
     private static final String BOOBS_API_URL = "http://api.oboobs.ru/boobs/";
     private static final String BOOBS_IMAGE_URL = "http://media.oboobs.ru/boobs/";
 
-    public SendPhoto parse(Update update) throws BotException {
+    public SendPhoto parse(Message message) throws BotException {
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<BoobsCount[]> response = restTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
@@ -51,12 +51,12 @@ public class Boobs implements CommandParent<SendPhoto> {
         }
 
 
-        String caption = update.getMessage().getText();
+        String caption = message.getText();
         return new SendPhoto()
                 .setPhoto(caption, boobs)
                 .setCaption(caption)
-                .setReplyToMessageId(update.getMessage().getMessageId())
-                .setChatId(update.getMessage().getChatId());
+                .setReplyToMessageId(message.getMessageId())
+                .setChatId(message.getChatId());
     }
 
     @Data

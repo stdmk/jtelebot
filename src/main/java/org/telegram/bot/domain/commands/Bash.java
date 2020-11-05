@@ -11,7 +11,7 @@ import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
@@ -24,8 +24,8 @@ public class Bash implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
-        String textMessage = cutCommandInText(update.getMessage().getText());
+    public SendMessage parse(Message message) throws Exception {
+        String textMessage = cutCommandInText(message.getText());
         String quot;
 
         if (textMessage == null) {
@@ -46,8 +46,8 @@ public class Bash implements CommandParent<SendMessage> {
         }
 
         return new SendMessage()
-                .setChatId(update.getMessage().getChatId())
-                .setReplyToMessageId(update.getMessage().getMessageId())
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(message.getMessageId())
                 .setParseMode(ParseModes.MARKDOWN.getValue())
                 .disableWebPagePreview()
                 .setText(quot);

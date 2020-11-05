@@ -12,7 +12,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TodoService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Component
 @AllArgsConstructor
@@ -25,8 +25,8 @@ public class Todo implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws BotException {
-        String textMessage = cutCommandInText(update.getMessage().getText());
+    public SendMessage parse(Message message) throws BotException {
+        String textMessage = cutCommandInText(message.getText());
         String responseText;
         if (textMessage == null) {
             log.debug("Request to get all todo list");
@@ -44,7 +44,7 @@ public class Todo implements CommandParent<SendMessage> {
                 }
                 log.debug("Request to delete todo by id " + todoId);
                 if (!userService.isUserHaveAccessForCommand(
-                        userService.get(update.getMessage().getFrom().getId()).getAccessLevel(),
+                        userService.get(message.getFrom().getId()).getAccessLevel(),
                         AccessLevels.ADMIN.getValue())) {
                     throw new BotException("Удалять может только админ");
                 }
@@ -64,7 +64,7 @@ public class Todo implements CommandParent<SendMessage> {
                 } catch (NumberFormatException e) {
                     log.debug("Request to add new todo");
                     org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
-                    todo.setUser(userService.get(update.getMessage().getFrom().getId()));
+                    todo.setUser(userService.get(message.getFrom().getId()));
                     todo.setTodoText(textMessage);
                     todoService.save(todo);
                     responseText = speechService.getRandomMessageByTag("saved");
@@ -73,8 +73,8 @@ public class Todo implements CommandParent<SendMessage> {
         }
 
         return new SendMessage()
-                .setChatId(update.getMessage().getChatId())
-                .setReplyToMessageId(update.getMessage().getMessageId())
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(message.getMessageId())
                 .setParseMode(ParseModes.MARKDOWN.getValue())
                 .setText(responseText);
     }

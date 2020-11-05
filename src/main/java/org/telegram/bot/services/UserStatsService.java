@@ -2,7 +2,7 @@ package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
 
@@ -36,9 +36,9 @@ public interface UserStatsService {
     /**
      * Check and save updates for User, Chat and UserStats etc entites.
      *
-     * @param update - received from api update.
+     * @param message - received Message.
      */
-    void updateEntitiesInfo(Update update);
+    void updateEntitiesInfo(Message message);
 
     /**
      * Get list of users of chat.

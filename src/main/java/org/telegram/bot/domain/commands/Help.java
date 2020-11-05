@@ -11,7 +11,7 @@ import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
 
@@ -27,12 +27,12 @@ public class Help implements CommandParent<SendMessage> {
     private final PropertiesConfig propertiesConfig;
 
     @Override
-    public SendMessage parse(Update update) {
-        String textMessage = cutCommandInText(update.getMessage().getText());
+    public SendMessage parse(Message message) {
+        String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null || textMessage.length() == 0) {
             StringBuilder responseText = new StringBuilder();
-            if (checkIsThatAdmin(update)) {
+            if (checkIsThatAdmin(message)) {
                 responseText.append("Права администратора успешно предоставлены\n\n");
             }
 
@@ -41,8 +41,8 @@ public class Help implements CommandParent<SendMessage> {
             responseText.append("*Без паники!*\n");
 
             Integer accessLevel;
-            Integer userAccessLevel = userService.getUserAccessLevel(update.getMessage().getFrom().getId());
-            Integer chatAccessLevel = chatService.getChatAccessLevel(update.getMessage().getChatId());
+            Integer userAccessLevel = userService.getUserAccessLevel(message.getFrom().getId());
+            Integer chatAccessLevel = chatService.getChatAccessLevel(message.getChatId());
             if (userAccessLevel > chatAccessLevel) {
                 accessLevel = userAccessLevel;
             } else {
@@ -68,13 +68,13 @@ public class Help implements CommandParent<SendMessage> {
                         .append("Для получения помощи по определённой команде, напиши 'помощь ИмяКоманды' без кавычек\n");
 
             return new SendMessage()
-                    .setChatId(update.getMessage().getChatId())
+                    .setChatId(message.getChatId())
                     .setParseMode(ParseModes.MARKDOWN.getValue())
                     .setText(responseText.toString());
         } else {
             log.debug("Request to get help for command: {}", textMessage);
             return new SendMessage()
-                    .setChatId(update.getMessage().getChatId())
+                    .setChatId(message.getChatId())
                     .setParseMode(ParseModes.MARKDOWN.getValue())
                     .setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
         }
@@ -100,8 +100,8 @@ public class Help implements CommandParent<SendMessage> {
         return preparedText.toString();
     }
 
-    private Boolean checkIsThatAdmin(Update update) {
-        Integer userId = update.getMessage().getFrom().getId();
+    private Boolean checkIsThatAdmin(Message message) {
+        Integer userId = message.getFrom().getId();
         Integer adminId;
         try {
             adminId = propertiesConfig.getAdminId();

@@ -11,6 +11,7 @@ import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -29,18 +30,25 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        String textOfMessage = update.getMessage().getText();
+        Message message;
 
-        User user = update.getMessage().getFrom();
-        log.info("From " + update.getMessage().getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
+        if (update.hasMessage()) {
+            message = update.getMessage();
+        } else {
+            message = update.getEditedMessage();
+        }
 
-        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(user.getId(), update.getMessage().getChatId());
+        String textOfMessage = message.getText();
+        User user = message.getFrom();
+        log.info("From " + message.getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
+
+        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(user.getId(), message.getChatId());
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
             log.info("Banned user. Ignoring...");
             return;
         }
 
-        userStatsService.updateEntitiesInfo(update);
+        userStatsService.updateEntitiesInfo(message);
 
         if (textOfMessage == null || textOfMessage.equals("")) {
             return;
@@ -59,7 +67,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(update.getMessage().getChatId(), user.getId());
+            userStatsService.incrementUserStatsCommands(message.getChatId(), user.getId());
             Parser parser = new Parser(this, command, update);
             parser.start();
         }

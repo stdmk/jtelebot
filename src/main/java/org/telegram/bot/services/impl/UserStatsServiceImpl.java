@@ -53,11 +53,11 @@ public class UserStatsServiceImpl implements UserStatsService {
 
     @Override
     @Transactional
-    public void updateEntitiesInfo(Update update) {
+    public void updateEntitiesInfo(Message message) {
         log.debug("Request to updates entities info");
-        User user = updateUserInfo(update.getMessage().getFrom());
-        Chat chat = updateChatInfo(update.getMessage().getChat());
-        updateUserStats(chat, user, update.getMessage());
+        User user = updateUserInfo(message.getFrom());
+        Chat chat = updateChatInfo(message.getChat());
+        updateUserStats(chat, user, message);
     }
 
     @Override

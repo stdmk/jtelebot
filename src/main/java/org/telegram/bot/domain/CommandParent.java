@@ -1,13 +1,14 @@
 package org.telegram.bot.domain;
 
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 
 public interface CommandParent<T extends PartialBotApiMethod<?>> {
 
-    T parse(Update update) throws Exception;
+    T parse(Message message) throws Exception;
 
     default String cutCommandInText(String text) {
         String cuttedText = getPotentialCommandInText(text);
