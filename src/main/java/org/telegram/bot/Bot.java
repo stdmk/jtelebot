@@ -27,7 +27,6 @@ public class Bot extends TelegramLongPollingBot {
     private final UserService userService;
     private final UserStatsService userStatsService;
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void onUpdateReceived(Update update) {
         String textOfMessage = update.getMessage().getText();
@@ -52,9 +51,9 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        CommandParent command = null;
+        CommandParent<?> command = null;
         try {
-            command = (CommandParent) context.getBean(commandProperties.getClassName());
+            command = (CommandParent<?>) context.getBean(commandProperties.getClassName());
         } catch (Exception e) {
             log.error(e.getMessage());
         }
