@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -31,13 +32,16 @@ public class Parser extends Thread {
             PartialBotApiMethod<?> method = command.parse(update);
             if (method instanceof SendMessage) {
                 SendMessage sendMessage = (SendMessage) method;
-                log.info("To " + update.getMessage().getChatId() + ": " + (sendMessage).getText());
+                log.info("To " + update.getMessage().getChatId() + ": " + sendMessage.getText());
                 bot.execute(sendMessage);
-            }
-            else if (method instanceof SendPhoto) {
-                SendPhoto sendPhoto = ((SendPhoto) method);
-                log.info("To " + update.getMessage().getChatId() + ": sended photo " + (sendPhoto).getCaption());
+            } else if (method instanceof SendPhoto) {
+                SendPhoto sendPhoto = (SendPhoto) method;
+                log.info("To " + update.getMessage().getChatId() + ": sending photo " + sendPhoto.getCaption());
                 bot.execute(sendPhoto);
+            } else if (method instanceof SendDocument) {
+                SendDocument sendDocument = (SendDocument) method;
+                log.info("To " + update.getMessage().getChatId() + ": sending document " + sendDocument.getCaption());
+                bot.execute(sendDocument);
             }
         } catch (TelegramApiException e) {
             log.error("Error: cannot send response: {}", e.getMessage());
