@@ -8,10 +8,10 @@ public class DateUtils {
 
     public static String deltaDatesToString(LocalDateTime date1, LocalDateTime date2) {
         ZoneId zoneId = ZoneId.systemDefault();
-        ZoneOffset zoneOffset = ZoneOffset.of(zoneId.toString());
+        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
 
-        long start = date1.toInstant(zoneOffset).toEpochMilli();
-        long end = date2.toInstant(zoneOffset).toEpochMilli();
+        long start = date1.toInstant(zoneOffSet).toEpochMilli();
+        long end = date2.toInstant(zoneOffSet).toEpochMilli();
 
         return deltaDatesToString(start - end);
     }
@@ -21,22 +21,22 @@ public class DateUtils {
 
         long days =  milliseconds / 86400000;
         if (days > 0) {
-            responseText.append(" д. ");
+            responseText.append(days).append(" д. ");
         }
 
         long hours = milliseconds % 86400000 / 3600000;
         if (hours > 0) {
-            responseText.append(" ч. ");
+            responseText.append(hours).append(" ч. ");
         }
 
         long minutes = milliseconds % 86400000 % 3600000 / 60000;
         if (minutes > 0) {
-            responseText.append(" м. ");
+            responseText.append(minutes).append(" м. ");
         }
 
         long seconds = milliseconds % 86400000 % 3600000 % 60000 / 1000;
         if (seconds > 0) {
-            responseText.append(" с. ");
+            responseText.append(seconds).append(" с. ");
         }
 
         return responseText.toString();
