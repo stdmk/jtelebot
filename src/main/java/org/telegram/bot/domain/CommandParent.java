@@ -20,7 +20,7 @@ public interface CommandParent<T extends PartialBotApiMethod<?>> {
                 return null;
             }
             int i = text.indexOf("@");
-            if (i > 0) {
+            if (i > 0 && text.substring(text.length()-3).toLowerCase().equals("bot")) {
                 text = text.substring(0, i);
             }
             text = text.substring(cuttedText.length());

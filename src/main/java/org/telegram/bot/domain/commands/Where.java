@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
@@ -34,22 +35,27 @@ public class Where implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Message message) throws Exception {
+        boolean deleteCommandWaiting = false;
+        Integer messageId = message.getMessageId();
+
         CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
         String textMessage;
         if (commandWaiting == null) {
             textMessage = cutCommandInText(message.getText());
         } else {
             textMessage = message.getText();
+            deleteCommandWaiting = true;
         }
 
         String responseText;
         if (textMessage == null) {
+            deleteCommandWaiting = false;
             log.debug("Empty params. Waiting to continue...");
             commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
             if (commandWaiting == null) {
-               commandWaiting = new CommandWaiting();
-               commandWaiting.setChatId(message.getChatId());
-               commandWaiting.setUserId(message.getFrom().getId());
+                commandWaiting = new CommandWaiting();
+                commandWaiting.setChatId(message.getChatId());
+                commandWaiting.setUserId(message.getFrom().getId());
             }
             commandWaiting.setCommandName("where");
             commandWaiting.setIsFinished(false);
@@ -63,7 +69,9 @@ public class Where implements CommandParent<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
             }
 
-            LocalDateTime dateOfMessage = userStatsService.get(message.getChatId(), user.getUserId()).getLastMessage().getDate();
+            LastMessage lastMessage = userStatsService.get(message.getChatId(), user.getUserId()).getLastMessage();
+            messageId = lastMessage.getMessageId();
+            LocalDateTime dateOfMessage = lastMessage.getDate();
             ZoneId zoneId = ZoneId.systemDefault();
 
             responseText = "последний раз пользователя *" + user.getUsername() +
@@ -71,13 +79,13 @@ public class Where implements CommandParent<SendMessage> {
                     "Молчит уже " + deltaDatesToString(LocalDateTime.now(), dateOfMessage);
         }
 
-        if (commandWaiting != null) {
+        if (deleteCommandWaiting) {
             commandWaitingService.remove(commandWaiting);
         }
 
         return new SendMessage()
                 .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
+                .setReplyToMessageId(messageId)
                 .setParseMode(ParseModes.MARKDOWN.getValue())
                 .setText(responseText);
         }
