@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -27,6 +28,7 @@ public class Bot extends TelegramLongPollingBot {
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final UserStatsService userStatsService;
+    private final CommandWaitingService commandWaitingService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -40,9 +42,11 @@ public class Bot extends TelegramLongPollingBot {
 
         String textOfMessage = message.getText();
         User user = message.getFrom();
-        log.info("From " + message.getChatId() + " (" + user.getUserName() + "-" + user.getId() + "): " + textOfMessage);
+        Long chatId = message.getChatId();
+        Integer userId = user.getId();
+        log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
 
-        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(user.getId(), message.getChatId());
+        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
         if (userAccessLevel.equals(AccessLevels.BANNED)) {
             log.info("Banned user. Ignoring...");
             return;
@@ -56,7 +60,14 @@ public class Bot extends TelegramLongPollingBot {
 
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
         if (commandProperties == null) {
-            return;
+            CommandWaiting commandWaiting = commandWaitingService.get(chatId, userId);
+            if (commandWaiting == null) {
+                return;
+            }
+            commandProperties = commandPropertiesService.findCommandByName(commandWaiting.getCommandName());
+            if (commandProperties == null) {
+                return;
+            }
         }
 
         CommandParent<?> command = null;
@@ -67,7 +78,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(message.getChatId(), user.getId());
+            userStatsService.incrementUserStatsCommands(chatId, userId);
             Parser parser = new Parser(this, command, update);
             parser.start();
         }

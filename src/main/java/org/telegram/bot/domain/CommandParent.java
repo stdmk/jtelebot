@@ -11,13 +11,16 @@ public interface CommandParent<T extends PartialBotApiMethod<?>> {
     T parse(Message message) throws Exception;
 
     default String cutCommandInText(String text) {
+        if (text.charAt(0) == '/') {
+            text = text.substring(1);
+        }
         String cuttedText = getPotentialCommandInText(text);
         if (cuttedText != null) {
             if (text.toLowerCase().equals(cuttedText)) {
                 return null;
             }
             int i = text.indexOf("@");
-            if (i > 0) {
+            if (i > 0 && text.substring(text.length()-3).toLowerCase().equals("bot")) {
                 text = text.substring(0, i);
             }
             text = text.substring(cuttedText.length());
