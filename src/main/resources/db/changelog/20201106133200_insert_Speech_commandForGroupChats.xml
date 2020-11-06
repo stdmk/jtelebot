@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201106133200-1" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="61"/>
+            <column name="tag" value="commandForGroupChats"/>
+            <column name="message" value="эта команда предназначена для групповых чатов"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="62"/>
+            <column name="tag" value="commandForGroupChats"/>
+            <column name="message" value="а есть смысл делать это в привате?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="63"/>
+            <column name="tag" value="commandForGroupChats"/>
+            <column name="message" value="эта команда не для привата"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="64"/>
+            <column name="tag" value="noAccess"/>
+            <column name="message" value="команда работает только в групповых чатах"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="65"/>
+            <column name="tag" value="commandForGroupChats"/>
+            <column name="message" value="это надо делать в групповом чате"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

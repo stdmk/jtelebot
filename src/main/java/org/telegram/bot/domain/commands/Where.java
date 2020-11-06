@@ -8,6 +8,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -36,6 +37,10 @@ public class Where implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Message message) throws Exception {
+        if (message.getChatId() > 0) {
+            throw new BotException(speechService.getRandomMessageByTag("commandForGroupChats"));
+        }
+
         boolean deleteCommandWaiting = false;
         Integer messageId = message.getMessageId();
 
@@ -66,11 +71,12 @@ public class Where implements CommandParent<SendMessage> {
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {
             User user = userService.get(textMessage);
-            if (user == null) {
+            UserStats userStats = userStatsService.get(message.getChatId(), user.getUserId());
+            if (userStats == null) {
                 throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
             }
 
-            LastMessage lastMessage = userStatsService.get(message.getChatId(), user.getUserId()).getLastMessage();
+            LastMessage lastMessage = userStats.getLastMessage();
             messageId = lastMessage.getMessageId();
             LocalDateTime dateOfMessage = lastMessage.getDate();
             ZoneId zoneId = ZoneId.systemDefault();
