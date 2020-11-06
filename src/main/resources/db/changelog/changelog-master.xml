@@ -32,4 +32,5 @@
     <include file="db/changelog/20201103095000_lower_AccessLevel_News.xml"/>
     <include file="db/changelog/20201105120500_added_command_Logs.xml"/>
     <include file="db/changelog/20201106093600_added_command_Where.xml"/>
+    <include file="db/changelog/20201106104900_added_entity_CommandWaiting.xml"/>
 </databaseChangeLog>
