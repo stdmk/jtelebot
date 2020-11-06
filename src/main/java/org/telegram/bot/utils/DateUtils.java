@@ -1,10 +1,24 @@
 package org.telegram.bot.utils;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class DateUtils {
+    private static final String dateTimeFormatString = "dd.MM.yyyy HH:mm:ss";
+    public static SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
+    public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
+
+    public static String formatDate(Date date) {
+        return dateTimeFormat.format(date);
+    }
+
+    public static String formatDate(LocalDateTime date) {
+        return date.format(dateTimeFormatter);
+    }
 
     public static String deltaDatesToString(LocalDateTime date1, LocalDateTime date2) {
         ZoneId zoneId = ZoneId.systemDefault();

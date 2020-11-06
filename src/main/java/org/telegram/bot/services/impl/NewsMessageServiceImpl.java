@@ -9,11 +9,11 @@ import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
 import org.telegram.bot.services.NewsMessageService;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
+import static org.telegram.bot.utils.DateUtils.formatDate;
 
 @Service
 @AllArgsConstructor
@@ -43,9 +43,9 @@ public class NewsMessageServiceImpl implements NewsMessageService {
 
     @Override
     public String buildShortNewsMessageText(NewsMessage newsMessage) {
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+
         return "<b>" + newsMessage.getTitle() + "</b>\n<i>" +
-                dateTimeFormat.format(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
+                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }
 
     @Override
@@ -68,9 +68,8 @@ public class NewsMessageServiceImpl implements NewsMessageService {
 
     @Override
     public String buildFullNewsMessageText(NewsMessage newsMessage) {
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
         return "<b>" + newsMessage.getTitle() + "</b>\n" +
-                "<i>" + dateTimeFormat.format(newsMessage.getPubDate()) + "</i>\n" +
+                "<i>" + formatDate(newsMessage.getPubDate()) + "</i>\n" +
                 newsMessage.getDescription() +
                 "\n<a href=\"" + newsMessage.getLink() + "\">Читать полностью</a>";
     }

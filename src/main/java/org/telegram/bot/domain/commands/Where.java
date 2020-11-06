@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
+import static org.telegram.bot.utils.DateUtils.formatDate;
 
 @Component
 @AllArgsConstructor
@@ -75,7 +76,7 @@ public class Where implements CommandParent<SendMessage> {
             ZoneId zoneId = ZoneId.systemDefault();
 
             responseText = "последний раз пользователя *" + user.getUsername() +
-                    "* я видел " + dateOfMessage + " (" + zoneId.getId() + ").\n" +
+                    "* я видел " + formatDate(dateOfMessage) + " (" + zoneId.getId() + ")\n" +
                     "Молчит уже " + deltaDatesToString(LocalDateTime.now(), dateOfMessage);
         }
 
