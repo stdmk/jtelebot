@@ -36,7 +36,10 @@ public class TextUtils {
 
     public static String reduceSpaces(String text) {
         while (text.contains("  ")) {
-            text = text.replace("  ", " ");
+            text = text.replaceAll(" +", " ");
+        }
+        while (text.contains("\n\n")) {
+            text = text.replaceAll("\n\n", "\n");
         }
 
         return text.trim();
