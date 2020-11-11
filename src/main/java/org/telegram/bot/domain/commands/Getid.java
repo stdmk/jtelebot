@@ -6,13 +6,15 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @AllArgsConstructor
 public class Getid implements CommandParent<SendMessage> {
 
     @Override
-    public SendMessage parse(Message message) {
+    public SendMessage parse(Update update, String commandText) {
+        Message message = getMessageFromUpdate(update);
         StringBuilder responseText = new StringBuilder();
         Long chatId = message.getChatId();
 

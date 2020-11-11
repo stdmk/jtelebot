@@ -12,6 +12,7 @@ import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -33,15 +34,26 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         Message message;
+        User user;
+        String textOfMessage;
 
-        if (update.hasMessage()) {
-            message = update.getMessage();
+        if (update.hasCallbackQuery()) {
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            message = callbackQuery.getMessage();
+            textOfMessage = callbackQuery.getData();
+            user = callbackQuery.getFrom();
         } else {
-            message = update.getEditedMessage();
+            if (update.hasMessage()) {
+                message = update.getMessage();
+            } else if (update.hasEditedMessage()) {
+                message = update.getEditedMessage();
+            } else {
+                return;
+            }
+            textOfMessage = message.getText();
+            user = message.getFrom();
         }
 
-        String textOfMessage = message.getText();
-        User user = message.getFrom();
         Long chatId = message.getChatId();
         Integer userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
@@ -58,6 +70,7 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
+        String commandText = textOfMessage;
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
         if (commandProperties == null) {
             CommandWaiting commandWaiting = commandWaitingService.get(chatId, userId);
@@ -67,6 +80,8 @@ public class Bot extends TelegramLongPollingBot {
             commandProperties = commandPropertiesService.findCommandByName(commandWaiting.getCommandName());
             if (commandProperties == null) {
                 return;
+            } else {
+                commandText = commandWaiting.getTextMessage() + textOfMessage;
             }
         }
 
@@ -79,7 +94,7 @@ public class Bot extends TelegramLongPollingBot {
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
             userStatsService.incrementUserStatsCommands(chatId, userId);
-            Parser parser = new Parser(this, command, update);
+            Parser parser = new Parser(this, command, update, commandText);
             parser.start();
         }
 

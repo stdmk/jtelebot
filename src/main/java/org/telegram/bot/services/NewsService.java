@@ -86,4 +86,11 @@ public interface NewsService {
      * @return true if remove.
      */
     Boolean remove(Chat chat, String newsName);
+
+    /**
+     * Remove a News.
+     *
+     * @param newsId id of News entity
+     */
+    void remove(Long newsId);
 }

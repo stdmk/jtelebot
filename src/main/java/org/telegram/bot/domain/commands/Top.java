@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -14,6 +15,7 @@ import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
@@ -36,7 +38,8 @@ public class Top implements CommandParent<SendMessage> {
     private static final List<String> PARAMS = Arrays.asList("месяц", "все", "всё");
 
     @Override
-    public SendMessage parse(Message message) throws BotException {
+    public SendMessage parse(Update update, String commandText) throws BotException {
+        Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 
@@ -81,16 +84,16 @@ public class Top implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
         }
 
-        fieldsOfStats.put("Сообщений", userStats.getNumberOfMessages().toString());
-        fieldsOfStats.put("Стикеров", userStats.getNumberOfStickers().toString());
-        fieldsOfStats.put("Изображений", userStats.getNumberOfPhotos().toString());
-        fieldsOfStats.put("Анимаций", userStats.getNumberOfAnimations().toString());
-        fieldsOfStats.put("Музыки", userStats.getNumberOfAudio().toString());
-        fieldsOfStats.put("Документов", userStats.getNumberOfDocuments().toString());
-        fieldsOfStats.put("Видео", userStats.getNumberOfVideos().toString());
-        fieldsOfStats.put("Видеосообщений", userStats.getNumberOfVideoNotes().toString());
-        fieldsOfStats.put("Голосовых", userStats.getNumberOfVoices().toString());
-        fieldsOfStats.put("Команд", userStats.getNumberOfCommands().toString());
+        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());
+        fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfStickers().toString());
+        fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfPhotos().toString());
+        fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAnimations().toString());
+        fieldsOfStats.put(Emoji.MUSIC.getEmoji() + "Музыки", userStats.getNumberOfAudio().toString());
+        fieldsOfStats.put(Emoji.DOCUMENT.getEmoji() + "Документов", userStats.getNumberOfDocuments().toString());
+        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getEmoji() + "Видео", userStats.getNumberOfVideos().toString());
+        fieldsOfStats.put(Emoji.VHS.getEmoji() + "Видеосообщений", userStats.getNumberOfVideoNotes().toString());
+        fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "Голосовых", userStats.getNumberOfVoices().toString());
+        fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "Команд", userStats.getNumberOfCommands().toString());
 
         buf.append("*").append(userStats.getUser().getUsername()).append("*\n");
         fieldsOfStats.forEach((key, value) -> {
@@ -103,16 +106,16 @@ public class Top implements CommandParent<SendMessage> {
         fieldsOfStats = new HashMap<>();
         buf.append("*Всего:*\n");
 
-        fieldsOfStats.put("Сообщений", userStats.getNumberOfAllMessages().toString());
-        fieldsOfStats.put("Стикеров", userStats.getNumberOfAllStickers().toString());
-        fieldsOfStats.put("Изображений", userStats.getNumberOfAllPhotos().toString());
-        fieldsOfStats.put("Анимаций", userStats.getNumberOfAllAnimations().toString());
-        fieldsOfStats.put("Музыки", userStats.getNumberOfAllAudio().toString());
-        fieldsOfStats.put("Документов", userStats.getNumberOfAllDocuments().toString());
-        fieldsOfStats.put("Видео", userStats.getNumberOfAllVideos().toString());
-        fieldsOfStats.put("Видеосообщений", userStats.getNumberOfAllVideoNotes().toString());
-        fieldsOfStats.put("Голосовых", userStats.getNumberOfAllVoices().toString());
-        fieldsOfStats.put("Команд", userStats.getNumberOfAllCommands().toString());
+        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfAllStickers().toString());
+        fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfAllPhotos().toString());
+        fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAllAnimations().toString());
+        fieldsOfStats.put(Emoji.MUSIC.getEmoji() + "Музыки", userStats.getNumberOfAllAudio().toString());
+        fieldsOfStats.put(Emoji.DOCUMENT.getEmoji() + "Документов", userStats.getNumberOfAllDocuments().toString());
+        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getEmoji() + "Видео", userStats.getNumberOfAllVideos().toString());
+        fieldsOfStats.put(Emoji.VHS.getEmoji() + "Видеосообщений", userStats.getNumberOfAllVideoNotes().toString());
+        fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "Голосовых", userStats.getNumberOfAllVoices().toString());
+        fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "Команд", userStats.getNumberOfAllCommands().toString());
 
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {

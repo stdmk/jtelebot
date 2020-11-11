@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -46,7 +47,8 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
     private static final List<String> PARAMS = Arrays.asList("добавить", "удалить");
 
     @Override
-    public PartialBotApiMethod<?> parse(Message message) throws BotException {
+    public PartialBotApiMethod<?> parse(Update update, String commandText) throws BotException {
+        Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         Chat chat = chatService.get(message.getChatId());
         String responseText;

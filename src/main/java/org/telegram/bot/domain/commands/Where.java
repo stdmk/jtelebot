@@ -17,6 +17,7 @@ import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -36,7 +37,8 @@ public class Where implements CommandParent<SendMessage> {
     private final CommandWaitingService commandWaitingService;
 
     @Override
-    public SendMessage parse(Message message) throws Exception {
+    public SendMessage parse(Update update, String commandText) throws Exception {
+        Message message = getMessageFromUpdate(update);
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag("commandForGroupChats"));
         }
