@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -31,10 +32,13 @@ public class Parser extends Thread {
         Message message = update.getMessage();
         if (message == null) {
             message = update.getEditedMessage();
+            if (message == null) {
+                message = update.getCallbackQuery().getMessage();
+            }
         }
 
         try {
-            PartialBotApiMethod<?> method = command.parse(message);
+            PartialBotApiMethod<?> method = command.parse(update);
             if (method instanceof SendMessage) {
                 SendMessage sendMessage = (SendMessage) method;
                 log.info("To " + message.getChatId() + ": " + sendMessage.getText());
@@ -43,6 +47,10 @@ public class Parser extends Thread {
                 SendPhoto sendPhoto = (SendPhoto) method;
                 log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
                 bot.execute(sendPhoto);
+            } else if (method instanceof EditMessageText) {
+                EditMessageText editMessageText = (EditMessageText) method;
+                log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
+                bot.execute(editMessageText);
             } else if (method instanceof SendDocument) {
                 SendDocument sendDocument = (SendDocument) method;
                 log.info("To " + message.getChatId() + ": sending document " + sendDocument.getCaption());

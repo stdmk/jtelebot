@@ -9,6 +9,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -21,7 +22,8 @@ public class Cmd implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Message message) throws Exception {
+    public SendMessage parse(Update update) throws Exception {
+        Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag("wrongInput"));

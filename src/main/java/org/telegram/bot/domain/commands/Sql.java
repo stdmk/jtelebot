@@ -11,6 +11,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.persistence.EntityManager;
@@ -32,7 +33,8 @@ public class Sql implements CommandParent<SendMessage> {
 
     @Override
     @Transactional
-    public SendMessage parse(Message message) throws Exception {
+    public SendMessage parse(Update update) throws Exception {
+        Message message = getMessageFromUpdate(update);
         String responseText;
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {

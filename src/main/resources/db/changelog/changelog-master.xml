@@ -35,4 +35,5 @@
     <include file="db/changelog/20201106104900_added_entity_CommandWaiting.xml"/>
     <include file="db/changelog/20201106133200_insert_Speech_commandForGroupChats.xml"/>
     <include file="db/changelog/20201106144200_added_command_Cmd.xml"/>
+    <include file="db/changelog/20201109105400_added_command_Set.xml"/>
 </databaseChangeLog>

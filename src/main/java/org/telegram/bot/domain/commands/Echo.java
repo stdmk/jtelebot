@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @AllArgsConstructor
@@ -13,10 +13,10 @@ public class Echo implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Message message) {
+    public SendMessage parse(Update update) {
 
         return new SendMessage()
-                .setChatId(message.getChatId())
+                .setChatId(update.getMessage().getChatId())
                 .setText(speechService.getRandomMessageByTag("echo"));
     }
 }

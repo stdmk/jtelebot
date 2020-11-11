@@ -12,6 +12,7 @@ import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -27,7 +28,8 @@ public class Help implements CommandParent<SendMessage> {
     private final PropertiesConfig propertiesConfig;
 
     @Override
-    public SendMessage parse(Message message) {
+    public SendMessage parse(Update update) {
+        Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null || textMessage.length() == 0) {
