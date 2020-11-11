@@ -31,7 +31,7 @@ public class Butts implements CommandParent<SendPhoto> {
     private static final String BUTTS_API_URL = "http://api.obutts.ru/butts/";
     private static final String BUTTS_IMAGE_URL = "http://media.obutts.ru/butts/";
 
-    public SendPhoto parse(Update update, String commandText) throws BotException {
+    public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
 
         RestTemplate restTemplate = new RestTemplate();

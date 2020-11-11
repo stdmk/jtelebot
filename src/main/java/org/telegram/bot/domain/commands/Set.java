@@ -25,27 +25,33 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final NewsSetter newsSetter;
 
+    private final String SET = "установить ";
+    private final String NEWS = "новости";
+    private final String CITY = "город";
+
     @Override
-    public PartialBotApiMethod<?> parse(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) throws Exception {
         //TODO проверка доступа и вывод соответствующих сеттеров
         Message message = getMessageFromUpdate(update);
-        CommandWaiting commandWaiting = null;
+        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
+        String textMessage = message.getText();
         if (update.hasCallbackQuery()) {
-            commandWaiting = commandWaitingService.get(message.getChatId(), update.getCallbackQuery().getFrom().getId());
+            textMessage = cutCommandInText(update.getCallbackQuery().getData());
+        } else if (commandWaiting != null) {
+            textMessage = cutCommandInText(commandWaiting.getTextMessage() + textMessage);
+        } else {
+            textMessage = cutCommandInText(textMessage);
         }
 
-        if (commandText == null || commandText.startsWith("установить back")) {
+        if (textMessage == null || textMessage.toLowerCase().startsWith("back")) {
             if (update.hasCallbackQuery()) {
                 return buildMainPageWithCallback(message);
             } else {
                 return buildMainPage(message);
             }
         } else {
-            if (commandText.startsWith("установить новости")) {
-                if (commandWaiting != null) {
-                    commandWaitingService.remove(commandWaiting);
-                }
-                return newsSetter.parse(update, commandText);
+            if (textMessage.toLowerCase().startsWith(NEWS)) {
+                return newsSetter.set(update, textMessage);
             } else {
                 return buildMainPage(message);
             }
@@ -79,8 +85,8 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         newsRow.add(newsButton);
 
         InlineKeyboardButton cityButton = new InlineKeyboardButton();
-        cityButton.setText("Установить город");
-        cityButton.setCallbackData("Установить город");
+        cityButton.setText(SET + CITY);
+        cityButton.setCallbackData(SET + CITY);
 
         List<InlineKeyboardButton> cityRow = new ArrayList<>();
         newsRow.add(cityButton);

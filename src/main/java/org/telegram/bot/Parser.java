@@ -22,7 +22,6 @@ public class Parser extends Thread {
     private final Bot bot;
     private final CommandParent<?> command;
     private final Update update;
-    private final String commandText;
 
     @Override
     public void run() {
@@ -39,7 +38,7 @@ public class Parser extends Thread {
         }
 
         try {
-            PartialBotApiMethod<?> method = command.parse(update, commandText.toLowerCase());
+            PartialBotApiMethod<?> method = command.parse(update);
             if (method instanceof SendMessage) {
                 SendMessage sendMessage = (SendMessage) method;
                 log.info("To " + message.getChatId() + ": " + sendMessage.getText());

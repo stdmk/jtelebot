@@ -28,7 +28,7 @@ public class Help implements CommandParent<SendMessage> {
     private final PropertiesConfig propertiesConfig;
 
     @Override
-    public SendMessage parse(Update update, String commandText) {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
 

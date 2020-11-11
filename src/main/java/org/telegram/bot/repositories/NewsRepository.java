@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface NewsRepository extends JpaRepository<News, Long> {
     News findByChatAndId(Chat chat, Long newsSourceId);
-    News findByChatAndName(Chat chat, String name);
+    News findByChatAndNameIgnoreCase(Chat chat, String name);
     List<News> findByChat(Chat chat);
     List<News> findByNewsSource(NewsSource newsSource);
 }

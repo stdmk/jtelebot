@@ -38,7 +38,7 @@ public class Top implements CommandParent<SendMessage> {
     private static final List<String> PARAMS = Arrays.asList("месяц", "все", "всё");
 
     @Override
-    public SendMessage parse(Update update, String commandText) throws BotException {
+    public SendMessage parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;

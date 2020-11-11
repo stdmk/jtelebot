@@ -14,7 +14,7 @@ public class Echo implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update, String commandText) {
+    public SendMessage parse(Update update) {
 
         return new SendMessage()
                 .setChatId(update.getMessage().getChatId())

@@ -70,7 +70,6 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        String commandText = textOfMessage;
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
         if (commandProperties == null) {
             CommandWaiting commandWaiting = commandWaitingService.get(chatId, userId);
@@ -80,8 +79,6 @@ public class Bot extends TelegramLongPollingBot {
             commandProperties = commandPropertiesService.findCommandByName(commandWaiting.getCommandName());
             if (commandProperties == null) {
                 return;
-            } else {
-                commandText = commandWaiting.getTextMessage() + textOfMessage;
             }
         }
 
@@ -94,7 +91,7 @@ public class Bot extends TelegramLongPollingBot {
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
             userStatsService.incrementUserStatsCommands(chatId, userId);
-            Parser parser = new Parser(this, command, update, commandText);
+            Parser parser = new Parser(this, command, update);
             parser.start();
         }
 

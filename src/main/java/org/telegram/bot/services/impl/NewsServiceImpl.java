@@ -29,7 +29,7 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public News get(Chat chat, String newsName) {
         log.debug("Request to get News by its name: {}  for Chat {}", newsName, chat.getChatId());
-        return newsRepository.findByChatAndName(chat, newsName);
+        return newsRepository.findByChatAndNameIgnoreCase(chat, newsName);
     }
 
     @Override

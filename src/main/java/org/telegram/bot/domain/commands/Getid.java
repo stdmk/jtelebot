@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class Getid implements CommandParent<SendMessage> {
 
     @Override
-    public SendMessage parse(Update update, String commandText) {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         StringBuilder responseText = new StringBuilder();
         Long chatId = message.getChatId();

@@ -8,7 +8,7 @@ import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 
 public interface CommandParent<T extends PartialBotApiMethod<?>> {
 
-    T parse(Update update, String textOfMessage) throws Exception;
+    T parse(Update update) throws Exception;
 
     default Message getMessageFromUpdate(Update update) {
         if (update.hasMessage()) {
@@ -30,6 +30,9 @@ public interface CommandParent<T extends PartialBotApiMethod<?>> {
     }
 
     default String cutCommandInText(String text) {
+        if (text == null) {
+            return null;
+        }
         if (text.charAt(0) == '/') {
             text = text.substring(1);
         }

@@ -22,7 +22,7 @@ public class Cmd implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update, String commandText) throws Exception {
+    public SendMessage parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {

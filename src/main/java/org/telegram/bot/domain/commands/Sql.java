@@ -33,7 +33,7 @@ public class Sql implements CommandParent<SendMessage> {
 
     @Override
     @Transactional
-    public SendMessage parse(Update update, String commandText) throws Exception {
+    public SendMessage parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
         String responseText;
         String textMessage = cutCommandInText(message.getText());

@@ -47,7 +47,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
     private static final List<String> PARAMS = Arrays.asList("добавить", "удалить");
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update, String commandText) throws BotException {
+    public PartialBotApiMethod<?> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         Chat chat = chatService.get(message.getChatId());
