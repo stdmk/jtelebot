@@ -9,8 +9,8 @@ import java.util.Date;
 
 public class DateUtils {
     private static final String dateTimeFormatString = "dd.MM.yyyy HH:mm:ss";
-    public static SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
-    public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
+    public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
+    public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
 
     public static String formatDate(Date date) {
         return dateTimeFormat.format(date);

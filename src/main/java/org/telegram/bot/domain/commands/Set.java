@@ -30,9 +30,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final NewsSetter newsSetter;
     private final UserService userService;
 
-    private final String SET = "установить ";
     private final String NEWS = "новости";
-    private final String CITY = "город";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -91,6 +89,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private InlineKeyboardMarkup buildMainKeyboard() {
         InlineKeyboardButton newsButton = new InlineKeyboardButton();
+        String SET = "установить ";
         newsButton.setText(SET + NEWS);
         newsButton.setCallbackData(SET + NEWS);
 
@@ -98,6 +97,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         newsRow.add(newsButton);
 
         InlineKeyboardButton cityButton = new InlineKeyboardButton();
+        String CITY = "город";
         cityButton.setText(SET + CITY);
         cityButton.setCallbackData(SET + CITY);
 
