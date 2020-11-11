@@ -44,13 +44,16 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
         String responseText;
 
         if (textMessage == null) {
-            log.debug("Request to list all news sources for chat {}", chat.getChatId());
+            log.debug("Request to get last news for chat {}", chat.getChatId());
             final StringBuilder buf = new StringBuilder();
-            buf.append("<b>Список новостных источников:</b>\n");
+            buf.append("<b>Последние новости:</b>\n\n");
             newsService.getAll(chat)
-                    .forEach(news -> buf.append(news.getId()).append(" - ")
-                                            .append("<a href=\"").append(news.getNewsSource().getUrl()).append("\">")
-                                            .append(news.getName()).append("</a>\n"));
+                    .forEach(news -> {
+                        NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
+                        if (newsMessage != null) {
+                            buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage()));
+                        }
+                    });
             responseText = buf.toString();
         } else if (textMessage.startsWith("_")) {
             long newsId;
