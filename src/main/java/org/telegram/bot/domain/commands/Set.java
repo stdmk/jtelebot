@@ -5,11 +5,15 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.AccessLevels;
 import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -24,6 +28,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private final CommandWaitingService commandWaitingService;
     private final NewsSetter newsSetter;
+    private final UserService userService;
 
     private final String SET = "установить ";
     private final String NEWS = "новости";
@@ -34,9 +39,12 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         //TODO проверка доступа и вывод соответствующих сеттеров
         Message message = getMessageFromUpdate(update);
         CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
+        Integer userId = message.getFrom().getId();
         String textMessage = message.getText();
         if (update.hasCallbackQuery()) {
-            textMessage = cutCommandInText(update.getCallbackQuery().getData());
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            textMessage = cutCommandInText(callbackQuery.getData());
+            userId = callbackQuery.getFrom().getId();
         } else if (commandWaiting != null) {
             textMessage = cutCommandInText(commandWaiting.getTextMessage() + textMessage);
         } else {
@@ -50,8 +58,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                 return buildMainPage(message);
             }
         } else {
+            User user = userService.get(userId);
             if (textMessage.toLowerCase().startsWith(NEWS)) {
-                return newsSetter.set(update, textMessage);
+                if (userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.MODERATOR.getValue())) {
+                    return newsSetter.set(update, textMessage);
+                } else {
+                    return buildMainPage(message);
+                }
             } else {
                 return buildMainPage(message);
             }
@@ -78,8 +91,8 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private InlineKeyboardMarkup buildMainKeyboard() {
         InlineKeyboardButton newsButton = new InlineKeyboardButton();
-        newsButton.setText("Установить новости");
-        newsButton.setCallbackData("Установить новости");
+        newsButton.setText(SET + NEWS);
+        newsButton.setCallbackData(SET + NEWS);
 
         List<InlineKeyboardButton> newsRow = new ArrayList<>();
         newsRow.add(newsButton);
