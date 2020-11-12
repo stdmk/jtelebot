@@ -37,4 +37,6 @@
     <include file="db/changelog/20201106144200_added_command_Cmd.xml"/>
     <include file="db/changelog/20201109105400_added_command_Set.xml"/>
     <include file="db/changelog/20201112092700_update_News_help.xml"/>
+    <include file="db/changelog/20201112100200_added_entity_City.xml"/>
+    <include file="db/changelog/20201112100500_added_entity_UserCity.xml"/>
 </databaseChangeLog>
