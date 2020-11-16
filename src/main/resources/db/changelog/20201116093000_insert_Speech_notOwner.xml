@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201116093000-1" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="66"/>
+            <column name="tag" value="notOwner"/>
+            <column name="message" value="нельзя удалять чужие записи"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="67"/>
+            <column name="tag" value="notOwner"/>
+            <column name="message" value="ты можешь удалять только свои записи"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="68"/>
+            <column name="tag" value="notOwner"/>
+            <column name="message" value="это не твоя запись, чтобы ты её удалял"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="69"/>
+            <column name="tag" value="notOwner"/>
+            <column name="message" value="ты её что ли создавал, чтобы удалять?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="70"/>
+            <column name="tag" value="notOwner"/>
+            <column name="message" value="это не ты добавлял. Не могу удалить"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

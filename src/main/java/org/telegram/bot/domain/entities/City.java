@@ -3,7 +3,6 @@ package org.telegram.bot.domain.entities;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.TimeZone;
 
 /**
  * City entity.
@@ -16,12 +15,16 @@ public class City {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nameRu")
+    @Column(name = "nameru")
     private String nameRu;
 
-    @Column(name = "nameEn")
+    @Column(name = "nameen")
     private String nameEn;
 
     @Column(name = "timezone")
     private String timeZone;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user")
+    private User user;
 }

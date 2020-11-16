@@ -19,7 +19,8 @@ public enum Emoji {
     ROBOT("\uD83E\uDD16"),
     NEW("\uD83C\uDD95"),
     UPDATE("\uD83D\uDD04"),
-    BACK("↩️");
+    BACK("↩️"),
+    RIGHT_ARROW_CURVING_UP("⤴️");
 
     private final String emoji;
 

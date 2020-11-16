@@ -1,5 +1,7 @@
 package org.telegram.bot.utils;
 
+import lombok.Getter;
+
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -54,5 +56,40 @@ public class DateUtils {
         }
 
         return responseText.toString();
+    }
+
+    @Getter
+    public enum TimeZones {
+        MINUS_ONE("GMT-01:00"),
+        MINUS_TWO("GMT-02:00"),
+        MINUS_THREE("GMT-03:00"),
+        MINUS_FOUR("GMT-04:00"),
+        MINUS_FIVE("GMT-05:00"),
+        MINUS_SIX("GMT-06:00"),
+        MINUS_SEVEN("GMT-07:00"),
+        MINUS_EIGHT("GMT-08:00"),
+        MINUS_NINE("GMT-09:00"),
+        MINUS_TEN("GMT-10:00"),
+        MINUS_ELEVEN("GMT-11:00"),
+        MINUS_TWELVE("GMT-12:00"),
+        GREENWICH("GMT+00:00"),
+        PLUS_ONE("GMT+01:00"),
+        PLUS_TWO("GMT+02:00"),
+        PLUS_THREE("GMT+03:00"),
+        PLUS_FOUR("GMT+04:00"),
+        PLUS_FIVE("GMT+05:00"),
+        PLUS_SIX("GMT+06:00"),
+        PLUS_SEVEN("GMT+07:00"),
+        PLUS_EIGHT("GMT+08:00"),
+        PLUS_NINE("GMT+09:00"),
+        PLUS_TEN("GMT+10:00"),
+        PLUS_ELEVEN("GMT+11:00"),
+        PLUS_TWELVE("GMT+12:00");
+
+        private final String zone;
+
+        TimeZones(String zone) {
+            this.zone = zone;
+        }
     }
 }

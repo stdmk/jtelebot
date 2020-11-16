@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
@@ -28,13 +29,14 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private final CommandWaitingService commandWaitingService;
     private final NewsSetter newsSetter;
+    private final CitySetter citySetter;
     private final UserService userService;
 
     private final String NEWS = "новости";
+    private final String CITY = "город";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
-        //TODO проверка доступа и вывод соответствующих сеттеров
         Message message = getMessageFromUpdate(update);
         CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
         Integer userId = message.getFrom().getId();
@@ -60,12 +62,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             if (textMessage.toLowerCase().startsWith(NEWS)) {
                 if (userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.MODERATOR.getValue())) {
                     return newsSetter.set(update, textMessage);
-                } else {
-                    return buildMainPage(message);
                 }
-            } else {
-                return buildMainPage(message);
+            } else if (textMessage.toLowerCase().startsWith(CITY)) {
+                if (userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.TRUSTED.getValue())) {
+                    return citySetter.set(update, textMessage);
+                }
             }
+            return buildMainPage(message);
         }
     }
 

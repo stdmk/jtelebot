@@ -17,6 +17,72 @@
             <column name="timezone" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="user" type="int">
+                <constraints nullable="true" />
+            </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="20201112100200-2" author="stdmk">
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="1"/>
+            <column name="nameru" value="Тверь"/>
+            <column name="nameen" value="Tver"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="2"/>
+            <column name="nameru" value="Новосибирск"/>
+            <column name="nameen" value="Novosibirsk"/>
+            <column name="timezone" value="GMT+07:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="3"/>
+            <column name="nameru" value="Уральск"/>
+            <column name="nameen" value="Oral"/>
+            <column name="timezone" value="GMT+05:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="4"/>
+            <column name="nameru" value="Микулино"/>
+            <column name="nameen" value="Mikulino"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="5"/>
+            <column name="nameru" value="Ростов-на-Дону"/>
+            <column name="nameen" value="Rostov-on-Don"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="6"/>
+            <column name="nameru" value="Лотошино"/>
+            <column name="nameen" value="Lotoshino"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="7"/>
+            <column name="nameru" value="Сонково"/>
+            <column name="nameen" value="Sonkovo"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="8"/>
+            <column name="nameru" value="Москва"/>
+            <column name="nameen" value="Moscow"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="9"/>
+            <column name="nameru" value="Луховицы"/>
+            <column name="nameen" value="Lukhovitsy"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
+        <insert schemaName="bot" tableName="city">
+            <column name="id" value="10"/>
+            <column name="nameru" value="Санкт-Петербург"/>
+            <column name="nameen" value="Saint-Petersburg"/>
+            <column name="timezone" value="GMT+03:00"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>
