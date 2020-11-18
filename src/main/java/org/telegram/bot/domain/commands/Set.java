@@ -58,7 +58,6 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                 return buildMainPage(message);
             }
         } else {
-            User user = userService.get(userId);
             AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
             if (textMessage.toLowerCase().startsWith(NEWS)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.MODERATOR.getValue())) {
@@ -69,7 +68,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                     return citySetter.set(update, textMessage);
                 }
             }
-            return buildMainPage(message);
+            return buildMainPageWithCallback(message);
         }
     }
 
