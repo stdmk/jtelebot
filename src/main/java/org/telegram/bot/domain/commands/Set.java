@@ -59,12 +59,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             }
         } else {
             User user = userService.get(userId);
+            AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
             if (textMessage.toLowerCase().startsWith(NEWS)) {
-                if (userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.MODERATOR.getValue())) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.MODERATOR.getValue())) {
                     return newsSetter.set(update, textMessage);
                 }
             } else if (textMessage.toLowerCase().startsWith(CITY)) {
-                if (userService.isUserHaveAccessForCommand(user.getAccessLevel(), AccessLevels.TRUSTED.getValue())) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.TRUSTED.getValue())) {
                     return citySetter.set(update, textMessage);
                 }
             }
