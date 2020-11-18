@@ -9,4 +9,4 @@
         <where>id = '12'</where>
     </update>
 </changeSet>
-        </databaseChangeLog>
+</databaseChangeLog>

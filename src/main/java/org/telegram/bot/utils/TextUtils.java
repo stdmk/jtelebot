@@ -48,4 +48,8 @@ public class TextUtils {
     public static String cutHtmlTags(String text) {
         return text.replaceAll("<.*?>","");
     }
+
+    public static String withCapital(String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+    }
 }

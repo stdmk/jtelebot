@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201118081600-1" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="76"/>
+            <column name="tag" value="unableToFindToken"/>
+            <column name="message" value="не нашёл токен для этой команды. Попробуй обратиться к моему владельцу"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="77"/>
+            <column name="tag" value="unableToFindToken"/>
+            <column name="message" value="ошибка: не могу выполнить команду: сервис требует токен, а у меня его нет"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="78"/>
+            <column name="tag" value="unableToFindToken"/>
+            <column name="message" value="не вижу у себя токена для выполнения этой команды. Попробуй администраторам напиши"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="79"/>
+            <column name="tag" value="unableToFindToken"/>
+            <column name="message" value="нету токена для этой команды. Скажи админу, чтоб добавил"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="80"/>
+            <column name="tag" value="unableToFindToken"/>
+            <column name="message" value="токен отсутсвует. Невозможно выполнить команду"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
