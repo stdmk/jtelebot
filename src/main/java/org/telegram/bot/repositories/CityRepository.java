@@ -14,4 +14,5 @@ import java.util.List;
 @Repository
 public interface CityRepository extends JpaRepository<City, Long> {
     List<City> findByUser(User user);
+    City findFirstByNameRuOrNameEn(String nameRu, String nameEn);
 }

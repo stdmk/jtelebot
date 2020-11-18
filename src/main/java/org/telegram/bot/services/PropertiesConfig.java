@@ -13,4 +13,5 @@ public class PropertiesConfig {
     private String telegramBotApiToken;
     private String telegramBotUsername;
     private Integer adminId;
+    private String openweathermapId;
 }

@@ -18,6 +18,14 @@ public interface CityService {
     City get(Long cityId);
 
     /**
+     * Get a City.
+     *
+     * @param cityName name of City to get.
+     * @return the persisted entity.
+     */
+    City get(String cityName);
+
+    /**
      * Get list of all Cities.
      *
      * @return list of persisted entities.

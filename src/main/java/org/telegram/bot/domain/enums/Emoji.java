@@ -20,7 +20,26 @@ public enum Emoji {
     NEW("\uD83C\uDD95"),
     UPDATE("\uD83D\uDD04"),
     BACK("↩️"),
-    RIGHT_ARROW_CURVING_UP("⤴️");
+    RIGHT_ARROW_CURVING_UP("⤴️"),
+    ZAP("⚡"),
+    UMBRELLA("☂️"),
+    UMBRELLA_WITH_RAIN_DROPS("☔"),
+    SNOWFLAKE("❄"),
+    FOG("\uD83C\uDF2B"),
+    SUNNY("☀"),
+    WHITE_SUN_WITH_SMALL_CLOUD("\uD83C\uDF24"),
+    SUN_BEHIND_CLOUD("⛅️"),
+    SUN_BEHIND_LARGE_CLOUD("\uD83C\uDF25"),
+    CLOUD("☁️"),
+    DOWN_ARROW("⬇️"),
+    DOWN_LEFT_ARROW("↙️"),
+    LEFT_ARROW("⬅️"),
+    UP_LEFT_ARROW("↖️"),
+    UP_ARROW("⬆️"),
+    UP_RIGHT_ARROW("↗️"),
+    RIGHT_ARROW("➡️"),
+    DOWN_RIGHT_ARROW("↘️"),
+    DROPLET("\uD83D\uDCA7");
 
     private final String emoji;
 

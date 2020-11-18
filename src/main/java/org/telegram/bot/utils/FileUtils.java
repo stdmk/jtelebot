@@ -12,6 +12,7 @@ public class FileUtils {
             Properties properties = new Properties();
             properties.setProperty("telegramBotApiToken", "");
             properties.setProperty("adminId", "0");
+            properties.setProperty("openweathermapId", "");
             try {
                 properties.store(new FileOutputStream(f), null);
             } catch (IOException fileNotFoundException) {
