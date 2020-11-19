@@ -38,7 +38,7 @@ public interface UserStatsService {
      *
      * @param message - received Message.
      */
-    void updateEntitiesInfo(Message message);
+    void updateEntitiesInfo(Message message, boolean editedMessage);
 
     /**
      * Get list of users of chat.

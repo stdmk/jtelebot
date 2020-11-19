@@ -36,6 +36,7 @@ public class Bot extends TelegramLongPollingBot {
         Message message;
         User user;
         String textOfMessage;
+        boolean editedMessage = false;
 
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -47,6 +48,7 @@ public class Bot extends TelegramLongPollingBot {
                 message = update.getMessage();
             } else if (update.hasEditedMessage()) {
                 message = update.getEditedMessage();
+                editedMessage = true;
             } else {
                 return;
             }
@@ -64,7 +66,7 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        userStatsService.updateEntitiesInfo(message);
+        userStatsService.updateEntitiesInfo(message, editedMessage);
 
         if (textOfMessage == null || textOfMessage.equals("")) {
             return;
