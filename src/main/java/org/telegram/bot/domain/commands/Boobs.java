@@ -53,7 +53,7 @@ public class Boobs implements CommandParent<SendPhoto> {
         }
 
 
-        String caption = message.getText();
+        String caption = "Boobs";
         return new SendPhoto()
                 .setPhoto(caption, boobs)
                 .setCaption(caption)
