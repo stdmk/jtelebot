@@ -95,7 +95,7 @@ public class Top implements CommandParent<SendMessage> {
         fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "Голосовых", userStats.getNumberOfVoices().toString());
         fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "Команд", userStats.getNumberOfCommands().toString());
 
-        buf.append("*").append(userStats.getUser().getUsername()).append("*\n");
+        buf.append("*").append(userStats.getUser().getUsername()).append("\n").append("За месяц:*\n");
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
                 buf.append(key).append(": ").append(value).append("\n");
