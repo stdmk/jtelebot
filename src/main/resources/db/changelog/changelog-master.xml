@@ -44,4 +44,5 @@
     <include file="db/changelog/20201116093800_insert_Speech_databaseIntegrity.xml"/>
     <include file="db/changelog/20201116105100_added_command_Weather.xml"/>
     <include file="db/changelog/20201118081600_insert_Speech_unableToFindToken.xml"/>
+    <include file="db/changelog/20201120112400_added_command_Password.xml"/>
 </databaseChangeLog>
