@@ -82,10 +82,12 @@ public class Weather implements CommandParent<SendMessage> {
                 commandWaiting.setTextMessage("/weather ");
                 commandWaitingService.save(commandWaiting);
 
-                return new SendMessage()
-                        .setChatId(message.getChatId())
-                        .setReplyToMessageId(message.getMessageId())
-                        .setText("теперь напиши мне город, в котором надо посмотреть погоду");
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setChatId(message.getChatId().toString());
+                sendMessage.setReplyToMessageId(message.getMessageId());
+                sendMessage.setText("теперь напиши мне город, в котором надо посмотреть погоду");
+
+                return sendMessage;
             } else {
                 cityName = userCity.getCity().getNameEn();
             }
@@ -95,11 +97,13 @@ public class Weather implements CommandParent<SendMessage> {
 
         responseText = prepareCurrentWeatherText(getWeatherCurrent(token, cityName)) + prepareForecastWeatherText(getWeatherForecast(token, cityName));
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(responseText);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     private WeatherCurrent getWeatherCurrent(String token, String cityName) throws BotException, JsonProcessingException {
@@ -185,7 +189,7 @@ public class Weather implements CommandParent<SendMessage> {
         buf.append("Давление:     ").append(main.getPressure().intValue() * 0.75).append(" мм рт.ст. \n");
         buf.append("Восход:       ").append(formatTime(sys.getSunrise() + weatherCurrent.getTimezone())).append("\n");
         buf.append("Закат:        ").append(formatTime(sys.getSunset() + weatherCurrent.getTimezone())).append("\n");
-        buf.append("Долгота дня:  ").append(deltaDatesToString((sys.getSunset() - sys.getSunrise()) * 1000)).append("\n");
+        buf.append("Долгота дня:  ").append(deltaDatesToString((sys.getSunset() - sys.getSunrise()) * 1000L)).append("\n");
         buf.append("По состоянию: ").append(formatTime(weatherCurrent.getDt() + weatherCurrent.getTimezone())).append("\n");
         buf.append("```");
 

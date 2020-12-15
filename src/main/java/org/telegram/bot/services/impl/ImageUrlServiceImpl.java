@@ -8,6 +8,8 @@ import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.repositories.ImageUrlRepository;
 import org.telegram.bot.services.ImageUrlService;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class ImageUrlServiceImpl implements ImageUrlService {
@@ -26,5 +28,11 @@ public class ImageUrlServiceImpl implements ImageUrlService {
     public ImageUrl save(ImageUrl imageUrl) {
         log.debug("Request to save ImageUrl: {}", imageUrl);
         return imageUrlRepository.save(imageUrl);
+    }
+
+    @Override
+    public List<ImageUrl> save(List<ImageUrl> imageUrlList) {
+        log.debug("Request to save ImageUrls: {}", imageUrlList);
+        return imageUrlRepository.saveAll(imageUrlList);
     }
 }

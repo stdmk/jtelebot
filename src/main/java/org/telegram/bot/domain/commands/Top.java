@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,18 +55,22 @@ public class Top implements CommandParent<SendMessage> {
             }
         }
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(responseText);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     public SendMessage getTopByChatId(Long chatId) {
-        return new SendMessage()
-                .setChatId(chatId)
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(getTopListOfUsers(chatId, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId.toString());
+        sendMessage.setParseMode(ParseModes.MARKDOWN.getValue());
+        sendMessage.setText(getTopListOfUsers(chatId, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
+
+        return sendMessage;
     }
 
     @Transactional

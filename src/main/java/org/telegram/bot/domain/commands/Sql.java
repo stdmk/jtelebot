@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -71,11 +72,13 @@ public class Sql implements CommandParent<SendMessage> {
                 Bot bot = (Bot) context.getBean("bot");
                 responseText = "Ошибка: " + getInitialExceptionCauseText(e);
                 try {
-                    bot.execute(new SendMessage()
-                            .setChatId(message.getChatId())
-                            .setReplyToMessageId(message.getMessageId())
-                            .setParseMode(ParseModes.MARKDOWN.getValue())
-                            .setText("`" + responseText + "`"));
+                    SendMessage sendMessage = new SendMessage();
+                    sendMessage.setChatId(message.getChatId().toString());
+                    sendMessage.setReplyToMessageId(message.getMessageId());
+                    sendMessage.enableMarkdown(true);
+                    sendMessage.setText("`" + responseText + "`");
+
+                    bot.execute(sendMessage);
                 } catch (TelegramApiException et) {
                     et.printStackTrace();
                 }
@@ -86,10 +89,12 @@ public class Sql implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
         }
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText("`" + responseText + "`");
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText("`" + responseText + "`");
+
+        return sendMessage;
     }
 }

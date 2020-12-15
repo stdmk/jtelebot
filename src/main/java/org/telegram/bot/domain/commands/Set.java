@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import liquibase.pro.packaged.E;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
@@ -73,21 +74,25 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage buildMainPage(Message message) {
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText("<b>Установки</b>")
-                .setReplyMarkup(buildMainKeyboard());
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableHtml(true);
+        sendMessage.setText("<b>Установки</b>");
+        sendMessage.setReplyMarkup(buildMainKeyboard());
+
+        return sendMessage;
     }
 
     private EditMessageText buildMainPageWithCallback(Message message) {
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText("<b>Установки</b>")
-                .setReplyMarkup(buildMainKeyboard());
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableHtml(true);
+        editMessageText.setText("<b>Установки</b>");
+        editMessageText.setReplyMarkup(buildMainKeyboard());
+
+        return editMessageText;
     }
 
     private InlineKeyboardMarkup buildMainKeyboard() {
@@ -111,6 +116,9 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(newsRow);
         rows.add(cityRow);
 
-        return new InlineKeyboardMarkup().setKeyboard(rows);
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(rows);
+
+        return inlineKeyboardMarkup;
     }
 }

@@ -69,16 +69,21 @@ public class Help implements CommandParent<SendMessage> {
             responseText.append("Я понимаю команды как на латинице (help), так и на кириллице (помощь)\n")
                         .append("Для получения помощи по определённой команде, напиши 'помощь ИмяКоманды' без кавычек\n");
 
-            return new SendMessage()
-                    .setChatId(message.getChatId())
-                    .setParseMode(ParseModes.MARKDOWN.getValue())
-                    .setText(responseText.toString());
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.enableMarkdown(true);
+            sendMessage.setText(responseText.toString());
+
+            return sendMessage;
         } else {
             log.debug("Request to get help for command: {}", textMessage);
-            return new SendMessage()
-                    .setChatId(message.getChatId())
-                    .setParseMode(ParseModes.MARKDOWN.getValue())
-                    .setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
+
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.enableMarkdown(true);
+            sendMessage.setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
+
+            return sendMessage;
         }
     }
 

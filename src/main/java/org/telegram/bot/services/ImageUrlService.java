@@ -23,4 +23,12 @@ public interface ImageUrlService {
      * @return the persisted entity.
      */
     ImageUrl save(ImageUrl imageUrl);
+
+    /**
+     * Save a list of ImageUrl.
+     *
+     * @param imageUrlList the entities to save.
+     * @return the persisted entities.
+     */
+    List<ImageUrl> save(List<ImageUrl> imageUrlList);
 }

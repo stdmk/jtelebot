@@ -15,8 +15,10 @@ public class Echo implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
 
-        return new SendMessage()
-                .setChatId(update.getMessage().getChatId())
-                .setText(speechService.getRandomMessageByTag("echo"));
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(update.getMessage().getChatId().toString());
+        sendMessage.setText(speechService.getRandomMessageByTag("echo"));
+
+        return sendMessage;
     }
 }

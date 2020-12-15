@@ -11,6 +11,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -54,11 +55,13 @@ public class Butts implements CommandParent<SendPhoto> {
 
 
         String caption = "Butts";
-        return new SendPhoto()
-                .setPhoto(caption, butts)
-                .setCaption(caption)
-                .setReplyToMessageId(message.getMessageId())
-                .setChatId(message.getChatId());
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setPhoto(new InputFile(butts, caption));
+        sendPhoto.setCaption(caption);
+        sendPhoto.setReplyToMessageId(message.getMessageId());
+        sendPhoto.setChatId(message.getChatId().toString());
+
+        return sendPhoto;
     }
 
     @Data

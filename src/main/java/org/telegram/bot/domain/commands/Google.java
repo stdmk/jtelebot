@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -96,12 +98,16 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             if (imageUrl != null) {
                 try {
                     image = getFileFromUrl(imageUrl.getUrl());
-                    return new SendPhoto()
-                            .setPhoto("google", image)
-                            .setCaption(responseText)
-                            .setParseMode(ParseModes.HTML.getValue())
-                            .setReplyToMessageId(message.getMessageId())
-                            .setChatId(message.getChatId());
+
+                    SendPhoto sendPhoto = new SendPhoto();
+                    sendPhoto.setPhoto(new InputFile(image, "google"));
+                    sendPhoto.setCaption(responseText);
+                    sendPhoto.setParseMode(ParseModes.HTML.getValue());
+                    sendPhoto.setReplyToMessageId(message.getMessageId());
+                    sendPhoto.setChatId(message.getChatId().toString());
+
+                    return sendPhoto;
+
                 } catch (Exception ignored) {
                 }
             }
@@ -109,18 +115,24 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 
+            if (googleSearchData.getItems() == null) {
+                throw new BotException("Ничего не нашёл по такому запросу");
+            }
+
             List<GoogleSearchResult> googleSearchResults = googleSearchData.getItems()
                     .stream()
                     .map(googleSearchItem -> {
                         ImageUrl imageUrl = null;
 
                         Pagemap pagemap = googleSearchItem.getPagemap();
-                        List<Src> srcList = pagemap.getCseImage();
-                        if (srcList != null && !srcList.isEmpty()) {
-                            imageUrl = new ImageUrl();
-                            imageUrl.setTitle(googleSearchItem.getTitle());
-                            imageUrl.setUrl(srcList.get(0).getSrc());
-                            imageUrl = imageUrlService.save(imageUrl);
+                        if (pagemap != null) {
+                            List<Src> srcList = pagemap.getCseImage();
+                            if (srcList != null && !srcList.isEmpty()) {
+                                imageUrl = new ImageUrl();
+                                imageUrl.setTitle(googleSearchItem.getTitle());
+                                imageUrl.setUrl(srcList.get(0).getSrc());
+                                imageUrl = imageUrlService.save(imageUrl);
+                            }
                         }
 
                         GoogleSearchResult googleSearchResult = new GoogleSearchResult();
@@ -152,12 +164,14 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             commandWaitingService.remove(commandWaiting);
         }
 
-        return new SendMessage()
-                .setReplyToMessageId(message.getMessageId())
-                .setChatId(message.getChatId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .disableWebPagePreview()
-                .setText(responseText);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setParseMode(ParseModes.HTML.getValue());
+        sendMessage.disableWebPagePreview();
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
