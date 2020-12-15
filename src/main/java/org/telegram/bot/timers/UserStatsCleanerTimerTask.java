@@ -25,7 +25,7 @@ public class UserStatsCleanerTimerTask extends TimerParent {
     private final UserStatsService userStatsService;
 
     @Override
-    @Scheduled(fixedRate = 21600000)
+    @Scheduled(fixedRate = 10800000)
     public void execute() {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {

@@ -91,6 +91,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         userStats.setNumberOfVideoNotes(0);
         userStats.setNumberOfVoices(0);
         userStats.setNumberOfCommands(0);
+        userStats.setNumberOfStickers(0);
     }
 
     @Override
