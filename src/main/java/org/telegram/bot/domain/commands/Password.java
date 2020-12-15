@@ -36,8 +36,12 @@ public class Password implements CommandParent<SendMessage> {
             throw new BotException("Не, ну по-моему это уже перебор");
         }
 
-        return new SendMessage()
-                .setChatId(update.getMessage().getChatId())
-                .setText(new RandomString(symbolsCount).nextString());
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(update.getMessage().getChatId().toString());
+        sendMessage.setText(new RandomString(symbolsCount).nextString());
+        sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
+
+
+        return sendMessage;
     }
 }
