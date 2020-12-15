@@ -15,8 +15,20 @@ import java.util.Objects;
 public class NetworkUtils {
 
     public static InputStream getFileFromUrl(String url) {
-        RestTemplate restTemplate = new RestTemplate();
-        return new ByteArrayInputStream(Objects.requireNonNull(restTemplate.getForObject(url, byte[].class)));
+        return new ByteArrayInputStream(Objects.requireNonNull(downloadFile(url)));
+    }
+
+    public static InputStream getFileFromUrl(String url, int limitBytes) throws Exception {
+        byte[] file = downloadFile(url);
+        if (file.length > limitBytes) {
+            throw new Exception("the file is not included in the limit");
+        }
+
+        return new ByteArrayInputStream(Objects.requireNonNull(file));
+    }
+
+    private static byte[] downloadFile(String url) {
+        return new RestTemplate().getForObject(url, byte[].class);
     }
 
     public static SyndFeed getRssFeedFromUrl(String url) {

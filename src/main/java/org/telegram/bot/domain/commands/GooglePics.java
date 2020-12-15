@@ -97,7 +97,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             InputStream image;
             try {
-                image = getFileFromUrl(imageUrl.getUrl());
+                image = getFileFromUrl(imageUrl.getUrl(), 5000000);
             } catch (Exception e) {
                 throw new BotException("Не удалось загрузить картинку по адресу: " + imageUrl.getUrl());
             }
@@ -134,7 +134,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                     .forEach(imageUrl -> {
                         InputStream image;
                         try {
-                            image = getFileFromUrl(imageUrl.getUrl());
+                            image = getFileFromUrl(imageUrl.getUrl(), 5000000);
                         } catch (Exception e) {
                             return;
                         }
@@ -143,7 +143,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                         inputMediaPhoto.setMedia(image, imageUrl.getTitle());
 
                         images.add(inputMediaPhoto);
-
                     });
 
 
