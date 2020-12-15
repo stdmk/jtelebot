@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -51,6 +50,7 @@ public class Bash implements CommandParent<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableMarkdown(true);
         sendMessage.disableWebPagePreview();
+        sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(quot);
 
         return sendMessage;

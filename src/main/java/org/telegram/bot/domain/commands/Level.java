@@ -70,6 +70,7 @@ public class Level implements CommandParent<SendMessage> {
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText(speechService.getRandomMessageByTag("saved"));
 
             return sendMessage;
@@ -82,6 +83,7 @@ public class Level implements CommandParent<SendMessage> {
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText(speechService.getRandomMessageByTag("saved"));
 
             return sendMessage;

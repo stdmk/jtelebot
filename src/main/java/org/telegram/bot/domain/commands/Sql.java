@@ -1,13 +1,11 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

@@ -9,7 +9,6 @@ import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;

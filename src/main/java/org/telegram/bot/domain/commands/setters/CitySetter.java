@@ -1,15 +1,11 @@
 package org.telegram.bot.domain.commands.setters;
 
-import liquibase.pro.packaged.E;
-import liquibase.pro.packaged.I;
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.Emoji;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;

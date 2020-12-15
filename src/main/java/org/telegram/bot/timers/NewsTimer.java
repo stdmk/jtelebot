@@ -1,7 +1,6 @@
 package org.telegram.bot.timers;
 
 import com.rometools.rome.feed.synd.SyndFeed;
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,6 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;

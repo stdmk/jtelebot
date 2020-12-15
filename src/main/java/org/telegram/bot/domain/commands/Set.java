@@ -1,15 +1,12 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.pro.packaged.E;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -34,7 +31,6 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final UserService userService;
 
     private final String NEWS = "новости";
-    private final String CITY = "город";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -60,6 +56,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             }
         } else {
             AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
+            String CITY = "город";
             if (textMessage.toLowerCase().startsWith(NEWS)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.MODERATOR.getValue())) {
                     return newsSetter.set(update, textMessage);

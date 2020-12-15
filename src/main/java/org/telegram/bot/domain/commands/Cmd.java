@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -44,6 +43,7 @@ public class Cmd implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableMarkdown(true);
+        sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText("`" + responseText + "`");
 
         return sendMessage;

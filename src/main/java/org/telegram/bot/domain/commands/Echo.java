@@ -17,6 +17,7 @@ public class Echo implements CommandParent<SendMessage> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
+        sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
         sendMessage.setText(speechService.getRandomMessageByTag("echo"));
 
         return sendMessage;

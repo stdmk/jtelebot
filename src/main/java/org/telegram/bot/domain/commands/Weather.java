@@ -16,7 +16,6 @@ import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.Emoji;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

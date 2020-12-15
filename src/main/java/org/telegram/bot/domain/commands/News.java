@@ -2,7 +2,6 @@ package org.telegram.bot.domain.commands;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +107,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
+        sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
         return sendMessage;

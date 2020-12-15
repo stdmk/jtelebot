@@ -1,7 +1,5 @@
 package org.telegram.bot.domain.commands.setters;
 
-import liquibase.pro.packaged.E;
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +9,6 @@ import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.domain.enums.Emoji;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;

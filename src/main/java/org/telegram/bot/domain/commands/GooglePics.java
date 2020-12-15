@@ -153,6 +153,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             SendMediaGroup sendMediaGroup = new SendMediaGroup();
             sendMediaGroup.setMedias(images);
+            sendMediaGroup.setReplyToMessageId(message.getMessageId());
             sendMediaGroup.setChatId(message.getChatId().toString());
 
             return sendMediaGroup;

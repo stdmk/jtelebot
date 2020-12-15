@@ -1,13 +1,11 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.AccessLevels;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TodoService;
@@ -78,7 +76,7 @@ public class Todo implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setParseMode(ParseModes.MARKDOWN.getValue());
+        sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
         return sendMessage;

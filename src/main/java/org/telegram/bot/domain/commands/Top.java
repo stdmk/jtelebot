@@ -1,6 +1,5 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,6 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.Emoji;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
@@ -67,7 +65,7 @@ public class Top implements CommandParent<SendMessage> {
     public SendMessage getTopByChatId(Long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId.toString());
-        sendMessage.setParseMode(ParseModes.MARKDOWN.getValue());
+        sendMessage.enableMarkdown(true);
         sendMessage.setText(getTopListOfUsers(chatId, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
 
         return sendMessage;

@@ -3,7 +3,6 @@ package org.telegram.bot.domain.commands;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;

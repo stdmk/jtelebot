@@ -8,7 +8,6 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevels;
-import org.telegram.bot.domain.enums.ParseModes;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -72,6 +71,7 @@ public class Help implements CommandParent<SendMessage> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableMarkdown(true);
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText(responseText.toString());
 
             return sendMessage;
@@ -81,6 +81,7 @@ public class Help implements CommandParent<SendMessage> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableMarkdown(true);
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
 
             return sendMessage;
