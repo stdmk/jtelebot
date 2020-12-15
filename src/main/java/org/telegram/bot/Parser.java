@@ -5,11 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
+import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -36,6 +34,15 @@ public class Parser extends Thread {
             if (message == null) {
                 message = update.getCallbackQuery().getMessage();
             }
+        }
+
+        SendChatAction sendChatAction = new SendChatAction();
+        sendChatAction.setChatId(message.getChatId().toString());
+        sendChatAction.setAction(ActionType.TYPING);
+        try {
+            bot.execute(sendChatAction);
+        } catch (TelegramApiException e) {
+            log.error("Error: cannot send chat action: {}", e.getMessage());
         }
 
         try {
