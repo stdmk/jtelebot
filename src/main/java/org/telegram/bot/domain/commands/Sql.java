@@ -44,16 +44,20 @@ public class Sql implements CommandParent<SendMessage> {
             try {
                 StringBuilder buf = new StringBuilder();
                 List<?> resultList = entityManager.createNativeQuery(textMessage).getResultList();
-                try {
-                    resultList.forEach(results -> {
+                if (resultList.isEmpty()) {
+                    buf.append("Вернулся пустой ответ");
+                } else {
+                    try {
+                        resultList.forEach(results -> {
+                            buf.append("[");
+                            Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
+                            buf.append("]\n");
+                        });
+                    } catch (Exception e) {
                         buf.append("[");
-                        Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
-                        buf.append("]\n");
-                    });
-                } catch (Exception e) {
-                    buf.append("[");
-                    resultList.forEach(result -> buf.append(result.toString()).append(", "));
-                    buf.append("]");
+                        resultList.forEach(result -> buf.append(result.toString()).append(", "));
+                        buf.append("]");
+                    }
                 }
                 responseText = buf.toString();
             } catch (Exception e) {
