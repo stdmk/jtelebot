@@ -13,6 +13,7 @@ public class FileUtils {
             properties.setProperty("telegramBotApiToken", "");
             properties.setProperty("adminId", "0");
             properties.setProperty("openweathermapId", "");
+            properties.setProperty("googleToken", "");
             try {
                 properties.store(new FileOutputStream(f), null);
             } catch (IOException fileNotFoundException) {
