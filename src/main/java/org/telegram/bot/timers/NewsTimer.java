@@ -1,6 +1,7 @@
 package org.telegram.bot.timers;
 
 import com.rometools.rome.feed.synd.SyndFeed;
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +60,12 @@ public class NewsTimer extends TimerParent {
                     newsService.getAll(newsSource)
                             .forEach(news -> {
                                 try {
-                                    bot.execute(new SendMessage()
-                                            .setChatId(news.getChat().getChatId())
-                                            .setParseMode(ParseModes.HTML.getValue())
-                                            .setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage)));
+                                    SendMessage sendMessage = new SendMessage();
+                                    sendMessage.setChatId(news.getChat().getChatId().toString());
+                                    sendMessage.enableHtml(true);
+                                    sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage));
+
+                                    bot.execute(sendMessage);
                                 } catch (TelegramApiException e) {
                                     e.printStackTrace();
                                 }

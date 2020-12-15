@@ -1,5 +1,7 @@
 package org.telegram.bot.domain.commands.setters;
 
+import liquibase.pro.packaged.E;
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,10 +79,13 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         if (command.equals(ADD_NEWS_COMMAND)) {
             List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
 
-            return new SendMessage().setChatId(message.getChatId())
-                    .setParseMode(ParseModes.HTML.getValue())
-                    .setReplyMarkup(prepareKeyboardWithNews(allNewsInChat))
-                    .setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.enableHtml(true);
+            sendMessage.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+            sendMessage.setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
+
+            return sendMessage;
         }
 
         String params = command.substring(ADD_NEWS_COMMAND.length() + 1);
@@ -153,12 +158,14 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
 
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setReplyMarkup(prepareKeyboardWithNews(allNewsInChat))
-                .setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableHtml(true);
+        editMessageText.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+        editMessageText.setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
+
+        return editMessageText;
 
     }
 
@@ -208,12 +215,14 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         List<News> allNewsInChat = newsService.getAll(chat);
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText(prepareTextOfListNewsSources(allNewsInChat))
-                .setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableHtml(true);
+        sendMessage.setText(prepareTextOfListNewsSources(allNewsInChat));
+        sendMessage.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+
+        return sendMessage;
     }
 
     private EditMessageText getNewsSourcesListForChatWithKeyboard(Message message) {
@@ -221,12 +230,14 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         log.debug("Request to list all news sources for chat {}", chat.getChatId());
         List<News> allNewsInChat = newsService.getAll(chat);
 
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText(prepareTextOfListNewsSources(allNewsInChat))
-                .setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableHtml(true);
+        editMessageText.setText(prepareTextOfListNewsSources(allNewsInChat));
+        editMessageText.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
+
+        return editMessageText;
     }
 
     private String prepareTextOfListNewsSources(List<News> allNewsInChat) {
@@ -275,14 +286,19 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         rows.add(updateButtonRow);
         rows.add(backButtonRow);
 
-        return new InlineKeyboardMarkup().setKeyboard(rows);
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(rows);
+
+        return inlineKeyboardMarkup;
     }
 
     private SendMessage buildSendMessageWithText(Message message, String text) {
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText(text);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableHtml(true);
+        sendMessage.setText(text);
+
+        return sendMessage;
     }
 }

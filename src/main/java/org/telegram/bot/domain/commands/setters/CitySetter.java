@@ -1,5 +1,8 @@
 package org.telegram.bot.domain.commands.setters;
 
+import liquibase.pro.packaged.E;
+import liquibase.pro.packaged.I;
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +118,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private PartialBotApiMethod<?> addCity(Message message, String command) throws BotException {
         log.debug("Request to add new city");
-        if (command.toLowerCase().equals(ADD_CITY_COMMAND)) {
+        if (command.equals(ADD_CITY_COMMAND)) {
             return addCityByCallback(message, message.getFrom().getId(), true);
         }
 
@@ -286,12 +289,17 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
             return cityRow;
         }).collect(Collectors.toList());
 
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(title)
-                .setReplyMarkup(new InlineKeyboardMarkup().setKeyboard(addingMainRows(cityRows)));
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(addingMainRows(cityRows));
+
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableMarkdown(true);
+        editMessageText.setText(title);
+        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
+
+        return editMessageText;
     }
 
     private PartialBotApiMethod<?> getMainKeyboard(Message message, Integer userId, boolean newMessage) {
@@ -307,24 +315,31 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         if (newMessage) {
-            return new SendMessage()
-                    .setChatId(message.getChatId())
-                    .setParseMode(ParseModes.MARKDOWN.getValue())
-                    .setText(responseText)
-                    .setReplyMarkup(prepareMainKeyboard());
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.enableMarkdown(true);
+            sendMessage.setText(responseText);
+            sendMessage.setReplyMarkup(prepareMainKeyboard());
+
+            return sendMessage;
         }
 
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(responseText)
-                .setReplyMarkup(prepareMainKeyboard());
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableMarkdown(true);
+        editMessageText.setText(responseText);
+        editMessageText.setReplyMarkup(prepareMainKeyboard());
+
+        return editMessageText;
     }
 
     private InlineKeyboardMarkup prepareMainKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        return new InlineKeyboardMarkup().setKeyboard(addingMainRows(rows));
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(addingMainRows(rows));
+
+        return inlineKeyboardMarkup;
     }
 
     private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
@@ -383,26 +398,36 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
                 .collect(Collectors.toList());
 
         String ADDING_HELP_TEXT_TIMEZONE = "\nЧасовой пояс города выставлен по умолчанию.\nПожалуйста, выбери значение из предложенных";
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(ADDING_HELP_TEXT_TIMEZONE)
-                .setReplyMarkup(new InlineKeyboardMarkup().setKeyboard(rows));
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(rows);
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText(ADDING_HELP_TEXT_TIMEZONE);
+        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+
+        return sendMessage;
     }
 
     private SendMessage buildSendMessageWithText(Message message, String text) {
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(text);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText(text);
+
+        return sendMessage;
     }
 
     private EditMessageText buildEditMessageWithText(Message message, String text) {
-        return new EditMessageText()
-                .setChatId(message.getChatId())
-                .setMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(text);
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(message.getChatId().toString());
+        editMessageText.setMessageId(message.getMessageId());
+        editMessageText.enableMarkdown(true);
+        editMessageText.setText(text);
+
+        return editMessageText;
     }
 }

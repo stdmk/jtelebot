@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -77,20 +79,24 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             try {
                 image = getFileFromUrl(newsMessage.getAttachUrl());
             } catch (Exception e) {
-                return new SendMessage()
-                        .setChatId(message.getChatId())
-                        .setReplyToMessageId(messageId)
-                        .setParseMode(ParseModes.HTML.getValue())
-                        .disableWebPagePreview()
-                        .setText(responseText);
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setChatId(message.getChatId().toString());
+                sendMessage.setReplyToMessageId(messageId);
+                sendMessage.enableHtml(true);
+                sendMessage.disableWebPagePreview();
+                sendMessage.setText(responseText);
+
+                return sendMessage;
             }
 
-            return new SendPhoto()
-                    .setPhoto("news", image)
-                    .setCaption(responseText)
-                    .setParseMode(ParseModes.HTML.getValue())
-                    .setReplyToMessageId(messageId)
-                    .setChatId(message.getChatId());
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setPhoto(new InputFile(image, "news"));
+            sendPhoto.setCaption(responseText);
+            sendPhoto.setParseMode(ParseModes.HTML.getValue());
+            sendPhoto.setReplyToMessageId(messageId);
+            sendPhoto.setChatId(message.getChatId().toString());
+
+            return sendPhoto;
         } else if (textMessage.startsWith("http")) {
             log.debug("Request to get news by url {}", textMessage);
             responseText = getAllNews(textMessage);
@@ -98,11 +104,13 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
         }
 
-        return new SendMessage()
-                .setReplyToMessageId(message.getMessageId())
-                .setChatId(message.getChatId())
-                .setParseMode(ParseModes.HTML.getValue())
-                .setText(responseText);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableHtml(true);
+        sendMessage.disableWebPagePreview();
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     private String getAllNews(String url) {

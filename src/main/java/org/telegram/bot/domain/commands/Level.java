@@ -34,10 +34,13 @@ public class Level implements CommandParent<SendMessage> {
             if (chatId > 0) {
                 throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
             }
-            return new SendMessage()
-                    .setChatId(chatId)
-                    .setReplyToMessageId(message.getMessageId())
-                    .setText("Уровень этого чата - " + chatService.getChatAccessLevel(chatId));
+
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.enableMarkdown(true);
+            sendMessage.setText("Уровень этого чата - " + chatService.getChatAccessLevel(chatId));
+
+            return sendMessage;
         } else {
             i = textMessage.indexOf(" ");
         }
@@ -65,9 +68,11 @@ public class Level implements CommandParent<SendMessage> {
             userToUpdate.setAccessLevel(level);
             userService.save(userToUpdate);
 
-            return new SendMessage()
-                    .setChatId(message.getChatId())
-                    .setText(speechService.getRandomMessageByTag("saved"));
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setText(speechService.getRandomMessageByTag("saved"));
+
+            return sendMessage;
         } else {
             org.telegram.bot.domain.entities.Chat chatToUpdate = chatService.get(message.getChatId());
 
@@ -75,9 +80,11 @@ public class Level implements CommandParent<SendMessage> {
             chatToUpdate.setAccessLevel(level);
             chatService.save(chatToUpdate);
 
-            return new SendMessage().setReplyToMessageId(message.getMessageId())
-                    .setChatId(message.getChatId())
-                    .setText(speechService.getRandomMessageByTag("saved"));
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setText(speechService.getRandomMessageByTag("saved"));
+
+            return sendMessage;
         }
     }
 }

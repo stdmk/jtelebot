@@ -24,10 +24,11 @@ public class Getid implements CommandParent<SendMessage> {
 
         responseText.append("Твой айди: `").append(message.getFrom().getId()).append("`");
 
-        return new SendMessage()
-                .setChatId(chatId)
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(responseText.toString());
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText(responseText.toString());
+
+        return sendMessage;
     }
 }

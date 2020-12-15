@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +75,13 @@ public class Todo implements CommandParent<SendMessage> {
             }
         }
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText(responseText);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setParseMode(ParseModes.MARKDOWN.getValue());
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     private String buildTodoStringLine(org.telegram.bot.domain.entities.Todo todo) {

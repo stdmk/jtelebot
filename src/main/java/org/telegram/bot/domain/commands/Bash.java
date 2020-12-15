@@ -47,12 +47,13 @@ public class Bash implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag("noResponse"));
         }
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .disableWebPagePreview()
-                .setText(quot);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableMarkdown(true);
+        sendMessage.disableWebPagePreview();
+        sendMessage.setText(quot);
+
+        return sendMessage;
     }
 
     private String getRandomQuot() {

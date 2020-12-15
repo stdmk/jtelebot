@@ -40,10 +40,12 @@ public class Cmd implements CommandParent<SendMessage> {
         IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
         String responseText = writer.toString();
 
-        return new SendMessage()
-                .setChatId(message.getChatId())
-                .setReplyToMessageId(message.getMessageId())
-                .setParseMode(ParseModes.MARKDOWN.getValue())
-                .setText("`" + responseText + "`");
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText("`" + responseText + "`");
+
+        return sendMessage;
     }
 }

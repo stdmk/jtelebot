@@ -1,5 +1,6 @@
 package org.telegram.bot;
 
+import liquibase.pro.packaged.S;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -47,6 +49,10 @@ public class Parser extends Thread {
                 SendPhoto sendPhoto = (SendPhoto) method;
                 log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
                 bot.execute(sendPhoto);
+            } else if (method instanceof SendMediaGroup) {
+                SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
+                log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
+                bot.execute(sendMediaGroup);
             } else if (method instanceof EditMessageText) {
                 EditMessageText editMessageText = (EditMessageText) method;
                 log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
@@ -60,10 +66,12 @@ public class Parser extends Thread {
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (BotException botException) {
             try {
-                bot.execute(new SendMessage()
-                        .setReplyToMessageId(message.getMessageId())
-                        .setChatId(message.getChatId())
-                        .setText(botException.getMessage()));
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setReplyToMessageId(message.getMessageId());
+                sendMessage.setChatId(message.getChatId().toString());
+                sendMessage.setText(botException.getMessage());
+
+                bot.execute(sendMessage);
             } catch (TelegramApiException e) {
                 log.error("Error: cannot send response: {}", e.getMessage());
             }

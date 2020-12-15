@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -27,8 +28,10 @@ public class Logs implements CommandParent<SendDocument> {
             throw new BotException("Error: unable to find log.log file");
         }
 
-        return new SendDocument()
-                .setChatId(chatId)
-                .setDocument(logs);
+        SendDocument sendDocument = new SendDocument();
+        sendDocument.setChatId(chatId.toString());
+        sendDocument.setDocument(new InputFile(logs, "logs"));
+
+        return sendDocument;
     }
 }
