@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201215171600-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="21"/>
+            <column name="commandname" value="ping"/>
+            <column name="russifiedname" value="пинг"/>
+            <column name="enruname" value="gbyu"/>
+            <column name="classname" value="ping"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Пинг,Пинг до бота,отсутствуют,пинг,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
