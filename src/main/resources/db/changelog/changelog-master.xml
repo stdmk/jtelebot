@@ -47,4 +47,5 @@
     <include file="db/changelog/20201214124100_added_entity_ImageUrl.xml"/>
     <include file="db/changelog/20201214124400_added_entity_GoogleSearchResult.xml"/>
     <include file="db/changelog/20201214125300_added_command_Google.xml"/>
+    <include file="db/changelog/20201214164300_added_command_Picture.xml"/>
 </databaseChangeLog>

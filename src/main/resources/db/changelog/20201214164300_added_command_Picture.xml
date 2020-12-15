@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201214164300-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="19"/>
+            <column name="commandname" value="picture"/>
+            <column name="russifiedname" value="картинки"/>
+            <column name="enruname" value="rfhnbyrb"/>
+            <column name="classname" value="googlePics"/>
+            <column name="accesslevel" value="5"/>
+            <column name="help" value="Картинки,Поиск картинок в гугл,текст,картинки суслики,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
