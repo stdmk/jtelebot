@@ -51,4 +51,5 @@
     <include file="db/changelog/20201214164300_added_command_Picture.xml"/>
     <include file="db/changelog/20201215171600_added_command_Ping.xml"/>
     <include file="db/changelog/20201216095600_added_command_WebScreen.xml"/>
+    <include file="db/changelog/20201216110400_added_command_Advice.xml"/>
 </databaseChangeLog>

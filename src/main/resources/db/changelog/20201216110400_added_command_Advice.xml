@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201216110400-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="23"/>
+            <column name="commandname" value="advice"/>
+            <column name="russifiedname" value="совет"/>
+            <column name="enruname" value="cjdtn"/>
+            <column name="classname" value="greatAdvice"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Совет,Ох**нные советы,отсутствуют,совет,Советы берутся с сайта fucking-great-advice.ru"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
