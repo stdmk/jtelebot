@@ -14,6 +14,7 @@ public class FileUtils {
             properties.setProperty("adminId", "0");
             properties.setProperty("openweathermapId", "");
             properties.setProperty("googleToken", "");
+            properties.setProperty("screenshotMachineToken", "");
             try {
                 properties.store(new FileOutputStream(f), null);
             } catch (IOException fileNotFoundException) {

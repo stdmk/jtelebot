@@ -4,12 +4,14 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Objects;
 
 public class NetworkUtils {
@@ -28,7 +30,18 @@ public class NetworkUtils {
     }
 
     private static byte[] downloadFile(String url) {
-        return new RestTemplate().getForObject(url, byte[].class);
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("User-Agent", "Mozilla/4.0");
+
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+        ResponseEntity<byte[]> respEntity = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
+
+        return respEntity.getBody();
     }
 
     public static SyndFeed getRssFeedFromUrl(String url) {

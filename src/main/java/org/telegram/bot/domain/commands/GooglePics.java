@@ -40,7 +40,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final ImageUrlService imageUrlService;
-    private final GoogleSearchResultService googleSearchResultService;
     private final CommandWaitingService commandWaitingService;
 
     @Override

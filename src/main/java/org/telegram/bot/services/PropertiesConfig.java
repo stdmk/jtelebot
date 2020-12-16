@@ -15,4 +15,5 @@ public class PropertiesConfig {
     private Integer adminId;
     private String openweathermapId;
     private String googleToken;
+    private String screenshotMachineToken;
 }
