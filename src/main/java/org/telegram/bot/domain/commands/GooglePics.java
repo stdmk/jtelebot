@@ -131,15 +131,17 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             imageUrlService.save(imageUrlList)
                     .forEach(imageUrl -> {
-                        InputStream image;
-                        try {
-                            image = getFileFromUrl(imageUrl.getUrl(), 5000000);
-                        } catch (Exception e) {
-                            return;
-                        }
+//                        InputStream image;
+//                        try {
+//                            image = getFileFromUrl(imageUrl.getUrl(), 5000000);
+//                        } catch (Exception e) {
+//                            return;
+//                        }
 
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-                        inputMediaPhoto.setMedia(image, "image" + imageUrl.getId());
+                        inputMediaPhoto.setMedia(imageUrl.getUrl());
+
+                        //inputMediaPhoto.setMedia(imageUrl.getUrl(), "image" + imageUrl.getId());
 
                         images.add(inputMediaPhoto);
                     });
