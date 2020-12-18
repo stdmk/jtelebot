@@ -139,7 +139,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                         }
 
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-                        inputMediaPhoto.setMedia(image, imageUrl.getTitle());
+                        inputMediaPhoto.setMedia(image, "image" + imageUrl.getId());
 
                         images.add(inputMediaPhoto);
                     });
