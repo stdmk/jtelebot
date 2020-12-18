@@ -26,8 +26,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
-
 @Component
 @AllArgsConstructor
 public class Google implements CommandParent<PartialBotApiMethod<?>> {
@@ -96,10 +94,8 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             ImageUrl imageUrl = googleSearchResult.getImageUrl();
             if (imageUrl != null) {
                 try {
-                    image = getFileFromUrl(imageUrl.getUrl());
-
                     SendPhoto sendPhoto = new SendPhoto();
-                    sendPhoto.setPhoto(new InputFile(image, "google"));
+                    sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
                     sendPhoto.setCaption(responseText);
                     sendPhoto.setParseMode(ParseModes.HTML.getValue());
                     sendPhoto.setReplyToMessageId(message.getMessageId());

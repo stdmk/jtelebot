@@ -52,4 +52,5 @@
     <include file="db/changelog/20201215171600_added_command_Ping.xml"/>
     <include file="db/changelog/20201216095600_added_command_WebScreen.xml"/>
     <include file="db/changelog/20201216110400_added_command_Advice.xml"/>
+    <include file="db/changelog/20201218114200_GoogleSearchResult_correction.xml"/>
 </databaseChangeLog>
