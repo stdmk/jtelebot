@@ -77,7 +77,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.enableMarkdown(true);
             sendMessage.setText("теперь напиши мне что надо найти");
 
             return sendMessage;
@@ -141,7 +140,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
                         inputMediaPhoto.setMedia(imageUrl.getUrl());
 
-                        //inputMediaPhoto.setMedia(imageUrl.getUrl(), "image" + imageUrl.getId());
+                        //inputMediaPhoto.setMedia(image, "image" + imageUrl.getId());
 
                         images.add(inputMediaPhoto);
                     });

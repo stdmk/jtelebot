@@ -9,9 +9,12 @@ import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @AllArgsConstructor
 public class Parser extends Thread {
@@ -58,7 +61,11 @@ public class Parser extends Thread {
             } else if (method instanceof SendMediaGroup) {
                 SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
                 log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
-                bot.execute(sendMediaGroup);
+                try {
+                    bot.execute(sendMediaGroup);
+                } catch (TelegramApiException e) {
+                    splitSendMediaGroup(sendMediaGroup);
+                }
             } else if (method instanceof EditMessageText) {
                 EditMessageText editMessageText = (EditMessageText) method;
                 log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
@@ -84,5 +91,38 @@ public class Parser extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void splitSendMediaGroup(SendMediaGroup sendMediaGroup) {
+        sendMediaGroup.getMedias()
+                .forEach(inputMedia -> {
+                    InputFile inputFile = new InputFile();
+                    inputFile.setMedia(inputMedia.getMedia());
+
+                    SendPhoto sendPhoto = new SendPhoto();
+                    sendPhoto.setPhoto(inputFile);
+                    sendPhoto.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+                    sendPhoto.setChatId(sendMediaGroup.getChatId());
+
+                    try {
+                        bot.execute(sendPhoto);
+                    } catch (TelegramApiException telegramApiException) {
+                        try {
+                            sendPhoto.setPhoto(new InputFile(getFileFromUrl(inputMedia.getMedia(), 5000000), "image"));
+                            bot.execute(sendPhoto);
+                        } catch (Exception exception) {
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(sendMediaGroup.getChatId());
+                            sendMessage.setReplyToMessageId(sendMessage.getReplyToMessageId());
+                            sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia());
+
+                            try {
+                                bot.execute(sendMessage);
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
     }
 }
