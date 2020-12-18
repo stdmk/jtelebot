@@ -31,7 +31,7 @@ public class Logs implements CommandParent<SendDocument> {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(chatId.toString());
         sendDocument.setReplyToMessageId(message.getMessageId());
-        sendDocument.setDocument(new InputFile(logs, "logs"));
+        sendDocument.setDocument(new InputFile(logs, "logs.log"));
 
         return sendDocument;
     }
