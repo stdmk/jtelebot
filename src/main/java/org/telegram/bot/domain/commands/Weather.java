@@ -273,7 +273,7 @@ public class Weather implements CommandParent<SendMessage> {
         if (hours.equals(1)) {
             Double oneHour = precipitations.getOneHours();
             if (oneHour != null) {
-                return emoji + "За час:    " + String.format("%.2f", oneHour) + " мм";
+                return emoji + "За час:     " + String.format("%.2f", oneHour) + " мм";
             }
         } else if (hours.equals(3)) {
             Double threeHours = precipitations.getThreeHours();

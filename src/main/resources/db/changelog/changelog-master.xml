@@ -54,4 +54,5 @@
     <include file="db/changelog/20201216110400_added_command_Advice.xml"/>
     <include file="db/changelog/20201218114200_GoogleSearchResult_correction.xml"/>
     <include file="db/changelog/20201218121400_ImageUrl_correction.xml"/>
+    <include file="db/changelog/20201222100900_added_command_True.xml"/>
 </databaseChangeLog>
