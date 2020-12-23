@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ImageUrlServiceImpl implements ImageUrlService {
 
-    private final Logger log = LoggerFactory.getLogger(CityServiceImpl.class);
+    private final Logger log = LoggerFactory.getLogger(ImageUrlServiceImpl.class);
 
     private final ImageUrlRepository imageUrlRepository;
 
