@@ -113,7 +113,7 @@ public class Parser extends Thread {
                         } catch (Exception exception) {
                             SendMessage sendMessage = new SendMessage();
                             sendMessage.setChatId(sendMediaGroup.getChatId());
-                            sendMessage.setReplyToMessageId(sendMessage.getReplyToMessageId());
+                            sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
                             sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia());
 
                             try {
