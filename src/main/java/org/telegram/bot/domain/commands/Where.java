@@ -78,6 +78,7 @@ public class Where implements CommandParent<SendMessage> {
             }
 
             LastMessage lastMessage = userStats.getLastMessage();
+            messageId = lastMessage.getMessageId();
             LocalDateTime dateOfMessage = lastMessage.getDate();
             ZoneId zoneId = ZoneId.systemDefault();
 
@@ -92,7 +93,7 @@ public class Where implements CommandParent<SendMessage> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setReplyToMessageId(messageId);
         sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
