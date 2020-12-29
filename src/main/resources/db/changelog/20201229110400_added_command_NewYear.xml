@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20201229110400-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="26"/>
+            <column name="commandname" value="newyear"/>
+            <column name="russifiedname" value="новыйгод"/>
+            <column name="enruname" value="yjdsqujl"/>
+            <column name="classname" value="newYear"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Новый год,Время до нового года,отсутствуют,новыйгод,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

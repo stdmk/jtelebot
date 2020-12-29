@@ -57,4 +57,5 @@
     <include file="db/changelog/20201222100900_added_command_True.xml"/>
     <include file="db/changelog/20201222120100_added_command_Wiki.xml"/>
     <include file="db/changelog/20201222155600_added_entity_Wiki.xml"/>
+    <include file="db/changelog/20201229110400_added_command_NewYear.xml"/>
 </databaseChangeLog>
