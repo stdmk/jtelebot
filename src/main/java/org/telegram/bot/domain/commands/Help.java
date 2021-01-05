@@ -57,7 +57,7 @@ public class Help implements CommandParent<SendMessage> {
 
             List<CommandProperties> commandsList = commandPropertiesService.getAvailableCommandsForLevel(accessLevel);
 
-            responseText.append("Список доступных тебе команд:\n");
+            responseText.append("Список доступных тебе команд (").append(commandsList.size()).append("):\n");
             commandsList.forEach(commandProperties -> responseText
                     .append("/")
                     .append(commandProperties.getCommandName())
