@@ -28,6 +28,7 @@ public class Bot extends TelegramLongPollingBot {
     private final PropertiesConfig propertiesConfig;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
+    private final ChatService chatService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
 
@@ -74,11 +75,11 @@ public class Bot extends TelegramLongPollingBot {
 
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
         if (commandProperties == null) {
-            CommandWaiting commandWaiting = commandWaitingService.get(chatId, userId);
+            CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(chatId), userService.get(userId));
             if (commandWaiting == null) {
                 return;
             }
-            commandProperties = commandPropertiesService.findCommandByName(commandWaiting.getCommandName());
+            commandProperties = commandPropertiesService.getCommand(commandWaiting.getCommandName());
             if (commandProperties == null) {
                 return;
             }
@@ -92,7 +93,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(chatId, userId);
+            userStatsService.incrementUserStatsCommands(chatService.get(chatId), userService.get(userId));
             Parser parser = new Parser(this, command, update);
             parser.start();
         }

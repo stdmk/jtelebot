@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.Wiki;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -40,31 +39,15 @@ public class Wikipedia implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
-        String textMessage;
         String responseText;
-        boolean deleteCommandWaiting = false;
+        String textMessage = commandWaitingService.getText(message);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting == null) {
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            deleteCommandWaiting = true;
         }
 
         if (textMessage == null) {
-            deleteCommandWaiting = false;
-            log.debug("Empty params. Waiting to continue...");
-            commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(message.getFrom().getId());
-            }
-            commandWaiting.setCommandName("wiki");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage("/wiki ");
-            commandWaitingService.save(commandWaiting);
+            commandWaitingService.add(message, Wikipedia.class);
 
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
@@ -101,10 +84,6 @@ public class Wikipedia implements CommandParent<SendMessage> {
                     responseText = "<b>Результаты по запросу " + textMessage + "</b>\n" + prepareSearchResponse(titles);
                 }
             }
-        }
-
-        if (deleteCommandWaiting) {
-            commandWaitingService.remove(commandWaiting);
         }
 
         SendMessage sendMessage = new SendMessage();

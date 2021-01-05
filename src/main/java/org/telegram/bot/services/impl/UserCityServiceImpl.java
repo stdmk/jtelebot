@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
@@ -27,9 +28,9 @@ public class UserCityServiceImpl implements UserCityService {
     }
 
     @Override
-    public UserCity get(User user, Long chatId) {
-        log.debug("Request to get UserCity by User: {} and chatId: {}", user, chatId);
-        return userCityRepository.findByUserAndChatId(user, chatId);
+    public UserCity get(User user, Chat chat) {
+        log.debug("Request to get UserCity by User: {} and chatId: {}", user, chat);
+        return userCityRepository.findByUserAndChat(user, chat);
     }
 
     @Override

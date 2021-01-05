@@ -20,8 +20,9 @@ public class UserCity {
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @Column(name = "chatid", nullable = false)
-    private Long chatId;
+    @ManyToOne
+    @JoinColumn(name = "chatid", nullable = false)
+    private Chat chat;
 
     @OneToOne
     @JoinColumn(name = "cityid")

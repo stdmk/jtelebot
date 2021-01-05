@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.commands.Set;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
@@ -38,6 +39,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final UserService userService;
+    private final ChatService chatService;
 
     private final String CALLBACK_COMMAND = "установить ";
     private final String UPDATE_CITY_COMMAND = "город обновить";
@@ -99,11 +101,11 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         User user = userService.get(userId);
-        Long chatId = message.getChatId();
-        UserCity userCity = userCityService.get(user, chatId);
+        Chat chat = chatService.get(message.getChatId());
+        UserCity userCity = userCityService.get(user, chat);
         if (userCity == null) {
             userCity = new UserCity();
-            userCity.setChatId(chatId);
+            userCity.setChat(chat);
             userCity.setUser(user);
         }
         userCity.setCity(city);
@@ -207,17 +209,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> addCityByCallback(Message message, Integer userId, boolean newMessage) {
-        log.debug("Empty params. Waiting to continue...");
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), userId);
-        if (commandWaiting == null) {
-            commandWaiting = new CommandWaiting();
-            commandWaiting.setChatId(message.getChatId());
-            commandWaiting.setUserId(userId);
-        }
-        commandWaiting.setCommandName("set");
-        commandWaiting.setIsFinished(false);
-        commandWaiting.setTextMessage(CALLBACK_ADD_CITY_COMMAND + " ");
-        commandWaitingService.save(commandWaiting);
+        commandWaitingService.add(message, Set.class, CALLBACK_ADD_CITY_COMMAND + " ");
 
         String ADDING_HELP_TEXT_NAMES = "\nНапиши мне через пробел название города на русском и английском языках\nНапример: Тверь Tver";
         if (newMessage) {
@@ -300,11 +292,11 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> getMainKeyboard(Message message, Integer userId, boolean newMessage) {
+        Chat chat = chatService.get(message.getChatId());
         User user = userService.get(userId);
-        Long chatId = message.getChatId();
         String responseText;
 
-        UserCity userCity = userCityService.get(user, chatId);
+        UserCity userCity = userCityService.get(user, chat);
         if (userCity == null || userCity.getCity() == null) {
             responseText = "Город не установлен. Нажми кнопку \"Выбрать\"";
         } else {

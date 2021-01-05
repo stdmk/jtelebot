@@ -46,33 +46,16 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        Message message = getMessageFromUpdate(update);
-        String textMessage;
         String responseText;
-        boolean deleteCommandWaiting = false;
+        Message message = getMessageFromUpdate(update);
+        String textMessage = commandWaitingService.getText(message);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting == null) {
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            deleteCommandWaiting = true;
         }
 
         if (textMessage == null) {
-            deleteCommandWaiting = false;
-            log.debug("Empty params. Waiting to continue...");
-            commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(message.getFrom().getId());
-            }
-            commandWaiting.setCommandName("google");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage("/google ");
-            commandWaitingService.save(commandWaiting);
-
+            commandWaitingService.add(message, Google.class);
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
             long googleResultSearchId;
@@ -154,10 +137,6 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             buf.append("Результатов: примерно ").append(searchInformation.getFormattedTotalResults()).append(" (").append(searchInformation.getFormattedSearchTime()).append(" сек.) ");
 
             responseText = buf.toString();
-        }
-
-        if (deleteCommandWaiting) {
-            commandWaitingService.remove(commandWaiting);
         }
 
         SendMessage sendMessage = new SendMessage();

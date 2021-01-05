@@ -20,8 +20,9 @@ public class UserStats {
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @Column(name = "chatid")
-    private Long chatId;
+    @ManyToOne
+    @JoinColumn(name = "chatid", nullable = false)
+    private Chat chat;
 
     @Column(name = "numberofmessages")
     private Integer numberOfMessages;

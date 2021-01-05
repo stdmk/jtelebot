@@ -12,6 +12,7 @@ import org.telegram.bot.services.CommandPropertiesService;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
+import static org.telegram.bot.utils.TextUtils.removeCapital;
 
 @Service
 @AllArgsConstructor
@@ -34,7 +35,7 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
             }
         }
 
-        return findCommandByName(getPotentialCommandInText(textOfMessage));
+        return getCommand(getPotentialCommandInText(textOfMessage));
     }
 
     @Override
@@ -55,8 +56,15 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     }
 
     @Override
-    public CommandProperties findCommandByName(String name) {
+    public CommandProperties getCommand(String name) {
         log.debug("Request to get command propertiest by name {}", name);
         return commandPropertiesRepository.findByCommandNameOrRussifiedNameOrEnRuName(name);
+    }
+
+    @Override
+    public String getCommand(Class<?> commandClass) {
+        String className = removeCapital(commandClass.getSimpleName());
+        log.debug("Request to get command propertiest by class name {}", className);
+        return commandPropertiesRepository.findByClassName(className).getCommandName();
     }
 }

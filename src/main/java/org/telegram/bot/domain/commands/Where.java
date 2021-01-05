@@ -5,16 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -33,6 +30,7 @@ public class Where implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
     private final UserService userService;
+    private final ChatService chatService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
 
@@ -43,43 +41,27 @@ public class Where implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 
-        boolean deleteCommandWaiting = false;
         Integer messageId = message.getMessageId();
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        String textMessage;
-        if (commandWaiting == null) {
+        String textMessage = commandWaitingService.getText(message);
+
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            deleteCommandWaiting = true;
         }
 
         String responseText;
         if (textMessage == null) {
-            deleteCommandWaiting = false;
-            log.debug("Empty params. Waiting to continue...");
-            commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(message.getFrom().getId());
-            }
-            commandWaiting.setCommandName("where");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage("/where ");
-            commandWaitingService.save(commandWaiting);
+            commandWaitingService.add(message, Where.class);
 
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {
             User user = userService.get(textMessage);
+            Chat chat = chatService.get(message.getChatId());
+
             if (user == null) {
-                if (deleteCommandWaiting) {
-                    commandWaitingService.remove(commandWaiting);
-                }
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
             }
-            UserStats userStats = userStatsService.get(message.getChatId(), user.getUserId());
+            UserStats userStats = userStatsService.get(chat, user);
 
             LastMessage lastMessage = userStats.getLastMessage();
             messageId = lastMessage.getMessageId();
@@ -89,10 +71,6 @@ public class Where implements CommandParent<SendMessage> {
             responseText = "последний раз пользователя *" + user.getUsername() +
                     "* я видел " + formatDate(dateOfMessage) + " (" + zoneId.getId() + ")\n" +
                     "Молчит уже " + deltaDatesToString(LocalDateTime.now(), dateOfMessage);
-        }
-
-        if (deleteCommandWaiting) {
-            commandWaitingService.remove(commandWaiting);
         }
 
         SendMessage sendMessage = new SendMessage();

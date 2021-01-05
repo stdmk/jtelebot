@@ -82,7 +82,7 @@ public class Help implements CommandParent<SendMessage> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableMarkdown(true);
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(prepareHelpText(commandPropertiesService.findCommandByName(textMessage).getHelp()));
+            sendMessage.setText(prepareHelpText(commandPropertiesService.getCommand(textMessage).getHelp()));
 
             return sendMessage;
         }

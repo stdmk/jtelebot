@@ -17,11 +17,13 @@ public class CommandWaiting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "chatid", nullable = false)
-    private Long chatId;
+    @ManyToOne
+    @JoinColumn(name = "chatid", nullable = false)
+    private Chat chat;
 
-    @Column(name = "userid", nullable = false)
-    private Integer userId;
+    @ManyToOne
+    @JoinColumn(name = "userid", nullable = false)
+    private User user;
 
     @Column(name = "commandname", nullable = false)
     private String commandName;

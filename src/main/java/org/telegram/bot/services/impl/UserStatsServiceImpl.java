@@ -33,15 +33,15 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final SpeechService speechService;
 
     @Override
-    public UserStats get(Long chatId, Integer userId) {
-        log.debug("Request to get entity by Chat {} and {} User", chatId, userId);
-        return userStatsRepository.findByChatIdAndUserUserId(chatId, userId);
+    public UserStats get(Chat chat, User user) {
+        log.debug("Request to get entity by Chat {} and {} User", chat, user);
+        return userStatsRepository.findByChatAndUser(chat, user);
     }
 
     @Override
     public List<UserStats> getAllGroupStats() {
         log.debug("Request to get all group-stats entities");
-        return userStatsRepository.findByChatIdLessThan(-1L);
+        return userStatsRepository.findByChatChatIdLessThan(-1L);
     }
 
     @Override
@@ -62,16 +62,16 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<UserStats> getUsersByChatId(Long chatId) {
-        log.debug("Request to get users of chat with id {}", chatId);
-        return userStatsRepository.findByChatId(chatId);
+    public List<UserStats> getUsersByChat(Chat chat) {
+        log.debug("Request to get users of chat with id {}", chat);
+        return userStatsRepository.findByChat(chat);
     }
 
     @Override
     public List<SendMessage> clearMonthlyStats() {
         log.debug("Request to clear monthly stats of users");
         List<SendMessage> response = chatService.getAllGroups().stream()
-                .map(chat -> new Top(this, userService, speechService).getTopByChatId(chat.getChatId()))
+                .map(chat -> new Top(this, userService, chatService, speechService).getTopByChat(chat))
                 .collect(Collectors.toList());
 
         userStatsRepository.saveAll(getAllGroupStats().stream()
@@ -95,10 +95,10 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public void incrementUserStatsCommands(Long chatId, Integer userId) {
+    public void incrementUserStatsCommands(Chat chat, User user) {
         log.debug("Request to increment users stats commands using");
 
-        UserStats userStats = get(chatId, userId);
+        UserStats userStats = get(chat, user);
         userStats.setNumberOfCommands(userStats.getNumberOfCommands() + 1);
         userStats.setNumberOfAllCommands(userStats.getNumberOfAllCommands() + 1);
 
@@ -164,12 +164,12 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     private void updateUserStats(Chat chat, User user, Message message) {
-        UserStats userStats = get(chat.getChatId(), user.getUserId());
+        UserStats userStats = get(chat, user);
         if (userStats == null) {
             LastMessage lastMessage = new LastMessage();
 
             userStats = new UserStats();
-            userStats.setChatId(chat.getChatId());
+            userStats.setChat(chat);
             userStats.setUser(user);
             userStats.setNumberOfMessages(0);
             userStats.setNumberOfAllMessages(0L);

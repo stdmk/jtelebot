@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.commands.Google;
+import org.telegram.bot.domain.commands.Set;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.News;
@@ -57,7 +59,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
             } else if (lowerCaseCommandText.startsWith(DELETE_NEWS_COMMAND)) {
                 return deleteNewsSourceForChatByCallback(message, commandText);
             } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
-                return addNewsSourceForChatByCallback(message, update.getCallbackQuery().getFrom().getId());
+                return addNewsSourceForChatByCallback(message);
             }
         }
 
@@ -141,18 +143,8 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private EditMessageText addNewsSourceForChatByCallback(Message message, Integer userId) {
-            log.debug("Empty params. Waiting to continue...");
-            CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), userId);
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(userId);
-            }
-            commandWaiting.setCommandName("set");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage(CALLBACK_ADD_NEWS_COMMAND + " ");
-            commandWaitingService.save(commandWaiting);
+    private EditMessageText addNewsSourceForChatByCallback(Message message) {
+        commandWaitingService.add(message, Set.class, CALLBACK_ADD_NEWS_COMMAND + " ");
 
         List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
 

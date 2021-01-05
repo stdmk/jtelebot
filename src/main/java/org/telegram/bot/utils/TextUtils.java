@@ -52,4 +52,8 @@ public class TextUtils {
     public static String withCapital(String text) {
         return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
+
+    public static String removeCapital(String text) {
+        return text.substring(0, 1).toLowerCase() + text.substring(1);
+    }
 }

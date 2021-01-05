@@ -1,5 +1,7 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -14,11 +16,11 @@ public interface UserStatsService {
 
     /**
      * Get UserStats by Chat and User.
-     * @param chatId - current chat id.
-     * @param userId - current user id.
+     * @param chat - Chat entity.
+     * @param user - User entity.
      * @return the persisted entity.
      */
-    UserStats get(Long chatId, Integer userId);
+    UserStats get(Chat chat, User user);
 
     /**
      * Get all group UserStats.
@@ -43,10 +45,10 @@ public interface UserStatsService {
     /**
      * Get list of users of chat.
      *
-     * @param chatId - id of chat with users
+     * @param chat - Chat entity.
      * @return list of users of chat
      */
-    List<UserStats> getUsersByChatId(Long chatId);
+    List<UserStats> getUsersByChat(Chat chat);
 
     /**
      * Clear user stats by last Month.
@@ -57,8 +59,8 @@ public interface UserStatsService {
 
     /**
      * Increment the user statistics of using commands.
-     * @param chatId id of Chat where is User
-     * @param userId id of User whose stats will be incremented
+     * @param chat Chat where is User
+     * @param user User whose stats will be incremented
      */
-    void incrementUserStatsCommands(Long chatId, Integer userId);
+    void incrementUserStatsCommands(Chat chat, User user);
 }

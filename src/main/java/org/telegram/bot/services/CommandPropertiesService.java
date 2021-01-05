@@ -35,10 +35,18 @@ public interface CommandPropertiesService {
     List<CommandProperties> getAvailableCommandsForLevel(Integer accessLevel);
 
     /**
-     * Find a command by its name.
+     * Find the command by its name.
      *
      * @param name - command name (any).
      * @return entity.
      */
-    CommandProperties findCommandByName(String name);
+    CommandProperties getCommand(String name);
+
+    /**
+     * Get the command name by class.
+     *
+     * @param commandClass - class of command.
+     * @return entity.
+     */
+    String getCommand(Class<?> commandClass);
 }

@@ -38,7 +38,7 @@ public class Weather implements CommandParent<SendMessage> {
 
     private final PropertiesConfig propertiesConfig;
     private final UserService userService;
-    private final CityService cityService;
+    private final ChatService chatService;
     private final UserCityService userCityService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
@@ -51,36 +51,21 @@ public class Weather implements CommandParent<SendMessage> {
         }
 
         Message message = getMessageFromUpdate(update);
-        Long chatId = message.getChatId();
         Integer userId = message.getFrom().getId();
         String cityName;
         String responseText;
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chatId, userId);
-        String textMessage;
-        if (commandWaiting == null) {
+        String textMessage = commandWaitingService.getText(message);
+
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            commandWaitingService.remove(commandWaiting);
         }
 
         if (textMessage == null) {
             User user = userService.get(userId);
-            UserCity userCity = userCityService.get(user, chatId);
+            UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
             if (userCity == null) {
-                //TODO повторяющийся код, перенести в сервис
-                log.debug("Empty params. Waiting to continue...");
-                commandWaiting = commandWaitingService.get(chatId, userId);
-                if (commandWaiting == null) {
-                    commandWaiting = new CommandWaiting();
-                    commandWaiting.setChatId(chatId);
-                    commandWaiting.setUserId(userId);
-                }
-                commandWaiting.setCommandName("weather");
-                commandWaiting.setIsFinished(false);
-                commandWaiting.setTextMessage("/weather ");
-                commandWaitingService.save(commandWaiting);
+                commandWaitingService.add(message, Weather.class);
 
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setChatId(message.getChatId().toString());

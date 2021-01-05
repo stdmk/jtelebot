@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
@@ -22,10 +23,10 @@ public interface UserCityService {
      * Get a UserCity.
      *
      * @param user User entity of UserCity to get.
-     * @param chatId id of Chat entity of UserCity to get.
+     * @param chat Chat entity of UserCity to get.
      * @return the persisted entity.
      */
-    UserCity get(User user, Long chatId);
+    UserCity get(User user, Chat chat);
 
     /**
      * Get UserCity list by City.

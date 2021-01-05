@@ -51,29 +51,15 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         Message message = getMessageFromUpdate(update);
-        String textMessage;
-        boolean deleteCommandWaiting = false;
+        String textMessage = commandWaitingService.getText(message);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting == null) {
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            deleteCommandWaiting = true;
         }
 
         if (textMessage == null) {
             log.debug("Empty params. Waiting to continue...");
-            commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(message.getFrom().getId());
-            }
-            commandWaiting.setCommandName("picture");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage("/picture ");
-            commandWaitingService.save(commandWaiting);
+            commandWaitingService.add(message, GooglePics.class);
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
@@ -145,11 +131,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
                         images.add(inputMediaPhoto);
                     });
-
-
-            if (deleteCommandWaiting) {
-                commandWaitingService.remove(commandWaiting);
-            }
 
             SendMediaGroup sendMediaGroup = new SendMediaGroup();
             sendMediaGroup.setMedias(images);

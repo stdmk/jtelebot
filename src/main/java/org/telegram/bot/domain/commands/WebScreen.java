@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -40,29 +39,14 @@ public class WebScreen implements CommandParent<SendPhoto> {
         }
 
         Message message = getMessageFromUpdate(update);
-        String textMessage;
-        boolean deleteCommandWaiting = false;
+        String textMessage = commandWaitingService.getText(message);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting == null) {
+        if (textMessage == null) {
             textMessage = cutCommandInText(message.getText());
-        } else {
-            textMessage = message.getText();
-            deleteCommandWaiting = true;
         }
 
         if (textMessage == null) {
-            log.debug("Empty params. Waiting to continue...");
-            commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-            if (commandWaiting == null) {
-                commandWaiting = new CommandWaiting();
-                commandWaiting.setChatId(message.getChatId());
-                commandWaiting.setUserId(message.getFrom().getId());
-            }
-            commandWaiting.setCommandName("webscreen");
-            commandWaiting.setIsFinished(false);
-            commandWaiting.setTextMessage("/webscreen ");
-            commandWaitingService.save(commandWaiting);
+            commandWaitingService.add(message, WebScreen.class);
 
             throw new BotException("теперь напиши мне url-адрес");
         } else {
@@ -86,10 +70,6 @@ public class WebScreen implements CommandParent<SendPhoto> {
                 screen = getFileFromUrl(API_URL + "&key=" + token + "&url=" + url.toString());
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-            }
-
-            if (deleteCommandWaiting) {
-                commandWaitingService.remove(commandWaiting);
             }
 
             sendPhoto.setPhoto(new InputFile(screen, "webscreen.png"));

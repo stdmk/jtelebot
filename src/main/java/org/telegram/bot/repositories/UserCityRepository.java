@@ -2,6 +2,7 @@ package org.telegram.bot.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
@@ -14,6 +15,6 @@ import java.util.List;
 
 @Repository
 public interface UserCityRepository extends JpaRepository<UserCity, Long> {
-    UserCity findByUserAndChatId(User user, Long chatId);
+    UserCity findByUserAndChat(User user, Chat chat);
     List<UserCity> findByCity(City city);
 }

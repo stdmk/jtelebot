@@ -5,11 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
@@ -33,6 +35,7 @@ public class Top implements CommandParent<SendMessage> {
 
     private final UserStatsService userStatsService;
     private final UserService userService;
+    private final ChatService chatService;
     private final SpeechService speechService;
 
     private static final List<String> PARAMS = Arrays.asList("месяц", "все", "всё");
@@ -42,15 +45,16 @@ public class Top implements CommandParent<SendMessage> {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
+        Chat chat = chatService.get(message.getChatId());
 
         //TODO переделать на айди, если пользователь без юзернейма
         if (textMessage == null) {
-            responseText = getTopOfUsername(message.getChatId(), message.getFrom().getUserName());
+            responseText = getTopOfUsername(chat, message.getFrom().getUserName());
         } else {
             if (PARAMS.contains(textMessage)) {
-                responseText = getTopListOfUsers(message.getChatId(), textMessage);
+                responseText = getTopListOfUsers(chat, textMessage);
             } else {
-                responseText = getTopOfUsername(message.getChatId(), textMessage);
+                responseText = getTopOfUsername(chat, textMessage);
             }
         }
 
@@ -63,17 +67,17 @@ public class Top implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    public SendMessage getTopByChatId(Long chatId) {
+    public SendMessage getTopByChat(Chat chat) {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId.toString());
+        sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText(getTopListOfUsers(chatId, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
+        sendMessage.setText(getTopListOfUsers(chat, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
 
         return sendMessage;
     }
 
     @Transactional
-    private String getTopOfUsername(Long chatId, String username) throws BotException {
+    private String getTopOfUsername(Chat chat, String username) throws BotException {
         log.debug("Request to get top of user by username {}", username);
         User user = userService.get(username);
         if (user == null) {
@@ -83,7 +87,7 @@ public class Top implements CommandParent<SendMessage> {
         HashMap<String, String> fieldsOfStats = new HashMap<>();
         StringBuilder buf = new StringBuilder();
         String valueForSkip = "0";
-        UserStats userStats = userStatsService.get(chatId, user.getUserId());
+        UserStats userStats = userStatsService.get(chat, user);
         if (userStats == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
         }
@@ -130,10 +134,11 @@ public class Top implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
-    private String getTopListOfUsers(Long chatId, String param) {
-        log.debug("Request to top by {} for chat {}", param, chatId);
+    private String getTopListOfUsers(Chat chat, String param) {
+        log.debug("Request to top by {} for chat {}", param, chat);
+
         StringBuilder responseText = new StringBuilder();
-        List<UserStats> userList = userStatsService.getUsersByChatId(chatId);
+        List<UserStats> userList = userStatsService.getUsersByChat(chat);
 
         int spacesAfterSerialNumberCount = String.valueOf(userList.size()).length() + 2;
         int spacesAfterNuberOfMessageCount = userList.stream()
