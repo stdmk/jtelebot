@@ -78,6 +78,7 @@ public class Todo implements CommandParent<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
+        sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
         return sendMessage;
