@@ -34,10 +34,19 @@ public interface NewsMessageService {
     List<NewsMessage> save(List<NewsMessage> newsMessageList);
 
     /**
+     * Build short text message from NewsMessage with News.
+     *
+     * @param newsMessage News entity.
+     * @param sourceName NewsSource entity
+     * @return short text of news message.
+     */
+    String buildShortNewsMessageText(NewsMessage newsMessage, String sourceName);
+
+    /**
      * Build short text message from NewsMessage.
      *
      * @param newsMessage NewsMessage entity.
-     * @return the persisted entities.
+     * @return short text of news message.
      */
     String buildShortNewsMessageText(NewsMessage newsMessage);
 

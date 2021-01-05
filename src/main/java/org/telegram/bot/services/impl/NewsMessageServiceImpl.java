@@ -42,8 +42,13 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     }
 
     @Override
-    public String buildShortNewsMessageText(NewsMessage newsMessage) {
+    public String buildShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
+        return "<b>" + newsMessage.getTitle() + "</b> (" + sourceName + ")\n<i>" +
+                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
+    }
 
+    @Override
+    public String buildShortNewsMessageText(NewsMessage newsMessage) {
         return "<b>" + newsMessage.getTitle() + "</b>\n<i>" +
                 formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }

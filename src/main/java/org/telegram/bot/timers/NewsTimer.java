@@ -61,7 +61,7 @@ public class NewsTimer extends TimerParent {
                                     SendMessage sendMessage = new SendMessage();
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
-                                    sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage));
+                                    sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
 
                                     bot.execute(sendMessage);
                                 } catch (TelegramApiException e) {

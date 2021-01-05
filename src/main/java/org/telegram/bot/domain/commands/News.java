@@ -53,7 +53,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
                     .forEach(news -> {
                         NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
                         if (newsMessage != null) {
-                            buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage()));
+                            buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
                         }
                     });
             responseText = buf.toString();
