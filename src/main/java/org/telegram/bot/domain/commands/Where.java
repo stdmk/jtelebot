@@ -9,6 +9,7 @@ import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
@@ -39,7 +40,7 @@ public class Where implements CommandParent<SendMessage> {
     public SendMessage parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
         if (message.getChatId() > 0) {
-            throw new BotException(speechService.getRandomMessageByTag("commandForGroupChats"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 
         boolean deleteCommandWaiting = false;
@@ -72,10 +73,13 @@ public class Where implements CommandParent<SendMessage> {
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {
             User user = userService.get(textMessage);
-            UserStats userStats = userStatsService.get(message.getChatId(), user.getUserId());
-            if (userStats == null) {
-                throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
+            if (user == null) {
+                if (deleteCommandWaiting) {
+                    commandWaitingService.remove(commandWaiting);
+                }
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
             }
+            UserStats userStats = userStatsService.get(message.getChatId(), user.getUserId());
 
             LastMessage lastMessage = userStats.getLastMessage();
             messageId = lastMessage.getMessageId();

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
@@ -76,7 +77,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         } else if (lowerCaseCommandText.startsWith(ADD_CITY_COMMAND)) {
             return addCity(message, commandText);
         } else {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
@@ -89,12 +90,12 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             cityId = Long.parseLong(command.substring(SELECT_CITY_COMMAND.length() + 1));
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         City city = cityService.get(cityId);
         if (city == null) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         User user = userService.get(userId);
@@ -122,7 +123,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
         int i = params.indexOf(" ");
         if (i < 0) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         City newCity = new City();
@@ -147,7 +148,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             params = command.substring(DELETE_CITY_COMMAND.length() + 1);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         long cityId;
@@ -155,17 +156,17 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             cityId = Long.parseLong(params);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         City city = cityService.get(cityId);
         if (!city.getUser().equals(userService.get(message.getFrom().getId()))) {
-            throw new BotException(speechService.getRandomMessageByTag("notOwner"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
         cityService.remove(city);
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag("saved"));
+        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
     @Transactional
@@ -176,7 +177,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             params = command.substring(SET_TIMEZONE.length() + 1);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         long cityId;
@@ -184,19 +185,19 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
         int i = params.indexOf(" ");
         if (i < 0) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         try {
             cityId = Long.parseLong(params.substring(0, i));
             timeZone = TimeZone.getTimeZone(params.substring(i + 1));
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         City city = cityService.get(cityId);
         if (!city.getUser().getUserId().equals(userId)) {
-            throw new BotException(speechService.getRandomMessageByTag("notOwner"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
         city.setTimeZone(timeZone.getID());
@@ -237,17 +238,17 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             cityId = Long.parseLong(command.substring(DELETE_CITY_COMMAND.length() + 1));
         } catch (NumberFormatException e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         City city = cityService.get(cityId);
         if (city == null) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         List<UserCity> userCities = userCityService.getAll(city);
         if (!userCities.isEmpty()) {
-            throw new BotException(speechService.getRandomMessageByTag("databaseIntegrity"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.DATA_BASE_INTEGRITY));
         }
 
         try {

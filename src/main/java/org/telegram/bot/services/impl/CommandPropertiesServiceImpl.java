@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.CommandPropertiesRepository;
 import org.telegram.bot.services.CommandPropertiesService;
 
@@ -42,7 +42,7 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
         log.debug("Request to get access level for command by its class name");
         CommandProperties commandProperties = commandPropertiesRepository.findByClassName(className);
         if (commandProperties == null || commandProperties.getAccessLevel() == null) {
-            return AccessLevels.ADMIN.getValue();
+            return AccessLevel.ADMIN.getValue();
         }
 
         return commandProperties.getAccessLevel();

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -24,12 +25,12 @@ public class Password implements CommandParent<SendMessage> {
             try {
                 symbolsCount = Integer.parseInt(getTextMessage(update));
             } catch (NumberFormatException e) {
-                speechService.getRandomMessageByTag("wrongInput");
+                speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
             }
         }
 
         if (symbolsCount < 1) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         if (symbolsCount > 1024) {

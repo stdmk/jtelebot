@@ -6,7 +6,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -55,14 +55,14 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                 return buildMainPage(message);
             }
         } else {
-            AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
+            AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
             String CITY = "город";
             if (textMessage.toLowerCase().startsWith(NEWS)) {
-                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.MODERATOR.getValue())) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
                     return newsSetter.set(update, textMessage);
                 }
             } else if (textMessage.toLowerCase().startsWith(CITY)) {
-                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevels.TRUSTED.getValue())) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return citySetter.set(update, textMessage);
                 }
             }

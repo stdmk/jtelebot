@@ -1,5 +1,7 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.enums.BotSpeechTag;
+
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.Speech}.
  */
@@ -13,5 +15,5 @@ public interface SpeechService {
      * @return message.
      */
 
-    String getRandomMessageByTag(String tag);
+    String getRandomMessageByTag(BotSpeechTag tag);
 }

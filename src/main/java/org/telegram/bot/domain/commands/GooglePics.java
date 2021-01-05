@@ -11,7 +11,8 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.ImageUrl;
-import org.telegram.bot.domain.enums.ParseModes;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -46,7 +47,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         String token = propertiesConfig.getGoogleToken();
         if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("unableToFindToken"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
         Message message = getMessageFromUpdate(update);
@@ -85,12 +86,12 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             try {
                 imageId = Long.parseLong(textMessage.substring(1));
             } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             ImageUrl imageUrl = imageUrlService.get(imageId);
             if (imageUrl == null) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             InputStream image;
@@ -103,7 +104,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(new InputFile(image, "google"));
             sendPhoto.setCaption(imageUrl.getTitle());
-            sendPhoto.setParseMode(ParseModes.HTML.getValue());
+            sendPhoto.setParseMode(ParseMode.HTML.getValue());
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(message.getChatId().toString());
 

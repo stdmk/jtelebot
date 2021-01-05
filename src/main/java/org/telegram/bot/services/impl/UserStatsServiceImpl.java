@@ -9,7 +9,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -118,7 +118,7 @@ public class UserStatsServiceImpl implements UserStatsService {
             user = new User();
             user.setUserId(userId);
             user.setUsername(username);
-            user.setAccessLevel(AccessLevels.NEWCOMER.getValue());
+            user.setAccessLevel(AccessLevel.NEWCOMER.getValue());
             user = userService.save(user);
         }
 
@@ -151,7 +151,7 @@ public class UserStatsServiceImpl implements UserStatsService {
             chat = new Chat();
             chat.setChatId(chatId);
             chat.setName(chatName);
-            chat.setAccessLevel(AccessLevels.NEWCOMER.getValue());
+            chat.setAccessLevel(AccessLevel.NEWCOMER.getValue());
             chat = chatService.save(chat);
         }
 

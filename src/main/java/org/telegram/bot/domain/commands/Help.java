@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -118,8 +118,8 @@ public class Help implements CommandParent<SendMessage> {
         }
 
         User user = userService.get(userId);
-        if (user.getUserId().equals(adminId) && !user.getAccessLevel().equals(AccessLevels.ADMIN.getValue())) {
-            user.setAccessLevel(AccessLevels.ADMIN.getValue());
+        if (user.getUserId().equals(adminId) && !user.getAccessLevel().equals(AccessLevel.ADMIN.getValue())) {
+            user.setAccessLevel(AccessLevel.ADMIN.getValue());
             userService.save(user);
             return true;
         }

@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TodoService;
@@ -41,25 +42,25 @@ public class Todo implements CommandParent<SendMessage> {
                 try {
                     todoId = Long.parseLong(textMessage.substring(1));
                 } catch (NumberFormatException e) {
-                    throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
                 log.debug("Request to delete todo by id " + todoId);
                 if (!userService.isUserHaveAccessForCommand(
                         userService.get(message.getFrom().getId()).getAccessLevel(),
-                        AccessLevels.ADMIN.getValue())) {
+                        AccessLevel.ADMIN.getValue())) {
                     throw new BotException("Удалять может только админ");
                 }
                 if (todoService.remove(todoId)) {
                     responseText = "Задача успешно удалена";
                 } else {
-                    responseText = speechService.getRandomMessageByTag("wrongInput");
+                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
                 }
             } else {
                 try {
                     Long todoId = Long.parseLong(textMessage);
                     org.telegram.bot.domain.entities.Todo todo = todoService.get(todoId);
                     if (todo == null) {
-                        throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
                     responseText = buildTodoStringLine(todo);
                 } catch (NumberFormatException e) {
@@ -68,7 +69,7 @@ public class Todo implements CommandParent<SendMessage> {
                     todo.setUser(userService.get(message.getFrom().getId()));
                     todo.setTodoText(textMessage);
                     todoService.save(todo);
-                    responseText = speechService.getRandomMessageByTag("saved");
+                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 }
             }
         }

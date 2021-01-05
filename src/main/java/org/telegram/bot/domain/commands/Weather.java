@@ -15,6 +15,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
@@ -46,7 +47,7 @@ public class Weather implements CommandParent<SendMessage> {
     public SendMessage parse(Update update) throws Exception {
         String token = propertiesConfig.getOpenweathermapId();
         if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("unableToFindToken"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
         Message message = getMessageFromUpdate(update);
@@ -124,7 +125,7 @@ public class Weather implements CommandParent<SendMessage> {
         } catch (RestClientException e) {
             String errorText = e.getMessage();
             if (errorText == null) {
-                throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
             int i = errorText.indexOf("{");

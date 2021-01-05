@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.UserRepository;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.UserService;
@@ -42,15 +42,15 @@ public class UserServiceImpl implements UserService {
         log.debug("Request to get userLevel for userId {} ", userId);
         User user = get(userId);
         if (user == null) {
-            return AccessLevels.NEWCOMER.getValue();
+            return AccessLevel.NEWCOMER.getValue();
         }
 
         return user.getAccessLevel();
     }
 
     @Override
-    public AccessLevels getCurrentAccessLevel(Integer userId, Long chatId) {
-        AccessLevels level = AccessLevels.BANNED;
+    public AccessLevel getCurrentAccessLevel(Integer userId, Long chatId) {
+        AccessLevel level = AccessLevel.BANNED;
 
         Integer userLevel = getUserAccessLevel(userId);
         if (userLevel < 0) {
@@ -59,9 +59,9 @@ public class UserServiceImpl implements UserService {
         Integer chatLevel = chatService.getChatAccessLevel(chatId);
 
         if (userLevel > chatLevel) {
-            level = AccessLevels.getUserLevelByValue(userLevel);
+            level = AccessLevel.getUserLevelByValue(userLevel);
         } else {
-            level = AccessLevels.getUserLevelByValue(chatLevel);
+            level = AccessLevel.getUserLevelByValue(chatLevel);
         }
 
         return level;

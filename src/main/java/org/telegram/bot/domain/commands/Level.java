@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
@@ -32,7 +33,7 @@ public class Level implements CommandParent<SendMessage> {
         if (textMessage == null) {
             Long chatId = message.getChatId();
             if (chatId > 0) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             SendMessage sendMessage = new SendMessage();
@@ -55,13 +56,13 @@ public class Level implements CommandParent<SendMessage> {
                 level = Integer.parseInt(textMessage.substring(i + 1));
             }
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         if (username != null) {
             User userToUpdate = userService.get(username);
             if (userToUpdate == null) {
-                throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             log.debug("Request to change level of user {} from {} to {}", username, userToUpdate.getAccessLevel(), level);
@@ -71,7 +72,7 @@ public class Level implements CommandParent<SendMessage> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(speechService.getRandomMessageByTag("saved"));
+            sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
 
             return sendMessage;
         } else {
@@ -84,7 +85,7 @@ public class Level implements CommandParent<SendMessage> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(speechService.getRandomMessageByTag("saved"));
+            sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
 
             return sendMessage;
         }

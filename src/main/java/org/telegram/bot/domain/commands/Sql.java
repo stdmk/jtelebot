@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -37,7 +38,7 @@ public class Sql implements CommandParent<SendMessage> {
         String responseText;
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         if (textMessage.toLowerCase().startsWith("select")) {
@@ -88,7 +89,7 @@ public class Sql implements CommandParent<SendMessage> {
             }
         }
         else {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         SendMessage sendMessage = new SendMessage();

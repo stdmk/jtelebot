@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -76,7 +77,7 @@ public class Top implements CommandParent<SendMessage> {
         log.debug("Request to get top of user by username {}", username);
         User user = userService.get(username);
         if (user == null) {
-            throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
         }
 
         HashMap<String, String> fieldsOfStats = new HashMap<>();
@@ -84,7 +85,7 @@ public class Top implements CommandParent<SendMessage> {
         String valueForSkip = "0";
         UserStats userStats = userStatsService.get(chatId, user.getUserId());
         if (userStats == null) {
-            throw new BotException(speechService.getRandomMessageByTag("userNotFount"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
         }
 
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());

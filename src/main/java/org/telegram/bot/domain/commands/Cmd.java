@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -25,7 +26,7 @@ public class Cmd implements CommandParent<SendMessage> {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         Process process;

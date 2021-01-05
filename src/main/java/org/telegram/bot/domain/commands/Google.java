@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.*;
-import org.telegram.bot.domain.enums.ParseModes;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -42,7 +43,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         String token = propertiesConfig.getGoogleToken();
         if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("unableToFindToken"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
         Message message = getMessageFromUpdate(update);
@@ -78,12 +79,12 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             try {
                 googleResultSearchId = Long.parseLong(textMessage.substring(1));
             } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             GoogleSearchResult googleSearchResult = googleSearchResultService.get(googleResultSearchId);
             if (googleSearchResult == null) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             responseText = "<b>" + googleSearchResult.getTitle() + "</b>\n" +
@@ -97,7 +98,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                     SendPhoto sendPhoto = new SendPhoto();
                     sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
                     sendPhoto.setCaption(responseText);
-                    sendPhoto.setParseMode(ParseModes.HTML.getValue());
+                    sendPhoto.setParseMode(ParseMode.HTML.getValue());
                     sendPhoto.setReplyToMessageId(message.getMessageId());
                     sendPhoto.setChatId(message.getChatId().toString());
 
@@ -162,7 +163,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setParseMode(ParseModes.HTML.getValue());
+        sendMessage.setParseMode(ParseMode.HTML.getValue());
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 

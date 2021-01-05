@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -18,7 +19,7 @@ public class Echo implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
         sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
-        sendMessage.setText(speechService.getRandomMessageByTag("echo"));
+        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.ECHO));
 
         return sendMessage;
     }

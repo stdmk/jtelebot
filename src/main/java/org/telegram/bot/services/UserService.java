@@ -1,7 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.User}.
@@ -46,7 +46,7 @@ public interface UserService {
      * @param chatId id of Chat entity
      * @return the highest of access levels
      */
-    AccessLevels getCurrentAccessLevel(Integer userId, Long chatId);
+    AccessLevel getCurrentAccessLevel(Integer userId, Long chatId);
 
     /**
      * Сhecks if the access level is sufficient for command.

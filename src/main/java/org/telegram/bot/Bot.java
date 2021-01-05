@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.enums.AccessLevels;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
@@ -60,8 +60,8 @@ public class Bot extends TelegramLongPollingBot {
         Integer userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
 
-        AccessLevels userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
-        if (userAccessLevel.equals(AccessLevels.BANNED)) {
+        AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
+        if (userAccessLevel.equals(AccessLevel.BANNED)) {
             log.info("Banned user. Ignoring...");
             return;
         }

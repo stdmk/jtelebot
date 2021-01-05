@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.PropertiesConfig;
@@ -35,7 +36,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     public SendPhoto parse(Update update) throws Exception {
         String token = propertiesConfig.getScreenshotMachineToken();
         if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag("unableToFindToken"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
         Message message = getMessageFromUpdate(update);
@@ -74,7 +75,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
             try {
                 url = new URL(textMessage);
             } catch (MalformedURLException e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             SendPhoto sendPhoto = new SendPhoto();
@@ -84,7 +85,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
             try {
                 screen = getFileFromUrl(API_URL + "&key=" + token + "&url=" + url.toString());
             } catch (Exception e) {
-                throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
             if (deleteCommandWaiting) {

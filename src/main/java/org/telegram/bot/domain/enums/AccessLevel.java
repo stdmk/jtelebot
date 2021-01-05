@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.Arrays;
 
 @Getter
-public enum AccessLevels {
+public enum AccessLevel {
     BANNED(-1),
     NEWCOMER(0),
     FAMILIAR(1),
@@ -15,14 +15,14 @@ public enum AccessLevels {
 
     private final Integer value;
 
-    AccessLevels(Integer value) {
+    AccessLevel(Integer value) {
         this.value = value;
     }
 
-    public static AccessLevels getUserLevelByValue(Integer value) {
-        return Arrays.stream(AccessLevels.values())
+    public static AccessLevel getUserLevelByValue(Integer value) {
+        return Arrays.stream(AccessLevel.values())
                 .filter(accessLevels -> accessLevels.value.equals(value))
                 .findFirst()
-                .orElse(AccessLevels.NEWCOMER);
+                .orElse(AccessLevel.NEWCOMER);
     }
 }

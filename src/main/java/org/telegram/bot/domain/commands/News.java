@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
-import org.telegram.bot.domain.enums.ParseModes;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -61,12 +62,12 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             try {
                 newsId = Long.parseLong(textMessage.substring(1));
             } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             NewsMessage newsMessage = newsMessageService.get(newsId);
             if (newsMessage == null) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             responseText = newsMessageService.buildFullNewsMessageText(newsMessage);
@@ -91,7 +92,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(new InputFile(image, "news"));
             sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode(ParseModes.HTML.getValue());
+            sendPhoto.setParseMode(ParseMode.HTML.getValue());
             sendPhoto.setReplyToMessageId(messageId);
             sendPhoto.setChatId(message.getChatId().toString());
 
@@ -100,7 +101,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             log.debug("Request to get news by url {}", textMessage);
             responseText = getAllNews(textMessage);
         } else {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -116,7 +117,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
     private String getAllNews(String url) {
         SyndFeed feed = getRssFeedFromUrl(url);
         if (feed == null) {
-            return speechService.getRandomMessageByTag("noResponse");
+            return speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         }
 
         return buildListOfNewsMessageText(feed.getEntries());

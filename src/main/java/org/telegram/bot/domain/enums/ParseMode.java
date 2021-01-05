@@ -3,13 +3,13 @@ package org.telegram.bot.domain.enums;
 import lombok.Getter;
 
 @Getter
-public enum ParseModes {
+public enum ParseMode {
     MARKDOWN("Markdown"),
     HTML("HTML");
 
     private final String value;
 
-    ParseModes(String value) {
+    ParseMode(String value) {
         this.value = value;
     }
 }

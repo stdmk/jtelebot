@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.Wiki;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
@@ -71,12 +72,12 @@ public class Wikipedia implements CommandParent<SendMessage> {
             try {
                 wikiPageId = Integer.parseInt(textMessage.substring(1));
             } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             Wiki wiki = wikiService.get(wikiPageId);
             if (wiki == null) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
             responseText = prepareSearchResponse(wiki);

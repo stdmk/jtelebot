@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -37,13 +38,13 @@ public class Bash implements CommandParent<SendMessage> {
             try {
                 Integer.parseInt(textMessage);
             } catch (Exception e) {
-                throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
             quot = getDefineQuot(textMessage);
         }
 
         if (quot == null) {
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         SendMessage sendMessage = new SendMessage();

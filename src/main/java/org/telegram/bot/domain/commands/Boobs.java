@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -41,7 +42,7 @@ public class Boobs implements CommandParent<SendPhoto> {
         BoobsCount[] boobsCounts = response.getBody();
         if (boobsCounts == null) {
             log.debug("No response from service");
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
         Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
 
@@ -50,7 +51,7 @@ public class Boobs implements CommandParent<SendPhoto> {
         try {
             boobs = getFileFromUrl(BOOBS_IMAGE_URL + nameOfImage);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         String caption = "Boobs";

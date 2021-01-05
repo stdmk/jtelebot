@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -28,12 +29,12 @@ public class GreatAdvice implements CommandParent<SendMessage> {
         try {
             response = restTemplate.getForEntity(API_URL, FuckingGreateAdvice.class);
         } catch (RestClientException e) {
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         FuckingGreateAdvice fuckingGreateAdvice = response.getBody();
         if (fuckingGreateAdvice == null) {
-            throw new BotException(speechService.getRandomMessageByTag("noResponse"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         Message message = getMessageFromUpdate(update);

@@ -8,6 +8,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
@@ -67,7 +68,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
             return addNewsSourceForChat(message, commandText);
         } else {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
@@ -89,13 +90,13 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         int i = params.indexOf(" ");
         if (i < 0) {
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag("wrongInput"));
+            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         String name;
         URL url;
         if (!params.startsWith("http") && !params.substring(i + 1).startsWith("http")) {
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag("wrongInput"));
+            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         try {
@@ -137,7 +138,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
             commandWaitingService.remove(commandWaiting);
         }
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag("saved"));
+        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
     private EditMessageText addNewsSourceForChatByCallback(Message message, Integer userId) {
@@ -173,7 +174,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             params = command.substring(DELETE_NEWS_COMMAND.length() + 1);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag("wrongInput"));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         Chat chat = chatService.get(message.getChatId());
@@ -182,15 +183,15 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             Long newsSourceId = Long.parseLong(params);
             if (newsService.remove(chat, newsSourceId)) {
-                responseText = speechService.getRandomMessageByTag("saved");
+                responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             } else {
-                responseText = speechService.getRandomMessageByTag("wrongInput");
+                responseText = speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
             }
         } catch (Exception e) {
             if (newsService.remove(chat, params)) {
-                responseText = speechService.getRandomMessageByTag("saved");
+                responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             } else {
-                responseText = speechService.getRandomMessageByTag("wrongInput");
+                responseText = speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
             }
         }
 
