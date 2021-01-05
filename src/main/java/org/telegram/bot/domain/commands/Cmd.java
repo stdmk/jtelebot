@@ -29,9 +29,11 @@ public class Cmd implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
+        ProcessBuilder processBuilder = new ProcessBuilder(textMessage.split(" "));
+
         Process process;
         try {
-            process = Runtime.getRuntime().exec(textMessage);
+            process = processBuilder.start();
         } catch (IOException e) {
             throw new BotException(e.getMessage());
         }
