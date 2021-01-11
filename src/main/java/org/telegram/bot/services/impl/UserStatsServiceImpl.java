@@ -62,7 +62,7 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<UserStats> getUsersByChat(Chat chat) {
+    public List<UserStats> getStatsByChat(Chat chat) {
         log.debug("Request to get users of chat with id {}", chat);
         return userStatsRepository.findByChat(chat);
     }

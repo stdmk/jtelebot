@@ -48,7 +48,7 @@ public interface UserStatsService {
      * @param chat - Chat entity.
      * @return list of users of chat
      */
-    List<UserStats> getUsersByChat(Chat chat);
+    List<UserStats> getStatsByChat(Chat chat);
 
     /**
      * Clear user stats by last Month.

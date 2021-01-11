@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
@@ -31,6 +32,11 @@ public class Cmd implements CommandParent<SendMessage> {
 
         ProcessBuilder processBuilder = new ProcessBuilder(textMessage.split(" "));
 
+        //TODO убрать
+        if (textMessage.endsWith(".bat\"")) {
+            processBuilder.directory(new File(textMessage.substring(1, textMessage.lastIndexOf("\\"))));
+        }
+
         Process process;
         try {
             process = processBuilder.start();
@@ -41,7 +47,9 @@ public class Cmd implements CommandParent<SendMessage> {
         StringWriter writer = new StringWriter();
         IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
         String responseText = writer.toString();
-
+        if (responseText.isEmpty()) {
+            responseText = "executing...";
+        }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

@@ -138,7 +138,7 @@ public class Top implements CommandParent<SendMessage> {
         log.debug("Request to top by {} for chat {}", param, chat);
 
         StringBuilder responseText = new StringBuilder();
-        List<UserStats> userList = userStatsService.getUsersByChat(chat);
+        List<UserStats> userList = userStatsService.getStatsByChat(chat);
 
         int spacesAfterSerialNumberCount = String.valueOf(userList.size()).length() + 2;
         int spacesAfterNuberOfMessageCount = userList.stream()
