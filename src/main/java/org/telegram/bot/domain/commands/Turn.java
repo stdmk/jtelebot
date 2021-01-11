@@ -66,6 +66,10 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private Boolean isItMistakenText(String text) {
+        if (text.startsWith("http")) {
+            return false;
+        }
+
         Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
