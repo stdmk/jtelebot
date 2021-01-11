@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
@@ -18,11 +19,15 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.List;
+
 @Component
 @AllArgsConstructor
 public class Bot extends TelegramLongPollingBot {
 
     private final Logger log = LoggerFactory.getLogger(Bot.class);
+
+    private final List<TextAnalyzer> textAnalyzerList;
 
     private final ApplicationContext context;
     private final PropertiesConfig propertiesConfig;
@@ -71,6 +76,8 @@ public class Bot extends TelegramLongPollingBot {
 
         if (textOfMessage == null || textOfMessage.equals("")) {
             return;
+        } else {
+            textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
         }
 
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
