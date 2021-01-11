@@ -66,8 +66,14 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private Boolean isItMistakenText(String text) {
-        Pattern pattern = Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
+        Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);
-        return matcher.find();
+        if (!matcher.find()) {
+            pattern = Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
+            matcher = pattern.matcher(text);
+            return matcher.find();
+        }
+
+        return false;
     }
 }
