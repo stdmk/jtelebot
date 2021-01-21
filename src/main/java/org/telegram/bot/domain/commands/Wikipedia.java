@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
+import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
 @Component
 @AllArgsConstructor
@@ -169,7 +170,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
         wiki = new Wiki();
         wiki.setPageId(wikiPage.getPageid());
         wiki.setTitle(wikiPage.getTitle());
-        wiki.setText(wikiPage.getExtract());
+        wiki.setText(cutHtmlTags(wikiPage.getExtract()));
 
         return wiki;
     }
