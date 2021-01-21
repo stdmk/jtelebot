@@ -33,7 +33,7 @@ public class Todo implements CommandParent<SendMessage> {
         if (textMessage == null) {
             log.debug("Request to get all todo list");
             final StringBuilder buf = new StringBuilder();
-            buf.append("*Туду лист*\n");
+            buf.append("Туду лист\n");
             todoService.getList().forEach(todo -> buf.append(buildTodoStringLine(todo)));
             responseText = buf.toString();
         } else {
@@ -77,7 +77,6 @@ public class Todo implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
