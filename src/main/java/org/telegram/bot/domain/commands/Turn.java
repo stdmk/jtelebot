@@ -54,20 +54,28 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
-        String messageText = getMessageFromUpdate(update).getText();
+        String mistakenText = getMistakenText(getMessageFromUpdate(update).getText());
 
-        if (isItMistakenText(messageText)) {
+        if (mistakenText != null) {
             String commandName = commandPropertiesService.getCommand(Turn.class);
-            update.getMessage().setText(commandName + " " + messageText);
+            update.getMessage().setText(commandName + " " + mistakenText);
 
             Parser parser = new Parser(bot, command, update);
             parser.start();
         }
     }
 
-    private Boolean isItMistakenText(String text) {
+    private String getMistakenText(String text) {
+        while (text.startsWith("@")) {
+            int i = text.indexOf(" ");
+            if (i < 0) {
+                return null;
+            }
+            text = text.substring(i + 1);
+        }
+
         if (text.startsWith("http")) {
-            return false;
+            return null;
         }
 
         Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
@@ -75,9 +83,11 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         if (!matcher.find()) {
             pattern = Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
             matcher = pattern.matcher(text);
-            return matcher.find();
+            if (matcher.find()) {
+                return text;
+            }
         }
 
-        return false;
+        return null;
     }
 }
