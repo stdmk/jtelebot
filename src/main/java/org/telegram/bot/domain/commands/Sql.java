@@ -41,55 +41,38 @@ public class Sql implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        if (textMessage.toLowerCase().startsWith("select")) {
-            try {
-                StringBuilder buf = new StringBuilder();
-                List<?> resultList = entityManager.createNativeQuery(textMessage).getResultList();
-                if (resultList.isEmpty()) {
-                    buf.append("Вернулся пустой ответ");
-                } else {
-                    try {
-                        resultList.forEach(results -> {
+        try {
+            if (textMessage.toLowerCase().startsWith("select")) {
+                    StringBuilder buf = new StringBuilder();
+                    List<?> resultList = entityManager.createNativeQuery(textMessage).getResultList();
+                    if (resultList.isEmpty()) {
+                        buf.append("Вернулся пустой ответ");
+                    } else {
+                        try {
+                            resultList.forEach(results -> {
+                                buf.append("[");
+                                Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
+                                buf.append("]\n");
+                            });
+                        } catch (Exception e) {
                             buf.append("[");
-                            Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
-                            buf.append("]\n");
-                        });
-                    } catch (Exception e) {
-                        buf.append("[");
-                        resultList.forEach(result -> buf.append(result.toString()).append(", "));
-                        buf.append("]");
+                            resultList.forEach(result -> buf.append(result.toString()).append(", "));
+                            buf.append("]");
+                        }
                     }
-                }
-                responseText = buf.toString();
-            } catch (Exception e) {
-                responseText = getInitialExceptionCauseText(e);
+                    responseText = buf.toString();
             }
-        }
-        else if (textMessage.startsWith("update") || textMessage.startsWith("insert") || textMessage.startsWith("delete")) {
-            int updated;
-            try {
+            else if (textMessage.startsWith("update") || textMessage.startsWith("insert") || textMessage.startsWith("delete")) {
+                int updated;
                 updated = entityManager.createNativeQuery(textMessage).executeUpdate();
                 responseText = "Успешно. Обновлено строк: " + updated;
-            } catch (Exception e) {
-                //because an UnexpectedRollbackException is thrown and prevents the message from being sent
-                Bot bot = (Bot) context.getBean("bot");
-                responseText = "Ошибка: " + getInitialExceptionCauseText(e);
-                try {
-                    SendMessage sendMessage = new SendMessage();
-                    sendMessage.setChatId(message.getChatId().toString());
-                    sendMessage.setReplyToMessageId(message.getMessageId());
-                    sendMessage.enableMarkdown(true);
-                    sendMessage.setText("`" + responseText + "`");
-
-                    bot.execute(sendMessage);
-                } catch (TelegramApiException et) {
-                    et.printStackTrace();
-                }
-                throw new BotException("Ошибка: " + getInitialExceptionCauseText(e));
             }
-        }
-        else {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            else {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+        } catch (Exception e) {
+            responseText = "Ошибка: " + getInitialExceptionCauseText(e);
+            sendErrorMessage(message, responseText);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -99,5 +82,20 @@ public class Sql implements CommandParent<SendMessage> {
         sendMessage.setText("`" + responseText + "`");
 
         return sendMessage;
+    }
+
+    private void sendErrorMessage(Message message, String responseText) {
+        Bot bot = (Bot) context.getBean("bot");
+        try {
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setReplyToMessageId(message.getMessageId());
+            sendMessage.enableMarkdown(true);
+            sendMessage.setText("`" + responseText + "`");
+
+            bot.execute(sendMessage);
+        } catch (TelegramApiException et) {
+            et.printStackTrace();
+        }
     }
 }
