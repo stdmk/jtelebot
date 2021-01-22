@@ -29,6 +29,7 @@ public class Boobs implements CommandParent<SendPhoto> {
     private final Logger log = LoggerFactory.getLogger(Boobs.class);
 
     private final SpeechService speechService;
+    private final RestTemplate botRestTemplate;
 
     private static final String BOOBS_API_URL = "http://api.oboobs.ru/boobs/";
     private static final String BOOBS_IMAGE_URL = "http://media.oboobs.ru/boobs/";
@@ -36,8 +37,7 @@ public class Boobs implements CommandParent<SendPhoto> {
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<BoobsCount[]> response = restTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
+        ResponseEntity<BoobsCount[]> response = botRestTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
 
         BoobsCount[] boobsCounts = response.getBody();
         if (boobsCounts == null) {

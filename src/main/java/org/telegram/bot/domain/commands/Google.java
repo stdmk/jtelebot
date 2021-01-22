@@ -16,6 +16,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -38,6 +39,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     private final ImageUrlService imageUrlService;
     private final GoogleSearchResultService googleSearchResultService;
     private final CommandWaitingService commandWaitingService;
+    private final RestTemplate botRestTemplate;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -150,9 +152,8 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
-        RestTemplate restTemplate = new RestTemplate();
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
-        ResponseEntity<GoogleSearchData> response = restTemplate.getForEntity(
+        ResponseEntity<GoogleSearchData> response = botRestTemplate.getForEntity(
                 GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
 
         return response.getBody();

@@ -4,6 +4,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -42,6 +44,10 @@ public class NetworkUtils {
         ResponseEntity<byte[]> respEntity = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
 
         return respEntity.getBody();
+    }
+
+    public static String readStringFromURL(String url) throws IOException {
+        return IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
     }
 
     public static SyndFeed getRssFeedFromUrl(String url) {

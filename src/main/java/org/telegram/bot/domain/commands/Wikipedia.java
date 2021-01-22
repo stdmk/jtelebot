@@ -36,6 +36,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
     private final WikiService wikiService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
+    private final RestTemplate botRestTemplate;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -116,8 +117,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
         final String WIKI_SEARCH_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
         List<String> titles = new ArrayList<>();
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Object[]> response = restTemplate.getForEntity(WIKI_SEARCH_URL + searchText, Object[].class);
+        ResponseEntity<Object[]> response = botRestTemplate.getForEntity(WIKI_SEARCH_URL + searchText, Object[].class);
         Object[] responseBody = response.getBody();
 
         if (responseBody == null) {
@@ -147,10 +147,9 @@ public class Wikipedia implements CommandParent<SendMessage> {
         final String WIKI_API_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
         Wiki wiki;
 
-        RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<WikiData> response;
         try {
-            response = restTemplate.getForEntity(WIKI_API_URL + title, WikiData.class);
+            response = botRestTemplate.getForEntity(WIKI_API_URL + title, WikiData.class);
         } catch (RestClientException e) {
             return null;
         }

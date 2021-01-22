@@ -1,4 +1,4 @@
-package org.telegram.bot.services;
+package org.telegram.bot.services.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,4 +16,5 @@ public class PropertiesConfig {
     private String openweathermapId;
     private String googleToken;
     private String screenshotMachineToken;
+    private String wolframAlphaToken;
 }

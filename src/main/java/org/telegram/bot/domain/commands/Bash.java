@@ -3,9 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -14,7 +12,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
+
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
+import static org.telegram.bot.utils.NetworkUtils.readStringFromURL;
 
 @Component
 @AllArgsConstructor
@@ -58,10 +59,14 @@ public class Bash implements CommandParent<SendMessage> {
     }
 
     private String getRandomQuot() {
-        RestTemplate restTemplate = new RestTemplate();
         String BASH_RANDOM_QUOT_URL = "https://bash.im/forweb/?u";
-        ResponseEntity<String> response = restTemplate.getForEntity(BASH_RANDOM_QUOT_URL, String.class);
-        String quot = response.getBody();
+        String quot;
+
+        try {
+            quot = readStringFromURL(BASH_RANDOM_QUOT_URL);
+        } catch (IOException e) {
+            return null;
+        }
         if (quot == null) {
             return null;
         }
@@ -78,10 +83,14 @@ public class Bash implements CommandParent<SendMessage> {
     }
 
     private String getDefineQuot(String quotNumber) {
-        RestTemplate restTemplate = new RestTemplate();
         String BASH_DEFINITE_QUOT_URL = "https://bash.im/quote/";
-        ResponseEntity<String> response = restTemplate.getForEntity(BASH_DEFINITE_QUOT_URL + quotNumber, String.class);
-        String quot = response.getBody();
+        String quot;
+
+        try {
+            quot = readStringFromURL(BASH_DEFINITE_QUOT_URL + quotNumber);
+        } catch (IOException e) {
+            return null;
+        }
         if (quot == null) {
             return null;
         }

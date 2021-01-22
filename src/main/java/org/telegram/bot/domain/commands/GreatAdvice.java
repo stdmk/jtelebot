@@ -19,15 +19,15 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class GreatAdvice implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
+    private final RestTemplate botRestTemplate;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
         final String API_URL = "http://fucking-great-advice.ru/api/random";
 
         ResponseEntity<FuckingGreateAdvice> response;
         try {
-            response = restTemplate.getForEntity(API_URL, FuckingGreateAdvice.class);
+            response = botRestTemplate.getForEntity(API_URL, FuckingGreateAdvice.class);
         } catch (RestClientException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }

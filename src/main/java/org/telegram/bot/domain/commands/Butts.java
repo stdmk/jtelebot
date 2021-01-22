@@ -29,6 +29,7 @@ public class Butts implements CommandParent<SendPhoto> {
     private final Logger log = LoggerFactory.getLogger(Butts.class);
 
     private final SpeechService speechService;
+    private final RestTemplate botRestTemplate;
 
     private static final String BUTTS_API_URL = "http://api.obutts.ru/butts/";
     private static final String BUTTS_IMAGE_URL = "http://media.obutts.ru/butts/";
@@ -36,8 +37,7 @@ public class Butts implements CommandParent<SendPhoto> {
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Butts.ButtsCount[]> response = restTemplate.getForEntity(BUTTS_API_URL + "count", Butts.ButtsCount[].class);
+        ResponseEntity<Butts.ButtsCount[]> response = botRestTemplate.getForEntity(BUTTS_API_URL + "count", Butts.ButtsCount[].class);
 
         Butts.ButtsCount[] buttsCounts = response.getBody();
         if (buttsCounts == null) {

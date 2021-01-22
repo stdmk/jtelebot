@@ -9,12 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -42,6 +42,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     private final SpeechService speechService;
     private final ImageUrlService imageUrlService;
     private final CommandWaitingService commandWaitingService;
+    private final RestTemplate botRestTemplate;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -127,8 +128,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
                         inputMediaPhoto.setMedia(imageUrl.getUrl());
 
-                        //inputMediaPhoto.setMedia(image, "image" + imageUrl.getId());
-
                         images.add(inputMediaPhoto);
                     });
 
@@ -142,9 +141,8 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private GooglePicsSearchData getResultOfSearch(String requestText, String googleToken) {
-        RestTemplate restTemplate = new RestTemplate();
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
-        ResponseEntity<GooglePicsSearchData> response = restTemplate.getForEntity(
+        ResponseEntity<GooglePicsSearchData> response = botRestTemplate.getForEntity(
                 GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GooglePicsSearchData.class);
 
         return response.getBody();

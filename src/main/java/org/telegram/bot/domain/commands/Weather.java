@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -42,6 +42,7 @@ public class Weather implements CommandParent<SendMessage> {
     private final UserCityService userCityService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
+    private final RestTemplate botRestTemplate;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -91,41 +92,55 @@ public class Weather implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private WeatherCurrent getWeatherCurrent(String token, String cityName) throws BotException, JsonProcessingException {
+    private WeatherCurrent getWeatherCurrent(String token, String cityName) throws BotException {
         final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?lang=ru&units=metric&appid=" + token + "&q=";
-        return new ObjectMapper().readValue(getWeatherJsonData(WEATHER_API_URL, cityName), WeatherCurrent.class);
-    }
+        ResponseEntity<WeatherCurrent> response;
 
-    private WeatherForecast getWeatherForecast(String token, String cityName) throws BotException, JsonProcessingException {
-        final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&cnt=6&appid=" + token + "&q=";
-        return new ObjectMapper().readValue(getWeatherJsonData(FORECAST_API_URL, cityName), WeatherForecast.class);
-    }
-
-    private String getWeatherJsonData(String apiUrl, String cityName) throws BotException, JsonProcessingException {
-        String responseText;
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response;
         try {
-            response = restTemplate.getForEntity(apiUrl + cityName, String.class);
+            response = botRestTemplate.getForEntity(WEATHER_API_URL + cityName, WeatherCurrent.class);
         } catch (RestClientException e) {
-            String errorText = e.getMessage();
-            if (errorText == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-            }
-
-            int i = errorText.indexOf("{");
-            if (i < 0) {
-                responseText = errorText;
-            } else {
-                ObjectMapper objectMapper = new ObjectMapper();
-                WeatherError weatherError = objectMapper.readValue(errorText.substring(i, errorText.length() - 1), WeatherError.class);
-                responseText = weatherError.getMessage();
-            }
-
-            throw new BotException("Ответ сервиса погоды: " + responseText);
+            throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
         }
 
         return response.getBody();
+    }
+
+    private WeatherForecast getWeatherForecast(String token, String cityName) throws BotException {
+        final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&cnt=6&appid=" + token + "&q=";
+        ResponseEntity<WeatherForecast> response;
+
+        try {
+            response = botRestTemplate.getForEntity(FORECAST_API_URL + cityName, WeatherForecast.class);
+        } catch (RestClientException e) {
+            throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
+        }
+
+        return response.getBody();
+    }
+
+    private String getErrorMessage(Exception e) {
+        String errorText = e.getMessage();
+        String responseText;
+
+        if (errorText == null) {
+            return speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+        }
+
+        int i = errorText.indexOf("{");
+        if (i < 0) {
+            responseText = errorText;
+        } else {
+            ObjectMapper objectMapper = new ObjectMapper();
+            WeatherError weatherError;
+            try {
+                weatherError = objectMapper.readValue(errorText.substring(i, errorText.length() - 1), WeatherError.class);
+            } catch (JsonProcessingException jsonMappingException) {
+                return speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+            }
+            responseText = weatherError.getMessage();
+        }
+
+        return responseText;
     }
 
     private String prepareCurrentWeatherText(WeatherCurrent weatherCurrent) {
