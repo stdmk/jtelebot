@@ -16,7 +16,7 @@ import java.time.ZoneOffset;
 @AllArgsConstructor
 public class Ping implements CommandParent<SendMessage> {
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         ZoneId zoneId = ZoneId.of("UTC");
 

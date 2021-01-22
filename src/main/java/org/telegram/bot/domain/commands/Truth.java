@@ -14,7 +14,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 public class Truth implements CommandParent<SendMessage> {
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
         SendMessage sendMessage = new SendMessage();

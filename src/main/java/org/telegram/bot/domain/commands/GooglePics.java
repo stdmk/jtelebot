@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -118,13 +118,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             imageUrlService.save(imageUrlList)
                     .forEach(imageUrl -> {
-//                        InputStream image;
-//                        try {
-//                            image = getFileFromUrl(imageUrl.getUrl(), 5000000);
-//                        } catch (Exception e) {
-//                            return;
-//                        }
-
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
                         inputMediaPhoto.setMedia(imageUrl.getUrl());
 
@@ -149,53 +142,15 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class GooglePicsSearchData {
-        @JsonIgnore
-        private String kind;
-
-        @JsonIgnore
-        private String url;
-
-        @JsonIgnore
-        private String queries;
-
-        @JsonIgnore
-        private String context;
-
-        @JsonIgnore
-        private String searchInformation;
-
         private List<GooglePicsSearchItem> items;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class GooglePicsSearchItem {
-        @JsonIgnore
-        private String kind;
-
         private String title;
-
-        @JsonIgnore
-        private String htmlTitle;
-
         private String link;
-
-        @JsonIgnore
-        private String displayLink;
-
-        @JsonIgnore
-        private String snippet;
-
-        @JsonIgnore
-        private String htmlSnippet;
-
-        @JsonIgnore
-        private String mime;
-
-        @JsonIgnore
-        private String fileFormat;
-
-        @JsonIgnore
-        private Object image;
     }
 }

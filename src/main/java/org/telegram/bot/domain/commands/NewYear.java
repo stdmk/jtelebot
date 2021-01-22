@@ -27,7 +27,7 @@ public class NewYear implements CommandParent<SendMessage> {
     private final UserCityService userCityService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         final String defaultTimeZone = "GMT+03:00";
 
         Message message = getMessageFromUpdate(update);

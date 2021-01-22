@@ -1,7 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -160,18 +159,9 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class GoogleSearchData {
-        @JsonIgnore
-        private String kind;
-        @JsonIgnore
-        private String url;
-        @JsonIgnore
-        private String queries;
-        @JsonIgnore
-        private String context;
-
         private SearchInformation searchInformation;
-
         private List<GoogleSearchItem> items;
     }
 
@@ -199,16 +189,9 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class Pagemap {
-        @JsonIgnore
-        @JsonProperty("cse_thumbnail")
-        private List<Object> cseThumbnail;
-
-        @JsonIgnore
-        private List<Object> metatags;
-
         @JsonProperty("cse_image")
-        @JsonInclude(JsonInclude.Include.NON_NULL)
         private List<Src> cseImage;
     }
 
