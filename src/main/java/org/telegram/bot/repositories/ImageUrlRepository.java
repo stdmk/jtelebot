@@ -4,4 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.telegram.bot.domain.entities.ImageUrl;
 
 public interface ImageUrlRepository extends JpaRepository<ImageUrl, Long> {
+    ImageUrl findFirstByUrl(String url);
 }

@@ -63,4 +63,5 @@
     <include file="db/changelog/20210121154500_added_command_WolframAlpha.xml"/>
     <include file="db/changelog/20210122164500_added_entity_Alias.xml"/>
     <include file="db/changelog/20210122164900_added_command_Alias.xml"/>
+    <include file="db/changelog/20210128153400_added_command_Image.xml"/>
 </databaseChangeLog>

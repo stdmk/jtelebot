@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210122164900-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="30"/>
+            <column name="commandname" value="image"/>
+            <column name="russifiedname" value="картинка"/>
+            <column name="enruname" value="rfhnbyrf"/>
+            <column name="classname" value="image"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Картинка,Бот скачивает и отправляет картинку по адресу,url, номер,/image_23; картинка http://example.com/image.jpg,номер изображения присутствует в имени присылаемого изображения"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

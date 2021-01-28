@@ -25,6 +25,12 @@ public class ImageUrlServiceImpl implements ImageUrlService {
     }
 
     @Override
+    public ImageUrl get(String url) {
+        log.debug("Request to get ImageUrl by url: {}", url);
+        return imageUrlRepository.findFirstByUrl(url);
+    }
+
+    @Override
     public ImageUrl save(ImageUrl imageUrl) {
         log.debug("Request to save ImageUrl: {}", imageUrl);
         return imageUrlRepository.save(imageUrl);
