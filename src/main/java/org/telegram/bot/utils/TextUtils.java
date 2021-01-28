@@ -15,7 +15,7 @@ public class TextUtils {
         if (text.charAt(0) == '/') {
             text = text.substring(1);
         }
-        Pattern pattern = Pattern.compile("^[a-zA-Zа-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
+        Pattern pattern = Pattern.compile("^[a-zA-Zа-яА-Я0-9]+", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
             String buf = matcher.group(0).trim();

@@ -17,6 +17,14 @@ public interface ImageUrlService {
     ImageUrl get(Long imageUrlId);
 
     /**
+     * Get a ImageUrl.
+     *
+     * @param url url of ImageUrl.
+     * @return the persisted entity.
+     */
+    ImageUrl get(String url);
+
+    /**
      * Save a ImageUrl.
      *
      * @param imageUrl the entity to save.
