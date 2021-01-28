@@ -53,14 +53,16 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
     @Override
     public void add(Message message, Class<?> commandClass) {
-        add(message, commandClass, commandPropertiesService.getCommand(commandClass));
+        add(message, commandClass, commandPropertiesService.getCommand(commandClass).getCommandName());
     }
 
     @Override
     public void add(Message message, Class<?> commandClass, String commandText) {
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
+        add(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()), commandClass, commandText);
+    }
 
+    @Override
+    public void add(Chat chat, User user, Class<?> commandClass, String commandText) {
         CommandWaiting commandWaiting = get(chat, user);
         if (commandWaiting == null) {
             commandWaiting = new CommandWaiting();
@@ -68,7 +70,7 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
             commandWaiting.setUser(user);
         }
 
-        commandWaiting.setCommandName(commandText);
+        commandWaiting.setCommandName(commandClass.getSimpleName());
         commandWaiting.setIsFinished(false);
         commandWaiting.setTextMessage("/" + commandText + " ");
         save(commandWaiting);

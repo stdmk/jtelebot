@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.commands.setters.AliasSetter;
 import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -28,9 +29,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final NewsSetter newsSetter;
     private final CitySetter citySetter;
+    private final AliasSetter aliasSetter;
+
     private final UserService userService;
 
     private final String NEWS = "новости";
+    private final String CITY = "город";
+    private final String ALIAS = "алиас";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -56,7 +61,6 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             }
         } else {
             AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
-            String CITY = "город";
             if (textMessage.toLowerCase().startsWith(NEWS)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
                     return newsSetter.set(update, textMessage);
@@ -64,6 +68,10 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.toLowerCase().startsWith(CITY)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return citySetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(ALIAS)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return aliasSetter.set(update, textMessage);
                 }
             }
             return buildMainPageWithCallback(message);
@@ -102,16 +110,23 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         newsRow.add(newsButton);
 
         InlineKeyboardButton cityButton = new InlineKeyboardButton();
-        String CITY = "город";
         cityButton.setText(SET + CITY);
         cityButton.setCallbackData(SET + CITY);
 
         List<InlineKeyboardButton> cityRow = new ArrayList<>();
-        newsRow.add(cityButton);
+        cityRow.add(cityButton);
+
+        InlineKeyboardButton aliasButton = new InlineKeyboardButton();
+        aliasButton.setText(SET + ALIAS);
+        aliasButton.setCallbackData(SET + ALIAS);
+
+        List<InlineKeyboardButton> aliasRow = new ArrayList<>();
+        aliasRow.add(aliasButton);
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
+        rows.add(aliasRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
