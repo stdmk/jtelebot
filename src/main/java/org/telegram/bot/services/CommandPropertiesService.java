@@ -48,5 +48,5 @@ public interface CommandPropertiesService {
      * @param commandClass - class of command.
      * @return entity.
      */
-    String getCommand(Class<?> commandClass);
+    CommandProperties getCommand(Class<?> commandClass);
 }

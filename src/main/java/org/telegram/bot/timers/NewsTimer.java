@@ -36,7 +36,7 @@ public class NewsTimer extends TimerParent {
     private final NewsSourceService newsSourceService;
 
     @Override
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 30000)
     public void execute() {
         Bot bot = (Bot) context.getBean("bot");
         List<NewsSource> newsSources = newsService.getAll()

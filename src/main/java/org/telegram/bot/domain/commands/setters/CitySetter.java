@@ -136,7 +136,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         cityService.save(newCity);
 
         CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
+        if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
             commandWaitingService.remove(commandWaiting);
         }
 
@@ -209,7 +209,11 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> addCityByCallback(Message message, Integer userId, boolean newMessage) {
-        commandWaitingService.add(message, Set.class, CALLBACK_ADD_CITY_COMMAND + " ");
+        commandWaitingService.add(
+                chatService.get(message.getReplyToMessage().getChat().getId()),
+                userService.get(message.getReplyToMessage().getFrom().getId()),
+                Set.class,
+                CALLBACK_ADD_CITY_COMMAND + " ");
 
         String ADDING_HELP_TEXT_NAMES = "\nНапиши мне через пробел название города на русском и английском языках\nНапример: Тверь Tver";
         if (newMessage) {

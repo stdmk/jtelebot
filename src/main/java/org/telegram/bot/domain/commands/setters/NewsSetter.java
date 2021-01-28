@@ -34,6 +34,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final Logger log = LoggerFactory.getLogger(NewsSetter.class);
 
     private final ChatService chatService;
+    private final UserService userService;
     private final NewsService newsService;
     private final NewsSourceService newsSourceService;
     private final SpeechService speechService;
@@ -135,7 +136,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         newsService.save(news);
 
         CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
+        if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
             commandWaitingService.remove(commandWaiting);
         }
 
@@ -143,7 +144,11 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText addNewsSourceForChatByCallback(Message message) {
-        commandWaitingService.add(message, Set.class, CALLBACK_ADD_NEWS_COMMAND + " ");
+        commandWaitingService.add(
+                chatService.get(message.getReplyToMessage().getChat().getId()),
+                userService.get(message.getReplyToMessage().getFrom().getId()),
+                Set.class,
+                CALLBACK_ADD_NEWS_COMMAND + " ");
 
         List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
 
