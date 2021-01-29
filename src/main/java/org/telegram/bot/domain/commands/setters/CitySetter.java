@@ -18,7 +18,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import javax.transaction.Transactional;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,37 +54,41 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
         Message message = getMessageFromUpdate(update);
+        Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         String EMPTY_CITY_COMMAND = "город";
         if (update.hasCallbackQuery()) {
+            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+
             if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_CITY_COMMAND)) {
-                return getMainKeyboard(message, update.getCallbackQuery().getFrom().getId(), false);
+                return getMainKeyboard(message, chat, user, false);
             } else if (lowerCaseCommandText.startsWith(SELECT_CITY_COMMAND)) {
-                return selectCityByCallback(message, commandText, update.getCallbackQuery().getFrom().getId());
+                return selectCityByCallback(message, chat, user, commandText);
             } else if (lowerCaseCommandText.startsWith(DELETE_CITY_COMMAND)) {
-                return deleteCityByCallback(message, commandText, update.getCallbackQuery().getFrom().getId());
+                return deleteCityByCallback(message, user, commandText);
             } else if (lowerCaseCommandText.startsWith(ADD_CITY_COMMAND)) {
-                return addCityByCallback(message, update.getCallbackQuery().getFrom().getId(), false);
+                return addCityByCallback(message,  chat, user, false);
             } else if (lowerCaseCommandText.startsWith(SET_TIMEZONE)) {
-                return setTimeZoneForCity(message, commandText, update.getCallbackQuery().getFrom().getId());
+                return setTimeZoneForCity(message, chat, user, commandText);
             }
         }
 
+        User user = userService.get(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
-            return getMainKeyboard(message, message.getFrom().getId(), true);
+            return getMainKeyboard(message,  chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_CITY_COMMAND)) {
-            return deleteCity(message, commandText);
+            return deleteCity(message, user, commandText);
         } else if (lowerCaseCommandText.startsWith(ADD_CITY_COMMAND)) {
-            return addCity(message, commandText);
+            return addCity(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
-    private EditMessageText selectCityByCallback(Message message, String command, Integer userId) throws BotException {
+    private EditMessageText selectCityByCallback(Message message, Chat chat, User user, String command) throws BotException {
         if (command.equals(SELECT_CITY_COMMAND)) {
-            return getKeyboardWithCities(message, CALLBACK_SELECT_CITY_COMMAND, userId);
+            return getKeyboardWithCities(message, user, CALLBACK_SELECT_CITY_COMMAND);
         }
 
         long cityId;
@@ -100,8 +103,6 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        User user = userService.get(userId);
-        Chat chat = chatService.get(message.getChatId());
         UserCity userCity = userCityService.get(user, chat);
         if (userCity == null) {
             userCity = new UserCity();
@@ -112,13 +113,13 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
         userCityService.save(userCity);
 
-        return (EditMessageText) getMainKeyboard(message, user.getUserId(), false);
+        return (EditMessageText) getMainKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> addCity(Message message, String command) throws BotException {
+    private PartialBotApiMethod<?> addCity(Message message, Chat chat, User user, String command) throws BotException {
         log.debug("Request to add new city");
         if (command.equals(ADD_CITY_COMMAND)) {
-            return addCityByCallback(message, message.getFrom().getId(), true);
+            return addCityByCallback(message,  chat, user, true);
         }
 
         String params = command.substring(ADD_CITY_COMMAND.length() + 1);
@@ -132,10 +133,10 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         newCity.setNameRu(params.substring(0, i));
         newCity.setNameEn(params.substring(i + 1));
         newCity.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()).getID());
-        newCity.setUser(userService.get(message.getFrom().getId()));
+        newCity.setUser(user);
         cityService.save(newCity);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
         if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
             commandWaitingService.remove(commandWaiting);
         }
@@ -143,7 +144,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         return getKeyboardWithTimeZones(message, newCity.getId());
     }
 
-    private SendMessage deleteCity(Message message, String command) throws BotException {
+    private SendMessage deleteCity(Message message, User user, String command) throws BotException {
         log.debug("Request to delete city");
 
         String params;
@@ -162,7 +163,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         City city = cityService.get(cityId);
-        if (!city.getUser().equals(userService.get(message.getFrom().getId()))) {
+        if (!city.getUser().equals(user)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
@@ -171,8 +172,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    @Transactional
-    private EditMessageText setTimeZoneForCity(Message message, String command, Integer userId) throws BotException {
+    private EditMessageText setTimeZoneForCity(Message message, Chat chat, User user, String command) throws BotException {
         log.debug("Request to set timezone for city");
 
         String params;
@@ -198,22 +198,18 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         City city = cityService.get(cityId);
-        if (!city.getUser().getUserId().equals(userId)) {
+        if (!city.getUser().equals(user)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
         city.setTimeZone(timeZone.getID());
         cityService.save(city);
 
-        return (EditMessageText) getMainKeyboard(message, userId, false);
+        return (EditMessageText) getMainKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> addCityByCallback(Message message, Integer userId, boolean newMessage) {
-        commandWaitingService.add(
-                chatService.get(message.getReplyToMessage().getChat().getId()),
-                userService.get(message.getReplyToMessage().getFrom().getId()),
-                Set.class,
-                CALLBACK_ADD_CITY_COMMAND + " ");
+    private PartialBotApiMethod<?> addCityByCallback(Message message,  Chat chat, User user, boolean newMessage) {
+        commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_CITY_COMMAND);
 
         String ADDING_HELP_TEXT_NAMES = "\nНапиши мне через пробел название города на русском и английском языках\nНапример: Тверь Tver";
         if (newMessage) {
@@ -223,11 +219,11 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildEditMessageWithText(message, ADDING_HELP_TEXT_NAMES);
     }
 
-    private EditMessageText deleteCityByCallback(Message message, String command, Integer userId) throws BotException {
+    private EditMessageText deleteCityByCallback(Message message, User user, String command) throws BotException {
         log.debug("Request to delete city");
 
         if (command.equals(DELETE_CITY_COMMAND)) {
-            return getKeyboardWithCities(message, CALLBACK_DELETE_CITY_COMMAND, userId);
+            return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
         }
 
         long cityId;
@@ -251,13 +247,12 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
             cityService.remove(city);
         } catch (Exception ignored) {}
 
-        return getKeyboardWithCities(message, CALLBACK_DELETE_CITY_COMMAND, userId);
+        return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
     }
 
-    private EditMessageText getKeyboardWithCities(Message message, String callbackCommand, Integer userId) {
+    private EditMessageText getKeyboardWithCities(Message message, User user, String callbackCommand) {
         String emoji;
         String title;
-        User user = userService.get(userId);
         List<City> cities;
 
         if (callbackCommand.equals(CALLBACK_DELETE_CITY_COMMAND)) {
@@ -295,9 +290,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private PartialBotApiMethod<?> getMainKeyboard(Message message, Integer userId, boolean newMessage) {
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(userId);
+    private PartialBotApiMethod<?> getMainKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         String responseText;
 
         UserCity userCity = userCityService.get(user, chat);

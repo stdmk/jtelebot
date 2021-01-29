@@ -46,38 +46,35 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
         Message message = getMessageFromUpdate(update);
+        Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
         String EMPTY_ALIAS_COMMAND = "алиас";
 
         if (update.hasCallbackQuery()) {
+            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+
             if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND) || lowerCaseCommandText.equals(UPDATE_ALIAS_COMMAND)) {
-                return getAliasListWithKeyboard(message, false);
+                return getAliasListWithKeyboard(message, chat, user, false);
             } else if (lowerCaseCommandText.startsWith(DELETE_ALIAS_COMMAND)) {
-                return deleteAliasByCallback(message, commandText);
+                return deleteAliasByCallback(message, chat, user, commandText);
             } else if (lowerCaseCommandText.startsWith(ADD_ALIAS_COMMAND)) {
-                return addAliasByCallback(message);
+                return addAliasByCallback(message, chat, user);
             }
         }
 
+        User user = userService.get(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND)) {
-            return getAliasListWithKeyboard(message, true);
+            return getAliasListWithKeyboard(message, chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_ALIAS_COMMAND)) {
-            return deleteAlias(message, commandText);
+            return deleteAlias(message, chat, user, commandText);
         } else if (lowerCaseCommandText.startsWith(ADD_ALIAS_COMMAND)) {
-            return addAlias(message, commandText);
+            return addAlias(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
-    private PartialBotApiMethod<?> getAliasListWithKeyboard(Message message, Boolean newMessage) {
-        Chat chat = chatService.get(message.getChatId());
-        User user;
-        if (newMessage) {
-            user = userService.get(message.getFrom().getId());
-        } else {
-            user = userService.get(message.getReplyToMessage().getFrom().getId());
-        }
+    private PartialBotApiMethod<?> getAliasListWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
         log.debug("Request to list all aliases for chat {} and user {}", chat.getChatId(), user.getUserId());
         List<Alias> aliasList = aliasService.get(chat, user);
 
@@ -153,25 +150,18 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         return inlineKeyboardMarkup;
     }
 
-    private EditMessageText deleteAliasByCallback(Message message, String command) {
+    private EditMessageText deleteAliasByCallback(Message message, Chat chat, User user, String command) {
         log.debug("Request to delete alias");
 
-        aliasService.remove(
-                chatService.get(message.getChatId()),
-                userService.get(message.getReplyToMessage().getFrom().getId()),
-                Long.valueOf(command.substring(DELETE_ALIAS_COMMAND.length() + 1)));
+        aliasService.remove(chat, user, Long.valueOf(command.substring(DELETE_ALIAS_COMMAND.length() + 1)));
 
-        return (EditMessageText) getAliasListWithKeyboard(message, false);
+        return (EditMessageText) getAliasListWithKeyboard(message, chat, user, false);
     }
 
-    private EditMessageText addAliasByCallback(Message message) {
-        commandWaitingService.add(
-                chatService.get(message.getReplyToMessage().getChat().getId()),
-                userService.get(message.getReplyToMessage().getFrom().getId()),
-                Set.class,
-                CALLBACK_ADD_ALIAS_COMMAND);
+    private EditMessageText addAliasByCallback(Message message, Chat chat, User user) {
+        commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_ALIAS_COMMAND);
 
-        List<Alias> aliasList = aliasService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+        List<Alias> aliasList = aliasService.get(chat, userService.get(message.getFrom().getId()));
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());
@@ -183,7 +173,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private SendMessage deleteAlias(Message message, String command) throws BotException {
+    private SendMessage deleteAlias(Message message, Chat chat, User user, String command) throws BotException {
         log.debug("Request to delete alias");
 
         String params;
@@ -193,8 +183,6 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
         String responseText;
 
         try {
@@ -215,11 +203,8 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, responseText);
     }
 
-    private PartialBotApiMethod<?> addAlias(Message message, String command) {
+    private PartialBotApiMethod<?> addAlias(Message message, Chat chat, User user, String command) {
         log.debug("Request to add new alias");
-
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
 
         if (command.equals(ADD_ALIAS_COMMAND)) {
             List<Alias> allNewsInChat = aliasService.get(chat, user);
@@ -262,7 +247,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         aliasService.save(alias);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
         if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
             commandWaitingService.remove(commandWaiting);
         }

@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.commands.Set;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.entities.News;
-import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
@@ -50,34 +47,35 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
         Message message = getMessageFromUpdate(update);
+        Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
         String EMPTY_NEWS_COMMAND = "новости";
 
         if (update.hasCallbackQuery()) {
             if (lowerCaseCommandText.equals(EMPTY_NEWS_COMMAND) || lowerCaseCommandText.equals(UPDATE_NEWS_COMMAND)) {
-                return getNewsSourcesListForChatWithKeyboard(message);
+                return getNewsSourcesListForChatWithKeyboard(message, chat);
             } else if (lowerCaseCommandText.startsWith(DELETE_NEWS_COMMAND)) {
-                return deleteNewsSourceForChatByCallback(message, commandText);
+                return deleteNewsSourceForChatByCallback(message, chat, commandText);
             } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
-                return addNewsSourceForChatByCallback(message);
+                return addNewsSourceForChatByCallback(message, chat, userService.get(update.getCallbackQuery().getFrom().getId()));
             }
         }
 
         if (lowerCaseCommandText.equals(EMPTY_NEWS_COMMAND)) {
-            return getNewsSourcesListForChat(message);
+            return getNewsSourcesListForChat(message, chat);
         } else if (lowerCaseCommandText.startsWith(DELETE_NEWS_COMMAND)) {
-            return deleteNewsSourceForChat(message, commandText);
+            return deleteNewsSourceForChat(message, chat, commandText);
         } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
-            return addNewsSourceForChat(message, commandText);
+            return addNewsSourceForChat(message, chat, userService.get(message.getFrom().getId()), commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
-    private PartialBotApiMethod<?> addNewsSourceForChat(Message message, String command) {
+    private PartialBotApiMethod<?> addNewsSourceForChat(Message message, Chat chat, User user, String command) {
         log.debug("Request to add new news resource");
         if (command.equals(ADD_NEWS_COMMAND)) {
-            List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
+            List<News> allNewsInChat = newsService.getAll(chat);
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
@@ -119,7 +117,6 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
             newsSource.setUrl(url.toString());
         }
 
-        Chat chat = chatService.get(message.getChatId());
         org.telegram.bot.domain.entities.News news = newsService.get(chat, name, newsSource);
         if (news != null) {
             return buildSendMessageWithText(message, "Такой источник уже существует: " + news.getName() + " - " + news.getNewsSource().getUrl());
@@ -135,7 +132,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         news.setChat(chat);
         newsService.save(news);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
         if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
             commandWaitingService.remove(commandWaiting);
         }
@@ -143,14 +140,10 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private EditMessageText addNewsSourceForChatByCallback(Message message) {
-        commandWaitingService.add(
-                chatService.get(message.getReplyToMessage().getChat().getId()),
-                userService.get(message.getReplyToMessage().getFrom().getId()),
-                Set.class,
-                CALLBACK_ADD_NEWS_COMMAND + " ");
+    private EditMessageText addNewsSourceForChatByCallback(Message message, Chat chat, User user) {
+        commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_NEWS_COMMAND);
 
-        List<News> allNewsInChat = newsService.getAll(chatService.get(message.getChatId()));
+        List<News> allNewsInChat = newsService.getAll(chat);
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());
@@ -163,7 +156,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     }
 
-    private SendMessage deleteNewsSourceForChat(Message message, String command) throws BotException {
+    private SendMessage deleteNewsSourceForChat(Message message, Chat chat, String command) throws BotException {
         log.debug("Request to delete news resource");
 
         String params;
@@ -173,7 +166,6 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        Chat chat = chatService.get(message.getChatId());
         String responseText;
 
         try {
@@ -194,17 +186,16 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, responseText);
     }
 
-    private EditMessageText deleteNewsSourceForChatByCallback(Message message, String command) {
+    private EditMessageText deleteNewsSourceForChatByCallback(Message message, Chat chat, String command) {
         log.debug("Request to delete news resource");
         try {
             newsService.remove(Long.valueOf(command.substring(DELETE_NEWS_COMMAND.length() + 1)));
         } catch (Exception ignored) {}
 
-        return getNewsSourcesListForChatWithKeyboard(message);
+        return getNewsSourcesListForChatWithKeyboard(message, chat);
     }
 
-    private SendMessage getNewsSourcesListForChat(Message message) {
-        Chat chat = chatService.get(message.getChatId());
+    private SendMessage getNewsSourcesListForChat(Message message, Chat chat) {
         log.debug("Request to list all news sources for chat {}", chat.getChatId());
 
         List<News> allNewsInChat = newsService.getAll(chat);
@@ -219,8 +210,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private EditMessageText getNewsSourcesListForChatWithKeyboard(Message message) {
-        Chat chat = chatService.get(message.getChatId());
+    private EditMessageText getNewsSourcesListForChatWithKeyboard(Message message, Chat chat) {
         log.debug("Request to list all news sources for chat {}", chat.getChatId());
         List<News> allNewsInChat = newsService.getAll(chat);
 
