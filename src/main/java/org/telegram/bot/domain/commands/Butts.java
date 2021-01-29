@@ -16,11 +16,9 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.InputStream;
 import java.io.Serializable;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @Component
 @AllArgsConstructor
