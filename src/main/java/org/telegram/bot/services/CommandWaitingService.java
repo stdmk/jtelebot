@@ -20,15 +20,6 @@ public interface CommandWaitingService {
     CommandWaiting get(Chat chat, User user);
 
     /**
-     * Get a CommandWaiting.
-     *
-     * @param chatId id of Chat entity.
-     * @param userId id of User entity.
-     * @return the persisted entity.
-     */
-    CommandWaiting get(Long chatId, Integer userId);
-
-    /**
      * Get a CommandWaiting text.
      *
      * @param message received message.

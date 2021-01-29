@@ -33,13 +33,8 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
     }
 
     @Override
-    public CommandWaiting get(Long chatId, Integer userId) {
-        return get(chatService.get(chatId), userService.get(userId));
-    }
-
-    @Override
     public String getText(Message message) {
-        CommandWaiting commandWaiting = get(message.getChatId(), message.getFrom().getId());
+        CommandWaiting commandWaiting = get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
 
         if (commandWaiting == null) {
             return null;

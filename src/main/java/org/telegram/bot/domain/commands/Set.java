@@ -8,6 +8,7 @@ import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -31,6 +32,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final CitySetter citySetter;
     private final AliasSetter aliasSetter;
 
+    private final ChatService chatService;
     private final UserService userService;
 
     private final String NEWS = "новости";
@@ -40,9 +42,11 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
-        CommandWaiting commandWaiting = commandWaitingService.get(message.getChatId(), message.getFrom().getId());
         Integer userId = message.getFrom().getId();
         String textMessage = message.getText();
+
+        CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             textMessage = cutCommandInText(callbackQuery.getData());

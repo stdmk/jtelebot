@@ -3,7 +3,6 @@ package org.telegram.bot.services;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.exception.BotException;
 
 import java.util.List;
 

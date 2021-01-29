@@ -30,7 +30,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     private final CommandPropertiesService commandPropertiesService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         StringBuilder buf = new StringBuilder("*Список твоих алиасов:*\n");
 
