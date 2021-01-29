@@ -81,7 +81,10 @@ public class Weather implements CommandParent<SendMessage> {
             cityName = textMessage;
         }
 
-        responseText = prepareCurrentWeatherText(getWeatherCurrent(token, cityName)) + prepareForecastWeatherText(getWeatherForecast(token, cityName));
+        WeatherCurrent weatherCurrent = getWeatherCurrent(token, cityName);
+        WeatherForecast weatherForecast = getWeatherForecast(token, cityName);
+
+        responseText = prepareCurrentWeatherText(weatherCurrent) + prepareForecastWeatherText(weatherForecast);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
