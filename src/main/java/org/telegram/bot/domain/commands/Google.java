@@ -23,7 +23,6 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,7 +74,6 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                             googleSearchResult.getSnippet() + "\n" +
                             "<a href='" + googleSearchResult.getLink() + "'>" + googleSearchResult.getFormattedUrl() + "</a>\n";
 
-            InputStream image;
             ImageUrl imageUrl = googleSearchResult.getImageUrl();
             if (imageUrl != null) {
                 try {

@@ -20,11 +20,9 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
 @Component
@@ -75,10 +73,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             if (messageId == null) {
                 messageId = message.getMessageId();
             }
-            InputStream image;
-            try {
-                image = getFileFromUrl(newsMessage.getAttachUrl());
-            } catch (Exception e) {
+            if (newsMessage.getAttachUrl() == null) {
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setChatId(message.getChatId().toString());
                 sendMessage.setReplyToMessageId(messageId);
@@ -90,7 +85,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             }
 
             SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(image, "news"));
+            sendPhoto.setPhoto(new InputFile(newsMessage.getAttachUrl()));
             sendPhoto.setCaption(responseText);
             sendPhoto.setParseMode(ParseMode.HTML.getValue());
             sendPhoto.setReplyToMessageId(messageId);

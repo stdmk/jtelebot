@@ -44,20 +44,13 @@ public class Butts implements CommandParent<SendPhoto> {
             log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
+
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
-
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        InputStream butts;
-        try {
-            butts = getFileFromUrl(BUTTS_IMAGE_URL + nameOfImage);
-        } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
-
 
         String caption = "Butts";
         SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setPhoto(new InputFile(butts, caption));
+        sendPhoto.setPhoto(new InputFile(BUTTS_IMAGE_URL + nameOfImage));
         sendPhoto.setCaption(caption);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());

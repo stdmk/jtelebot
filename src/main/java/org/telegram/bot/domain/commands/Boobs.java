@@ -44,19 +44,13 @@ public class Boobs implements CommandParent<SendPhoto> {
             log.debug("No response from service");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
-        Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
 
+        Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
-        InputStream boobs;
-        try {
-            boobs = getFileFromUrl(BOOBS_IMAGE_URL + nameOfImage);
-        } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
 
         String caption = "Boobs";
         SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setPhoto(new InputFile(boobs, caption));
+        sendPhoto.setPhoto(new InputFile(BOOBS_IMAGE_URL + nameOfImage));
         sendPhoto.setCaption(caption);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
