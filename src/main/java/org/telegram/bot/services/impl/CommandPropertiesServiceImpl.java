@@ -36,7 +36,12 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
             }
         }
 
-        return getCommand(getPotentialCommandInText(textOfMessage));
+        String potentialCommand = getPotentialCommandInText(textOfMessage);
+        if (potentialCommand != null) {
+            return getCommand(potentialCommand);
+        }
+
+        return null;
     }
 
     @Override
