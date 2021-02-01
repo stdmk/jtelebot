@@ -39,7 +39,9 @@ public enum Emoji {
     UP_RIGHT_ARROW("↗️"),
     RIGHT_ARROW("➡️"),
     DOWN_RIGHT_ARROW("↘️"),
-    DROPLET("\uD83D\uDCA7");
+    DROPLET("\uD83D\uDCA7"),
+    THUMBS_UP("\uD83D\uDC4D"),
+    THUMBS_DOWN("\uD83D\uDC4E");
 
     private final String emoji;
 

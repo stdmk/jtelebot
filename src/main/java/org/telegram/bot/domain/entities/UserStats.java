@@ -87,4 +87,7 @@ public class UserStats {
     @OneToOne
     @JoinColumn(name = "lastmessage")
     private LastMessage lastMessage;
+
+    @Column(name = "karma")
+    private Integer karma;
 }

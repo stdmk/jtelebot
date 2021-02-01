@@ -192,6 +192,7 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setNumberOfCommands(0);
             userStats.setNumberOfAllCommands(0L);
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
+            userStats.setKarma(0);
         }
 
         if (message.hasText()) {
