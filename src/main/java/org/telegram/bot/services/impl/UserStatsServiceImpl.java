@@ -3,6 +3,8 @@ package org.telegram.bot.services.impl;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.commands.Top;
 import org.telegram.bot.domain.entities.Chat;
@@ -62,9 +64,15 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<UserStats> getStatsByChat(Chat chat) {
+    public List<UserStats> getUserStatsListForChat(Chat chat) {
         log.debug("Request to get users of chat with id {}", chat);
         return userStatsRepository.findByChat(chat);
+    }
+
+    @Override
+    public List<UserStats> getSortedUserStatsListForChat(Chat chat, String sortBy, int limit) {
+        log.debug("Request to get users of chat with id {} and limit {} sort by {}", chat, limit, sortBy);
+        return userStatsRepository.findByChat(chat, PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, sortBy)));
     }
 
     @Override

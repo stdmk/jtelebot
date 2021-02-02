@@ -19,6 +19,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
+
 @Component
 @AllArgsConstructor
 public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
@@ -107,9 +109,5 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             Parser parser = new Parser(bot, command, update);
             parser.start();
         }
-    }
-
-    private Boolean startsWithElementInList(String text, List<String> symbolsList) {
-        return symbolsList.stream().anyMatch(text::startsWith);
     }
 }

@@ -48,7 +48,17 @@ public interface UserStatsService {
      * @param chat - Chat entity.
      * @return list of users of chat
      */
-    List<UserStats> getStatsByChat(Chat chat);
+    List<UserStats> getUserStatsListForChat(Chat chat);
+
+    /**
+     * Get list of users of chat.
+     *
+     * @param chat - Chat entity.
+     * @param sortBy - parameter to sort records.
+     * @param limit - limit of returing records.
+     * @return list of users of chat
+     */
+    List<UserStats> getSortedUserStatsListForChat(Chat chat, String sortBy, int limit);
 
     /**
      * Clear user stats by last Month.

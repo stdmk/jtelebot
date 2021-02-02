@@ -1,5 +1,6 @@
 package org.telegram.bot.utils;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,5 +56,9 @@ public class TextUtils {
 
     public static String removeCapital(String text) {
         return text.substring(0, 1).toLowerCase() + text.substring(1);
+    }
+
+    public static Boolean startsWithElementInList(String text, List<String> symbolsList) {
+        return symbolsList.stream().anyMatch(text::startsWith);
     }
 }

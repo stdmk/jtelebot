@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,13 +20,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import javax.transaction.Transactional;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
+import static org.telegram.bot.utils.TextUtils.removeCapital;
 
 @Component
 @AllArgsConstructor
@@ -38,7 +39,26 @@ public class Top implements CommandParent<SendMessage> {
     private final ChatService chatService;
     private final SpeechService speechService;
 
-    private static final List<String> PARAMS = Arrays.asList("месяц", "все", "всё");
+    private static final List<SortParam> sortParamList;
+    static {
+        sortParamList = new ArrayList<>();
+        try {
+            sortParamList.add(new SortParam(Collections.singletonList("месяц"), UserStats.class.getMethod("getNumberOfMessages")));
+            sortParamList.add(new SortParam(Arrays.asList("все", "всё"), UserStats.class.getMethod("getNumberOfAllMessages")));
+            sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getKarma")));
+            sortParamList.add(new SortParam(Arrays.asList("стикер", "стикеры", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
+            sortParamList.add(new SortParam(Arrays.asList("изображений", "изображения", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
+            sortParamList.add(new SortParam(Arrays.asList("анимаций", "анимация"), UserStats.class.getMethod("getNumberOfAnimations")));
+            sortParamList.add(new SortParam(Arrays.asList("музыка", "музыки"), UserStats.class.getMethod("getNumberOfAudio")));
+            sortParamList.add(new SortParam(Arrays.asList("документ", "документы", "документов"), UserStats.class.getMethod("getNumberOfDocuments")));
+            sortParamList.add(new SortParam(Collections.singletonList("видео"), UserStats.class.getMethod("getNumberOfVideos")));
+            sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
+            sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
+            sortParamList.add(new SortParam(Arrays.asList("команда", "команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public SendMessage parse(Update update) throws BotException {
@@ -49,12 +69,13 @@ public class Top implements CommandParent<SendMessage> {
 
         //TODO переделать на айди, если пользователь без юзернейма
         if (textMessage == null) {
-            responseText = getTopOfUsername(chat, message.getFrom().getUserName());
+            responseText = getTopOfUsername(chat, userService.get(message.getFrom().getId()));
         } else {
-            if (PARAMS.contains(textMessage)) {
-                responseText = getTopListOfUsers(chat, textMessage);
+            User user = userService.get(textMessage);
+            if (user != null) {
+                responseText = getTopOfUsername(chat, user);
             } else {
-                responseText = getTopOfUsername(chat, textMessage);
+                responseText = getTopListOfUsers(chat, textMessage);
             }
         }
 
@@ -71,20 +92,19 @@ public class Top implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText(getTopListOfUsers(chat, PARAMS.get(0)) + "\nСтатистика за месяц сброшена");
+        try {
+            sendMessage.setText(getTopListOfUsers(chat, sortParamList.get(0).getParamNames().get(0) + "\nСтатистика за месяц сброшена"));
+        } catch (BotException ignored) {
+
+        }
 
         return sendMessage;
     }
 
-    @Transactional
-    private String getTopOfUsername(Chat chat, String username) throws BotException {
-        log.debug("Request to get top of user by username {}", username);
-        User user = userService.get(username);
-        if (user == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
-        }
+    private String getTopOfUsername(Chat chat, User user) throws BotException {
+        log.debug("Request to get top of user by username {}", user.getUsername());
 
-        HashMap<String, String> fieldsOfStats = new HashMap<>();
+        Map<String, String> fieldsOfStats = new LinkedHashMap<>();
         StringBuilder buf = new StringBuilder();
         String valueForSkip = "0";
         UserStats userStats = userStatsService.get(chat, user);
@@ -92,7 +112,15 @@ public class Top implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
         }
 
-        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());
+        String karmaEmoji;
+        if (userStats.getKarma() >= 0) {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
+        } else {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
+        }
+
+        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getKarma().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAnimations().toString());
@@ -115,6 +143,7 @@ public class Top implements CommandParent<SendMessage> {
         buf.append("*Всего:*\n");
 
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getKarma().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfAllStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfAllPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAllAnimations().toString());
@@ -134,40 +163,63 @@ public class Top implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
-    private String getTopListOfUsers(Chat chat, String param) {
+    private String getTopListOfUsers(Chat chat, String param) throws BotException {
         log.debug("Request to top by {} for chat {}", param, chat);
 
-        StringBuilder responseText = new StringBuilder();
-        List<UserStats> userList = userStatsService.getStatsByChat(chat);
+        SortParam sortParam = getSortParamByName(param);
 
-        int spacesAfterSerialNumberCount = String.valueOf(userList.size()).length() + 2;
-        int spacesAfterNuberOfMessageCount = userList.stream()
+        if (sortParam == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        String sortedField = removeCapital(sortParam.getMethod().getName().substring(3));
+        List<UserStats> userStatsList = userStatsService.getSortedUserStatsListForChat(chat, sortedField, 30);
+
+        int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
+        int spacesAfterNuberOfMessageCount = userStatsList.stream()
                 .map(UserStats::getNumberOfMessages)
                 .max(Integer::compareTo)
                 .orElse(6)
                 .toString()
                 .length() + 1;
 
-        if (param.equals(PARAMS.get(0))) {
-            userList = userList.stream()
-                    .filter(userStats -> userStats.getNumberOfMessages() != 0)
-                    .sorted(Comparator.comparing(UserStats::getNumberOfMessages).reversed())
-                    .collect(Collectors.toList());
-        }
-        else if (param.equals(PARAMS.get(1)) || param.equals(PARAMS.get(2))) {
-            userList = userList.stream()
-                    .filter(userStats -> userStats.getNumberOfAllMessages() != 0)
-                    .sorted(Comparator.comparing(UserStats::getNumberOfAllMessages).reversed())
-                    .collect(Collectors.toList());
-        }
-
+        StringBuilder responseText = new StringBuilder("*Топ ").append(param).append(":*\n```\n");
         AtomicInteger counter = new AtomicInteger(1);
-        responseText.append("*Топ по общению за ").append(param).append(":*\n```\n");
-        userList.forEach(userStats -> responseText
-                .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
-                .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", userStats.getNumberOfMessages().toString()))
-                .append(userStats.getUser().getUsername()).append("\n"));
+        Method finalMethod = sortParam.getMethod();
+
+        userStatsList.forEach(userStats -> {
+            try {
+                int value = (int) finalMethod.invoke(userStats);
+                if (value != 0) {
+                    responseText
+                            .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
+                            .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", value))
+                            .append(userStats.getUser().getUsername()).append("\n");
+                }
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                try {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                } catch (BotException botException) {
+                    botException.printStackTrace();
+                }
+            }
+        });
 
         return responseText.append("```").toString();
+    }
+
+    private SortParam getSortParamByName(String name) {
+        return sortParamList
+                .stream()
+                .filter(sortParamValue -> startsWithElementInList(name, sortParamValue.getParamNames()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class SortParam {
+        private List<String> paramNames;
+        private Method method;
     }
 }

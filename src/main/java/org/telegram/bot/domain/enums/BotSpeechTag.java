@@ -12,7 +12,8 @@ public enum BotSpeechTag {
     SAVED("saved"),
     UNABLE_TO_FIND_TOKEN("unableToFindToken"),
     USER_NOT_FOUND("userNotFound"),
-    WRONG_INPUT("wrongInput");
+    WRONG_INPUT("wrongInput"),
+    INTERNAL_ERROR("internalError");
 
     private final String value;
 
