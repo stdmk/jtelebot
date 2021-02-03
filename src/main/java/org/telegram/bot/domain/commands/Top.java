@@ -92,14 +92,23 @@ public class Top implements CommandParent<SendMessage> {
         }
 
         String karmaEmoji;
-        if (userStats.getKarma() >= 0) {
+
+        if (userStats.getNumberOfKarma() >= 0) {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
         } else {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
         }
 
+        String goodnessEmoji;
+        if (userStats.getNumberOfGoodness() >= 0) {
+            goodnessEmoji = Emoji.RED_HEART.getEmoji();
+        } else {
+            goodnessEmoji = Emoji.BROKEN_HEART.getEmoji();
+        }
+
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());
-        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getKarma().toString());
+        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getNumberOfKarma().toString());
+        fieldsOfStats.put(goodnessEmoji + "Доброта", userStats.getNumberOfGoodness().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAnimations().toString());
@@ -118,11 +127,12 @@ public class Top implements CommandParent<SendMessage> {
         });
         buf.append("-----------------------------\n");
 
-        fieldsOfStats = new HashMap<>();
+        fieldsOfStats.clear();
         buf.append("*Всего:*\n");
 
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
-        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getKarma().toString());
+        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getNumberOfKarma().toString());
+        fieldsOfStats.put(goodnessEmoji + "Доброта", userStats.getNumberOfGoodness().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfAllStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfAllPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAllAnimations().toString());
@@ -198,7 +208,7 @@ public class Top implements CommandParent<SendMessage> {
         try {
             sortParamList.add(new SortParam(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), UserStats.class.getMethod("getNumberOfMessages")));
             sortParamList.add(new SortParam(Arrays.asList("все", "всё"), UserStats.class.getMethod("getNumberOfAllMessages")));
-            sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getKarma")));
+            sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getNumberOfKarma")));
             sortParamList.add(new SortParam(Arrays.asList("стикеры", "стикер", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
             sortParamList.add(new SortParam(Arrays.asList("изображения", "изображений", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
             sortParamList.add(new SortParam(Arrays.asList("анимаций", "анимация"), UserStats.class.getMethod("getNumberOfAnimations")));
@@ -208,6 +218,7 @@ public class Top implements CommandParent<SendMessage> {
             sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
             sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
             sortParamList.add(new SortParam(Arrays.asList("команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
+            sortParamList.add(new SortParam(Arrays.asList("доброты", "доброта"), UserStats.class.getMethod("getNumberOfGoodness")));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -234,7 +245,7 @@ public class Top implements CommandParent<SendMessage> {
                 .max(Long::compareTo)
                 .orElse(6L)
                 .toString()
-                .length() + 1;
+                .length() + 2;
     }
 
     @Data

@@ -6,6 +6,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -58,28 +59,33 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        User user;
+        User anotherUser;
         try {
-            user = userService.get(Integer.parseInt(textMessage.substring(0, i)));
+            anotherUser = userService.get(Integer.parseInt(textMessage.substring(0, i)));
         } catch (NumberFormatException e) {
-            user = userService.get(textMessage.substring(0, i));
+            anotherUser = userService.get(textMessage.substring(0, i));
         }
 
-        if (user == null || user.getUserId().equals(message.getFrom().getId())) {
+        if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        UserStats userStats = userStatsService.get(chatService.get(message.getChatId()), user);
-        userStats.setKarma(userStats.getKarma() + value);
-        userStatsService.save(userStats);
+        Chat chat = chatService.get(message.getChatId());
+        UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
+        anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value);
 
-        StringBuilder buf = new StringBuilder("Карма пользователя *@" + user.getUsername() + "* ");
+        User user = userService.get(message.getFrom().getId());
+        UserStats userStats = userStatsService.get(chat, user);
+        userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + value);
+        userStatsService.save(Arrays.asList(anotherUserStats, userStats));
+
+        StringBuilder buf = new StringBuilder("Карма пользователя *@" + anotherUser.getUsername() + "* ");
         if (value < 0) {
             buf.append("уменьшена ").append(Emoji.THUMBS_DOWN.getEmoji());
         } else {
             buf.append("увеличена ").append(Emoji.THUMBS_UP.getEmoji());
         }
-        buf.append(" до *").append(userStats.getKarma()).append("*");
+        buf.append(" до *").append(anotherUserStats.getNumberOfKarma()).append("*");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

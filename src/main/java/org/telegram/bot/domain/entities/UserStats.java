@@ -89,5 +89,8 @@ public class UserStats {
     private LastMessage lastMessage;
 
     @Column(name = "karma")
-    private Integer karma;
+    private Integer numberOfKarma;
+
+    @Column(name = "goodness")
+    private Integer numberOfGoodness;
 }

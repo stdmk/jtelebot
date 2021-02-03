@@ -43,7 +43,10 @@ public enum Emoji {
     THUMBS_UP("\uD83D\uDC4D"),
     THUMBS_DOWN("\uD83D\uDC4E"),
     SMILING_FACE_WITH_HALO("\uD83D\uDE07"),
-    SMILING_FACE_WITH_HORNS("\uD83D\uDE08");
+    SMILING_FACE_WITH_HORNS("\uD83D\uDE08"),
+    RED_HEART("❤️"),
+    BROKEN_HEART("\uD83D\uDC94"),
+    ;
 
     private final String emoji;
 

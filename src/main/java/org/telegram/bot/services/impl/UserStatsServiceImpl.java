@@ -53,6 +53,12 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    public List<UserStats> save(List<UserStats> userStatsList) {
+        log.debug("Request to save UserStats list {}", userStatsList);
+        return userStatsRepository.saveAll(userStatsList);
+    }
+
+    @Override
     @Transactional
     public void updateEntitiesInfo(Message message, boolean editedMessage) {
         log.debug("Request to updates entities info");
@@ -200,7 +206,8 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setNumberOfCommands(0);
             userStats.setNumberOfAllCommands(0L);
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
-            userStats.setKarma(0);
+            userStats.setNumberOfKarma(0);
+            userStats.setNumberOfGoodness(0);
         }
 
         if (message.hasText()) {

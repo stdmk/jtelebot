@@ -36,6 +36,13 @@ public interface UserStatsService {
     UserStats save(UserStats userStats);
 
     /**
+     * Save list of UserStats.
+     * @param userStatsList - list of entities to save.
+     * @return list of persisted entitis.
+     */
+    List<UserStats> save(List<UserStats> userStatsList);
+
+    /**
      * Check and save updates for User, Chat and UserStats etc entites.
      *
      * @param message - received Message.
