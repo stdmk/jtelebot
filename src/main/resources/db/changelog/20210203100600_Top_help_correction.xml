@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210203100600-1" author="stdmk">
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="Топ,Различная статистика пользователей,@username; категория;,Топ месяц; топ @username; топ стикеры всё,слово 'всё' в конце означает 'за всё время'" />
+            <where>id = 8</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

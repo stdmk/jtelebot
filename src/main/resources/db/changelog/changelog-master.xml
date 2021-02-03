@@ -66,4 +66,5 @@
     <include file="db/changelog/20210128153400_added_command_Image.xml"/>
     <include file="db/changelog/20210201153200_added_command_Karma.xml"/>
     <include file="db/changelog/20210202104000_insert_Speech_internalError.xml"/>
+    <include file="db/changelog/20210203100600_Top_help_correction.xml"/>
 </databaseChangeLog>
