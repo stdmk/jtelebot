@@ -39,27 +39,6 @@ public class Top implements CommandParent<SendMessage> {
     private final ChatService chatService;
     private final SpeechService speechService;
 
-    private static final List<SortParam> sortParamList;
-    static {
-        sortParamList = new ArrayList<>();
-        try {
-            sortParamList.add(new SortParam(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), UserStats.class.getMethod("getNumberOfMessages")));
-            sortParamList.add(new SortParam(Arrays.asList("все", "всё"), UserStats.class.getMethod("getNumberOfAllMessages")));
-            sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getKarma")));
-            sortParamList.add(new SortParam(Arrays.asList("стикеры", "стикер", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
-            sortParamList.add(new SortParam(Arrays.asList("изображения", "изображений", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
-            sortParamList.add(new SortParam(Arrays.asList("анимаций", "анимация"), UserStats.class.getMethod("getNumberOfAnimations")));
-            sortParamList.add(new SortParam(Arrays.asList("музыка", "музыки"), UserStats.class.getMethod("getNumberOfAudio")));
-            sortParamList.add(new SortParam(Arrays.asList("документы", "документ", "документов"), UserStats.class.getMethod("getNumberOfDocuments")));
-            sortParamList.add(new SortParam(Collections.singletonList("видео"), UserStats.class.getMethod("getNumberOfVideos")));
-            sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
-            sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
-            sortParamList.add(new SortParam(Arrays.asList("команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public SendMessage parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
@@ -93,7 +72,7 @@ public class Top implements CommandParent<SendMessage> {
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableMarkdown(true);
         try {
-            sendMessage.setText(getTopListOfUsers(chat, sortParamList.get(0).getParamNames().get(0) + "\nСтатистика за месяц сброшена"));
+            sendMessage.setText(getTopListOfUsers(chat, getSortParamByName("месяц") + "\nСтатистика за месяц сброшена"));
         } catch (BotException ignored) {
 
         }
@@ -198,7 +177,7 @@ public class Top implements CommandParent<SendMessage> {
 
         userStatsList.forEach(userStats -> {
             try {
-                int value = (int) finalMethod.invoke(userStats);
+                Long value = (Long) finalMethod.invoke(userStats);
                 if (value != 0) {
                     responseText
                             .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
@@ -218,6 +197,24 @@ public class Top implements CommandParent<SendMessage> {
     }
 
     private SortParam getSortParamByName(String name) {
+        List<SortParam> sortParamList = new ArrayList<>();
+        try {
+            sortParamList.add(new SortParam(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), UserStats.class.getMethod("getNumberOfMessages")));
+            sortParamList.add(new SortParam(Arrays.asList("все", "всё"), UserStats.class.getMethod("getNumberOfAllMessages")));
+            sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getKarma")));
+            sortParamList.add(new SortParam(Arrays.asList("стикеры", "стикер", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
+            sortParamList.add(new SortParam(Arrays.asList("изображения", "изображений", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
+            sortParamList.add(new SortParam(Arrays.asList("анимаций", "анимация"), UserStats.class.getMethod("getNumberOfAnimations")));
+            sortParamList.add(new SortParam(Arrays.asList("музыка", "музыки"), UserStats.class.getMethod("getNumberOfAudio")));
+            sortParamList.add(new SortParam(Arrays.asList("документы", "документ", "документов"), UserStats.class.getMethod("getNumberOfDocuments")));
+            sortParamList.add(new SortParam(Collections.singletonList("видео"), UserStats.class.getMethod("getNumberOfVideos")));
+            sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
+            sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
+            sortParamList.add(new SortParam(Arrays.asList("команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
         return sortParamList
                 .stream()
                 .filter(sortParamValue -> startsWithElementInList(name, sortParamValue.getParamNames()))
