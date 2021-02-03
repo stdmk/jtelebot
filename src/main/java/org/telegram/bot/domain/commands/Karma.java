@@ -92,6 +92,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             Chat chat = chatService.get(message.getChatId());
             UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
             anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value);
+            anotherUserStats.setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
 
             User user = userService.get(message.getFrom().getId());
             UserStats userStats = userStatsService.get(chat, user);
