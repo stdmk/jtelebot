@@ -98,7 +98,7 @@ public class Top implements CommandParent<SendMessage> {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
         }
 
-        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());
         fieldsOfStats.put(karmaEmoji + "Карма", userStats.getKarma().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfPhotos().toString());
@@ -146,7 +146,7 @@ public class Top implements CommandParent<SendMessage> {
         log.debug("Request to top by {} for chat {}", param, chat);
 
         SortParam sortParam = getSortParamByName(param);
-        if (param.endsWith("всё") || param.endsWith("все")) {
+        if (!param.equals("все") && !param.equals("всё") && (param.endsWith("всё") || param.endsWith("все"))) {
             String name = sortParam.getMethod().getName();
             name = name.substring(0, 11) + "All" + name.substring(11);
             try {
@@ -164,12 +164,7 @@ public class Top implements CommandParent<SendMessage> {
         List<UserStats> userStatsList = userStatsService.getSortedUserStatsListForChat(chat, sortedField, 30);
 
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
-        int spacesAfterNuberOfMessageCount = userStatsList.stream()
-                .map(UserStats::getNumberOfMessages)
-                .max(Integer::compareTo)
-                .orElse(6)
-                .toString()
-                .length() + 1;
+        int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(sortParam, userStatsList);
 
         StringBuilder responseText = new StringBuilder("*Топ ").append(sortParam.getParamNames().get(0)).append(":*\n```\n");
         AtomicInteger counter = new AtomicInteger(1);
@@ -190,7 +185,7 @@ public class Top implements CommandParent<SendMessage> {
             if (value != 0) {
                 responseText
                         .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
-                        .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", value))
+                        .append(String.format("%-" + spacesAfterNumberOfMessageCount + "s", value))
                         .append(userStats.getUser().getUsername()).append("\n");
             }
         });
@@ -222,6 +217,24 @@ public class Top implements CommandParent<SendMessage> {
                 .filter(sortParamValue -> startsWithElementInList(name, sortParamValue.getParamNames()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private Integer getSpacesAfterNumberOfMessageCount(SortParam sortParam, List<UserStats> userStatsList) {
+        return userStatsList
+                .stream()
+                .map(userStats -> {
+                    long value = 0;
+                    try {
+                        value = Long.parseLong(sortParam.getMethod().invoke(userStats).toString());
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    return value;
+                })
+                .max(Long::compareTo)
+                .orElse(6L)
+                .toString()
+                .length() + 1;
     }
 
     @Data
