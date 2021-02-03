@@ -43,18 +43,18 @@ public class Top implements CommandParent<SendMessage> {
     static {
         sortParamList = new ArrayList<>();
         try {
-            sortParamList.add(new SortParam(Collections.singletonList("месяц"), UserStats.class.getMethod("getNumberOfMessages")));
+            sortParamList.add(new SortParam(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), UserStats.class.getMethod("getNumberOfMessages")));
             sortParamList.add(new SortParam(Arrays.asList("все", "всё"), UserStats.class.getMethod("getNumberOfAllMessages")));
             sortParamList.add(new SortParam(Arrays.asList("карма", "кармы"), UserStats.class.getMethod("getKarma")));
-            sortParamList.add(new SortParam(Arrays.asList("стикер", "стикеры", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
-            sortParamList.add(new SortParam(Arrays.asList("изображений", "изображения", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
+            sortParamList.add(new SortParam(Arrays.asList("стикеры", "стикер", "стикеров"), UserStats.class.getMethod("getNumberOfStickers")));
+            sortParamList.add(new SortParam(Arrays.asList("изображения", "изображений", "изоражение"), UserStats.class.getMethod("getNumberOfPhotos")));
             sortParamList.add(new SortParam(Arrays.asList("анимаций", "анимация"), UserStats.class.getMethod("getNumberOfAnimations")));
             sortParamList.add(new SortParam(Arrays.asList("музыка", "музыки"), UserStats.class.getMethod("getNumberOfAudio")));
-            sortParamList.add(new SortParam(Arrays.asList("документ", "документы", "документов"), UserStats.class.getMethod("getNumberOfDocuments")));
+            sortParamList.add(new SortParam(Arrays.asList("документы", "документ", "документов"), UserStats.class.getMethod("getNumberOfDocuments")));
             sortParamList.add(new SortParam(Collections.singletonList("видео"), UserStats.class.getMethod("getNumberOfVideos")));
             sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
             sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
-            sortParamList.add(new SortParam(Arrays.asList("команда", "команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
+            sortParamList.add(new SortParam(Arrays.asList("команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -167,6 +167,15 @@ public class Top implements CommandParent<SendMessage> {
         log.debug("Request to top by {} for chat {}", param, chat);
 
         SortParam sortParam = getSortParamByName(param);
+        if (param.endsWith("всё") || param.endsWith("все")) {
+            String name = sortParam.getMethod().getName();
+            name = name.substring(0, 11) + "All" + name.substring(11);
+            try {
+                sortParam.setMethod(UserStats.class.getMethod(name));
+            } catch (NoSuchMethodException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+        }
 
         if (sortParam == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -183,7 +192,7 @@ public class Top implements CommandParent<SendMessage> {
                 .toString()
                 .length() + 1;
 
-        StringBuilder responseText = new StringBuilder("*Топ ").append(param).append(":*\n```\n");
+        StringBuilder responseText = new StringBuilder("*Топ ").append(sortParam.getParamNames().get(0)).append(":*\n```\n");
         AtomicInteger counter = new AtomicInteger(1);
         Method finalMethod = sortParam.getMethod();
 
