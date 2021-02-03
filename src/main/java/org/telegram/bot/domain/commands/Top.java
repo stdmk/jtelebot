@@ -176,20 +176,22 @@ public class Top implements CommandParent<SendMessage> {
         Method finalMethod = sortParam.getMethod();
 
         userStatsList.forEach(userStats -> {
+            long value = 0;
             try {
-                Long value = (Long) finalMethod.invoke(userStats);
-                if (value != 0) {
-                    responseText
-                            .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
-                            .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", value))
-                            .append(userStats.getUser().getUsername()).append("\n");
-                }
+                value = Long.parseLong(finalMethod.invoke(userStats).toString());
             } catch (IllegalAccessException | InvocationTargetException e) {
                 try {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                 } catch (BotException botException) {
                     botException.printStackTrace();
                 }
+            }
+
+            if (value != 0) {
+                responseText
+                        .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
+                        .append(String.format("%-" + spacesAfterNuberOfMessageCount + "s", value))
+                        .append(userStats.getUser().getUsername()).append("\n");
             }
         });
 
