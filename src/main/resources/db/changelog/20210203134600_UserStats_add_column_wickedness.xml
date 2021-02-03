@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210203134600-1" author="stdmk">
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofallgoodness" type="long"/>
+        </addColumn>
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofwickedness" type="int"/>
+        </addColumn>
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofwickednessall" type="long"/>
+        </addColumn>
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofallwickedness" type="long"/>
+        </addColumn>
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofkarma" type="long"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20210203134600-2" author="stdmk">
+        <addDefaultValue  columnName="numberofallgoodness"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+
+        <addDefaultValue  columnName="numberofwickedness"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+
+        <addDefaultValue  columnName="numberofwickednessall"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+
+        <addDefaultValue  columnName="numberofallwickedness"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+
+        <addDefaultValue  columnName="numberofkarma"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+    </changeSet>
+
+    <changeSet id="20210203134600-3" author="stdmk">
+        <renameColumn  newColumnName="numberofallkarma"
+                       oldColumnName="karma"
+                       schemaName="bot"
+                       tableName="userstats"/>
+    </changeSet>
+
+    <changeSet id="20210203134600-4" author="stdmk">
+        <renameColumn  newColumnName="numberofgoodness"
+                       oldColumnName="goodness"
+                       schemaName="bot"
+                       tableName="userstats"/>
+    </changeSet>
+</databaseChangeLog>

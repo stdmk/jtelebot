@@ -106,6 +106,9 @@ public class UserStatsServiceImpl implements UserStatsService {
         userStats.setNumberOfVoices(0);
         userStats.setNumberOfCommands(0);
         userStats.setNumberOfStickers(0);
+        userStats.setNumberOfKarma(0);
+        userStats.setNumberOfGoodness(0);
+        userStats.setNumberOfWickedness(0);
     }
 
     @Override
@@ -207,7 +210,11 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setNumberOfAllCommands(0L);
             userStats.setLastMessage(lastMessageService.update(lastMessage, message));
             userStats.setNumberOfKarma(0);
+            userStats.setNumberOfAllKarma(0L);
             userStats.setNumberOfGoodness(0);
+            userStats.setNumberOfAllGoodness(0L);
+            userStats.setNumberOfWickedness(0);
+            userStats.setNumberOfAllWickedness(0L);
         }
 
         if (message.hasText()) {

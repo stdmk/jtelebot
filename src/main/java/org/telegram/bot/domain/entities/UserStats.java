@@ -88,9 +88,21 @@ public class UserStats {
     @JoinColumn(name = "lastmessage")
     private LastMessage lastMessage;
 
-    @Column(name = "karma")
+    @Column(name = "numberofkarma")
     private Integer numberOfKarma;
 
-    @Column(name = "goodness")
+    @Column(name = "numberofallkarma")
+    private Long numberOfAllKarma;
+
+    @Column(name = "numberofgoodness")
     private Integer numberOfGoodness;
+
+    @Column(name = "numberofallgoodness")
+    private Long numberOfAllGoodness;
+
+    @Column(name = "numberofwickedness")
+    private Integer numberOfWickedness;
+
+    @Column(name = "numberofallwickedness")
+    private Long numberOfAllWickedness;
 }

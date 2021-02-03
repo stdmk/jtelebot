@@ -92,23 +92,16 @@ public class Top implements CommandParent<SendMessage> {
         }
 
         String karmaEmoji;
-
         if (userStats.getNumberOfKarma() >= 0) {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
         } else {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
         }
 
-        String goodnessEmoji;
-        if (userStats.getNumberOfGoodness() >= 0) {
-            goodnessEmoji = Emoji.RED_HEART.getEmoji();
-        } else {
-            goodnessEmoji = Emoji.BROKEN_HEART.getEmoji();
-        }
-
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfMessages().toString());
         fieldsOfStats.put(karmaEmoji + "Карма", userStats.getNumberOfKarma().toString());
-        fieldsOfStats.put(goodnessEmoji + "Доброта", userStats.getNumberOfGoodness().toString());
+        fieldsOfStats.put(Emoji.RED_HEART.getEmoji() + "Доброта", userStats.getNumberOfGoodness().toString());
+        fieldsOfStats.put(Emoji.BROKEN_HEART.getEmoji() + "Злобота", userStats.getNumberOfWickedness().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAnimations().toString());
@@ -122,7 +115,7 @@ public class Top implements CommandParent<SendMessage> {
         buf.append("*").append(userStats.getUser().getUsername()).append("\n").append("За месяц:*\n");
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
-                buf.append(key).append(": ").append(value).append("\n");
+                buf.append(key).append(": *").append(value).append("*\n");
             }
         });
         buf.append("-----------------------------\n");
@@ -130,9 +123,16 @@ public class Top implements CommandParent<SendMessage> {
         fieldsOfStats.clear();
         buf.append("*Всего:*\n");
 
+        if (userStats.getNumberOfAllKarma() >= 0) {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
+        } else {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
+        }
+
         fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "Сообщений", userStats.getNumberOfAllMessages().toString());
-        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getNumberOfKarma().toString());
-        fieldsOfStats.put(goodnessEmoji + "Доброта", userStats.getNumberOfGoodness().toString());
+        fieldsOfStats.put(karmaEmoji + "Карма", userStats.getNumberOfAllKarma().toString());
+        fieldsOfStats.put(Emoji.RED_HEART.getEmoji() + "Доброта", userStats.getNumberOfAllGoodness().toString());
+        fieldsOfStats.put(Emoji.BROKEN_HEART.getEmoji() + "Злобота", userStats.getNumberOfAllWickedness().toString());
         fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "Стикеров", userStats.getNumberOfAllStickers().toString());
         fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "Изображений", userStats.getNumberOfAllPhotos().toString());
         fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "Анимаций", userStats.getNumberOfAllAnimations().toString());
@@ -145,7 +145,7 @@ public class Top implements CommandParent<SendMessage> {
 
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
-                buf.append(key).append(": ").append(value).append("\n");
+                buf.append(key).append(": *").append(value).append("*\n");
             }
         });
 
@@ -218,7 +218,8 @@ public class Top implements CommandParent<SendMessage> {
             sortParamList.add(new SortParam(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), UserStats.class.getMethod("getNumberOfVideoNotes")));
             sortParamList.add(new SortParam(Arrays.asList("голосовых", "голосовые", "голосовое"), UserStats.class.getMethod("getNumberOfAudio")));
             sortParamList.add(new SortParam(Arrays.asList("команд", "команда"), UserStats.class.getMethod("getNumberOfCommands")));
-            sortParamList.add(new SortParam(Arrays.asList("доброты", "доброта"), UserStats.class.getMethod("getNumberOfGoodness")));
+            sortParamList.add(new SortParam(Arrays.asList("доброты", "доброта", "добра"), UserStats.class.getMethod("getNumberOfGoodness")));
+            sortParamList.add(new SortParam(Arrays.asList("злоботы", "злобота", "злоба", "злобы"), UserStats.class.getMethod("getNumberOfWickedness")));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }

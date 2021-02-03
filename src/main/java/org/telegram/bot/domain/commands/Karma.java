@@ -7,8 +7,10 @@ import org.telegram.bot.Parser;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
@@ -41,51 +43,76 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
+
+        StringBuilder buf = new StringBuilder();
         String textMessage = cutCommandInText(message.getText());
 
-        int i = textMessage.indexOf(" ");
-        if (i < 0) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+        if (textMessage == null) {
+            UserStats userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
 
-        int value;
-        try {
-            value = Integer.parseInt(textMessage.substring(i + 1));
-        } catch (NumberFormatException e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+            String karmaEmoji;
+            if (userStats.getNumberOfKarma() >= 0) {
+                karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
+            } else {
+                karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
+            }
 
-        if (value != 1 && value != -1) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        User anotherUser;
-        try {
-            anotherUser = userService.get(Integer.parseInt(textMessage.substring(0, i)));
-        } catch (NumberFormatException e) {
-            anotherUser = userService.get(textMessage.substring(0, i));
-        }
-
-        if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        Chat chat = chatService.get(message.getChatId());
-        UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
-        anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value);
-
-        User user = userService.get(message.getFrom().getId());
-        UserStats userStats = userStatsService.get(chat, user);
-        userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + value);
-        userStatsService.save(Arrays.asList(anotherUserStats, userStats));
-
-        StringBuilder buf = new StringBuilder("Карма пользователя *@" + anotherUser.getUsername() + "* ");
-        if (value < 0) {
-            buf.append("уменьшена ").append(Emoji.THUMBS_DOWN.getEmoji());
+            buf.append(karmaEmoji).append("Карма: *").append(userStats.getNumberOfKarma()).append("* (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
+                .append(Emoji.RED_HEART.getEmoji()).append("Доброта: *").append(userStats.getNumberOfGoodness()).append("* (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
+                .append(Emoji.BROKEN_HEART.getEmoji()).append("Злобота: *").append(userStats.getNumberOfWickedness()).append("* (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
         } else {
-            buf.append("увеличена ").append(Emoji.THUMBS_UP.getEmoji());
+
+            int i = textMessage.indexOf(" ");
+            if (i < 0) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            int value;
+            try {
+                value = Integer.parseInt(textMessage.substring(i + 1));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            if (value != 1 && value != -1) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            User anotherUser;
+            try {
+                anotherUser = userService.get(Integer.parseInt(textMessage.substring(0, i)));
+            } catch (NumberFormatException e) {
+                anotherUser = userService.get(textMessage.substring(0, i));
+            }
+
+            if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            Chat chat = chatService.get(message.getChatId());
+            UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
+            anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value);
+
+            User user = userService.get(message.getFrom().getId());
+            UserStats userStats = userStatsService.get(chat, user);
+            if (value > 0) {
+                userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1);
+                userStats.setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
+            } else {
+                userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1);
+                userStats.setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
+            }
+
+            userStatsService.save(Arrays.asList(anotherUserStats, userStats));
+
+            buf = new StringBuilder("Карма пользователя *@" + anotherUser.getUsername() + "* ");
+            if (value < 0) {
+                buf.append("уменьшена ").append(Emoji.THUMBS_DOWN.getEmoji());
+            } else {
+                buf.append("увеличена ").append(Emoji.THUMBS_UP.getEmoji());
+            }
+            buf.append(" до *").append(anotherUserStats.getNumberOfKarma()).append("*");
         }
-        buf.append(" до *").append(anotherUserStats.getNumberOfKarma()).append("*");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
@@ -109,11 +136,14 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         if (value != 0 && message.getReplyToMessage() != null) {
-            String commandName = commandPropertiesService.getCommand(Karma.class).getCommandName();
-            update.getMessage().setText(commandName + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
+            CommandProperties commandProperties = commandPropertiesService.getCommand(Karma.class);
+            AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getFrom().getId(), message.getChatId());
+            if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
+                update.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
 
-            Parser parser = new Parser(bot, command, update);
-            parser.start();
+                Parser parser = new Parser(bot, command, update);
+                parser.start();
+            }
         }
     }
 }
