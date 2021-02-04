@@ -54,14 +54,12 @@ public class Where implements CommandParent<SendMessage> {
             commandWaitingService.add(message, Where.class);
 
             responseText = "теперь напиши мне username того, кого хочешь найти";
-        } else if (!textMessage.startsWith("@")) {
-            return null;
         } else {
             User user = userService.get(textMessage);
             Chat chat = chatService.get(message.getChatId());
 
             if (user == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.USER_NOT_FOUND));
+                return null;
             }
             UserStats userStats = userStatsService.get(chat, user);
 
