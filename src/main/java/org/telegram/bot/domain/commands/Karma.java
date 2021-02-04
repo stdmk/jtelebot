@@ -34,8 +34,8 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     private final UserService userService;
     private final UserStatsService userStatsService;
 
-    private final List<String> increaseSymbols = Arrays.asList(Emoji.THUMBS_UP.getEmoji(), "++");
-    private final List<String> decreaseSymbols = Arrays.asList(Emoji.THUMBS_DOWN.getEmoji(), "--");
+    private final List<String> increaseSymbols = Arrays.asList("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++");
+    private final List<String> decreaseSymbols = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
 
     @Override
     public SendMessage parse(Update update) throws Exception {
