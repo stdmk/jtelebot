@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210201153200-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="32"/>
+            <column name="commandname" value="time"/>
+            <column name="russifiedname" value="время"/>
+            <column name="enruname" value="dhtvz"/>
+            <column name="classname" value="userTime"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Время,Бот присылает текущее время пользователя,username, @username,время; время @username,можно указывать пользователя, отвечая этой командой на его сообщение"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20210201153200-2" author="stdmk">
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="karma" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20210201153200-3" author="stdmk">
+        <addDefaultValue  columnName="karma"
+                          defaultValue="0"
+                          schemaName="bot"
+                          tableName="userstats"/>
+    </changeSet>
+</databaseChangeLog>

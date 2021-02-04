@@ -3,10 +3,7 @@ package org.telegram.bot.utils;
 import lombok.Getter;
 
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -27,8 +24,16 @@ public class DateUtils {
         return date.format(dateTimeFormatter);
     }
 
+    public static String formatDate(ZonedDateTime date) {
+        return date.format(dateTimeFormatter);
+    }
+
     public static String formatTime(Integer seconds) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.of("UTC")).format(timeFormatter);
+    }
+
+    public static String formatTime(ZonedDateTime dateTime) {
+        return dateTime.format(timeFormatter);
     }
 
     public static String deltaDatesToString(LocalDateTime date1, LocalDateTime date2) {

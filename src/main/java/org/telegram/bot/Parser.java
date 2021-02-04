@@ -53,6 +53,9 @@ public class Parser extends Thread {
 
         try {
             PartialBotApiMethod<?> method = command.parse(update);
+            if (method == null) {
+                return;
+            }
             if (method instanceof SendMessage) {
                 SendMessage sendMessage = (SendMessage) method;
                 log.info("To " + message.getChatId() + ": " + sendMessage.getText());
