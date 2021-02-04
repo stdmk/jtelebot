@@ -23,6 +23,10 @@ public class GreatAdvice implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) throws Exception {
+        if (getTextMessage(update) != null) {
+            return null;
+        }
+
         final String API_URL = "http://fucking-great-advice.ru/api/random";
 
         ResponseEntity<FuckingGreateAdvice> response;
