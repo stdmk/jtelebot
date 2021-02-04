@@ -39,8 +39,9 @@ public class Password implements CommandParent<SendMessage> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setText(new RandomString(symbolsCount).nextString());
+        sendMessage.setText("`" + new RandomString(symbolsCount).nextString() + "`");
         sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
+        sendMessage.enableMarkdown(true);
 
         return sendMessage;
     }
