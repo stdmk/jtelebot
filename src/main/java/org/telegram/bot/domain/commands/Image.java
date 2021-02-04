@@ -72,7 +72,7 @@ public class Image implements CommandParent<SendPhoto> {
 
         SendPhoto sendPhoto = new SendPhoto();
 
-        sendPhoto.setPhoto(new InputFile(image, "image"));
+        sendPhoto.setPhoto(new InputFile(image, imageUrl.getUrl()));
         sendPhoto.setCaption("/image_" + imageUrl.getId());
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());

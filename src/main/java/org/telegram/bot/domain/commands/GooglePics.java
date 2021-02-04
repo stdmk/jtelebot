@@ -120,6 +120,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
                     .forEach(imageUrl -> {
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
                         inputMediaPhoto.setMedia(imageUrl.getUrl());
+                        inputMediaPhoto.setCaption("/image_" + imageUrl.getId());
 
                         images.add(inputMediaPhoto);
                     });

@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.InputStream;
@@ -70,7 +71,7 @@ public class Parser extends Thread {
                 try {
                     bot.execute(sendMediaGroup);
                 } catch (TelegramApiException e) {
-                    splitSendMediaGroup(sendMediaGroup);
+                    tryToSendOnePhoto(sendMediaGroup);
                 }
             } else if (method instanceof EditMessageText) {
                 EditMessageText editMessageText = (EditMessageText) method;
@@ -96,6 +97,41 @@ public class Parser extends Thread {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void tryToSendOnePhoto(SendMediaGroup sendMediaGroup) {
+        StringBuilder buf = new StringBuilder("Остальные картинки: \n");
+        sendMediaGroup.getMedias().stream().skip(1).forEach(inputMedia -> buf.append(inputMedia.getCaption()).append("\n"));
+
+        InputMedia inputMedia = sendMediaGroup.getMedias().get(0);
+        InputFile inputFile = new InputFile();
+        inputFile.setMedia(inputMedia.getMedia());
+
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setPhoto(inputFile);
+        sendPhoto.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+        sendPhoto.setChatId(sendMediaGroup.getChatId());
+        sendPhoto.setCaption(buf.toString());
+
+        try {
+            bot.execute(sendPhoto);
+        } catch (TelegramApiException telegramApiException) {
+            try {
+                sendPhoto.setPhoto(new InputFile(getFileFromUrl(inputMedia.getMedia(), 5000000), "image"));
+                bot.execute(sendPhoto);
+            } catch (Exception exception) {
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setChatId(sendMediaGroup.getChatId());
+                sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+                sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia() + "\n" + buf.toString());
+
+                try {
+                    bot.execute(sendMessage);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
