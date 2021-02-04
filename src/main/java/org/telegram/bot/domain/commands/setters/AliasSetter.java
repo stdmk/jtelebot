@@ -20,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -224,7 +225,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         if (i < 0) {
             return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
-        String aliasName = params.substring(0, i);
+        String aliasName = params.substring(0, i).toLowerCase(Locale.ROOT);
         String aliasValue = params.substring(i + 1);
 
         CommandProperties setProperties = commandPropertiesService.getCommand(Set.class);
