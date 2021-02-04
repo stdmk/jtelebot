@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.InputStream;
+
 import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @AllArgsConstructor
@@ -57,7 +59,11 @@ public class Parser extends Thread {
             } else if (method instanceof SendPhoto) {
                 SendPhoto sendPhoto = (SendPhoto) method;
                 log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
-                bot.execute(sendPhoto);
+                try {
+                    bot.execute(sendPhoto);
+                } catch (TelegramApiException e) {
+                    tryToDeliverTheMessage(sendPhoto);
+                }
             } else if (method instanceof SendMediaGroup) {
                 SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
                 log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
@@ -124,5 +130,24 @@ public class Parser extends Thread {
                         }
                     }
                 });
+    }
+
+    private void tryToDeliverTheMessage(SendPhoto sendPhoto) throws TelegramApiException {
+        String imageUrl = sendPhoto.getPhoto().getAttachName();
+        try {
+            InputStream image = getFileFromUrl(imageUrl, 5000000);
+            sendPhoto.setPhoto(new InputFile(image, "google"));
+
+            bot.execute(sendPhoto);
+        } catch (Exception e) {
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
+            sendMessage.setChatId(sendPhoto.getChatId());
+            sendMessage.setText(sendPhoto.getCaption() + "\nНе удалось загрузить картинку по адресу: " + imageUrl);
+            sendMessage.enableHtml(true);
+            sendMessage.disableWebPagePreview();
+
+            bot.execute(sendMessage);
+        }
     }
 }
