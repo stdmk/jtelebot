@@ -61,4 +61,8 @@ public class TextUtils {
     public static Boolean startsWithElementInList(String text, List<String> symbolsList) {
         return symbolsList.stream().anyMatch(text::startsWith);
     }
+
+    public static Boolean equalsWithElementInList(String text, List<String> symbolsList) {
+        return symbolsList.stream().anyMatch(text::equals);
+    }
 }
