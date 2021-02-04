@@ -226,7 +226,7 @@ public class Top implements CommandParent<SendMessage> {
 
         return sortParamList
                 .stream()
-                .filter(sortParamValue -> startsWithElementInList(name, sortParamValue.getParamNames()))
+                .filter(sortParamValue -> startsWithElementInList(name.toLowerCase(Locale.ROOT), sortParamValue.getParamNames()))
                 .findFirst()
                 .orElse(null);
     }
