@@ -16,10 +16,17 @@ public class Truth implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        String textMessage = getTextMessage(update);
+        Integer messageIdToReply = message.getMessageId();
+
+        Message repliedMessage = message.getReplyToMessage();
+        if (repliedMessage != null & textMessage == null) {
+            messageIdToReply = repliedMessage.getMessageId();
+        }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setReplyToMessageId(messageIdToReply);
         sendMessage.enableMarkdown(true);
         sendMessage.setText(buildResponseMessage());
 

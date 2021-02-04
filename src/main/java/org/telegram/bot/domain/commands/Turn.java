@@ -30,23 +30,29 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         final String enLayout = " 1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./\\!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?|";
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
+        Integer messageIdToReply = message.getMessageId();
 
         StringBuilder buf = new StringBuilder();
         if (textMessage == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        } else {
-            for (char textChar : textMessage.toCharArray()) {
-                try {
-                    buf.append(ruLayout.charAt(enLayout.indexOf(textChar)));
-                } catch (Exception ignored) {
+            Message repliedMessage = message.getReplyToMessage();
+            if (repliedMessage != null) {
+                textMessage = repliedMessage.getText();
+                messageIdToReply = repliedMessage.getMessageId();
+            } else {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+        }
+        for (char textChar : textMessage.toCharArray()) {
+            try {
+                buf.append(ruLayout.charAt(enLayout.indexOf(textChar)));
+            } catch (Exception ignored) {
 
-                }
             }
         }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setReplyToMessageId(messageIdToReply);
         sendMessage.setText(buf.toString());
 
         return sendMessage;

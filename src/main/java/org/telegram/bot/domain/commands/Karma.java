@@ -48,7 +48,13 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null) {
-            UserStats userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+            UserStats userStats;
+            Message repliedMessage = message.getReplyToMessage();
+            if (repliedMessage != null) {
+                userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(repliedMessage.getFrom().getId()));
+            } else {
+                userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+            }
 
             String karmaEmoji;
             if (userStats.getNumberOfKarma() >= 0) {
@@ -57,7 +63,8 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
             }
 
-            buf.append(karmaEmoji).append("Карма: *").append(userStats.getNumberOfKarma()).append("* (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
+            buf.append("*").append(userStats.getUser().getUsername()).append("*\n")
+                .append(karmaEmoji).append("Карма: *").append(userStats.getNumberOfKarma()).append("* (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
                 .append(Emoji.RED_HEART.getEmoji()).append("Доброта: *").append(userStats.getNumberOfGoodness()).append("* (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
                 .append(Emoji.BROKEN_HEART.getEmoji()).append("Злобота: *").append(userStats.getNumberOfWickedness()).append("* (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
         } else {

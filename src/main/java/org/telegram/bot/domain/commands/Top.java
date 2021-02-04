@@ -47,12 +47,19 @@ public class Top implements CommandParent<SendMessage> {
         Chat chat = chatService.get(message.getChatId());
 
         //TODO переделать на айди, если пользователь без юзернейма
+        User user;
         if (textMessage == null) {
-            responseText = getTopOfUsername(chat, userService.get(message.getFrom().getId()));
+            Message repliedMessage = message.getReplyToMessage();
+            if (repliedMessage != null) {
+                user = userService.get(repliedMessage.getFrom().getId());
+            } else {
+                user = userService.get(message.getFrom().getId());
+            }
+            responseText = getTopOfUser(chat, user);
         } else {
-            User user = userService.get(textMessage);
+            user = userService.get(textMessage);
             if (user != null) {
-                responseText = getTopOfUsername(chat, user);
+                responseText = getTopOfUser(chat, user);
             } else {
                 responseText = getTopListOfUsers(chat, textMessage);
             }
@@ -80,7 +87,7 @@ public class Top implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String getTopOfUsername(Chat chat, User user) throws BotException {
+    private String getTopOfUser(Chat chat, User user) throws BotException {
         log.debug("Request to get top of user by username {}", user.getUsername());
 
         Map<String, String> fieldsOfStats = new LinkedHashMap<>();

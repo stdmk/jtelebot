@@ -31,7 +31,12 @@ public class Getid implements CommandParent<SendMessage> {
             if (user == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
+            responseText.append("Айди ").append(user.getUsername()).append(": `").append(user.getUserId()).append("`\n");
+        }
 
+        Message repliedMessage = message.getReplyToMessage();
+        if (repliedMessage != null) {
+            User user = userService.get(repliedMessage.getFrom().getId());
             responseText.append("Айди ").append(user.getUsername()).append(": `").append(user.getUserId()).append("`\n");
         }
 
