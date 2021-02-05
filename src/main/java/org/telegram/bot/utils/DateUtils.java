@@ -11,21 +11,27 @@ public class DateUtils {
 
     private static final String dateTimeFormatString = "dd.MM.yyyy HH:mm:ss";
     private static final String timeFormatString = "HH:mm:ss";
+    private static final String dateFormatString = "dd.MM.yyyy";
 
-    public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
-    public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
-    public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(timeFormatString);
+    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(timeFormatString);
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(dateFormatString);
 
     public static String formatDate(Date date) {
         return dateTimeFormat.format(date);
     }
 
-    public static String formatDate(LocalDateTime date) {
-        return date.format(dateTimeFormatter);
+    public static String formatDate(LocalDateTime dateTime) {
+        return dateFormatter.format(dateTime);
     }
 
-    public static String formatDate(ZonedDateTime date) {
-        return date.format(dateTimeFormatter);
+    public static String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(dateTimeFormatter);
+    }
+
+    public static String formatDateTime(ZonedDateTime dateTime) {
+        return dateTime.format(dateTimeFormatter);
     }
 
     public static String formatTime(Integer seconds) {

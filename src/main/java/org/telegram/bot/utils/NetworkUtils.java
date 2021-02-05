@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -37,6 +38,10 @@ public class NetworkUtils {
 
     public static String readStringFromURL(String url) throws IOException {
         return IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
+    }
+
+    public static String readStringFromURL(String url, Charset encoding) throws IOException {
+        return IOUtils.toString(new URL(url), encoding);
     }
 
     public static SyndFeed getRssFeedFromUrl(String url) {
