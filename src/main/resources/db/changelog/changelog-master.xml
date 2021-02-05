@@ -70,4 +70,5 @@
     <include file="db/changelog/202102031200000_UserStats_add_column_goodness.xml"/>
     <include file="db/changelog/20210203134600_UserStats_add_column_wickedness.xml"/>
     <include file="db/changelog/20210204122500_added_command_Time.xml"/>
+    <include file="db/changelog/20210205095600_added_command_Exchange.xml"/>
 </databaseChangeLog>
