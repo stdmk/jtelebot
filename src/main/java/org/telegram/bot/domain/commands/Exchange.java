@@ -71,7 +71,9 @@ public class Exchange implements CommandParent<SendMessage> {
         if (valute == null) {
             return "Не нашёл валюту <b>" + code + "</b>\nСписок доступных: " + prepareResponseTextWithValuteList(valuteList);
         } else {
-            return "<b>" + valute.getName() + "</b>\n" + valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB";
+            return "<b>" + valute.getName() + "</b>\n" +
+                    valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB\n" +
+                   "1 RUB = " + Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / Float.parseFloat(valute.getValue().replaceAll(",", ".")) + " " + valute.getCharCode();
         }
     }
 
