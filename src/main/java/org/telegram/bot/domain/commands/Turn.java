@@ -60,7 +60,9 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
-        String mistakenText = getMistakenText(getMessageFromUpdate(update).getText());
+        Message message = getMessageFromUpdate(update);
+        String textMessage = message.getText();
+        String mistakenText = getMistakenText(textMessage);
 
         if (mistakenText != null) {
             String commandName = commandPropertiesService.getCommand(Turn.class).getCommandName();
@@ -68,6 +70,8 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
             Parser parser = new Parser(bot, command, update);
             parser.start();
+
+            waitForThread(parser, message, textMessage);
         }
     }
 
