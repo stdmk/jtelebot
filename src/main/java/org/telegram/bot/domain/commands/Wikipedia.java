@@ -74,11 +74,11 @@ public class Wikipedia implements CommandParent<SendMessage> {
                 List<String> titles = searchPageTitles(textMessage);
 
                 if (titles.isEmpty()) {
-                    responseText = "ничего не нашёл по такому запросу";
+                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
                 } else if (titles.size() == 1) {
                     Wiki wiki1 = getWiki(titles.get(0));
                     if (wiki1 == null || wiki1.getText().equals("")) {
-                        responseText = "ничего не нашёл по такому запросу";
+                        responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
                     } else {
                         responseText = prepareSearchResponse(wiki1);
                     }

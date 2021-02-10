@@ -101,7 +101,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             GooglePicsSearchData googlePicsSearchData = getResultOfSearch(textMessage, token);
 
             if (googlePicsSearchData.getItems() == null) {
-                throw new BotException("Ничего не нашёл по такому запросу");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             }
             List<ImageUrl> imageUrlList = googlePicsSearchData.getItems()
                     .stream()
