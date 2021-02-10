@@ -48,7 +48,7 @@ public class NewYear implements CommandParent<SendMessage> {
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText("До нового года осталось: *" + deltaDatesToString(dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay(), dateTimeNow.toLocalDateTime()) +
+        sendMessage.setText("До нового года осталось: *" + deltaDatesToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
                             "* (" + userTimeZone.toString() + ")");
 
         return sendMessage;
