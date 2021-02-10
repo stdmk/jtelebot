@@ -22,7 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.telegram.bot.utils.TextUtils.equalsWithElementInList;
+import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 
 @Component
 @AllArgsConstructor
@@ -137,9 +137,9 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         String textMessage = message.getText();
         int value = 0;
 
-        if (equalsWithElementInList(textMessage, increaseSymbols)) {
+        if (startsWithElementInList(textMessage, increaseSymbols)) {
             value = 1;
-        } else if (equalsWithElementInList(textMessage, decreaseSymbols)) {
+        } else if (startsWithElementInList(textMessage, decreaseSymbols)) {
             value = -1;
         }
 
