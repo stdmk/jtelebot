@@ -68,7 +68,7 @@ public class Top implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
+        sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
         return sendMessage;
@@ -77,7 +77,7 @@ public class Top implements CommandParent<SendMessage> {
     public SendMessage getTopByChat(Chat chat) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chat.getChatId().toString());
-        sendMessage.enableMarkdown(true);
+        sendMessage.enableHtml(true);
         try {
             sendMessage.setText(getTopListOfUsers(chat, getSortParamByName("месяц") + "\nСтатистика за месяц сброшена"));
         } catch (BotException ignored) {
@@ -119,16 +119,16 @@ public class Top implements CommandParent<SendMessage> {
         fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "Голосовых", userStats.getNumberOfVoices().toString());
         fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "Команд", userStats.getNumberOfCommands().toString());
 
-        buf.append("*").append(userStats.getUser().getUsername()).append("\n").append("За месяц:*\n");
+        buf.append("<b>").append(userStats.getUser().getUsername()).append("</b>\n").append("<u>За месяц:</u>\n");
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
-                buf.append(key).append(": *").append(value).append("*\n");
+                buf.append(key).append(": <b>").append(value).append("</b>\n");
             }
         });
-        buf.append("-----------------------------\n");
+        buf.append("\n");
 
         fieldsOfStats.clear();
-        buf.append("*Всего:*\n");
+        buf.append("<u>Всего:</u>\n");
 
         if (userStats.getNumberOfAllKarma() >= 0) {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
@@ -152,7 +152,7 @@ public class Top implements CommandParent<SendMessage> {
 
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
-                buf.append(key).append(": *").append(value).append("*\n");
+                buf.append(key).append(": <b>").append(value).append("</b>\n");
             }
         });
 
@@ -183,7 +183,7 @@ public class Top implements CommandParent<SendMessage> {
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
         int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(sortParam, userStatsList);
 
-        StringBuilder responseText = new StringBuilder("*Топ ").append(sortParam.getParamNames().get(0)).append(":*\n```\n");
+        StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n<code>\n");
         AtomicInteger counter = new AtomicInteger(1);
         Method finalMethod = sortParam.getMethod();
 
@@ -207,7 +207,7 @@ public class Top implements CommandParent<SendMessage> {
             }
         });
 
-        return responseText.append("```").toString();
+        return responseText.append("</code>").toString();
     }
 
     private SortParam getSortParamByName(String name) {
