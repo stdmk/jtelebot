@@ -46,7 +46,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
         }
 
         if (textMessage == null) {
-            commandWaitingService.add(message, WebScreen.class);
+            commandWaitingService.add(message, this.getClass());
 
             throw new BotException("теперь напиши мне url-адрес");
         } else {

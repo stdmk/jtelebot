@@ -60,7 +60,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
         if (textMessage == null) {
             log.debug("Empty params. Waiting to continue...");
-            commandWaitingService.add(message, GooglePics.class);
+            commandWaitingService.add(message, this.getClass());
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());

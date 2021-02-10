@@ -49,7 +49,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
         }
 
         if (textMessage == null) {
-            commandWaitingService.add(message, Wikipedia.class);
+            commandWaitingService.add(message, this.getClass());
 
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {

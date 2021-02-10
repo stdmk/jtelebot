@@ -43,7 +43,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
         }
 
         if (textMessage == null) {
-            commandWaitingService.add(message, WolframAlpha.class);
+            commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else {
             responseText = getWolframAlphaSearchResult(token, textMessage);

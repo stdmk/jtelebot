@@ -66,7 +66,7 @@ public class Weather implements CommandParent<SendMessage> {
             User user = userService.get(userId);
             UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
             if (userCity == null) {
-                commandWaitingService.add(message, Weather.class);
+                commandWaitingService.add(message, this.getClass());
 
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setChatId(message.getChatId().toString());

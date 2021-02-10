@@ -51,7 +51,7 @@ public class Where implements CommandParent<SendMessage> {
 
         String responseText;
         if (textMessage == null) {
-            commandWaitingService.add(message, Where.class);
+            commandWaitingService.add(message, this.getClass());
 
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {

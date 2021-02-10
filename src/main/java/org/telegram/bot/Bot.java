@@ -81,16 +81,16 @@ public class Bot extends TelegramLongPollingBot {
             textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
         }
 
-        CommandProperties commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
-        if (commandProperties == null) {
-            CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(chatId), userService.get(userId));
-            if (commandWaiting == null) {
-                return;
-            }
+        CommandProperties commandProperties;
+        CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(chatId), userService.get(userId));
+        if (commandWaiting != null) {
             commandProperties = commandPropertiesService.getCommand(commandWaiting.getCommandName());
-            if (commandProperties == null) {
-                return;
-            }
+        } else {
+            commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
+        }
+
+        if (commandProperties == null) {
+            return;
         }
 
         CommandParent<?> command = null;

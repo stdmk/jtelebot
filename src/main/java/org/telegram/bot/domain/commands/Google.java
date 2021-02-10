@@ -55,7 +55,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (textMessage == null) {
-            commandWaitingService.add(message, Google.class);
+            commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
             long googleResultSearchId;
