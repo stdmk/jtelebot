@@ -64,10 +64,15 @@ public class Tv implements CommandParent<SendMessage> {
             } else if (tvChannelList.size() == 1) {
                 responseText = buildResponseTextWithProgramsToChannel(tvChannelList.get(0), getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName());
             } else {
-                ZoneId zoneId = getUserZoneId(message);
-                List<TvProgram> tvProgramList = tvProgramService.get(textMessage, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime());
+                TvChannel tvChannel = tvChannelList.stream().filter(channel -> channel.getName().equalsIgnoreCase(textMessage)).findFirst().orElse(null);
+                if (tvChannel != null) {
+                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName());
+                } else {
+                    ZoneId zoneId = getUserZoneId(message);
+                    List<TvProgram> tvProgramList = tvProgramService.get(textMessage, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime());
 
-                responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandPropertiesService.getCommand(this.getClass()).getCommandName(), zoneId);
+                    responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandPropertiesService.getCommand(this.getClass()).getCommandName(), zoneId);
+                }
             }
         }
 
@@ -118,7 +123,7 @@ public class Tv implements CommandParent<SendMessage> {
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
         long programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
 
-        return "<u>" + tvProgram.getChannel().getName() + "</u>\n" +
+        return "<u>" + tvProgram.getChannel().getName() + "</u>\n\n" +
                 "<b>" + tvProgram.getTitle() + "</b> " +
                 getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration, zoneOffSet) + "\n" + category +
                 "Начало: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +
@@ -130,7 +135,7 @@ public class Tv implements CommandParent<SendMessage> {
     private String buildResponseTextWithProgramsToChannel(TvChannel tvChannel, ZoneId zoneId, String commandName) {
         StringBuilder buf = new StringBuilder();
 
-        buf.append("<u>").append(tvChannel.getName()).append("</u>").append(" /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n");
+        buf.append("<u>").append(tvChannel.getName()).append("</u>").append(" /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n\n");
 
         List<TvProgram> tvProgramList = tvProgramService.get(tvChannel, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime());
 
@@ -140,11 +145,11 @@ public class Tv implements CommandParent<SendMessage> {
         buf.append("<b>[").append(formatTvTime(currentTvProgram.getStart(), zoneId)).append("]</b> ")
                 .append(currentTvProgram.getTitle())
                 .append(" ").append(getProgramProgress(currentTvProgram.getStart(), currentTvProgram.getStop(), zoneOffSet)).append("\n")
-                .append("/").append(commandName).append("_pr").append(currentTvProgram.getId()).append("\n");
+                .append("/").append(commandName).append("_pr").append(currentTvProgram.getId()).append("\n\n");
 
         tvProgramList.stream().skip(1).forEach(tvProgram -> buf
                 .append("<b>[").append(formatTvTime(tvProgram.getStart(), zoneId)).append("]</b> ")
-                .append(tvProgram.getTitle()).append("\n/").append(commandName).append("_pr").append(tvProgram.getId()).append("\n")
+                .append(tvProgram.getTitle()).append("\n/").append(commandName).append("_pr").append(tvProgram.getId()).append("\n\n")
         );
 
         return buf.toString();
