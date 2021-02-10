@@ -63,7 +63,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
                 WOLFRAM_ALPHA_API_URL + "appid=" + token + "&input=" + requestText, WolframAlphaData.class);
 
         if (response.getBody() == null || response.getBody().getQueryresult() == null || response.getBody().getQueryresult().getPods() == null) {
-            return "ничего не нашёл по такому запросу";
+            return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         }
 
         return response.getBody().getQueryresult().getPods().get(0).getSubpods().get(0).getPlaintext();

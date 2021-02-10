@@ -9,14 +9,19 @@ import java.util.Date;
 
 public class DateUtils {
 
-    private static final String dateTimeFormatString = "dd.MM.yyyy HH:mm:ss";
-    private static final String timeFormatString = "HH:mm:ss";
-    private static final String dateFormatString = "dd.MM.yyyy";
+    private static final String DATE_TIME_FORMAT_STRING = "dd.MM.yyyy HH:mm:ss";
+    private static final String TIME_FORMAT_STRING = "HH:mm:ss";
+    private static final String DATE_FORMAT_STRING = "dd.MM.yyyy";
+    private static final String DATE_TIME_TV_FORMAT_STRING = "dd.MM.yyyy HH:mm";
+    private static final String TIME_TV_FORMAT_STRING = "HH:mm";
 
-    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(dateTimeFormatString);
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormatString);
-    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(timeFormatString);
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(dateFormatString);
+    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
+    private static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_TV_FORMAT_STRING);
+    private static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_TV_FORMAT_STRING);
+
 
     public static String formatDate(Date date) {
         return dateTimeFormat.format(date);
@@ -24,6 +29,10 @@ public class DateUtils {
 
     public static String formatDate(LocalDateTime dateTime) {
         return dateFormatter.format(dateTime);
+    }
+
+    public static String formatDate(ZonedDateTime date) {
+        return date.format(dateTimeFormatter);
     }
 
     public static String formatDateTime(LocalDateTime dateTime) {
@@ -34,22 +43,41 @@ public class DateUtils {
         return dateTime.format(dateTimeFormatter);
     }
 
+    public static String formatTvDateTime(LocalDateTime dateTime, ZoneId zoneId) {
+        return dateTimeTvFormatter.format(ZonedDateTime.of(dateTime, zoneId));
+    }
+
     public static String formatTime(Integer seconds) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.of("UTC")).format(timeFormatter);
+    }
+
+    public static String formatTvTime(LocalDateTime dateTime, ZoneId zoneId) {
+        return timeTvFormatter.format(ZonedDateTime.of(dateTime, zoneId));
     }
 
     public static String formatTime(ZonedDateTime dateTime) {
         return dateTime.format(timeFormatter);
     }
 
-    public static String deltaDatesToString(LocalDateTime date1, LocalDateTime date2) {
+    public static String deltaDatesToString(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
+        return deltaDatesToString(getDuration(dateTimeStart, dateTimeEnd));
+    }
+
+    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
         ZoneId zoneId = ZoneId.systemDefault();
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
 
-        long start = date1.toInstant(zoneOffSet).toEpochMilli();
-        long end = date2.toInstant(zoneOffSet).toEpochMilli();
+        return getDuration(dateTimeStart, dateTimeEnd, zoneOffSet);
+    }
 
-        return deltaDatesToString(start - end);
+    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneId zoneId) {
+        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
+
+        return getDuration(dateTimeStart, dateTimeEnd, zoneOffSet);
+    }
+
+    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneOffset zoneOffset) {
+        return dateTimeEnd.toInstant(zoneOffset).toEpochMilli() - dateTimeStart.toInstant(zoneOffset).toEpochMilli();
     }
 
     public static String deltaDatesToString(long milliseconds) {

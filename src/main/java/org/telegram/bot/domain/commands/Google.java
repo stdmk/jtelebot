@@ -94,7 +94,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 
             if (googleSearchData.getItems() == null) {
-                throw new BotException("Ничего не нашёл по такому запросу");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             }
 
             List<GoogleSearchResult> googleSearchResults = googleSearchData.getItems()

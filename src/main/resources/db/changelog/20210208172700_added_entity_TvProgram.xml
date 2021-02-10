@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20210208172700-1" author="stdmk">
+        <createTable tableName="tvprogram"  schemaName="bot">
+            <column name="id" autoIncrement="true" type="integer">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="channelid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="title" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="category" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="desc" type="varchar(2048)">
+                <constraints nullable="true" />
+            </column>
+            <column name="start" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="stop" type="datetime">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

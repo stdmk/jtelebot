@@ -67,8 +67,12 @@
     <include file="db/changelog/20210201153200_added_command_Karma.xml"/>
     <include file="db/changelog/20210202104000_insert_Speech_internalError.xml"/>
     <include file="db/changelog/20210203100600_Top_help_correction.xml"/>
-    <include file="db/changelog/202102031200000_UserStats_add_column_goodness.xml"/>
+    <include file="db/changelog/20210203120000_UserStats_add_column_goodness.xml"/>
     <include file="db/changelog/20210203134600_UserStats_add_column_wickedness.xml"/>
     <include file="db/changelog/20210204122500_added_command_Time.xml"/>
     <include file="db/changelog/20210205095600_added_command_Exchange.xml"/>
+    <include file="db/changelog/20210208172500_added_entity_TvChannel.xml"/>
+    <include file="db/changelog/20210208172700_added_entity_TvProgram.xml"/>
+    <include file="db/changelog/20210209163400_added_command_Tv.xml"/>
+    <include file="db/changelog/20210210123000_insert_Speech_foundNothing.xml"/>
 </databaseChangeLog>
