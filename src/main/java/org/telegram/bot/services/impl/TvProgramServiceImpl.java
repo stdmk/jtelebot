@@ -9,7 +9,6 @@ import org.telegram.bot.domain.entities.TvProgram;
 import org.telegram.bot.repositories.TvProgramRepository;
 import org.telegram.bot.services.TvProgramService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 

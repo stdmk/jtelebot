@@ -65,7 +65,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         String mistakenText = getMistakenText(textMessage);
 
         if (mistakenText != null) {
-            String commandName = commandPropertiesService.getCommand(Turn.class).getCommandName();
+            String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
             update.getMessage().setText(commandName + " " + mistakenText);
 
             Parser parser = new Parser(bot, command, update);

@@ -228,7 +228,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         String aliasName = params.substring(0, i).toLowerCase(Locale.ROOT);
         String aliasValue = params.substring(i + 1);
 
-        CommandProperties setProperties = commandPropertiesService.getCommand(Set.class);
+        CommandProperties setProperties = commandPropertiesService.getCommand(this.getClass());
         if (aliasValue.startsWith(setProperties.getCommandName()) ||
                 aliasValue.startsWith(setProperties.getEnRuName()) ||
                 aliasValue.startsWith(setProperties.getRussifiedName())) {

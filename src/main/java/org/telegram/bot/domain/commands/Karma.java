@@ -144,7 +144,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         if (value != 0 && message.getReplyToMessage() != null) {
-            CommandProperties commandProperties = commandPropertiesService.getCommand(Karma.class);
+            CommandProperties commandProperties = commandPropertiesService.getCommand(this.getClass());
             AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getFrom().getId(), message.getChatId());
             if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
                 update.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);

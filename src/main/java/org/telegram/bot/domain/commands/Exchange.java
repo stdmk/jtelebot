@@ -79,7 +79,7 @@ public class Exchange implements CommandParent<SendMessage> {
 
     private String prepareResponseTextWithValuteList(List<Valute> valuteList) {
         StringBuilder buf = new StringBuilder();
-        String commandName = commandPropertiesService.getCommand(Exchange.class).getCommandName();
+        String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
 
         valuteList
                 .forEach(valute -> buf.append(valute.getName()).append(" - /").append(commandName).append("_").append(valute.getCharCode().toLowerCase(Locale.ROOT)).append("\n"));
