@@ -20,6 +20,8 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,11 +94,20 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             sendPhoto.setChatId(message.getChatId().toString());
 
             return sendPhoto;
-        } else if (textMessage.startsWith("http")) {
-            log.debug("Request to get news by url {}", textMessage);
-            responseText = getAllNews(textMessage);
         } else {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            log.debug("Request to get news by {}", textMessage);
+            org.telegram.bot.domain.entities.News news = newsService.get(chat, textMessage);
+            String url;
+            if (news != null) {
+                url = news.getNewsSource().getUrl();
+            } else {
+                try {
+                    url = new URL(textMessage).toString();
+                } catch (MalformedURLException e) {
+                    throw new BotException("Ошибочный адрес url");
+                }
+            }
+            responseText = getAllNews(url);
         }
 
         SendMessage sendMessage = new SendMessage();
