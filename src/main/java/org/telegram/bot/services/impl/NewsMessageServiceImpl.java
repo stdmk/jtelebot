@@ -58,11 +58,17 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         NewsMessage newsMessage = new NewsMessage();
         newsMessage.setTitle(syndEntry.getTitle());
         newsMessage.setLink(syndEntry.getLink());
-        String descBuf = cutHtmlTags(syndEntry.getDescription().getValue());
-        if (descBuf.length() > 768) {
-            descBuf = descBuf.substring(0, 767) + "...";
+
+        String description;
+        if (syndEntry.getDescription() == null) {
+            description = "";
+        } else {
+            description = cutHtmlTags(syndEntry.getDescription().getValue());
+            if (description.length() > 768) {
+                description = description.substring(0, 767) + "...";
+            }
         }
-        newsMessage.setDescription(reduceSpaces(descBuf));
+        newsMessage.setDescription(reduceSpaces(description));
         newsMessage.setPubDate(syndEntry.getPublishedDate());
         if (!syndEntry.getEnclosures().isEmpty()) {
             newsMessage.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());
