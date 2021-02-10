@@ -33,7 +33,10 @@ public class Image implements CommandParent<SendPhoto> {
         ImageUrl imageUrl;
 
         if (textMessage == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            imageUrl = imageUrlService.getRandom();
+            if (imageUrl == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
         } else if (textMessage.startsWith("h")) {
             URL url;
             try {

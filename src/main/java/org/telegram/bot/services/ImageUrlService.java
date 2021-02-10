@@ -25,6 +25,13 @@ public interface ImageUrlService {
     ImageUrl get(String url);
 
     /**
+     * Get random ImageUrl.
+     *
+     * @return the persisted entity.
+     */
+    ImageUrl getRandom();
+
+    /**
      * Save a ImageUrl.
      *
      * @param imageUrl the entity to save.

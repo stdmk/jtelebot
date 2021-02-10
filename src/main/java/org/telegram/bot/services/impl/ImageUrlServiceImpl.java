@@ -10,6 +10,8 @@ import org.telegram.bot.services.ImageUrlService;
 
 import java.util.List;
 
+import static org.telegram.bot.utils.MathUtils.getRandomInRange;
+
 @Service
 @AllArgsConstructor
 public class ImageUrlServiceImpl implements ImageUrlService {
@@ -28,6 +30,17 @@ public class ImageUrlServiceImpl implements ImageUrlService {
     public ImageUrl get(String url) {
         log.debug("Request to get ImageUrl by url: {}", url);
         return imageUrlRepository.findFirstByUrl(url);
+    }
+
+    @Override
+    public ImageUrl getRandom() {
+        log.debug("Request to get random ImageUrl");
+        Long max = imageUrlRepository.getImageUrlsCount();
+        if (max < 2) {
+            return null;
+        }
+
+        return get(getRandomInRange(1L, max));
     }
 
     @Override
