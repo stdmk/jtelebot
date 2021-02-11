@@ -1,10 +1,10 @@
 package org.telegram.bot.domain.commands;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.json.XML;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -15,6 +15,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -97,53 +99,49 @@ public class Exchange implements CommandParent<SendMessage> {
 
     private List<Valute> getValCursData() throws BotException {
         final String xmlUrl = "http://www.cbr.ru/scripts/XML_daily.asp";
-        ObjectMapper mapper = new ObjectMapper();
-        ValData valData;
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+        ValCurs valCurs;
 
         try {
-            valData = mapper.readValue(XML.toJSONObject(readStringFromURL(xmlUrl, Charset.forName("windows-1251"))).toString(), ValData.class);
+            valCurs = xmlMapper.readValue(readStringFromURL(xmlUrl, Charset.forName("windows-1251")), ValCurs.class);
         } catch (IOException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        return valData.getValCurs().getValute();
-    }
-
-    @Data
-    private static class ValData {
-        @JsonProperty("ValCurs")
-        private ValCurs valCurs;
+        return valCurs.getValute();
     }
 
     @Data
     private static class ValCurs {
+        @XmlAttribute
         private String name;
 
-        @JsonProperty("Date")
+        @XmlAttribute(name = "Date")
         private String date;
 
-        @JsonProperty("Valute")
+        @XmlElement(name = "Valute")
         private List<Valute> valute;
     }
 
     @Data
     private static class Valute {
-        @JsonProperty("CharCode")
+        @XmlElement(name = "CharCode")
         private String charCode;
 
-        @JsonProperty("Value")
+        @XmlElement(name = "Value")
         private String value;
 
-        @JsonProperty("ID")
+        @XmlElement(name = "ID")
         private String id;
 
-        @JsonProperty("Nominal")
+        @XmlElement(name = "Nominal")
         private String nominal;
 
-        @JsonProperty("NumCode")
+        @XmlElement(name = "NumCode")
         private String numCode;
 
-        @JsonProperty("Name")
+        @XmlElement(name = "Name")
         private String name;
     }
 }

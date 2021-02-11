@@ -1,12 +1,11 @@
 package org.telegram.bot.timers;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.io.FileUtils;
-import org.json.XML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,6 +18,9 @@ import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
 import org.telegram.bot.services.config.PropertiesConfig;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlValue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,6 +33,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
 @Component
 @AllArgsConstructor
@@ -71,37 +75,41 @@ public class TvProgramDownloaderTimer extends TimerParent {
                 return;
             }
 
-            TvData tvData;
+            Tv tv;
             try {
-                tvData = getNewTvData();
+                tv = getNewTvData();
             } catch (IOException e) {
                 log.error("Unable to read new TvData: " + e.getMessage());
                 return;
             }
 
-            transferTvProgramDataToDb(tvData);
+            transferTvProgramDataToDb(tv);
 
-            timer.setLastAlarmDt(nextAlarm);
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow.plusDays(1)));
             timerService.save(timer);
+
+            log.info("Timer for downloading and transfering tv-program completed successfully");
         }
     }
 
-    private TvData getNewTvData() throws IOException {
+    private Tv getNewTvData() throws IOException {
         ZipFile zipFile = new ZipFile(TV_PROGRAM_DATA_FILE_NAME);
         ZipEntry entry = zipFile.entries().nextElement();
+
         Reader reader = new InputStreamReader(zipFile.getInputStream(entry), StandardCharsets.UTF_8);
 
-        ObjectMapper mapper = new ObjectMapper();
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
 
-        return mapper.readValue(XML.toJSONObject(reader).toString(), TvData.class);
+        return xmlMapper.readValue(reader, Tv.class);
     }
 
-    private void transferTvProgramDataToDb(TvData tvData) {
+    private void transferTvProgramDataToDb(Tv tv) {
         tvChannelService.clearTable();
-        tvChannelService.save(mapChannelToEntity(tvData.getTv().getChannel()));
+        tvChannelService.save(mapChannelToEntity(tv.getChannel()));
 
         tvProgramService.clearTable();
-        tvProgramService.save(mapProgramToEntity(tvData.getTv().getProgramme()));
+        tvProgramService.save(mapProgramToEntity(tv.getProgramme()));
     }
 
     private TvChannel mapChannelToEntity(Channel channel) {
@@ -147,19 +155,12 @@ public class TvProgramDownloaderTimer extends TimerParent {
     }
 
     @Data
-    private static class TvData {
-        private Tv tv;
-    }
-
-    @Data
     private static class Tv {
-        @JsonIgnore
-        @JsonProperty("generator-info-name")
-        private Object generatorInfoName;
+        @XmlAttribute(name = "generator-info-name")
+        private String generatorInfoName;
 
-        @JsonIgnore
-        @JsonProperty("generator-info-url")
-        private Object generatorInfoUrl;
+        @XmlAttribute(name = "generator-info-url")
+        private String generatorInfoUrl;
 
         private List<Channel> channel;
 
@@ -168,28 +169,43 @@ public class TvProgramDownloaderTimer extends TimerParent {
 
     @Data
     private static class Channel {
-        @JsonProperty("display-name")
+        private Integer id;
+
+        @XmlElement(name = "display-name")
         private Content displayName;
 
-        @JsonIgnore
-        private Object icon;
-
-        private Integer id;
+        @XmlElement
+        private Icon icon;
     }
 
     @Data
     private static class Program {
         private String stop;
+
         private String start;
+
         private Integer channel;
+
+        @XmlElement
         private Content title;
+
+        @XmlElement
         private Content category;
+
+        @XmlElement
         private Content desc;
     }
 
     @Data
     private static class Content {
         private String lang;
+
+        @XmlValue
         private String content;
+    }
+
+    @Data
+    private static class Icon {
+        private String src;
     }
 }

@@ -106,6 +106,10 @@ public class DateUtils {
         return responseText.toString();
     }
 
+    public static LocalDateTime atStartOfDay(LocalDateTime localDateTime) {
+        return localDateTime.toLocalDate().atStartOfDay(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
     @Getter
     public enum TimeZones {
         MINUS_ONE("GMT-01:00"),

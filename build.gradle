@@ -28,6 +28,7 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
     compile group: 'com.rometools', name: 'rome', version: '1.15.0'
+    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.3'
 }
 
 test {
