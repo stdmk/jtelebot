@@ -56,7 +56,7 @@ public class Tv implements CommandParent<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            responseText = buildResponseTextWithProgramDetails(tvProgram, getUserZoneId(message));
+            responseText = buildResponseTextWithProgramDetails(tvProgram, getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName());
         } else {
             ZoneId zoneId = getUserZoneId(message);
             String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
@@ -107,7 +107,7 @@ public class Tv implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
-    private String buildResponseTextWithProgramDetails(TvProgram tvProgram, ZoneId zoneId) {
+    private String buildResponseTextWithProgramDetails(TvProgram tvProgram, ZoneId zoneId, String commandName) {
         String category = tvProgram.getCategory();
         String desc = tvProgram.getDesc();
 
@@ -126,7 +126,7 @@ public class Tv implements CommandParent<SendMessage> {
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
         long programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
 
-        return "<u>" + tvProgram.getChannel().getName() + "</u>\n\n" +
+        return "<u>" + tvProgram.getChannel().getName() + "</u> /" + commandName + "_ch" + tvProgram.getChannel().getId() + "\n\n" +
                 "<b>" + tvProgram.getTitle() + "</b> " +
                 getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration, zoneOffSet) + "\n" + category +
                 "Начало: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +

@@ -29,6 +29,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     compile group: 'com.rometools', name: 'rome', version: '1.15.0'
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.3'
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
 }
 
 test {
