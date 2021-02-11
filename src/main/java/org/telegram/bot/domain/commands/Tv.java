@@ -58,20 +58,23 @@ public class Tv implements CommandParent<SendMessage> {
 
             responseText = buildResponseTextWithProgramDetails(tvProgram, getUserZoneId(message));
         } else {
+            ZoneId zoneId = getUserZoneId(message);
+            String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
+
             List<TvChannel> tvChannelList = tvChannelService.get(textMessage);
-            if (tvChannelList.isEmpty()) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-            } else if (tvChannelList.size() == 1) {
-                responseText = buildResponseTextWithProgramsToChannel(tvChannelList.get(0), getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName());
+            if (tvChannelList.size() == 1) {
+                responseText = buildResponseTextWithProgramsToChannel(tvChannelList.get(0), zoneId, commandName);
             } else {
                 TvChannel tvChannel = tvChannelList.stream().filter(channel -> channel.getName().equalsIgnoreCase(textMessage)).findFirst().orElse(null);
                 if (tvChannel != null) {
-                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName());
+                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName);
                 } else {
-                    ZoneId zoneId = getUserZoneId(message);
                     List<TvProgram> tvProgramList = tvProgramService.get(textMessage, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime());
+                    if (tvChannelList.isEmpty() && tvProgramList.isEmpty()) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+                    }
 
-                    responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandPropertiesService.getCommand(this.getClass()).getCommandName(), zoneId);
+                    responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandName, zoneId);
                 }
             }
         }
