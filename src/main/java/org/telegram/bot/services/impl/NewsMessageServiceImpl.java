@@ -9,6 +9,8 @@ import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
 import org.telegram.bot.services.NewsMessageService;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
@@ -56,20 +58,30 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     @Override
     public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
         NewsMessage newsMessage = new NewsMessage();
-        newsMessage.setTitle(syndEntry.getTitle());
+        newsMessage.setTitle(reduceSpaces(cutHtmlTags(syndEntry.getTitle())));
         newsMessage.setLink(syndEntry.getLink());
 
         String description;
         if (syndEntry.getDescription() == null) {
             description = "";
         } else {
-            description = cutHtmlTags(syndEntry.getDescription().getValue());
+            description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
             if (description.length() > 768) {
                 description = description.substring(0, 767) + "...";
             }
         }
-        newsMessage.setDescription(reduceSpaces(description));
-        newsMessage.setPubDate(syndEntry.getPublishedDate());
+
+        newsMessage.setDescription(description);
+
+        Date publishedDate = syndEntry.getPublishedDate();
+        if (publishedDate == null) {
+            publishedDate = syndEntry.getUpdatedDate();
+            if (publishedDate == null) {
+                publishedDate = Date.from(Instant.MIN);
+            }
+        }
+
+        newsMessage.setPubDate(publishedDate);
         if (!syndEntry.getEnclosures().isEmpty()) {
             newsMessage.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());
         }
