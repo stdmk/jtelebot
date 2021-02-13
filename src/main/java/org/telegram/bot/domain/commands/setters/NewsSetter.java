@@ -133,7 +133,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
         newsService.save(news);
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
+        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
             commandWaitingService.remove(commandWaiting);
         }
 

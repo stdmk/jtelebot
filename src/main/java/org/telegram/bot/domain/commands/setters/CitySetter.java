@@ -137,7 +137,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         cityService.save(newCity);
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("Set")) {
+        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
             commandWaitingService.remove(commandWaiting);
         }
 

@@ -36,14 +36,6 @@ public interface CommandWaitingService {
 
     /**
      * Add a CommandWaiting.
-     * @param message the received message.
-     * @param commandClass Class of command.
-     * @param commandText text of intermediate text of command.
-     */
-    void add(Message message, Class<?> commandClass, String commandText);
-
-    /**
-     * Add a CommandWaiting.
      * @param chat entity of the Chat.
      * @param user entity of User.
      * @param commandClass Class of command.
