@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.springframework.data.domain.Page;
 import org.telegram.bot.domain.entities.TvChannel;
 
 import java.util.List;
@@ -23,6 +24,13 @@ public interface TvChannelService {
      * @return the persisted entity.
      */
     List<TvChannel> get(String tvChannelName);
+
+    /**
+     * Get all TvChannels.
+     *
+     * @return the persisted entities.
+     */
+    Page<TvChannel> getAll(int page);
 
     /**
      * Save a TvChannel.

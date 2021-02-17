@@ -27,15 +27,15 @@ public class TvProgramServiceImpl implements TvProgramService {
     }
 
     @Override
-    public List<TvProgram> get(String tvProgramTitle, LocalDateTime dateTime) {
+    public List<TvProgram> get(String tvProgramTitle, LocalDateTime dateTime, int hours) {
         log.debug("Request to get TvPrograms by it title: {}", tvProgramTitle);
-        return tvProgramRepository.findByStartBetweenAndTitleContainsIgnoreCase(dateTime, dateTime.plusHours(6), tvProgramTitle);
+        return tvProgramRepository.findByStartBetweenAndTitleContainsIgnoreCase(dateTime, dateTime.plusHours(hours), tvProgramTitle);
     }
 
     @Override
-    public List<TvProgram> get(TvChannel tvChannel, LocalDateTime dateTime) {
+    public List<TvProgram> get(TvChannel tvChannel, LocalDateTime dateTime, int hours) {
         log.debug("Request to get TvPrograms by channel: {}", tvChannel);
-        return tvProgramRepository.findByChannelAndStopBetween(tvChannel, dateTime, dateTime.plusHours(6));
+        return tvProgramRepository.findByChannelAndStopBetween(tvChannel, dateTime, dateTime.plusHours(hours));
     }
 
     @Override

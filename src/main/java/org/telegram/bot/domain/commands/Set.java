@@ -6,6 +6,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.AliasSetter;
 import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
+import org.telegram.bot.domain.commands.setters.TvSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.ChatService;
@@ -31,6 +32,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final NewsSetter newsSetter;
     private final CitySetter citySetter;
     private final AliasSetter aliasSetter;
+    private final TvSetter tvSetter;
 
     private final ChatService chatService;
     private final UserService userService;
@@ -38,6 +40,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String NEWS = "новости";
     private final String CITY = "город";
     private final String ALIAS = "алиас";
+    private final String TV = "тв";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -76,6 +79,10 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.toLowerCase().startsWith(ALIAS)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return aliasSetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(TV)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return tvSetter.set(update, textMessage);
                 }
             }
             return buildMainPageWithCallback(message);
@@ -127,10 +134,18 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> aliasRow = new ArrayList<>();
         aliasRow.add(aliasButton);
 
+        InlineKeyboardButton tvButton = new InlineKeyboardButton();
+        tvButton.setText(SET + TV);
+        tvButton.setCallbackData(SET + TV);
+
+        List<InlineKeyboardButton> tvRow = new ArrayList<>();
+        tvRow.add(tvButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
         rows.add(aliasRow);
+        rows.add(tvRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
