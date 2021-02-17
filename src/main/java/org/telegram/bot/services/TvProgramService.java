@@ -23,18 +23,20 @@ public interface TvProgramService {
      *
      * @param tvProgramTitle of TvProgram to get.
      * @param dateTime of TvProgram to get.
+     * @param hours count to program
      * @return list of persisted entities.
      */
-    List<TvProgram> get(String tvProgramTitle, LocalDateTime dateTime);
+    List<TvProgram> get(String tvProgramTitle, LocalDateTime dateTime, int hours);
 
     /**
      * Get list of TvPrograms.
      *
      * @param tvChannel entity of TvProgram to get.
      * @param dateTime of TvProgram to get.
+     * @param hours count to program
      * @return list of persisted entities.
      */
-    List<TvProgram> get(TvChannel tvChannel, LocalDateTime dateTime);
+    List<TvProgram> get(TvChannel tvChannel, LocalDateTime dateTime, int hours);
 
     /**
      * Save a TvProgram.

@@ -75,4 +75,5 @@
     <include file="db/changelog/20210208172700_added_entity_TvProgram.xml"/>
     <include file="db/changelog/20210209163400_added_command_Tv.xml"/>
     <include file="db/changelog/20210210123000_insert_Speech_foundNothing.xml"/>
+    <include file="db/changelog/20210211152000_added_entity_UserTv.xml"/>
 </databaseChangeLog>

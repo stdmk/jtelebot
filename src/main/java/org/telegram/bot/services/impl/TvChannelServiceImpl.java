@@ -3,6 +3,8 @@ package org.telegram.bot.services.impl;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.repositories.TvChannelRepository;
@@ -27,6 +29,12 @@ public class TvChannelServiceImpl implements TvChannelService {
     public List<TvChannel> get(String tvChannelName) {
         log.debug("Request to get TvChannel by it name: {}", tvChannelName);
         return tvChannelRepository.findByNameContainsIgnoreCase(tvChannelName);
+    }
+
+    @Override
+    public Page<TvChannel> getAll(int page) {
+        log.debug("Request to get all TvChannels. Page " + page);
+        return tvChannelRepository.findAll(PageRequest.of(page, 10));
     }
 
     @Override
