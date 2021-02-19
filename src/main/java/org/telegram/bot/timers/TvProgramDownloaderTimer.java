@@ -43,7 +43,6 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private final Logger log = LoggerFactory.getLogger(TvProgramDownloaderTimer.class);
 
     private final TimerService timerService;
-    private final PropertiesConfig propertiesConfig;
     private final TvChannelService tvChannelService;
     private final TvProgramService tvProgramService;
 
@@ -57,7 +56,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
             log.error("Unable to read timer tvProgramDownloader. Creating new...");
             timer = new Timer();
             timer.setName("tvProgramDownloader");
-            timer.setLastAlarmDt(LocalDateTime.now());
+            timer.setLastAlarmDt(LocalDateTime.now().minusDays(1));
             timerService.save(timer);
         }
 

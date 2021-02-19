@@ -183,7 +183,7 @@ public class Top implements CommandParent<SendMessage> {
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
         int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(sortParam, userStatsList);
 
-        StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n<code>\n");
+        StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n<code>");
         AtomicInteger counter = new AtomicInteger(1);
         Method finalMethod = sortParam.getMethod();
 

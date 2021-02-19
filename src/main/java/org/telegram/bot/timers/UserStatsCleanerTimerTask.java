@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 
+import static org.telegram.bot.utils.DateUtils.atStartOfDay;
+
 @Component
 @AllArgsConstructor
 public class UserStatsCleanerTimerTask extends TimerParent {
@@ -32,7 +34,7 @@ public class UserStatsCleanerTimerTask extends TimerParent {
             log.error("Unable to read timer statsCleanTimer. Creating new...");
             timer = new Timer();
             timer.setName("statsCleanTimer");
-            timer.setLastAlarmDt(LocalDateTime.now());
+            timer.setLastAlarmDt(atStartOfDay(LocalDateTime.now().plusMonths(1).withDayOfMonth(1)));
             timerService.save(timer);
         }
 
