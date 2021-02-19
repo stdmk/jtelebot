@@ -77,4 +77,5 @@
     <include file="db/changelog/20210210123000_insert_Speech_foundNothing.xml"/>
     <include file="db/changelog/20210211152000_added_entity_UserTv.xml"/>
     <include file="db/changelog/20210219120700_added_command_Calc.xml"/>
+    <include file="db/changelog/20210219124800_fix_help_Calc.xml"/>
 </databaseChangeLog>
