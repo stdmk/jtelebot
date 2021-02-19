@@ -74,12 +74,15 @@ public class Bash implements CommandParent<SendMessage> {
         String quoteNumber = quot.substring(quot.indexOf("href=\"/quote/") + 13);
         quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("\">"));
 
+        String date = quot.substring(quot.indexOf("'span style=\"padding: 15px 15px 12px\">") + 38);
+        date = date.substring(0, date.indexOf("<' + '/span>"));
+
         quot = quot.substring(quot.indexOf("color: #21201e\">") + 16);
         quot = quot.substring(0, quot.indexOf("<' + '/div>"));
         quot = quot.replace("&quot;", "_");
         quot = quot.replace("<' + 'br>", "\n");
 
-        return buildResultMessage(quot, quoteNumber);
+        return buildResultMessage(quot, quoteNumber, date);
     }
 
     private String getDefineQuot(String quotNumber) {
@@ -95,17 +98,20 @@ public class Bash implements CommandParent<SendMessage> {
             return null;
         }
 
+        String date = quot.substring(quot.indexOf("<div class=\"quote__header_date\">") + 41);
+        date = date.substring(0, date.indexOf("</div>") - 7);
+
         quot = quot.substring(quot.indexOf("<div class=\"quote__body\">") + 32);
         quot = quot.substring(0, quot.indexOf("</div>"));
         quot = quot.replace("&quot;", "_");
         quot = quot.replace("<br>", "\n");
 
-        return buildResultMessage(quot, quotNumber);
+        return buildResultMessage(quot, quotNumber, date);
     }
 
-    private String buildResultMessage(String quot, String quotNumber) {
+    private String buildResultMessage(String quot, String quotNumber, String date) {
         quot = cutMarkdownSymbolsInText(quot);
         quot = quot.replace("&lt;", "<").replace("&gt;", ">");
-        return "[Цитата #" + quotNumber + "](http://bash.im/quote/" + quotNumber + ")\n" + quot;
+        return "[Цитата #" + quotNumber + "](http://bash.im/quote/" + quotNumber + ")\n" + "_" + date + "_\n" + quot;
     }
 }
