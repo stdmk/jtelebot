@@ -101,7 +101,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(chatService.get(chatId), userService.get(userId));
+            userStatsService.incrementUserStatsCommands(chatService.get(chatId), userService.get(userId), commandProperties);
             Parser parser = new Parser(this, command, update);
             parser.start();
         }
