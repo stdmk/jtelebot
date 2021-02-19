@@ -13,7 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.telegram.bot.utils.NetworkUtils.readStringFromURL;
@@ -43,7 +42,7 @@ public class Calculator implements CommandParent<SendMessage> {
             try {
                 responseText = readStringFromURL(MATH_JS_URL + URLEncoder.encode(textMessage, StandardCharsets.UTF_8.name()));
             } catch (IOException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         }
 

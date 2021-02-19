@@ -37,7 +37,7 @@ public class NetworkUtils {
     }
 
     public static String readStringFromURL(String url) throws IOException {
-        return IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
+        return readStringFromURL(new URL(url).toString(), StandardCharsets.UTF_8);
     }
 
     public static String readStringFromURL(String url, Charset encoding) throws IOException {
