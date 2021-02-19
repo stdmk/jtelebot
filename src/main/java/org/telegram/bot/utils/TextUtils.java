@@ -1,5 +1,7 @@
 package org.telegram.bot.utils;
 
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,5 +66,9 @@ public class TextUtils {
 
     public static Boolean equalsWithElementInList(String text, List<String> symbolsList) {
         return symbolsList.stream().anyMatch(text::equals);
+    }
+
+    public static Boolean isTextLengthIncludedInLimit(String text) {
+        return text.length() < 4096;
     }
 }

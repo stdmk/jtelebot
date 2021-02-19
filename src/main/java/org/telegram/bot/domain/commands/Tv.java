@@ -22,6 +22,7 @@ import static org.telegram.bot.utils.DateUtils.formatTvDateTime;
 import static org.telegram.bot.utils.DateUtils.formatTvTime;
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 import static org.telegram.bot.utils.DateUtils.getDuration;
+import static org.telegram.bot.utils.TextUtils.isTextLengthIncludedInLimit;
 
 @Component
 @AllArgsConstructor
@@ -86,6 +87,10 @@ public class Tv implements CommandParent<SendMessage> {
                     responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandName, zoneId);
                 }
             }
+        }
+
+        if (!isTextLengthIncludedInLimit(responseText)) {
+            responseText = "Результат поиска оказался слишком большим. Попробуй сузить";
         }
 
         SendMessage sendMessage = new SendMessage();
