@@ -14,6 +14,7 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -44,6 +45,7 @@ public class Bot extends TelegramLongPollingBot {
         User user;
         String textOfMessage;
         boolean editedMessage = false;
+        Boolean spyMode = propertiesConfig.getSpyMode();
 
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -66,6 +68,9 @@ public class Bot extends TelegramLongPollingBot {
         Long chatId = message.getChatId();
         Integer userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
+        if (spyMode != null && spyMode) {
+            reportToAdmin(message);
+        }
 
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
         if (userAccessLevel.equals(AccessLevel.BANNED)) {
@@ -133,5 +138,18 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         return telegramBotApiToken;
+    }
+
+    private void reportToAdmin(Message message) {
+        SendMessage sendMessage = new SendMessage();
+
+        sendMessage.setChatId(propertiesConfig.getAdminId().toString());
+        sendMessage.setText("Received a message from (" + message.getFrom().getId() + ") @" + message.getFrom().getUserName() + ": " + message.getText());
+
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 }

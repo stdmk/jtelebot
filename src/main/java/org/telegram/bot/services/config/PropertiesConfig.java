@@ -17,4 +17,5 @@ public class PropertiesConfig {
     private String googleToken;
     private String screenshotMachineToken;
     private String wolframAlphaToken;
+    private Boolean spyMode;
 }
