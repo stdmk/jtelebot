@@ -51,9 +51,8 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(Bot bot, Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = message.getText();
         String potentialCommand = getPotentialCommandInText(message.getText());
         if (potentialCommand != null) {
             Chat chat = chatService.get(message.getChatId());
@@ -71,8 +70,6 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
 
                         Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), update);
                         parser.start();
-
-                        waitForThread(parser, message, textMessage);
                     }
                 }
             }

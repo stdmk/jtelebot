@@ -42,7 +42,6 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String SELECT_TV_COMMAND = "тв выбрать";
     private final String CALLBACK_SELECT_TV_COMMAND = CALLBACK_COMMAND + SELECT_TV_COMMAND;
     private final String SELECT_PAGE_TV_LIST = SELECT_TV_COMMAND + " page";
-    private final String CALLBACK_SELECT_PAGE_TV_LIST = CALLBACK_COMMAND + SELECT_PAGE_TV_LIST;
     private final String DELETE_TV_COMMAND = "тв удалить";
     private final String CALLBACK_DELETE_TV_COMMAND = CALLBACK_COMMAND + DELETE_TV_COMMAND;
 
@@ -131,6 +130,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
         }).collect(Collectors.toList());
 
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        String CALLBACK_SELECT_PAGE_TV_LIST = CALLBACK_COMMAND + SELECT_PAGE_TV_LIST;
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
             backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
@@ -344,18 +344,6 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private InlineKeyboardMarkup prepareKeyboardWithUserTvList(List<UserTv> userTvList) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-//        List<List<InlineKeyboardButton>> rows = userTvList.stream().map(userTv -> {
-//            List<InlineKeyboardButton> userTvRow = new ArrayList<>();
-//
-//            InlineKeyboardButton userTvButton = new InlineKeyboardButton();
-//            userTvButton.setText(Emoji.DELETE.getEmoji() + userTv.getTvChannel().getName());
-//            userTvButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND + " " + userTv.getId());
-//
-//            userTvRow.add(userTvButton);
-//
-//            return userTvRow;
-//        }).collect(Collectors.toList());
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();

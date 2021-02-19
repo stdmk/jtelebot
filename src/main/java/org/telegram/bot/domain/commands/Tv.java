@@ -37,7 +37,6 @@ public class Tv implements CommandParent<SendMessage> {
     private final UserCityService userCityService;
     private final SpeechService speechService;
 
-    private final int HOURS_NUMBER_DEFAULT = 6;
     private final int HOURS_NUMBER_SHORT = 3;
 
     @Override
@@ -49,6 +48,7 @@ public class Tv implements CommandParent<SendMessage> {
         ZoneId zoneId = getUserZoneId(message);
         String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
 
+        int HOURS_NUMBER_DEFAULT = 6;
         if (textMessage == null) {
             List<UserTv> userTvList = userTvService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
             if (userTvList.isEmpty()) {

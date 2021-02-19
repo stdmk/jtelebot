@@ -3,7 +3,6 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.Parser;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -18,6 +17,7 @@ import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -132,7 +132,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(Bot bot, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         int value = 0;
@@ -149,10 +149,22 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
                 update.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
 
-                Parser parser = new Parser(bot, command, update);
-                parser.start();
+                try {
+                    bot.execute(parse(update));
+                } catch (Exception e) {
+                    SendMessage sendMessage = new SendMessage();
+                    sendMessage.setChatId(message.getChatId().toString());
+                    sendMessage.setReplyToMessageId(message.getMessageId());
+                    sendMessage.setText(e.getMessage());
 
-                waitForThread(parser, message, textMessage);
+                    try {
+                        bot.execute(sendMessage);
+                    } catch (TelegramApiException telegramApiException) {
+                        telegramApiException.printStackTrace();
+                    }
+                }
+
+                message.setText(textMessage);
             }
         }
     }
