@@ -141,6 +141,11 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void reportToAdmin(Message message) {
+        Integer adminId = propertiesConfig.getAdminId();
+        if (adminId.equals(message.getFrom().getId())) {
+            return;
+        }
+
         SendMessage sendMessage = new SendMessage();
 
         sendMessage.setChatId(propertiesConfig.getAdminId().toString());
