@@ -68,7 +68,7 @@ public class Bot extends TelegramLongPollingBot {
         Long chatId = message.getChatId();
         Integer userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
-        if (spyMode != null && spyMode) {
+        if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(message);
         }
 
