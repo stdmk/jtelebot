@@ -7,10 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.commands.Top;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.LastMessage;
-import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
 import org.telegram.bot.services.*;
@@ -33,6 +30,7 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final ChatService chatService;
     private final LastMessageService lastMessageService;
     private final SpeechService speechService;
+    private final LastCommandService lastCommandService;
 
     @Override
     public UserStats get(Chat chat, User user) {
@@ -120,6 +118,19 @@ public class UserStatsServiceImpl implements UserStatsService {
         userStats.setNumberOfAllCommands(userStats.getNumberOfAllCommands() + 1);
 
         save(userStats);
+    }
+
+    @Override
+    public void incrementUserStatsCommands(Chat chat, User user, CommandProperties commandProperties) {
+        LastCommand lastCommand = lastCommandService.get(chat);
+        if (lastCommand == null) {
+            lastCommand = new LastCommand();
+            lastCommand.setChat(chat);
+        }
+        lastCommand.setCommandProperties(commandProperties);
+        lastCommandService.save(lastCommand);
+
+        incrementUserStatsCommands(chat, user);
     }
 
     private User updateUserInfo(org.telegram.telegrambots.meta.api.objects.User userFrom) {

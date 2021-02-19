@@ -1,6 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -80,4 +81,12 @@ public interface UserStatsService {
      * @param user User whose stats will be incremented
      */
     void incrementUserStatsCommands(Chat chat, User user);
+
+    /**
+     * Increment the user statistics of using commands.
+     * @param chat Chat where is User
+     * @param user User whose stats will be incremented
+     * @param commandProperties for save last command
+     */
+    void incrementUserStatsCommands(Chat chat, User user, CommandProperties commandProperties);
 }
