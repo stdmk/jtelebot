@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.removeCapital;
+import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @AllArgsConstructor
@@ -119,7 +120,7 @@ public class Top implements CommandParent<SendMessage> {
         fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "Голосовых", userStats.getNumberOfVoices().toString());
         fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "Команд", userStats.getNumberOfCommands().toString());
 
-        buf.append("<b>").append(userStats.getUser().getUsername()).append("</b>\n").append("<u>За месяц:</u>\n");
+        buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n").append("<u>За месяц:</u>\n");
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {
                 buf.append(key).append(": <b>").append(value).append("</b>\n");

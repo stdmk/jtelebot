@@ -1,6 +1,6 @@
 package org.telegram.bot.utils;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.bot.domain.entities.User;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -86,5 +86,12 @@ public class TextUtils {
         }
 
         return text;
+    }
+
+    public static String getLinkToUser(User user, Boolean htmlMode) {
+        if (htmlMode) {
+            return "<a href=\"tg://user?id=" + user.getUserId() + "\">" + user.getUsername() + "</a>";
+        }
+        return "[" + user.getUsername() + "](tg://user?id=" + user.getUserId() + ")";
     }
 }

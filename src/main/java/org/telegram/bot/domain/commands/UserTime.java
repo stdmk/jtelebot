@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static org.telegram.bot.utils.DateUtils.formatTime;
+import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @AllArgsConstructor
@@ -49,10 +50,10 @@ public class UserTime implements CommandParent<SendMessage> {
 
         UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
         if (userCity == null) {
-            responseText = "У " + user.getUsername() + " не задан город";
+            responseText = "У " + getLinkToUser(user, false) + " не задан город";
         } else {
             String dateTimeNow = formatTime(ZonedDateTime.now(ZoneId.of(userCity.getCity().getTimeZone())));
-            responseText = "У " + user.getUsername() + " сейчас *" + dateTimeNow + "*";
+            responseText = "У " + getLinkToUser(user, false) + " сейчас *" + dateTimeNow + "*";
         }
 
         SendMessage sendMessage = new SendMessage();

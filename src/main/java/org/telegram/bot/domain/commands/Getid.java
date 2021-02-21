@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+
 @Component
 @AllArgsConstructor
 public class Getid implements CommandParent<SendMessage> {
@@ -31,7 +33,7 @@ public class Getid implements CommandParent<SendMessage> {
             if (user == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-            responseText.append("Айди ").append(user.getUsername()).append(": `").append(user.getUserId()).append("`\n");
+            responseText.append("Айди ").append(getLinkToUser(user, false)).append(": `").append(user.getUserId()).append("`\n");
         }
 
         Message repliedMessage = message.getReplyToMessage();

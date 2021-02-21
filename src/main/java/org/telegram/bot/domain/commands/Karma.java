@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
+import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @AllArgsConstructor
@@ -63,10 +64,10 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
             }
 
-            buf.append("*").append(userStats.getUser().getUsername()).append("*\n")
-                .append(karmaEmoji).append("Карма: *").append(userStats.getNumberOfKarma()).append("* (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
-                .append(Emoji.RED_HEART.getEmoji()).append("Доброта: *").append(userStats.getNumberOfGoodness()).append("* (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
-                .append(Emoji.BROKEN_HEART.getEmoji()).append("Злобота: *").append(userStats.getNumberOfWickedness()).append("* (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
+            buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n")
+                .append(karmaEmoji).append("Карма: <b>").append(userStats.getNumberOfKarma()).append("</b> (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
+                .append(Emoji.RED_HEART.getEmoji()).append("Доброта: <b>").append(userStats.getNumberOfGoodness()).append("</b> (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
+                .append(Emoji.BROKEN_HEART.getEmoji()).append("Злобота: <b>").append(userStats.getNumberOfWickedness()).append("</b> (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
         } else {
 
             int i = textMessage.indexOf(" ");
@@ -113,19 +114,19 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
             userStatsService.save(Arrays.asList(anotherUserStats, userStats));
 
-            buf = new StringBuilder("Карма пользователя *@" + anotherUser.getUsername() + "* ");
+            buf = new StringBuilder("Карма пользователя <b>" + getLinkToUser(anotherUser, true) + "</b> ");
             if (value < 0) {
                 buf.append("уменьшена ").append(Emoji.THUMBS_DOWN.getEmoji());
             } else {
                 buf.append("увеличена ").append(Emoji.THUMBS_UP.getEmoji());
             }
-            buf.append(" до *").append(anotherUserStats.getNumberOfKarma()).append("*");
+            buf.append(" до <b>").append(anotherUserStats.getNumberOfKarma()).append("</b>");
         }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
+        sendMessage.enableHtml(true);
         sendMessage.setText(buf.toString());
 
         return sendMessage;
