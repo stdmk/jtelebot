@@ -15,12 +15,13 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.LastCommandService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @AllArgsConstructor
-public class Repeat implements TextAnalyzer {
+public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?>> {
 
     private final ApplicationContext context;
     private final ChatService chatService;
@@ -30,7 +31,7 @@ public class Repeat implements TextAnalyzer {
 
     @Override
     public void analyze(Bot bot, Update update) {
-        Message message = update.getMessage();
+        Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
 
         if (textMessage != null && textMessage.startsWith(".")) {
@@ -50,5 +51,10 @@ public class Repeat implements TextAnalyzer {
                 }
             }
         }
+    }
+
+    @Override
+    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+        return null;
     }
 }
