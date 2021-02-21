@@ -17,6 +17,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.telegram.bot.utils.TextUtils.deleteWordsInText;
+
 @Component
 @AllArgsConstructor
 public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
@@ -88,17 +90,10 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private String getMistakenText(String text) {
-        while (text.startsWith("@")) {
-            int i = text.indexOf(" ");
-            if (i < 0) {
-                return null;
-            }
-            text = text.substring(i + 1);
-        }
 
-        if (text.startsWith("http")) {
-            return null;
-        }
+        text = deleteWordsInText("@", text);
+
+        text = deleteWordsInText("http", text);
 
         Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(text);

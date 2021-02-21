@@ -71,4 +71,20 @@ public class TextUtils {
     public static Boolean isTextLengthIncludedInLimit(String text) {
         return text.length() < 4096;
     }
+
+    public static String deleteWordsInText(String wordStartsWith, String text) {
+        int i = text.indexOf(wordStartsWith);
+        while (i > 0) {
+            String word = text.substring(i);
+            int endOfWord = word.indexOf(" ");
+            if (endOfWord < 0) {
+                endOfWord = word.length();
+            }
+            word = word.substring(0, endOfWord);
+            text = text.replace(word, "");
+            i = text.indexOf(wordStartsWith);
+        }
+
+        return text;
+    }
 }
