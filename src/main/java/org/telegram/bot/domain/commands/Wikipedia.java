@@ -108,7 +108,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
         StringBuilder buf = new StringBuilder();
 
         getListOfWikiPages(titles)
-                .forEach(wiki -> buf.append(wiki.getTitle()).append("\n").append("/wiki_").append(wiki.getPageId()).append("\n\n"));
+                .forEach(wiki -> buf.append(wiki.getTitle()).append("\n").append("/wiki_").append(wiki.getPageId()).append("\n"));
 
         return buf.toString();
     }

@@ -125,9 +125,9 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                     })
                     .collect(Collectors.toList());
 
-            StringBuilder buf = new StringBuilder("Результаты по запросу " + textMessage + "\n");
+            StringBuilder buf = new StringBuilder("Результаты по запросу <b>" + textMessage + "</b>\n\n");
             googleSearchResultService.save(googleSearchResults).forEach(googleSearchResult ->
-                    buf.append(googleSearchResult.getDisplayLink()).append("\n")
+                    buf.append("<u>").append(googleSearchResult.getDisplayLink()).append("</u>\n")
                             .append(googleSearchResult.getTitle()).append("\n")
                             .append("/google_").append(googleSearchResult.getId()).append("\n\n")
             );

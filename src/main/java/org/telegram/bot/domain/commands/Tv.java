@@ -140,7 +140,7 @@ public class Tv implements CommandParent<SendMessage> {
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
         long programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
 
-        return "<u>" + tvProgram.getChannel().getName() + "</u> /" + commandName + "_ch" + tvProgram.getChannel().getId() + "\n\n" +
+        return "<u>" + tvProgram.getChannel().getName() + "</u> /" + commandName + "_ch" + tvProgram.getChannel().getId() + "\n" +
                 "<b>" + tvProgram.getTitle() + "</b> " +
                 getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration, zoneOffSet) + "\n" + category +
                 "Начало: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +
@@ -152,7 +152,7 @@ public class Tv implements CommandParent<SendMessage> {
     private String buildResponseTextWithProgramsToChannel(TvChannel tvChannel, ZoneId zoneId, String commandName, int hours) {
         StringBuilder buf = new StringBuilder();
 
-        buf.append("<u>").append(tvChannel.getName()).append("</u>").append(" /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n\n");
+        buf.append("<u>").append(tvChannel.getName()).append("</u>").append(" /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n");
 
         List<TvProgram> tvProgramList = tvProgramService.get(tvChannel, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(), hours);
 
@@ -162,11 +162,11 @@ public class Tv implements CommandParent<SendMessage> {
         buf.append("<b>[").append(formatTvTime(currentTvProgram.getStart(), zoneId)).append("]</b> ")
                 .append(currentTvProgram.getTitle())
                 .append(" ").append(getProgramProgress(currentTvProgram.getStart(), currentTvProgram.getStop(), zoneOffSet)).append("\n")
-                .append("/").append(commandName).append("_pr").append(currentTvProgram.getId()).append("\n\n");
+                .append("/").append(commandName).append("_pr").append(currentTvProgram.getId()).append("\n");
 
         tvProgramList.stream().skip(1).forEach(tvProgram -> buf
                 .append("<b>[").append(formatTvTime(tvProgram.getStart(), zoneId)).append("]</b> ")
-                .append(tvProgram.getTitle()).append("\n/").append(commandName).append("_pr").append(tvProgram.getId()).append("\n\n")
+                .append(tvProgram.getTitle()).append("\n/").append(commandName).append("_pr").append(tvProgram.getId()).append("\n")
         );
 
         return buf.toString();
