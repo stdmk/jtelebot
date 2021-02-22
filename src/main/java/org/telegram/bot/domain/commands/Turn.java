@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.Parser;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -12,7 +13,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,31 +61,22 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, Update update) {
+    public void analyze(Bot bot, CommandParent<?> command,  Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         String mistakenText = getMistakenText(textMessage);
 
         if (mistakenText != null) {
             String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
-            message.setText(commandName + " " + mistakenText);
-
-            try {
-                bot.execute(parse(update));
-            } catch (Exception e) {
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(message.getChatId().toString());
-                sendMessage.setReplyToMessageId(message.getMessageId());
-                sendMessage.setText(e.getMessage());
-
-                try {
-                    bot.execute(sendMessage);
-                } catch (TelegramApiException telegramApiException) {
-                    telegramApiException.printStackTrace();
-                }
+            Update newUpdate = copyUpdate(update);
+            if (newUpdate == null) {
+                return;
             }
 
-            message.setText(textMessage);
+            newUpdate.getMessage().setText(commandName + " " + mistakenText);
+
+            Parser parser = new Parser(bot, command, newUpdate);
+            parser.start();
         }
     }
 

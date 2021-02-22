@@ -83,7 +83,7 @@ public class Bot extends TelegramLongPollingBot {
         if (textOfMessage == null || textOfMessage.equals("")) {
             return;
         } else {
-            textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, update));
+            textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
         }
 
         CommandProperties commandProperties;

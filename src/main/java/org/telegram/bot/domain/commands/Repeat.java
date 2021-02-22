@@ -30,7 +30,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
     private final LastCommandService lastCommandService;
 
     @Override
-    public void analyze(Bot bot, Update update) {
+    public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
 
@@ -43,10 +43,15 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
                 CommandProperties commandProperties = lastCommand.getCommandProperties();
 
                 if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
-                    update.getMessage().setText(lastCommand.getCommandProperties().getCommandName());
+                    Update newUpdate = copyUpdate(update);
+                    if (newUpdate == null) {
+                        return;
+                    }
+
+                    newUpdate.getMessage().setText(lastCommand.getCommandProperties().getCommandName());
                     userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
 
-                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), update);
+                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate);
                     parser.start();
                 }
             }

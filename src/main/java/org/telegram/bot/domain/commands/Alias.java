@@ -51,7 +51,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, Update update) {
+    public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String potentialCommand = getPotentialCommandInText(message.getText());
         if (potentialCommand != null) {
@@ -61,14 +61,20 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
             org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, potentialCommand);
 
             if (alias != null) {
+                Update newUpdate = copyUpdate(update);
+                if (newUpdate == null) {
+                    return;
+                }
+
                 String aliasValue = alias.getValue();
-                update.getMessage().setText(aliasValue);
+                Message newMessage = getMessageFromUpdate(newUpdate);
+                newMessage.setText(aliasValue);
                 CommandProperties commandProperties = commandPropertiesService.findCommandInText(aliasValue, bot.getBotUsername());
                 if (commandProperties != null) {
                     if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
                         userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
 
-                        Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), update);
+                        Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate);
                         parser.start();
                     }
                 }
