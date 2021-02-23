@@ -112,7 +112,7 @@ public class Tv implements CommandParent<SendMessage> {
             buf.append("\n<u>Найденные программы</u>\n");
 
             tvProgramList.forEach(tvProgram -> buf
-                    .append(tvProgram.getTitle()).append("\n")
+                    .append(tvProgram.getTitle()).append(" ").append(getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), zoneId.getRules().getOffset(LocalDateTime.now()))).append("\n")
                     .append("(<b>").append(tvProgram.getChannel().getName()).append("</b>)\n")
                     .append(formatTvDateTime(tvProgram.getStart(), zoneId)).append("\n/").append(commandName)
                     .append("_pr").append(tvProgram.getId()).append("\n\n"));

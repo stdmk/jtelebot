@@ -8,6 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TvProgramRepository extends JpaRepository<TvProgram, Integer> {
-    List<TvProgram> findByStartBetweenAndTitleContainsIgnoreCase(LocalDateTime dateStart, LocalDateTime dateEnd, String title);
+    List<TvProgram> findByStopBetweenAndTitleContainsIgnoreCase(LocalDateTime dateStart, LocalDateTime dateEnd, String title);
     List<TvProgram> findByChannelAndStopBetween(TvChannel tvChannel, LocalDateTime dateStart, LocalDateTime dateEnd);
 }
