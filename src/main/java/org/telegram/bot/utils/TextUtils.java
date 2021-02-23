@@ -74,7 +74,7 @@ public class TextUtils {
 
     public static String deleteWordsInText(String wordStartsWith, String text) {
         int i = text.indexOf(wordStartsWith);
-        while (i > 0) {
+        while (i >= 0) {
             String word = text.substring(i);
             int endOfWord = word.indexOf(" ");
             if (endOfWord < 0) {

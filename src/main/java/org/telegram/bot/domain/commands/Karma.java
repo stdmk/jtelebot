@@ -154,7 +154,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 }
                 newUpdate.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
 
-                Parser parser = new Parser(bot, command, update);
+                Parser parser = new Parser(bot, command, newUpdate);
                 parser.start();
             }
         }

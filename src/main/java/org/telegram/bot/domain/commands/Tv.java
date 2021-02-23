@@ -105,7 +105,7 @@ public class Tv implements CommandParent<SendMessage> {
     private String buildResponseTextWithSearchResults(List<TvChannel> tvChannelList, List<TvProgram> tvProgramList, String commandName, ZoneId zoneId) {
         StringBuilder buf = new StringBuilder();
 
-        buf.append("<u>Найденные телеканалы:</u>\n");
+        buf.append("<u>Найденные каналы:</u>\n");
         tvChannelList.forEach(tvChannel -> buf.append(tvChannel.getName()).append(" - /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n"));
 
         if (!tvProgramList.isEmpty()) {
