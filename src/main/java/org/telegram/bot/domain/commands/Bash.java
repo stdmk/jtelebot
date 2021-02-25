@@ -105,6 +105,7 @@ public class Bash implements CommandParent<SendMessage> {
         quot = quot.substring(0, quot.indexOf("</div>"));
         quot = quot.replace("&quot;", "_");
         quot = quot.replace("<br>", "\n");
+        quot = quot.replace("<br />", "\n");
 
         return buildResultMessage(quot, quotNumber, date);
     }
