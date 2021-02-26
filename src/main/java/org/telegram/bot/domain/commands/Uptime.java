@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import liquibase.pro.packaged.F;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -8,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.File;
 import java.time.LocalDateTime;
 
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
@@ -34,7 +36,7 @@ public class Uptime implements CommandParent<SendMessage> {
 
         buf.append("<b>Запуск:</b>\n").append(formatDateTime(botDateTimeStart)).append("\n");
         buf.append("<b>Работаю без перерыва:</b>\n").append(deltaDatesToString(botDateTimeStart, dateTimeNow)).append("\n");
-        buf.append("<b>Общее время наработки</b>\n").append(deltaDatesToString(botStats.getTotalRunningTime())).append("\n");
+        buf.append("<b>Общее время наработки:</b>\n").append(deltaDatesToString(botStats.getTotalRunningTime())).append("\n");
 
         long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;
         long heapMaxSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
@@ -47,6 +49,7 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
+        buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" МБ</b>\n");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
