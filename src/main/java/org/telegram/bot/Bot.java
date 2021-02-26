@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.CommandProperties;
@@ -30,8 +31,9 @@ public class Bot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(Bot.class);
 
     private final List<TextAnalyzer> textAnalyzerList;
-
     private final ApplicationContext context;
+    private final BotStats botStats;
+
     private final PropertiesConfig propertiesConfig;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
@@ -64,6 +66,8 @@ public class Bot extends TelegramLongPollingBot {
             textOfMessage = message.getText();
             user = message.getFrom();
         }
+
+        botStats.incrementReceivedMessages();
 
         Long chatId = message.getChatId();
         Integer userId = user.getId();
@@ -107,7 +111,7 @@ public class Bot extends TelegramLongPollingBot {
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
             userStatsService.incrementUserStatsCommands(chatService.get(chatId), userService.get(userId), commandProperties);
-            Parser parser = new Parser(this, command, update);
+            Parser parser = new Parser(this, command, update, botStats);
             parser.start();
         }
 

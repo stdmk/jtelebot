@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -24,6 +25,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?>> {
 
     private final ApplicationContext context;
+    private final BotStats botStats;
+
     private final ChatService chatService;
     private final UserService userService;
     private final UserStatsService userStatsService;
@@ -51,7 +54,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
                     newUpdate.getMessage().setText(lastCommand.getCommandProperties().getCommandName());
                     userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
 
-                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate);
+                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
                     parser.start();
                 }
             }

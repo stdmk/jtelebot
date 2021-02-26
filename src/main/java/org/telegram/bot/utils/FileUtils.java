@@ -15,6 +15,7 @@ public class FileUtils {
             properties.setProperty("openweathermapId", "");
             properties.setProperty("googleToken", "");
             properties.setProperty("screenshotMachineToken", "");
+            properties.setProperty("wolframAlphaToken", "");
             try {
                 properties.store(new FileOutputStream(f), null);
             } catch (IOException fileNotFoundException) {

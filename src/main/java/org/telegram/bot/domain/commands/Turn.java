@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -25,6 +26,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
+    private final BotStats botStats;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -75,7 +77,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
             newUpdate.getMessage().setText(commandName + " " + mistakenText);
 
-            Parser parser = new Parser(bot, command, newUpdate);
+            Parser parser = new Parser(bot, command, newUpdate, botStats);
             parser.start();
         }
     }

@@ -3,6 +3,7 @@ package org.telegram.bot;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
@@ -27,6 +28,7 @@ public class Parser extends Thread {
     private final Bot bot;
     private final CommandParent<?> command;
     private final Update update;
+    private final BotStats botStats;
 
     @Override
     public void run() {
@@ -48,6 +50,7 @@ public class Parser extends Thread {
         try {
             bot.execute(sendChatAction);
         } catch (TelegramApiException e) {
+            botStats.incrementErrors();
             log.error("Error: cannot send chat action: {}", e.getMessage());
         }
 
@@ -86,6 +89,7 @@ public class Parser extends Thread {
                 bot.execute(sendDocument);
             }
         } catch (TelegramApiException e) {
+            botStats.incrementErrors();
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (BotException botException) {
             try {
@@ -99,8 +103,11 @@ public class Parser extends Thread {
                 log.error("Error: cannot send response: {}", e.getMessage());
             }
         } catch (Exception e) {
+            botStats.incrementErrors();
             e.printStackTrace();
         }
+
+        botStats.incrementCommandsProcessed();
     }
 
     private void tryToSendOnePhoto(SendMediaGroup sendMediaGroup) {
