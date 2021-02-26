@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -22,6 +23,7 @@ import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final ApplicationContext context;
+    private final BotStats botStats;
 
     private final AliasService aliasService;
     private final ChatService chatService;
@@ -74,7 +76,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
                     if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
                         userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
 
-                        Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate);
+                        Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
                         parser.start();
                     }
                 }

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -38,6 +39,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     private final GoogleSearchResultService googleSearchResultService;
     private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
+    private final BotStats botStats;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -152,6 +154,8 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
         ResponseEntity<GoogleSearchData> response = botRestTemplate.getForEntity(
                 GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+
+        botStats.incrementGoogleRequests();
 
         return response.getBody();
     }

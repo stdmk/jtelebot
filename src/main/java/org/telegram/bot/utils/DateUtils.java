@@ -15,12 +15,12 @@ public class DateUtils {
     private static final String DATE_TIME_TV_FORMAT_STRING = "dd.MM.yyyy HH:mm";
     private static final String TIME_TV_FORMAT_STRING = "HH:mm";
 
-    private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
-    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
-    private static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_TV_FORMAT_STRING);
-    private static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_TV_FORMAT_STRING);
+    public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
+    public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
+    public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
+    public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
+    public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_TV_FORMAT_STRING);
+    public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_TV_FORMAT_STRING);
 
 
     public static String formatDate(Date date) {

@@ -79,4 +79,7 @@
     <include file="db/changelog/20210219120700_added_command_Calc.xml"/>
     <include file="db/changelog/20210219124800_fix_help_Calc.xml"/>
     <include file="db/changelog/20210219175500_added_entity_LastCommand.xml"/>
+    <include file="db/changelog/20210225144000_added_command_Uptime.xml"/>
+    <include file="db/changelog/20210225161900_added_entity_WorkParam.xml"/>
+    <include file="db/changelog/20210225171000_added_command_Shutdown.xml"/>
 </databaseChangeLog>

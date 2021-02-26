@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+<changeSet id="20210225144000-1" author="stdmk">
+    <insert schemaName="bot" tableName="commandproperties">
+        <column name="id" value="36"/>
+        <column name="commandname" value="uptime"/>
+        <column name="russifiedname" value="аптайм"/>
+        <column name="enruname" value="fgnfqv"/>
+        <column name="classname" value="uptime"/>
+        <column name="accesslevel" value="5"/>
+        <column name="help" value="Аптайм,Статистика работы бота,отсутствуют,аптайм,отсутствуют"/>
+    </insert>
+</changeSet>
+</databaseChangeLog>
