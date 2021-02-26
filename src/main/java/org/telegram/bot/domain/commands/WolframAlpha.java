@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -26,6 +28,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
+    private final BotStats botStats;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -57,10 +60,18 @@ public class WolframAlpha implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String getWolframAlphaSearchResult(String token, String requestText) {
+    private String getWolframAlphaSearchResult(String token, String requestText) throws BotException {
         final String WOLFRAM_ALPHA_API_URL = "http://api.wolframalpha.com/v2/query?output=json&includepodid=Result&";
-        ResponseEntity<WolframAlphaData> response = botRestTemplate.getForEntity(
-                WOLFRAM_ALPHA_API_URL + "appid=" + token + "&input=" + requestText, WolframAlphaData.class);
+        ResponseEntity<WolframAlphaData> response;
+
+        try {
+            response = botRestTemplate.getForEntity(
+                    WOLFRAM_ALPHA_API_URL + "appid=" + token + "&input=" + requestText, WolframAlphaData.class);
+        } catch (RestClientException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        botStats.incrementWorlframRequests();
 
         if (response.getBody() == null || response.getBody().getQueryresult() == null || response.getBody().getQueryresult().getPods() == null) {
             return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);

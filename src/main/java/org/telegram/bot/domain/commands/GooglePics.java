@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -43,6 +44,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     private final ImageUrlService imageUrlService;
     private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
+    private final BotStats botStats;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -138,6 +140,8 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
         ResponseEntity<GooglePicsSearchData> response = botRestTemplate.getForEntity(
                 GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GooglePicsSearchData.class);
+
+        botStats.incrementGoogleRequests();
 
         return response.getBody();
     }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -30,6 +31,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final BotStats botStats;
 
     @Override
     public SendPhoto parse(Update update) throws Exception {
@@ -71,6 +73,8 @@ public class WebScreen implements CommandParent<SendPhoto> {
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
+
+            botStats.incrementScreenshots();
 
             sendPhoto.setPhoto(new InputFile(screen, "webscreen.png"));
             sendPhoto.setReplyToMessageId(message.getMessageId());

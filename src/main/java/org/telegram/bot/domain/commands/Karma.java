@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -34,6 +35,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     private final ChatService chatService;
     private final UserService userService;
     private final UserStatsService userStatsService;
+    private final BotStats botStats;
 
     private final List<String> increaseSymbols = Arrays.asList("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++");
     private final List<String> decreaseSymbols = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
@@ -154,7 +156,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 }
                 newUpdate.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
 
-                Parser parser = new Parser(bot, command, newUpdate);
+                Parser parser = new Parser(bot, command, newUpdate, botStats);
                 parser.start();
             }
         }
