@@ -2,7 +2,7 @@ package org.telegram.bot.utils;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.telegram.bot.utils.TextUtils.*;
 
 class TextUtilsTest {
@@ -17,23 +17,27 @@ class TextUtilsTest {
     @Test
     void getPotentialCommandInTextTest() {
         String textWithSlash = "/bot";
+        String textWithSlashAndCyphers = "/bot432bot432 rgeg";
         String textRussian = "Бот, как дела";
         String commonText = "погода Ростов-на-Дону";
+        String commonTextWithCyphers = "погода3 Ростов-на-Дону";
 
-        assertEquals(getPotentialCommandInText(textWithSlash), "bot");
-        assertEquals(getPotentialCommandInText(textRussian), "бот");
-        assertEquals(getPotentialCommandInText(commonText), "погода");
+        assertEquals("bot", getPotentialCommandInText(textWithSlash));
+        assertEquals("bot432bot432", getPotentialCommandInText(textWithSlashAndCyphers));
+        assertEquals("бот", getPotentialCommandInText(textRussian));
+        assertEquals("погода", getPotentialCommandInText(commonText));
+        assertEquals("погода3", getPotentialCommandInText(commonTextWithCyphers));
     }
 
     @Test
     void cutMarkdownSymbolsInTextTest() {
         String text = "*test1* _test2_ `test3` [test4](test5)";
-        assertEquals(cutMarkdownSymbolsInText(text), "test1 test2 test3 test4test5");
+        assertEquals("test1 test2 test3 test4test5", cutMarkdownSymbolsInText(text));
     }
 
     @Test
     void cutHtmlTagsTest() {
         String text = "<a href=\"example.com\">test</a>";
-        assertEquals(cutHtmlTags(text), "test");
+        assertEquals("test", cutHtmlTags(text));
     }
 }
