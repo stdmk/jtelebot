@@ -15,7 +15,7 @@ public class TextUtils {
      */
     public static String getPotentialCommandInText(String text) {
         String buf = StringUtils.substringBefore(text.trim(), " ")
-                .replaceAll("[^a-zA-Zа-яА-Я0-9Ёё]", "");
+                .replaceAll("[^a-zA-Zа-яА-Я0-9Ёё_]", "");
 
         if (!StringUtils.isBlank(buf)) {
             return buf.toLowerCase();

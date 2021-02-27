@@ -17,12 +17,14 @@ class TextUtilsTest {
     @Test
     void getPotentialCommandInTextTest() {
         String textWithSlash = "/bot";
+        String textWithSlashAndUnderline = "/bot_34";
         String textWithSlashAndCyphers = "/bot432bot432 rgeg";
         String textRussian = "Бот, как дела";
         String commonText = "погода Ростов-на-Дону";
         String commonTextWithCyphers = "погода3 Ростов-на-Дону";
 
         assertEquals("bot", getPotentialCommandInText(textWithSlash));
+        assertEquals("bot_34", getPotentialCommandInText(textWithSlashAndUnderline));
         assertEquals("bot432bot432", getPotentialCommandInText(textWithSlashAndCyphers));
         assertEquals("бот", getPotentialCommandInText(textRussian));
         assertEquals("погода", getPotentialCommandInText(commonText));
