@@ -41,7 +41,7 @@ public class Uptime implements CommandParent<SendMessage> {
         long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;
         long heapMaxSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
         float heapPercent = (float) heapSize / (float) heapMaxSize;
-        buf.append("<b>Heap:</b>\n").append(heapSize).append("/").append(heapMaxSize).append(" (").append(String.format("%.0f%%", heapPercent * 100)).append(")\n");
+        buf.append("<b>Heap:</b>\n").append(heapSize).append("/").append(heapMaxSize).append(" мб (").append(String.format("%.0f%%", heapPercent * 100)).append(")\n");
 
         buf.append("<b><u>Статистика:</u></b>\n");
         buf.append("Принято сообщений: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(botStats.getTotalReceivedMessages()).append(")\n");
@@ -49,7 +49,7 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
-        buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" МБ</b>\n");
+        buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" мб</b>\n");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

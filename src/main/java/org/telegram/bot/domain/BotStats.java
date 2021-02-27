@@ -32,6 +32,9 @@ public class BotStats {
     @Getter(value = AccessLevel.NONE)
     private Long totalRunningTime;
 
+    @Getter(value = AccessLevel.NONE)
+    private LocalDateTime lastTotalRunningCheck;
+
     private Integer commandsProcessed;
 
     private Long totalCommandsProcessed;
@@ -104,7 +107,7 @@ public class BotStats {
     public void saveStats() {
         List<WorkParam> workParamList = workParamService.get(botToken, botStatsFieldsToSave);
 
-        this.totalRunningTime = this.totalRunningTime + getDuration(this.botStartDateTime, LocalDateTime.now());
+        this.totalRunningTime = getTotalRunningTime();
 
         List<WorkParam> updatedWorkParamList = botStatsFieldsToSave
                 .stream()
@@ -123,7 +126,9 @@ public class BotStats {
     }
 
     public Long getTotalRunningTime() {
-        this.totalRunningTime = this.totalRunningTime + getDuration(this.botStartDateTime, LocalDateTime.now());
+        LocalDateTime dateTimeNow = LocalDateTime.now();
+        this.totalRunningTime = this.totalRunningTime + getDuration(this.lastTotalRunningCheck, dateTimeNow);
+        this.lastTotalRunningCheck = dateTimeNow;
         return this.totalRunningTime;
     }
 
@@ -162,9 +167,10 @@ public class BotStats {
     }
 
     private void setTotalRunningTime(List<WorkParam> workParamList) {
+        this.lastTotalRunningCheck = LocalDateTime.now();
         WorkParam workParam = getWorkParamByName(workParamList, TOTAL_RUNNING_TIME);
         if (workParam == null) {
-            this.totalRunningTime = getDuration(this.botStartDateTime, LocalDateTime.now());
+            this.totalRunningTime = getDuration(this.botStartDateTime, this.lastTotalRunningCheck);
         } else {
             this.totalRunningTime = Long.parseLong(workParam.getValue());
         }
