@@ -1,9 +1,10 @@
 package org.telegram.bot.utils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.telegram.bot.domain.entities.User;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TextUtils {
 
@@ -14,10 +15,18 @@ public class TextUtils {
      * @return potential command without rest text.
      */
     public static String getPotentialCommandInText(String text) {
-        String buf = StringUtils.substringBefore(text.trim(), " ")
-                .replaceAll("[^a-zA-Zа-яА-Я0-9Ёё_]", "");
-
-        if (!StringUtils.isBlank(buf)) {
+        if (text.charAt(0) == '/') {
+            text = text.substring(1);
+        }
+        Pattern pattern = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            String buf = matcher.group(0).trim();
+            pattern = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
+            matcher = pattern.matcher(buf);
+            if (matcher.find()) {
+                return buf.substring(0, buf.length() - 1).toLowerCase();
+            }
             return buf.toLowerCase();
         }
 
@@ -25,7 +34,7 @@ public class TextUtils {
     }
 
     public static String cutMarkdownSymbolsInText(String text) {
-        return text.replaceAll("[*_`\\[\\]()]", "").replaceAll("<[^>]*+>", "");
+        return text.replaceAll("[*_`\\[\\]()]", "").replaceAll("<.*?>","");
     }
 
     public static String reduceSpaces(String text) {
@@ -33,14 +42,14 @@ public class TextUtils {
             text = text.replaceAll(" +", " ");
         }
         while (text.contains("\n\n")) {
-            text = text.replace("\n\n", "\n");
+            text = text.replaceAll("\n\n", "\n");
         }
 
         return text.trim();
     }
 
     public static String cutHtmlTags(String text) {
-        return text.replaceAll("<[^>]*+>", "");
+        return text.replaceAll("<.*?>","");
     }
 
     public static String withCapital(String text) {
