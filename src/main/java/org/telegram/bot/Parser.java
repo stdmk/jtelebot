@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import java.io.InputStream;
 
@@ -88,6 +89,9 @@ public class Parser extends Thread {
                 log.info("To " + message.getChatId() + ": sending document " + sendDocument.getCaption());
                 bot.execute(sendDocument);
             }
+        } catch (TelegramApiRequestException e) {
+            botStats.incrementErrors();
+            log.error("Error: cannot send response: {}", e.getApiResponse());
         } catch (TelegramApiException e) {
             botStats.incrementErrors();
             log.error("Error: cannot send response: {}", e.getMessage());
