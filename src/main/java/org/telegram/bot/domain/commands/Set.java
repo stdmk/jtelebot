@@ -3,14 +3,15 @@ package org.telegram.bot.domain.commands;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.commands.setters.AliasSetter;
-import org.telegram.bot.domain.commands.setters.CitySetter;
-import org.telegram.bot.domain.commands.setters.NewsSetter;
-import org.telegram.bot.domain.commands.setters.TvSetter;
+import org.telegram.bot.domain.commands.setters.*;
 import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.Holiday;
 import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -29,24 +30,28 @@ import java.util.List;
 public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private final CommandWaitingService commandWaitingService;
+    private final ChatService chatService;
+    private final UserService userService;
+    private final SpeechService speechService;
+
     private final NewsSetter newsSetter;
     private final CitySetter citySetter;
     private final AliasSetter aliasSetter;
     private final TvSetter tvSetter;
-
-    private final ChatService chatService;
-    private final UserService userService;
+    private final HolidaySetter holidaySetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
     private final String ALIAS = "алиас";
     private final String TV = "тв";
+    private final String HOLIDAY = "праздник";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
         Integer userId = message.getFrom().getId();
         String textMessage = message.getText();
+        boolean callback = false;
 
         CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
 
@@ -54,6 +59,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             textMessage = cutCommandInText(callbackQuery.getData());
             userId = callbackQuery.getFrom().getId();
+            callback = true;
         } else if (commandWaiting != null) {
             textMessage = cutCommandInText(commandWaiting.getTextMessage() + textMessage);
         } else {
@@ -84,8 +90,17 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return tvSetter.set(update, textMessage);
                 }
+            } else if (textMessage.toLowerCase().startsWith(HOLIDAY)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return holidaySetter.set(update, textMessage);
+                }
             }
-            return buildMainPageWithCallback(message);
+            if (callback) {
+                return buildMainPageWithCallback(message);
+            }
+            commandWaitingService.remove(commandWaiting);
+
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
@@ -141,11 +156,19 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> tvRow = new ArrayList<>();
         tvRow.add(tvButton);
 
+        InlineKeyboardButton holidayButton = new InlineKeyboardButton();
+        holidayButton.setText(SET + HOLIDAY);
+        holidayButton.setCallbackData(SET + HOLIDAY);
+
+        List<InlineKeyboardButton> holidayRow = new ArrayList<>();
+        holidayRow.add(holidayButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
         rows.add(aliasRow);
         rows.add(tvRow);
+        rows.add(holidayRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
