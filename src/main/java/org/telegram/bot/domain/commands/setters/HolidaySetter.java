@@ -25,6 +25,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
+
 @Service
 @AllArgsConstructor
 public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
@@ -236,7 +238,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
         String nameOfHoliday;
         try {
             dateOfHoliday = LocalDate.parse(params.substring(0, i), dateFormatter);
-            nameOfHoliday = params.substring(i + 1);
+            nameOfHoliday = cutHtmlTags(params.substring(i + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -245,7 +247,12 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
             throw new BotException("Имя праздника слишком длинное. 55 символов максимум.");
         }
 
-        Holiday holiday = new Holiday();
+        Holiday holiday = holidayService.get(chat, user, nameOfHoliday);
+        if (holiday != null) {
+            throw new BotException("Такой праздник уже добавлен");
+        }
+
+        holiday = new Holiday();
         holiday.setChat(chat);
         holiday.setUser(user);
         holiday.setDate(dateOfHoliday);

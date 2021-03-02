@@ -42,6 +42,14 @@ public interface HolidayService {
      * Get a Holidays.
      *
      * @param chat Chat entity of UserCity to get.
+     * @return the persisted entities.
+     */
+    List<Holiday> get(Chat chat);
+
+    /**
+     * Get a Holidays.
+     *
+     * @param chat Chat entity of UserCity to get.
      * @param user User entity of UserCity to get.
      * @return the persisted entities.
      */

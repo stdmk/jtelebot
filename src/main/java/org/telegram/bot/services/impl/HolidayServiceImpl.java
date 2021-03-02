@@ -41,9 +41,15 @@ public class HolidayServiceImpl implements HolidayService {
     }
 
     @Override
+    public List<Holiday> get(Chat chat) {
+        log.debug("Request to get Holiday by Chat: {}", chat);
+        return holidayRepository.findByChat(chat);
+    }
+
+    @Override
     public Page<Holiday> get(Chat chat, User user, int page) {
         log.debug("Request to get pageble Holiday by User: {} and Chat: {}", user, chat);
-        return holidayRepository.findAll(PageRequest.of(page, 6));
+        return holidayRepository.findAllByChatAndUser(chat, user, PageRequest.of(page, 6));
     }
 
     @Override
