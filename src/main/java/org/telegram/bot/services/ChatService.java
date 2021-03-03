@@ -5,7 +5,7 @@ import org.telegram.bot.domain.entities.Chat;
 import java.util.List;
 
 /**
- * Service Interface for managing {@link org.telegram.bot.domain.entities.User}.
+ * Service Interface for managing {@link org.telegram.bot.domain.entities.Chat}.
  */
 
 public interface ChatService {
@@ -40,4 +40,11 @@ public interface ChatService {
      * @return the persisted entity.
      */
     Integer getChatAccessLevel(Long chatId);
+
+    /**
+     * Get a Chats with Holidays.
+     *
+     * @return Chat entities, which stored Holidays.
+     */
+    List<Chat> getChatsWithHolidays();
 }

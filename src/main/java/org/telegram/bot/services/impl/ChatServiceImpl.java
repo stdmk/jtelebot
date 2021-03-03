@@ -48,4 +48,10 @@ public class ChatServiceImpl implements ChatService {
 
         return get(chatId).getAccessLevel();
     }
+
+    @Override
+    public List<Chat> getChatsWithHolidays() {
+        log.debug("Request to get Chats with holidays");
+        return chatRepository.findDistinctChatWithHolidays();
+    }
 }
