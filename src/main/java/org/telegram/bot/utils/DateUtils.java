@@ -27,6 +27,10 @@ public class DateUtils {
         return dateTimeFormat.format(date);
     }
 
+    public static String formatDate(LocalDate date) {
+        return dateFormatter.format(date);
+    }
+
     public static String formatDate(LocalDateTime dateTime) {
         return dateFormatter.format(dateTime);
     }
