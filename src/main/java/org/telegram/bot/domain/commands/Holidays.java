@@ -144,7 +144,20 @@ public class Holidays implements CommandParent<SendMessage> {
     private String getNumberOfYear(LocalDate storedDate, LocalDate dateOfHoliday) {
         String numberOfYears = "";
         if (storedDate.getYear() != 1) {
-            numberOfYears = "(" + (dateOfHoliday.getYear() - storedDate.getYear()) + " лет)";
+            String postfix;
+            String years = String.valueOf(dateOfHoliday.getYear() - storedDate.getYear());
+
+            if (years.endsWith("11") || years.endsWith("12") ||  years.endsWith("13") ||  years.endsWith("14") ||  years.endsWith("15") ||  years.endsWith("16") ||  years.endsWith("17") ||  years.endsWith("18") ||  years.endsWith("19")) {
+                postfix = " лет)";
+            } else if (years.endsWith("1")) {
+                postfix = " год)";
+            } else if (years.endsWith("2") || (years.endsWith("3") || (years.endsWith("4")))) {
+                postfix = " года)";
+            } else {
+                postfix = " лет)";
+            }
+
+            numberOfYears = "(" + years + postfix;
         }
 
         return numberOfYears;
