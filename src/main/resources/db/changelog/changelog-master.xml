@@ -84,5 +84,6 @@
     <include file="db/changelog/20210225171000_added_command_Shutdown.xml"/>
     <include file="db/changelog/20210302090600_added_entity_Holiday.xml"/>
     <include file="db/changelog/20210302162800_added_command_Holidays.xml"/>
-    <include file="db/changelog/20210304112200_fix_help_Holiday.xml"/>
+    <include file="db/changelog/20210304115200_added_command_Say.xml"/>
+    <include file="db/changelog/20210304115300_added_command_Up.xml"/>
 </databaseChangeLog>

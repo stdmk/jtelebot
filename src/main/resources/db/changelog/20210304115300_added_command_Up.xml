@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210304115300-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="40"/>
+            <column name="commandname" value="up"/>
+            <column name="russifiedname" value="вверх"/>
+            <column name="enruname" value="ddth["/>
+            <column name="classname" value="up"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Вверх,Бот присылает кучу переносов строк для сдвига переписки вверх,отсутствуют,вверх,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
