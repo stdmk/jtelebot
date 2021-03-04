@@ -14,4 +14,5 @@ public interface HolidayRepository extends JpaRepository<Holiday, Long> {
     List<Holiday> findByChatAndUser(Chat chat, User user);
     List<Holiday> findByChat(Chat chat);
     Page<Holiday> findAllByChatAndUser(Chat chat, User user, Pageable pageable);
+    List<Holiday> findByChatAndNameContainsIgnoreCase(Chat chat, String name);
 }

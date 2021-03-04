@@ -38,22 +38,23 @@ public class Holidays implements CommandParent<SendMessage> {
 
         if (textMessage == null) {
             responseText = getCommingHolidays(chatService.get(message.getChatId()));
+        } else if (textMessage.startsWith("_")) {
+            long holidayId;
+            try {
+                holidayId = Long.parseLong(textMessage.substring(1));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+            Holiday holiday = holidayService.get(holidayId);
+            if (holiday == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            responseText = getHolidayDetails(holiday);
         } else {
             int i = textMessage.indexOf(".");
             if (i < 0) {
-                long holidayId;
-                try {
-                    holidayId = Long.parseLong(textMessage.substring(1));
-                } catch (NumberFormatException e) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-
-                Holiday holiday = holidayService.get(holidayId);
-                if (holiday == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-
-                responseText = getHolidayDetails(holiday);
+                responseText = getHolidaysSearch(chatService.get(message.getChatId()), textMessage);
             } else {
                 LocalDate requestedDate;
                 try {
@@ -105,6 +106,13 @@ public class Holidays implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
+    private String getHolidaysSearch(Chat chat, String name) {
+        StringBuilder buf = new StringBuilder("<u>Результаты поиска:</u>\n");
+        holidayService.get(chat, name).forEach(holiday -> buf.append(buildStringOfHoliday(holiday, true)));
+
+        return buf.toString();
+    }
+
     private String getHolidayDetails(Holiday holiday) {
         String date;
         LocalDate storedDate = holiday.getDate();
@@ -132,7 +140,7 @@ public class Holidays implements CommandParent<SendMessage> {
         }
 
         return "<b>" + dayOfWeek +
-                String.format("%02d",dateOfHoliday.getMonth().getValue()) + "." + String.format("%02d", dateOfHoliday.getDayOfMonth()) +
+                String.format("%02d", dateOfHoliday.getDayOfMonth()) + "." + String.format("%02d",dateOfHoliday.getMonth().getValue()) +
                 " </b><i>" + holiday.getName() + "</i> "  + getNumberOfYear(storedDate, dateOfHoliday) + "\n" +
                 "/holidays_" + holiday.getId() + "\n";
     }

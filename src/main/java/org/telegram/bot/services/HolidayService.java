@@ -30,6 +30,15 @@ public interface HolidayService {
     Holiday get(Chat chat, User user, String name);
 
     /**
+     * Searching fo holidays.
+     *
+     * @param chat Chat entity of UserCity to get.
+     * @param name of entity of Holiday to get.
+     * @return persisted entities.
+     */
+    List<Holiday> get(Chat chat, String name);
+
+    /**
      * Get a Holidays.
      *
      * @param chat Chat entity of UserCity to get.

@@ -35,6 +35,12 @@ public class HolidayServiceImpl implements HolidayService {
     }
 
     @Override
+    public List<Holiday> get(Chat chat, String name) {
+        log.debug("Searching for Holiday for Chat: {} and name {}", chat, name);
+        return holidayRepository.findByChatAndNameContainsIgnoreCase(chat, name);
+    }
+
+    @Override
     public List<Holiday> get(Chat chat, User user) {
         log.debug("Request to get Holiday by User: {} and Chat: {}", user, chat);
         return holidayRepository.findByChatAndUser(chat, user);
