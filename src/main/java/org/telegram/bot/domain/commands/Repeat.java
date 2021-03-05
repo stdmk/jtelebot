@@ -37,7 +37,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
 
-        if (textMessage != null && textMessage.startsWith(".")) {
+        if (textMessage != null && textMessage.equals(".")) {
             Chat chat = chatService.get(message.getChatId());
             User user = userService.get(message.getFrom().getId());
             LastCommand lastCommand = lastCommandService.get(chat);
