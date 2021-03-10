@@ -90,12 +90,14 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         int i = params.indexOf(" ");
         if (i < 0) {
+            commandWaitingService.remove(commandWaitingService.get(chat, user));
             return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         String name;
         URL url;
         if (!params.startsWith("http") && !params.substring(i + 1).startsWith("http")) {
+            commandWaitingService.remove(commandWaitingService.get(chat, user));
             return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
@@ -107,6 +109,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
                 url = new URL(params.substring(i + 1));
                 name = params.substring(0, i);
             } catch (MalformedURLException malformedURLException) {
+                commandWaitingService.remove(commandWaitingService.get(chat, user));
                 return buildSendMessageWithText(message, "Ошибочный адрес url источника");
             }
         }

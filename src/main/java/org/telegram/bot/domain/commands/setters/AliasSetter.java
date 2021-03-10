@@ -232,6 +232,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
         if (aliasValue.startsWith(setProperties.getCommandName()) ||
                 aliasValue.startsWith(setProperties.getEnRuName()) ||
                 aliasValue.startsWith(setProperties.getRussifiedName())) {
+            commandWaitingService.remove(commandWaitingService.get(chat, user));
             return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 

@@ -126,6 +126,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
         int i = params.indexOf(" ");
         if (i < 0) {
+            commandWaitingService.remove(commandWaitingService.get(chat, user));
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 

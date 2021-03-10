@@ -211,6 +211,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
             commandWaitingService.add(chat, user, Set.class, EMPTY_HOLIDAY_COMMAND + " " + commandText);
             return buildMessage(message, helpText, newMessage);
         } else {
+            commandWaitingService.remove(commandWaitingService.get(chat, user));
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
