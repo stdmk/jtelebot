@@ -23,7 +23,7 @@ public class GoogleRequestsTimer extends TimerParent {
     private final BotStats botStats;
 
     @Override
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedRate = 14400000)
     public void execute() {
         Timer timer = timerService.get("googleRequestsTimer");
         if (timer == null) {

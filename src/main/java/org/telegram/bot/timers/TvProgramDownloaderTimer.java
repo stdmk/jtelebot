@@ -49,7 +49,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private final String TV_PROGRAM_DATA_FILE_NAME = "tvguide.zip";
 
     @Override
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedRate = 14400000)
     public void execute() {
         Timer timer = timerService.get("tvProgramDownloader");
         if (timer == null) {
