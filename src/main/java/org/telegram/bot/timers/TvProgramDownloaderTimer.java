@@ -99,8 +99,12 @@ public class TvProgramDownloaderTimer extends TimerParent {
 
         XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+        Tv tv = xmlMapper.readValue(reader, Tv.class);
 
-        return xmlMapper.readValue(reader, Tv.class);
+        reader.close();
+        zipFile.close();
+
+        return tv;
     }
 
     private void transferTvProgramDataToDb(Tv tv) {
