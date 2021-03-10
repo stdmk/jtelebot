@@ -37,10 +37,10 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("<b>Работаю без перерыва:</b>\n").append(deltaDatesToString(botDateTimeStart, dateTimeNow)).append("\n");
         buf.append("<b>Общее время наработки:</b>\n").append(deltaDatesToString(botStats.getTotalRunningTime())).append("\n");
 
-        long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;
         long heapMaxSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
-        float heapPercent = (float) heapSize / (float) heapMaxSize;
-        buf.append("<b>Heap:</b>\n").append(heapSize).append("/").append(heapMaxSize).append(" мб (").append(String.format("%.0f%%", heapPercent * 100)).append(")\n");
+        long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;
+        long heapOccupiedSize = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024;
+        buf.append("<b>Heap:</b>\n").append(heapOccupiedSize).append("/").append(heapSize).append("/").append(heapMaxSize).append(" мб.\n");
 
         buf.append("<b><u>Статистика:</u></b>\n");
         buf.append("Принято сообщений: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(botStats.getTotalReceivedMessages()).append(")\n");
