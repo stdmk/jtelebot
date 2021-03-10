@@ -1,6 +1,5 @@
 package org.telegram.bot.domain.commands;
 
-import liquibase.pro.packaged.F;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -22,7 +21,7 @@ public class Uptime implements CommandParent<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         StringBuilder buf = new StringBuilder();

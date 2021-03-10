@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.*;
 import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.entities.Holiday;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;

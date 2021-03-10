@@ -62,7 +62,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         return null;
     }
 }

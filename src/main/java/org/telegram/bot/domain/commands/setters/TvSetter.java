@@ -1,6 +1,5 @@
 package org.telegram.bot.domain.commands.setters;
 
-import liquibase.pro.packaged.U;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

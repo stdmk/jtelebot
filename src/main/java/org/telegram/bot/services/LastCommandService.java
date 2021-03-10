@@ -1,7 +1,6 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.LastCommand;
 
 /**

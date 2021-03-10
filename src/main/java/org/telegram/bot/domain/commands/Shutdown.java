@@ -16,7 +16,7 @@ public class Shutdown implements CommandParent<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         botStats.saveStats();
 
         configurableApplicationContext.close();

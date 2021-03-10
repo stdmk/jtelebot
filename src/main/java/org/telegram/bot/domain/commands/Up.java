@@ -11,7 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @AllArgsConstructor
 public class Up implements CommandParent<SendMessage> {
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
         SendMessage sendMessage = new SendMessage();
