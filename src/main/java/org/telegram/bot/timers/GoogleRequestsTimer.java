@@ -40,7 +40,7 @@ public class GoogleRequestsTimer extends TimerParent {
         if (dateTimeNow.isAfter(nextAlarm)) {
             botStats.resetGoogleRequests();
 
-            timer.setLastAlarmDt(atStartOfDay(dateTimeNow.plusDays(1)));
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
             timerService.save(timer);
         }
     }

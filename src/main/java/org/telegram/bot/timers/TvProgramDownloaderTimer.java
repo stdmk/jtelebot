@@ -84,7 +84,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
 
             transferTvProgramDataToDb(tv);
 
-            timer.setLastAlarmDt(atStartOfDay(dateTimeNow.plusDays(1)));
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
             timerService.save(timer);
 
             log.info("Timer for downloading and transfering tv-program completed successfully");

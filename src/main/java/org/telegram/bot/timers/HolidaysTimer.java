@@ -68,7 +68,7 @@ public class HolidaysTimer extends TimerParent {
                         }
             });
 
-            timer.setLastAlarmDt(atStartOfDay(dateTimeNow.plusDays(1)));
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
             timerService.save(timer);
         }
     }

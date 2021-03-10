@@ -40,7 +40,7 @@ public class WolframRequestsTimer extends TimerParent {
         if (dateTimeNow.isAfter(nextAlarm)) {
             botStats.resetWolframRequests();
 
-            timer.setLastAlarmDt(atStartOfDay(dateTimeNow.plusMonths(1)));
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
             timerService.save(timer);
         }
     }
