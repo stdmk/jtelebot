@@ -55,30 +55,27 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
-        String potentialCommand = getPotentialCommandInText(message.getText());
-        if (potentialCommand != null) {
-            Chat chat = chatService.get(message.getChatId());
-            User user = userService.get(message.getFrom().getId());
+        Chat chat = chatService.get(message.getChatId());
+        User user = userService.get(message.getFrom().getId());
 
-            org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, potentialCommand);
+        org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, message.getText());
 
-            if (alias != null) {
-                Update newUpdate = copyUpdate(update);
-                if (newUpdate == null) {
-                    return;
-                }
+        if (alias != null) {
+            Update newUpdate = copyUpdate(update);
+            if (newUpdate == null) {
+                return;
+            }
 
-                String aliasValue = alias.getValue();
-                Message newMessage = getMessageFromUpdate(newUpdate);
-                newMessage.setText(aliasValue);
-                CommandProperties commandProperties = commandPropertiesService.findCommandInText(aliasValue, bot.getBotUsername());
-                if (commandProperties != null) {
-                    if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
-                        userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
+            String aliasValue = alias.getValue();
+            Message newMessage = getMessageFromUpdate(newUpdate);
+            newMessage.setText(aliasValue);
+            CommandProperties commandProperties = commandPropertiesService.findCommandInText(aliasValue, bot.getBotUsername());
+            if (commandProperties != null) {
+                if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
+                    userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
 
-                        Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
-                        parser.start();
-                    }
+                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
+                    parser.start();
                 }
             }
         }
