@@ -15,6 +15,6 @@ import java.util.List;
 @Repository
 public interface AliasRepository extends JpaRepository<Alias, Long> {
     List<Alias> findByChatAndUser(Chat chat, User user);
-    Alias findByChatAndUserAndName(Chat chat, User user, String name);
+    Alias findByChatAndUserAndNameIgnoreCase(Chat chat, User user, String name);
     Alias findByChatAndUserAndId(Chat chat, User user, Long aliasId);
 }

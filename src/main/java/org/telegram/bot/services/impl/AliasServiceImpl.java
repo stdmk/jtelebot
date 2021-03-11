@@ -35,7 +35,7 @@ public class AliasServiceImpl implements AliasService {
     @Override
     public Alias get(Chat chat, User user, String name) {
         log.debug("Request to get Alias by name: {} for chat {} and user {}", name, chat.getChatId(), user.getUserId());
-        return aliasRepository.findByChatAndUserAndName(chat, user, name);
+        return aliasRepository.findByChatAndUserAndNameIgnoreCase(chat, user, name);
     }
 
     @Override
