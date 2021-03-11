@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -67,6 +68,9 @@ public class Holidays implements CommandParent<SendMessage> {
                 }
 
                 responseText = getHolidaysForDate(chatService.get(message.getChatId()), requestedDate);
+                if (responseText == null) {
+                    responseText = "Праздники на эту дату отсутствуют";
+                }
             }
         }
 
@@ -95,10 +99,15 @@ public class Holidays implements CommandParent<SendMessage> {
     }
 
     public String getHolidaysForDate(Chat chat, LocalDate date) {
+        List<Holiday> holidayList = holidayService.get(chat);
+        if (holidayList.isEmpty()) {
+            return null;
+        }
+
         StringBuilder buf = new StringBuilder();
         buf.append("<u>").append(formatDate(date)).append("</u>").append(" (").append(getDayOfWeek(date)).append(")\n");
 
-        holidayService.get(chat)
+        holidayList
                 .stream()
                 .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue() && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
                 .forEach(holiday -> buf.append(buildStringOfHoliday(holiday, false)));

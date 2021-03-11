@@ -52,19 +52,26 @@ public class HolidaysTimer extends TimerParent {
             chatService.getChatsWithHolidays()
                     .stream()
                     .map(chat -> {
+                        String textMessage = holidays.getHolidaysForDate(chat, dateNow);
+                        if (textMessage == null) {
+                            return null;
+                        }
+
                         SendMessage sendMessage = new SendMessage();
                         sendMessage.setChatId(chat.getChatId().toString());
                         sendMessage.enableHtml(true);
                         sendMessage.disableWebPagePreview();
-                        sendMessage.setText(holidays.getHolidaysForDate(chat, dateNow));
+                        sendMessage.setText(textMessage);
 
                         return sendMessage;
             })
                     .forEach(sendMessage -> {
-                        try {
-                            bot.execute(sendMessage);
-                        } catch (TelegramApiException e) {
-                            e.printStackTrace();
+                        if (sendMessage != null) {
+                            try {
+                                bot.execute(sendMessage);
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
                         }
             });
 
