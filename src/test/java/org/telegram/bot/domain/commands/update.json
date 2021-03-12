@@ -1,0 +1,23 @@
+{
+  "update_id": 123456789,
+  "message": {
+    "message_id": 123,
+    "from": {
+      "id": 654321,
+      "is_bot": false,
+      "first_name": "Test",
+      "last_name": "Testov",
+      "username": "test",
+      "language_code": "ru"
+    },
+    "chat": {
+      "id": 654321,
+      "first_name": "Test",
+      "last_name": "Testov",
+      "username": "stdmk",
+      "type": "private"
+    },
+    "date": 1615385752,
+    "text": "test message"
+  }
+}
