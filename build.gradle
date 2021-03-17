@@ -46,3 +46,7 @@ jar {
         )
     }
 }
+
+bootJar {
+    archiveFileName = 'Bot.jar'
+}
