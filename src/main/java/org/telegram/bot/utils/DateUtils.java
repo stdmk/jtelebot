@@ -39,6 +39,10 @@ public class DateUtils {
         return date.format(dateTimeFormatter);
     }
 
+    public static String formatDate(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateFormatter);
+    }
+
     public static String formatDateTime(LocalDateTime dateTime) {
         return dateTime.format(dateTimeFormatter);
     }
@@ -53,6 +57,10 @@ public class DateUtils {
 
     public static String formatTime(Integer seconds) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.of("UTC")).format(timeFormatter);
+    }
+
+    public static String formatDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeFormatter);
     }
 
     public static String formatTvTime(LocalDateTime dateTime, ZoneId zoneId) {

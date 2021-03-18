@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
@@ -27,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -45,6 +47,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private final TimerService timerService;
     private final TvChannelService tvChannelService;
     private final TvProgramService tvProgramService;
+    private final BotStats botStats;
 
     private final String TV_PROGRAM_DATA_FILE_NAME = "tvguide.zip";
 
@@ -82,6 +85,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
                 return;
             }
 
+            botStats.setLastTvUpdate(Instant.now());
             transferTvProgramDataToDb(tv);
 
             timer.setLastAlarmDt(atStartOfDay(dateTimeNow));

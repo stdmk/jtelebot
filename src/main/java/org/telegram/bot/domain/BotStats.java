@@ -8,12 +8,14 @@ import org.telegram.bot.domain.entities.WorkParam;
 import org.telegram.bot.services.WorkParamService;
 import org.telegram.bot.services.config.PropertiesConfig;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.getDuration;
+import static org.telegram.bot.utils.DateUtils.dateTimeFormatter;
 
 @Component
 @Scope("singleton")
@@ -47,12 +49,21 @@ public class BotStats {
 
     private Integer wolframRequests;
 
+    private Long lastTvUpdate;
+
     private static final String TOTAL_RECEIVED_MESSAGES = "totalReceivedMessages";
     private static final String TOTAL_RUNNING_TIME = "totalRunningTime";
     private static final String TOTAL_COMMANDS_PROCESSED = "totalCommandsProcessed";
     private static final String GOOGLE_REQUESTS = "googleRequests";
     private static final String WOLFRAM_REQUESTS = "wolframRequests";
-    private final List<String> botStatsFieldsToSave = Arrays.asList(TOTAL_RECEIVED_MESSAGES, TOTAL_RUNNING_TIME, TOTAL_COMMANDS_PROCESSED, GOOGLE_REQUESTS, WOLFRAM_REQUESTS);
+    private static final String LAST_TV_UPDATE = "lastTvUpdate";
+    private final List<String> botStatsFieldsToSave = Arrays.asList(
+                                                            TOTAL_RECEIVED_MESSAGES,
+                                                            TOTAL_RUNNING_TIME,
+                                                            TOTAL_COMMANDS_PROCESSED,
+                                                            GOOGLE_REQUESTS,
+                                                            WOLFRAM_REQUESTS,
+                                                            LAST_TV_UPDATE);
 
     public BotStats(WorkParamService workParamService, PropertiesConfig propertiesConfig) {
         this.workParamService = workParamService;
@@ -64,7 +75,7 @@ public class BotStats {
         this.commandsProcessed = 0;
         this.errors = 0;
         this.screenshots = 0;
-        Arrays.asList(TOTAL_RECEIVED_MESSAGES, TOTAL_COMMANDS_PROCESSED).forEach(field -> setTotalBaseField(workParamList, field));
+        Arrays.asList(TOTAL_RECEIVED_MESSAGES, TOTAL_COMMANDS_PROCESSED, LAST_TV_UPDATE).forEach(field -> setTotalBaseField(workParamList, field));
         setTotalRunningTime(workParamList);
         setGoogleRequests(workParamList);
         setWolframRequests(workParamList);
@@ -130,6 +141,10 @@ public class BotStats {
         this.totalRunningTime = this.totalRunningTime + getDuration(this.lastTotalRunningCheck, dateTimeNow);
         this.lastTotalRunningCheck = dateTimeNow;
         return this.totalRunningTime;
+    }
+
+    public void setLastTvUpdate(Instant lastTvUpdate) {
+        this.lastTvUpdate = lastTvUpdate.toEpochMilli();
     }
 
     private void setTotalBaseField(List<WorkParam> workParamList, String fieldName) {
