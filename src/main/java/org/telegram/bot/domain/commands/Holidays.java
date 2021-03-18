@@ -19,6 +19,7 @@ import java.time.format.TextStyle;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 import static org.telegram.bot.utils.DateUtils.formatDate;
@@ -99,7 +100,9 @@ public class Holidays implements CommandParent<SendMessage> {
     }
 
     public String getHolidaysForDate(Chat chat, LocalDate date) {
-        List<Holiday> holidayList = holidayService.get(chat);
+        List<Holiday> holidayList = holidayService.get(chat).stream()
+                .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue() && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
+                .collect(Collectors.toList());
         if (holidayList.isEmpty()) {
             return null;
         }
@@ -107,10 +110,7 @@ public class Holidays implements CommandParent<SendMessage> {
         StringBuilder buf = new StringBuilder();
         buf.append("<u>").append(formatDate(date)).append("</u>").append(" (").append(getDayOfWeek(date)).append(")\n");
 
-        holidayList
-                .stream()
-                .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue() && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
-                .forEach(holiday -> buf.append(buildStringOfHoliday(holiday, false)));
+        holidayList.forEach(holiday -> buf.append(buildStringOfHoliday(holiday, false)));
 
         return buf.toString();
     }
