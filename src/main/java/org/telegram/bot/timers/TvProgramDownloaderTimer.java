@@ -113,10 +113,22 @@ public class TvProgramDownloaderTimer extends TimerParent {
 
     private void transferTvProgramDataToDb(Tv tv) {
         tvChannelService.clearTable();
-        tvChannelService.save(mapChannelToEntity(tv.getChannel()));
+        List<Integer> tvChannelIdList = tvChannelService.save(
+                mapChannelToEntity(
+                        tv.getChannel()))
+                            .stream()
+                            .map(TvChannel::getId)
+                            .collect(Collectors.toList()
+                        );
 
         tvProgramService.clearTable();
-        tvProgramService.save(mapProgramToEntity(tv.getProgramme()));
+        tvProgramService.save(
+                mapProgramToEntity(
+                        tv.getProgramme())
+                            .stream()
+                            .filter(tvProgram -> tvChannelIdList.contains(tvProgram.getChannel().getId()))
+                            .collect(Collectors.toList())
+                        );
     }
 
     private TvChannel mapChannelToEntity(Channel channel) {
