@@ -214,7 +214,7 @@ public class Weather implements CommandParent<SendMessage> {
                 .forEach(forecast -> buf.append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
                     .append(String.format("%-" + maxLenghtOfTemp + "s", String.format("%+.2f", forecast.getMain().getTemp()) + "°"))
-                    .append(String.format("%-5s", forecast.getMain().getHumidity().intValue() + "%"))
+                    .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
                     .append(forecast.getWind().getSpeed()).append("м/c")
                     .append("\n"));
 
