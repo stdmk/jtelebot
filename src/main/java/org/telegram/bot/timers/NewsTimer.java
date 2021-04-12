@@ -15,13 +15,12 @@ import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.TimerService;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.telegram.bot.utils.NetworkUtils.getRssFeedFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -34,6 +33,7 @@ public class NewsTimer extends TimerParent {
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
+    private final NetworkUtils networkUtils;
 
     @Override
     @Scheduled(fixedRate = 300000)
@@ -46,7 +46,7 @@ public class NewsTimer extends TimerParent {
                 .collect(Collectors.toList());
 
         newsSources.forEach(newsSource -> {
-            SyndFeed syndFeed = getRssFeedFromUrl(newsSource.getUrl());
+            SyndFeed syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
             syndFeed.getEntries().forEach(syndEntry -> {
                 NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
 

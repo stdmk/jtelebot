@@ -11,6 +11,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -19,8 +20,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
 
 @Component
 @AllArgsConstructor
@@ -32,6 +31,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final BotStats botStats;
+    private final NetworkUtils networkUtils;
 
     @Override
     public SendPhoto parse(Update update) throws Exception {
@@ -69,7 +69,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
 
             InputStream screen;
             try {
-                screen = getFileFromUrl(API_URL + "&key=" + token + "&url=" + url.toString());
+                screen = networkUtils.getFileFromUrl(API_URL + "&key=" + token + "&url=" + url);
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }

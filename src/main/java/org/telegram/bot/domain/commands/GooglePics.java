@@ -16,6 +16,7 @@ import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -31,8 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
-
 @Component
 @AllArgsConstructor
 public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
@@ -45,6 +44,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
     private final BotStats botStats;
+    private final NetworkUtils networkUtils;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
@@ -85,7 +85,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             InputStream image;
             try {
-                image = getFileFromUrl(imageUrl.getUrl(), 5000000);
+                image = networkUtils.getFileFromUrl(imageUrl.getUrl(), 5000000);
             } catch (Exception e) {
                 throw new BotException("Не удалось загрузить картинку по адресу: " + imageUrl.getUrl());
             }

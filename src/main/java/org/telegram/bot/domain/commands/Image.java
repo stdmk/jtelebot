@@ -8,6 +8,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -17,14 +18,13 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
-
 @Component
 @AllArgsConstructor
 public class Image implements CommandParent<SendPhoto> {
 
     ImageUrlService imageUrlService;
     private final SpeechService speechService;
+    private final NetworkUtils networkUtils;
 
     @Override
     public SendPhoto parse(Update update) throws Exception {
@@ -68,7 +68,7 @@ public class Image implements CommandParent<SendPhoto> {
 
         InputStream image;
         try {
-            image = getFileFromUrl(imageUrl.getUrl());
+            image = networkUtils.getFileFromUrl(imageUrl.getUrl());
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }

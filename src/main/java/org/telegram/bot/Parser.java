@@ -1,6 +1,7 @@
 package org.telegram.bot;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.bot.domain.BotStats;
@@ -17,10 +18,6 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import java.io.InputStream;
-
-import static org.telegram.bot.utils.NetworkUtils.getFileFromUrl;
-
 @AllArgsConstructor
 public class Parser extends Thread {
 
@@ -36,7 +33,7 @@ public class Parser extends Thread {
         if (command == null) {
             return;
         }
-        log.debug("Find a command {}", command.toString());
+        log.debug("Find a command {}", command);
         Message message = update.getMessage();
         if (message == null) {
             message = update.getEditedMessage();
@@ -131,20 +128,15 @@ public class Parser extends Thread {
         try {
             bot.execute(sendPhoto);
         } catch (TelegramApiException telegramApiException) {
-            try {
-                sendPhoto.setPhoto(new InputFile(getFileFromUrl(inputMedia.getMedia(), 5000000), "image"));
-                bot.execute(sendPhoto);
-            } catch (Exception exception) {
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(sendMediaGroup.getChatId());
-                sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
-                sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia() + "\n" + buf.toString());
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(sendMediaGroup.getChatId());
+            sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+            sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia() + "\n" + buf);
 
-                try {
-                    bot.execute(sendMessage);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+            try {
+                bot.execute(sendMessage);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -163,20 +155,15 @@ public class Parser extends Thread {
                     try {
                         bot.execute(sendPhoto);
                     } catch (TelegramApiException telegramApiException) {
-                        try {
-                            sendPhoto.setPhoto(new InputFile(getFileFromUrl(inputMedia.getMedia(), 5000000), "image"));
-                            bot.execute(sendPhoto);
-                        } catch (Exception exception) {
-                            SendMessage sendMessage = new SendMessage();
-                            sendMessage.setChatId(sendMediaGroup.getChatId());
-                            sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
-                            sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia());
+                        SendMessage sendMessage = new SendMessage();
+                        sendMessage.setChatId(sendMediaGroup.getChatId());
+                        sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+                        sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia());
 
-                            try {
-                                bot.execute(sendMessage);
-                            } catch (TelegramApiException e) {
-                                e.printStackTrace();
-                            }
+                        try {
+                            bot.execute(sendMessage);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
                         }
                     }
                 });
@@ -184,20 +171,13 @@ public class Parser extends Thread {
 
     private void tryToDeliverTheMessage(SendPhoto sendPhoto) throws TelegramApiException {
         String imageUrl = sendPhoto.getPhoto().getAttachName();
-        try {
-            InputStream image = getFileFromUrl(imageUrl, 5000000);
-            sendPhoto.setPhoto(new InputFile(image, "google"));
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
+        sendMessage.setChatId(sendPhoto.getChatId());
+        sendMessage.setText(sendPhoto.getCaption() + "\nНе удалось загрузить картинку по адресу: " + imageUrl);
+        sendMessage.enableHtml(true);
+        sendMessage.disableWebPagePreview();
 
-            bot.execute(sendPhoto);
-        } catch (Exception e) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
-            sendMessage.setChatId(sendPhoto.getChatId());
-            sendMessage.setText(sendPhoto.getCaption() + "\nНе удалось загрузить картинку по адресу: " + imageUrl);
-            sendMessage.enableHtml(true);
-            sendMessage.disableWebPagePreview();
-
-            bot.execute(sendMessage);
-        }
+        bot.execute(sendMessage);
     }
 }

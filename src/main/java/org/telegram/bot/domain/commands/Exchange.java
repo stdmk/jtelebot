@@ -11,6 +11,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -22,14 +23,13 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 
-import static org.telegram.bot.utils.NetworkUtils.readStringFromURL;
-
 @Component
 @AllArgsConstructor
 public class Exchange implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
+    private final NetworkUtils networkUtils;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -104,7 +104,7 @@ public class Exchange implements CommandParent<SendMessage> {
         ValCurs valCurs;
 
         try {
-            valCurs = xmlMapper.readValue(readStringFromURL(xmlUrl, Charset.forName("windows-1251")), ValCurs.class);
+            valCurs = xmlMapper.readValue(networkUtils.readStringFromURL(xmlUrl, Charset.forName("windows-1251")), ValCurs.class);
         } catch (IOException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
