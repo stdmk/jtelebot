@@ -38,7 +38,7 @@ public class UserStatsCleanerTimerTask extends TimerParent {
             timerService.save(timer);
         }
 
-        LocalDateTime dateTimeNow = LocalDateTime.now().plusDays(1);
+        LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1).withDayOfMonth(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {

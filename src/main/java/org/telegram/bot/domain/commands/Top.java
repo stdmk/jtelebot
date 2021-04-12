@@ -80,7 +80,7 @@ public class Top implements CommandParent<SendMessage> {
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableHtml(true);
         try {
-            sendMessage.setText(getTopListOfUsers(chat, getSortParamByName("месяц") + "\nСтатистика за месяц сброшена"));
+            sendMessage.setText(getTopListOfUsers(chat, "месяц") + "\nСтатистика за месяц сброшена");
         } catch (BotException ignored) {
 
         }
