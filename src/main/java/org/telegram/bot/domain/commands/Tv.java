@@ -38,6 +38,8 @@ public class Tv implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     private final int HOURS_NUMBER_SHORT = 3;
+    private final int HOURS_NUMBER_DEFAULT = 6;
+    private final int HOURS_NUMBER_LONG = 12;
 
     @Override
     public SendMessage parse(Update update) throws Exception {
@@ -48,7 +50,7 @@ public class Tv implements CommandParent<SendMessage> {
         ZoneId zoneId = getUserZoneId(message);
         String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
 
-        int HOURS_NUMBER_DEFAULT = 6;
+
         if (textMessage == null) {
             List<UserTv> userTvList = userTvService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
             if (userTvList.isEmpty()) {
@@ -62,7 +64,7 @@ public class Tv implements CommandParent<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            responseText = buildResponseTextWithProgramsToChannel(tvChannel, getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName(), HOURS_NUMBER_DEFAULT);
+            responseText = buildResponseTextWithProgramsToChannel(tvChannel, getUserZoneId(message), commandPropertiesService.getCommand(this.getClass()).getCommandName(), HOURS_NUMBER_LONG);
         } else if (textMessage.startsWith("_pr")) {
             TvProgram tvProgram = tvProgramService.get(parseEntityId(textMessage));
             if (tvProgram == null) {
@@ -73,11 +75,11 @@ public class Tv implements CommandParent<SendMessage> {
         } else {
             List<TvChannel> tvChannelList = tvChannelService.get(textMessage);
             if (tvChannelList.size() == 1) {
-                responseText = buildResponseTextWithProgramsToChannel(tvChannelList.get(0), zoneId, commandName, HOURS_NUMBER_DEFAULT);
+                responseText = buildResponseTextWithProgramsToChannel(tvChannelList.get(0), zoneId, commandName, HOURS_NUMBER_LONG);
             } else {
                 TvChannel tvChannel = tvChannelList.stream().filter(channel -> channel.getName().equalsIgnoreCase(textMessage)).findFirst().orElse(null);
                 if (tvChannel != null) {
-                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName, HOURS_NUMBER_DEFAULT);
+                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName, HOURS_NUMBER_LONG);
                 } else {
                     List<TvProgram> tvProgramList = tvProgramService.get(textMessage, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(), HOURS_NUMBER_DEFAULT);
                     if (tvChannelList.isEmpty() && tvProgramList.isEmpty()) {
