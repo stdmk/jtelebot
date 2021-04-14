@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.getDuration;
-import static org.telegram.bot.utils.DateUtils.dateTimeFormatter;
 
 @Component
 @Scope("singleton")

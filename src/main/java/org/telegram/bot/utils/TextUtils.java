@@ -94,4 +94,29 @@ public class TextUtils {
         }
         return "[" + user.getUsername() + "](tg://user?id=" + user.getUserId() + ")";
     }
+
+    public static String formatLongValue(long value) {
+        final long E = 1000000000000000000L;
+        final long P = 1000000000000000L;
+        final long T = 1000000000000L;
+        final long G = 1000000000L;
+        final long M = 1000000L;
+        final long K = 1000L;
+
+        if (value > E) {
+            return value / E + "E";
+        } else if (value > P) {
+            return value / P + "P";
+        } else if (value > T) {
+            return value / T + "T";
+        } else if (value > G) {
+            return value / G + "G";
+        } else if (value > M) {
+            return value / M + "M";
+        } else if (value > K) {
+            return value / K + "K";
+        } else {
+            return String.valueOf(value);
+        }
+    }
 }

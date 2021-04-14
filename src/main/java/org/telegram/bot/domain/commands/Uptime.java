@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
 import static org.telegram.bot.utils.DateUtils.formatDate;
+import static org.telegram.bot.utils.TextUtils.formatLongValue;
 
 @Component
 @AllArgsConstructor
@@ -45,8 +46,8 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("<b>Heap:</b>\n").append(heapOccupiedSize).append("/").append(heapSize).append("/").append(heapMaxSize).append(" мб.\n");
 
         buf.append("<b><u>Статистика:</u></b>\n");
-        buf.append("Принято сообщений: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(botStats.getTotalReceivedMessages()).append(")\n");
-        buf.append("Обработано команд: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(botStats.getTotalCommandsProcessed()).append(")\n");
+        buf.append("Принято сообщений: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(formatLongValue(botStats.getTotalReceivedMessages())).append(")\n");
+        buf.append("Обработано команд: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(formatLongValue(botStats.getTotalCommandsProcessed())).append(")\n");
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
