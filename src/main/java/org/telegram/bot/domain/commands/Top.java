@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.removeCapital;
@@ -187,6 +188,7 @@ public class Top implements CommandParent<SendMessage> {
         StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n<code>");
         AtomicInteger counter = new AtomicInteger(1);
         Method finalMethod = sortParam.getMethod();
+        AtomicLong total = new AtomicLong(0L);
 
         userStatsList.forEach(userStats -> {
             long value = 0;
@@ -201,14 +203,16 @@ public class Top implements CommandParent<SendMessage> {
             }
 
             if (value != 0) {
+                total.set(total.get() + value);
                 responseText
                         .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
                         .append(String.format("%-" + spacesAfterNumberOfMessageCount + "s", value))
                         .append(userStats.getUser().getUsername()).append("\n");
             }
         });
+        responseText.append("</code>").append("Итого: <b>").append(total.get()).append("</b>");
 
-        return responseText.append("</code>").toString();
+        return responseText.toString();
     }
 
     private SortParam getSortParamByName(String name) {
