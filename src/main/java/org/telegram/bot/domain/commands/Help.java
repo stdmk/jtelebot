@@ -110,8 +110,8 @@ public class Help implements CommandParent<SendMessage> {
     }
 
     private Boolean checkIsThatAdmin(Message message) {
-        Integer userId = message.getFrom().getId();
-        Integer adminId;
+        Long userId = message.getFrom().getId();
+        Long adminId;
         try {
             adminId = propertiesConfig.getAdminId();
         } catch (Exception e) {

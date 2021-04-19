@@ -12,7 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 public class PropertiesConfig {
     private String telegramBotApiToken;
     private String telegramBotUsername;
-    private Integer adminId;
+    private Long adminId;
     private String openweathermapId;
     private String googleToken;
     private String screenshotMachineToken;

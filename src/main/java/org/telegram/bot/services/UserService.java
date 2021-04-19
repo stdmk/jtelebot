@@ -14,7 +14,7 @@ public interface UserService {
      * @param userId of User to get.
      * @return the persisted entity.
      */
-    User get(Integer userId);
+    User get(Long userId);
 
     /**
      * Get a User.
@@ -38,7 +38,7 @@ public interface UserService {
      * @param userId of entity.
      * @return the persisted entity.
      */
-    Integer getUserAccessLevel(Integer userId);
+    Integer getUserAccessLevel(Long userId);
 
     /**
      * Get user access level based on userAccessLevel and chatAccessLevel.
@@ -46,7 +46,7 @@ public interface UserService {
      * @param chatId id of Chat entity
      * @return the highest of access levels
      */
-    AccessLevel getCurrentAccessLevel(Integer userId, Long chatId);
+    AccessLevel getCurrentAccessLevel(Long userId, Long chatId);
 
     /**
      * Сhecks if the access level is sufficient for command.

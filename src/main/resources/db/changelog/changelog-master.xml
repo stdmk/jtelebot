@@ -87,4 +87,5 @@
     <include file="db/changelog/20210304115200_added_command_Say.xml"/>
     <include file="db/changelog/20210304115300_added_command_Up.xml"/>
     <include file="db/changelog/20210304145900_added_command_Speller.xml"/>
+    <include file="db/changelog/20210419122000_change_User_id_type.xml"/>
 </databaseChangeLog>

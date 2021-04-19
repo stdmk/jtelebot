@@ -139,7 +139,7 @@ public class UserStatsServiceImpl implements UserStatsService {
             username = userFrom.getFirstName();
         }
 
-        Integer userId = userFrom.getId();
+        Long userId = userFrom.getId();
         User user = userService.get(userId);
 
         if (user == null) {

@@ -52,7 +52,7 @@ public class Weather implements CommandParent<SendMessage> {
         }
 
         Message message = getMessageFromUpdate(update);
-        Integer userId = message.getFrom().getId();
+        Long userId = message.getFrom().getId();
         String cityName;
         String responseText;
 
@@ -218,7 +218,7 @@ public class Weather implements CommandParent<SendMessage> {
                     .append(forecast.getWind().getSpeed()).append("м/c")
                     .append("\n"));
 
-        return buf.toString() + "```";
+        return buf + "```";
     }
 
     private String getWindDirectionEmoji(Integer degree) {
