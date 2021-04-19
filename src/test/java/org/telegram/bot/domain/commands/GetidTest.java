@@ -56,7 +56,7 @@ class GetidTest {
         String textMessage = getid.getTextMessage(repliedUpdate);
 
         Mockito.when(userService.get(textMessage)).thenReturn(user);
-        Mockito.when(userService.get(654320)).thenReturn(otherUser);
+        Mockito.when(userService.get(654320L)).thenReturn(otherUser);
 
         SendMessage sendMessage;
         try {

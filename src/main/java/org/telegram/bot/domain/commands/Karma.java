@@ -90,7 +90,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
             User anotherUser;
             try {
-                anotherUser = userService.get(Integer.parseInt(textMessage.substring(0, i)));
+                anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
             } catch (NumberFormatException e) {
                 anotherUser = userService.get(textMessage.substring(0, i));
             }

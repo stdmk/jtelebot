@@ -70,7 +70,7 @@ public class Bot extends TelegramLongPollingBot {
         botStats.incrementReceivedMessages();
 
         Long chatId = message.getChatId();
-        Integer userId = user.getId();
+        Long userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(message);
@@ -145,7 +145,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void reportToAdmin(Message message) {
-        Integer adminId = propertiesConfig.getAdminId();
+        Long adminId = propertiesConfig.getAdminId();
         if (adminId.equals(message.getFrom().getId()) || this.getBotUsername().equals(message.getFrom().getUserName())) {
             return;
         }

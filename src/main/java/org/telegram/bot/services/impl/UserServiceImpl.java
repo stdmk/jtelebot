@@ -20,7 +20,7 @@ public class UserServiceImpl implements UserService {
     private final ChatService chatService;
 
     @Override
-    public User get(Integer userId) {
+    public User get(Long userId) {
         log.debug("Request to get User by userId: {} ", userId);
         return userRepository.findByUserId(userId);
     }
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer getUserAccessLevel(Integer userId) {
+    public Integer getUserAccessLevel(Long userId) {
         log.debug("Request to get userLevel for userId {} ", userId);
         User user = get(userId);
         if (user == null) {
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AccessLevel getCurrentAccessLevel(Integer userId, Long chatId) {
+    public AccessLevel getCurrentAccessLevel(Long userId, Long chatId) {
         AccessLevel level = AccessLevel.BANNED;
 
         Integer userLevel = getUserAccessLevel(userId);

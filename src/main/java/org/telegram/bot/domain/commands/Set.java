@@ -48,7 +48,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
-        Integer userId = message.getFrom().getId();
+        Long userId = message.getFrom().getId();
         String textMessage = message.getText();
         boolean callback = false;
 

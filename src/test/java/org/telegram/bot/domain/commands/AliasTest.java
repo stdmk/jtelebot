@@ -61,7 +61,7 @@ class AliasTest {
         savedAlias.setValue("echo");
 
         Mockito.when(chatService.get(any(Long.class))).thenReturn(chat);
-        Mockito.when(userService.get(any(Integer.class))).thenReturn(user);
+        Mockito.when(userService.get(any(Long.class))).thenReturn(user);
         Mockito.when(aliasService.get(any(Chat.class), any(User.class))).thenReturn(Collections.singletonList(savedAlias));
     }
 
