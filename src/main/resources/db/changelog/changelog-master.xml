@@ -90,4 +90,5 @@
     <include file="db/changelog/20210419122000_change_User_id_type.xml"/>
     <include file="db/changelog/20210420114900_added_entity_File.xml"/>
     <include file="db/changelog/20210420115400_added_command_Files.xml"/>
+    <include file="db/changelog/20210421172100_added_command_Backup.xml"/>
 </databaseChangeLog>
