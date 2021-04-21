@@ -92,8 +92,10 @@ public class Bot extends TelegramLongPollingBot {
         CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(chatId), userService.get(userId));
         if (commandWaiting != null) {
             commandProperties = commandPropertiesService.getCommand(commandWaiting.getCommandName());
-        } else {
+        } else if (textOfMessage != null) {
             commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
+        } else {
+            return;
         }
 
         if (commandProperties == null) {
