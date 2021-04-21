@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210420115400-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="42"/>
+            <column name="commandname" value="files"/>
+            <column name="russifiedname" value="файлы"/>
+            <column name="enruname" value="afqks"/>
+            <column name="classname" value="files"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Файлы,Облачное хранилище,отсутствуют,отсутствуют,Не стоит хранить тут конфиденциальные данные"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

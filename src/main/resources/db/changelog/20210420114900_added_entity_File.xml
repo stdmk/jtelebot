@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20210420114900-1" author="stdmk">
+        <createTable tableName="file" schemaName="bot">
+            <column name="id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="file_unique_id" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="file_id" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="userid" type="int">
+                <constraints nullable="true" />
+            </column>
+            <column name="chatid" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="date" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="size" type="int">
+                <constraints nullable="true" />
+            </column>
+            <column name="type" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="parent" type="bigint">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20210420114900-2" author="stdmk">
+        <insert schemaName="bot" tableName="file">
+            <column name="id" value="0"/>
+            <column name="file_unique_id" value=""/>
+            <column name="file_id" value=""/>
+            <column name="name" value="root"/>
+            <column name="size" value="0"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

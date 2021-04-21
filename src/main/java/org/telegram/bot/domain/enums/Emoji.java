@@ -46,6 +46,10 @@ public enum Emoji {
     SMILING_FACE_WITH_HORNS("\uD83D\uDE08"),
     RED_HEART("❤️"),
     BROKEN_HEART("\uD83D\uDC94"),
+    FOLDER("\uD83D\uDCC1"),
+    MEMO("\uD83D\uDCDD"),
+    HEADPHONE("\uD83C\uDFA7"),
+    CLIPBOARD("📋"),
     ;
 
     private final String emoji;
