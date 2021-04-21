@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
-import static org.telegram.bot.utils.DateUtils.formatDateTime;
+import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.formatFileSize;
 
 @Component
@@ -137,7 +137,13 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> addFiles(Message message, Chat chat, User user, String textCommand, CommandWaiting commandWaiting) throws BotException {
-        if (!message.hasDocument()) {
+        boolean audio;
+
+        if (message.hasDocument()) {
+            audio = false;
+        } else if (message.hasAudio()) {
+            audio = true;
+        } else {
             commandWaitingService.remove(commandWaiting);
             return null;
         }
@@ -155,18 +161,12 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        Document document = message.getDocument();
-        File file = new File();
-
-        file.setFileId(document.getFileId());
-        file.setFileUniqueId(document.getFileUniqueId());
-        file.setName(document.getFileName());
-        file.setType(document.getMimeType());
-        file.setSize(document.getFileSize());
-        file.setChat(chat);
-        file.setUser(user);
-        file.setDate(LocalDateTime.now());
-        file.setParentId(parent.getId());
+        File file;
+        if (!audio) {
+            file = mapDocumentToFile(message.getDocument(), chat, user, parent);
+        } else {
+            file = mapAudioToFile(message.getAudio(), chat, user, parent);
+        }
 
         fileService.save(file);
 
@@ -281,9 +281,9 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
         String fileInfo = "<b>" + file.getName() + "</b>\n" +
                             "Автор: " + getLinkToUser(file.getUser(), true) + "\n" +
-                            "Создан: " + formatDateTime(file.getDate()) + "\n" +
+                            "Создан: " + formatDate(file.getDate()) + "\n" +
                             "Тип: " + file.getType() + "\n" +
-                            "Размер: " + formatFileSize(file.getSize()) + " (" + file.getSize() + " bytes)\n";
+                            "Размер: " + formatFileSize(file.getSize()) + "\n";
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());
@@ -458,6 +458,38 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         inlineKeyboardMarkup.setKeyboard(cancelRows);
 
         return inlineKeyboardMarkup;
+    }
+
+    private File mapDocumentToFile(Document document, Chat chat, User user, File parent) {
+        File file = new File();
+
+        file.setFileId(document.getFileId());
+        file.setFileUniqueId(document.getFileUniqueId());
+        file.setName(document.getFileName());
+        file.setType(document.getMimeType());
+        file.setSize(document.getFileSize());
+        file.setChat(chat);
+        file.setUser(user);
+        file.setDate(LocalDateTime.now());
+        file.setParentId(parent.getId());
+
+        return file;
+    }
+
+    private File mapAudioToFile(Audio audio, Chat chat, User user, File parent) {
+        File file = new File();
+
+        file.setFileId(audio.getFileId());
+        file.setFileUniqueId(audio.getFileUniqueId());
+        file.setName(audio.getFileName());
+        file.setType(audio.getMimeType());
+        file.setSize(audio.getFileSize());
+        file.setChat(chat);
+        file.setUser(user);
+        file.setDate(LocalDateTime.now());
+        file.setParentId(parent.getId());
+
+        return file;
     }
 
     private String getEmojiByType(String mimeType) {

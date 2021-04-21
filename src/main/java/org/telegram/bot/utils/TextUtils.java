@@ -121,18 +121,28 @@ public class TextUtils {
     }
 
     public static String formatFileSize(int size) {
-        final int G = 1073741824;
-        final int M = 1048576;
-        final int K = 1024;
+        float value = (float) size;
+        String unit;
+        float result;
+
+        final float G = 1073741824;
+        final float M = 1048576;
+        final float K = 1024;
 
         if (size > G) {
-            return size / G + " Gb";
+            unit = "Gb";
+            result = value / G;
         } else if (size > M) {
-            return size / M + " Mb";
+            unit = "Mb";
+            result = value / M;
         } else if (size > K) {
-            return size / K + " Kb";
+            unit = "Kb";
+            result = value / M;
         } else {
-            return size + " b";
+            unit = "b";
+            result = value;
         }
+
+        return String.format("%.2f", result) + unit;
     }
 }
