@@ -119,4 +119,20 @@ public class TextUtils {
             return String.valueOf(value);
         }
     }
+
+    public static String formatFileSize(int size) {
+        final int G = 1073741824;
+        final int M = 1048576;
+        final int K = 1024;
+
+        if (size > G) {
+            return size / G + " Gb";
+        } else if (size > M) {
+            return size / M + " Mb";
+        } else if (size > K) {
+            return size / K + " Kb";
+        } else {
+            return size + " b";
+        }
+    }
 }

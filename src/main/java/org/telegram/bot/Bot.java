@@ -84,9 +84,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        if (textOfMessage == null || textOfMessage.equals("")) {
-            return;
-        } else {
+        if (textOfMessage != null) {
             textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
         }
 

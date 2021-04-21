@@ -88,4 +88,6 @@
     <include file="db/changelog/20210304115300_added_command_Up.xml"/>
     <include file="db/changelog/20210304145900_added_command_Speller.xml"/>
     <include file="db/changelog/20210419122000_change_User_id_type.xml"/>
+    <include file="db/changelog/20210420114900_added_entity_File.xml"/>
+    <include file="db/changelog/20210420115400_added_command_Files.xml"/>
 </databaseChangeLog>
