@@ -65,7 +65,11 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         CommandWaiting commandWaiting = commandWaitingService.get(chat, userService.get(message.getFrom().getId()));
 
         if (commandWaiting != null) {
-            textMessage = cutCommandInText(commandWaiting.getTextMessage() + message.getText());
+            String text = message.getText();
+            if (text == null) {
+                text = "";
+            }
+            textMessage = cutCommandInText(commandWaiting.getTextMessage()) + text;
         } else {
             if (update.hasCallbackQuery()) {
                 commandWaiting = commandWaitingService.get(chat, userService.get(update.getCallbackQuery().getFrom().getId()));
