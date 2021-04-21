@@ -50,6 +50,7 @@ public enum Emoji {
     MEMO("\uD83D\uDCDD"),
     HEADPHONE("\uD83C\uDFA7"),
     CLIPBOARD("📋"),
+    CHECK_MARK("✔️")
     ;
 
     private final String emoji;

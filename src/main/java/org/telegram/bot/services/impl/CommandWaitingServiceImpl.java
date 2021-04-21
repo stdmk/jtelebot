@@ -79,6 +79,9 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
     @Override
     public void remove(CommandWaiting commandWaiting) {
+        if (commandWaiting == null) {
+            return;
+        }
         log.debug("Request to remove CommandWaiting {} ", commandWaiting);
         commandWaitingRepository.delete(commandWaiting);
     }

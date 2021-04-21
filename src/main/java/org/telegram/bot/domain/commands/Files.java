@@ -52,28 +52,29 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     private final String MAKE_DIR_COMMAND = "m";
     private final String CALLBACK_MAKE_DIR_COMMAND = CALLBACK_COMMAND + MAKE_DIR_COMMAND;
 
+    private final Long ROOT_DIR_ID = 0L;
+
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws Exception {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
-        String textMessage = message.getText();
+        String textMessage;
         boolean callback = false;
         String EMPTY_COMMAND = "files";
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, userService.get(message.getFrom().getId()));
 
-        if (update.hasCallbackQuery()) {
-            CallbackQuery callbackQuery = update.getCallbackQuery();
-            textMessage = cutCommandInText(callbackQuery.getData());
-            callback = true;
-        } else if (commandWaiting != null) {
-            if (textMessage == null) {
-                textMessage = "";
-            }
-            textMessage = cutCommandInText(commandWaiting.getTextMessage() + textMessage);
-            commandWaitingService.remove(commandWaiting);
+        if (commandWaiting != null) {
+            textMessage = cutCommandInText(commandWaiting.getTextMessage());
         } else {
-            textMessage = cutCommandInText(textMessage);
+            if (update.hasCallbackQuery()) {
+                commandWaiting = commandWaitingService.get(chat, userService.get(update.getCallbackQuery().getFrom().getId()));
+                CallbackQuery callbackQuery = update.getCallbackQuery();
+                textMessage = cutCommandInText(callbackQuery.getData());
+                callback = true;
+            } else {
+                textMessage = cutCommandInText(message.getText());
+            }
         }
 
         if (callback) {
@@ -82,6 +83,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             if (textMessage.equals(EMPTY_COMMAND)) {
                 return selectDirectory(message, chat, user, false, 0, null);
             } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
+                commandWaitingService.remove(commandWaiting);
                 return selectFileByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(DELETE_FILE_COMMAND)) {
                 return deleteFileByCallback(message, chat, user, textMessage);
@@ -98,7 +100,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
             return selectDirectory(message,  chat, user, true, 0, null);
         } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
-            return addFiles(message, chat, user, textMessage);
+            return addFiles(message, chat, user, textMessage, commandWaiting);
         } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
             return makeDir(message, chat, user, textMessage);
         } else {
@@ -130,19 +132,22 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         return sendDocument;
     }
 
-    private PartialBotApiMethod<?> addFiles(Message message, Chat chat, User user, String textCommand) throws BotException {
+    private PartialBotApiMethod<?> addFiles(Message message, Chat chat, User user, String textCommand, CommandWaiting commandWaiting) throws BotException {
         if (!message.hasDocument()) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            commandWaitingService.remove(commandWaiting);
+            return null;
         }
 
         File parent;
         try {
             parent = fileService.get(Long.parseLong(textCommand.substring(ADD_FILE_COMMAND.length()).trim()));
         } catch (NumberFormatException e) {
+            commandWaitingService.remove(commandWaiting);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         if (parent == null) {
+            commandWaitingService.remove(commandWaiting);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
@@ -161,7 +166,13 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
         fileService.save(file);
 
-        return selectDirectory(message, chat, user, true, 0, parent);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        sendMessage.setReplyMarkup(buildCancelAddingFilesKeyboard(parent));
+
+        return sendMessage;
     }
 
     private PartialBotApiMethod<?> makeDir(Message message, Chat chat, User user, String textCommand) throws BotException {
@@ -210,7 +221,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText("\nТеперь пришли мне сообщение с необходимым файлом");
+        sendMessage.setText("\nТеперь пришли мне необходимые файлы");
 
         return sendMessage;
     }
@@ -310,7 +321,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
     private PartialBotApiMethod<?> selectDirectory(Message message, Chat chat, User user, boolean newMessage, int page, File directory) throws BotException {
         if (directory == null) {
-            directory = fileService.get(0L);
+            directory = fileService.get(ROOT_DIR_ID);
             if (directory == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
@@ -319,7 +330,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         Page<File> fileList = fileService.get(chat, user, directory, page);
         List<List<InlineKeyboardButton>> dirContent = new ArrayList<>();
 
-        if (fileList.isEmpty() && directory.getId() != 0L) {
+        if (fileList.isEmpty() && !directory.getId().equals(ROOT_DIR_ID)) {
             List<InlineKeyboardButton> fileRow = new ArrayList<>();
 
             InlineKeyboardButton deleteEmptyDirButton = new InlineKeyboardButton();
@@ -410,7 +421,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
         updateButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parent.getId());
 
-        if (parent.getId() != 0L) {
+        if (!parent.getId().equals(ROOT_DIR_ID)) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
             backButton.setText(Emoji.BACK.getEmoji() + "Вверх");
             backButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parent.getParentId());
@@ -421,6 +432,28 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(managingRow);
 
         return rows;
+    }
+
+    private InlineKeyboardMarkup buildCancelAddingFilesKeyboard(File file) {
+        Long parentId = file.getParentId();
+        if (parentId == null) {
+            parentId = ROOT_DIR_ID;
+        }
+
+        List<List<InlineKeyboardButton>> cancelRows = new ArrayList<>();
+        List<InlineKeyboardButton> cancelRow = new ArrayList<>();
+
+        InlineKeyboardButton cancelButton = new InlineKeyboardButton();
+        cancelButton.setText(Emoji.CHECK_MARK.getEmoji() + "Готово");
+        cancelButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parentId);
+
+        cancelRow.add(cancelButton);
+        cancelRows.add(cancelRow);
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(cancelRows);
+
+        return inlineKeyboardMarkup;
     }
 
     private String getEmojiByType(String mimeType) {
