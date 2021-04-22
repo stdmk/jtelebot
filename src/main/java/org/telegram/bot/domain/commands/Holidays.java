@@ -91,7 +91,7 @@ public class Holidays implements CommandParent<SendMessage> {
 
         holidayService.get(chat)
                 .stream()
-                .filter(holiday -> holiday.getDate().getMonth().getValue() >= dateNow.getMonth().getValue() && holiday.getDate().getDayOfMonth() >= dateNow.getDayOfMonth())
+                .filter(holiday -> holiday.getDate().getDayOfYear() >= dateNow.getDayOfYear())
                 .sorted(Comparator.comparing(holiday -> holiday.getDate().getDayOfYear()))
                 .limit(10)
                 .forEach(holiday -> buf.append(buildStringOfHoliday(holiday, true)));
