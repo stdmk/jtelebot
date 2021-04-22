@@ -3,7 +3,6 @@ package org.telegram.bot.services;
 import org.springframework.data.domain.Page;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.File;
-import org.telegram.bot.domain.entities.User;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.File}.
@@ -21,10 +20,9 @@ public interface FileService {
      * Get a UserTvs.
      *
      * @param chat Chat entity of File to get.
-     * @param user User entity of File to get.
      * @return the persisted entities.
      */
-    Page<File> get(Chat chat, User user, File parent, int page);
+    Page<File> get(Chat chat, File parent, int page);
 
     /**
      * Save a File.

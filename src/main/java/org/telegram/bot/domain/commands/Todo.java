@@ -38,7 +38,7 @@ public class Todo implements CommandParent<SendMessage> {
             responseText = buf.toString();
         } else {
             if (textMessage.charAt(0) == '-') {
-                Long todoId;
+                long todoId;
                 try {
                     todoId = Long.parseLong(textMessage.substring(1));
                 } catch (NumberFormatException e) {

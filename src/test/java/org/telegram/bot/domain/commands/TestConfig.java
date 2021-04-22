@@ -1,8 +1,6 @@
 package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import liquibase.pro.packaged.C;
-import liquibase.pro.packaged.U;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.telegram.bot.domain.entities.Chat;

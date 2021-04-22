@@ -49,7 +49,7 @@ public class NewYear implements CommandParent<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
         sendMessage.setText("До нового года осталось: *" + deltaDatesToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
-                            "* (" + userTimeZone.toString() + ")");
+                            "* (" + userTimeZone + ")");
 
         return sendMessage;
     }

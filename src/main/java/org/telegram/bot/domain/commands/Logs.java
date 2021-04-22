@@ -20,7 +20,7 @@ public class Logs implements CommandParent<SendDocument> {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         if (chatId < 0) {
-            chatId = message.getFrom().getId().longValue();
+            chatId = message.getFrom().getId();
         }
 
         File logs = new File("logs/log.log");

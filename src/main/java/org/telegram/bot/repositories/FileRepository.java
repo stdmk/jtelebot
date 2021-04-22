@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.File;
-import org.telegram.bot.domain.entities.User;
 
 import java.util.List;
 
@@ -17,5 +16,5 @@ import java.util.List;
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
     List<File> findByChatAndParentIdOrId(Chat chat, Long parentId, Long id);
-    Page<File> findAllByChatAndUserAndParentId(Chat chat, User user, Long parentId, Pageable pageable);
+    Page<File> findAllByChatAndParentId(Chat chat, Long parentId, Pageable pageable);
 }

@@ -17,7 +17,6 @@ import org.telegram.bot.domain.entities.TvProgram;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
-import org.telegram.bot.services.config.PropertiesConfig;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

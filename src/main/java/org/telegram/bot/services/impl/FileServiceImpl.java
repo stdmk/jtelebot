@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.File;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.FileRepository;
 import org.telegram.bot.services.FileService;
 
@@ -29,9 +28,9 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Page<File> get(Chat chat, User user, File parent, int page) {
-        log.debug("Request to get files by User: {} and Chat: {}, parent: {}, page: {}", user, chat, parent, page);
-        return fileRepository.findAllByChatAndUserAndParentId(chat, user, parent.getId(), PageRequest.of(page, 10));
+    public Page<File> get(Chat chat, File parent, int page) {
+        log.debug("Request to get files by Chat: {}, parent: {}, page: {}", chat, parent, page);
+        return fileRepository.findAllByChatAndParentId(chat, parent.getId(), PageRequest.of(page, 10));
     }
 
     @Override

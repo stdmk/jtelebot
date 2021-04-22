@@ -1,7 +1,6 @@
 package org.telegram.bot;
 
 import lombok.AllArgsConstructor;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.bot.domain.BotStats;

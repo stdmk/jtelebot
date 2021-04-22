@@ -85,7 +85,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             User user = userService.get(update.getCallbackQuery().getFrom().getId());
 
             if (textMessage.equals(EMPTY_COMMAND)) {
-                return selectDirectory(message, chat, user, false, 0, null);
+                return selectDirectory(message, chat, false, 0, null);
             } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
                 commandWaitingService.remove(commandWaiting);
                 return selectFileByCallback(message, chat, user, textMessage);
@@ -102,10 +102,11 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
         User user = userService.get(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
-            return selectDirectory(message,  chat, user, true, 0, null);
+            return selectDirectory(message,  chat, true, 0, null);
         } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
             return addFiles(message, chat, user, textMessage, commandWaiting);
         } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
+            commandWaitingService.remove(commandWaiting);
             return makeDir(message, chat, user, textMessage);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -206,7 +207,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
         fileService.save(file);
 
-        return selectDirectory(message, chat, user, true, 0, parent);
+        return selectDirectory(message, chat, true, 0, parent);
     }
 
     private EditMessageText makeDirByCallback(Message message, Chat chat, User user, String textCommand) {
@@ -254,7 +255,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        return (EditMessageText) selectDirectory(message, chat, user, false, 0, dir);
+        return (EditMessageText) selectDirectory(message, chat, false, 0, dir);
     }
 
     private EditMessageText selectFileByCallback(Message message, Chat chat, User user, String textCommand) throws BotException {
@@ -276,7 +277,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         if (file == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         } else if (file.getType() == null) {
-            return (EditMessageText) selectDirectory(message, chat, user, false, page, file);
+            return (EditMessageText) selectDirectory(message, chat, false, page, file);
         }
 
         String fileInfo = "<b>" + file.getName() + "</b>\n" +
@@ -323,7 +324,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         return inlineKeyboardMarkup;
     }
 
-    private PartialBotApiMethod<?> selectDirectory(Message message, Chat chat, User user, boolean newMessage, int page, File directory) throws BotException {
+    private PartialBotApiMethod<?> selectDirectory(Message message, Chat chat, boolean newMessage, int page, File directory) throws BotException {
         if (directory == null) {
             directory = fileService.get(ROOT_DIR_ID);
             if (directory == null) {
@@ -331,7 +332,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
-        Page<File> fileList = fileService.get(chat, user, directory, page);
+        Page<File> fileList = fileService.get(chat, directory, page);
         List<List<InlineKeyboardButton>> dirContent = new ArrayList<>();
 
         if (fileList.isEmpty() && !directory.getId().equals(ROOT_DIR_ID)) {
