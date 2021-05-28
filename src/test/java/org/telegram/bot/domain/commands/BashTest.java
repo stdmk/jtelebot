@@ -1,6 +1,5 @@
 package org.telegram.bot.domain.commands;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +23,6 @@ import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(classes = {TestConfig.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Ignore
 class BashTest {
 
     @MockBean
