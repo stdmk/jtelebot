@@ -69,6 +69,17 @@ public interface UserStatsService {
     List<UserStats> getSortedUserStatsListForChat(Chat chat, String sortBy, int limit);
 
     /**
+     * Get list of users of chat with not null Karma.
+     *
+     * @param chat - Chat entity.
+     * @param sortBy - parameter to sort records.
+     * @param limit - limit of returing records.
+     * @param allKarma - flag for allKarma.
+     * @return list of users of chat
+     */
+    List<UserStats> getSortedUserStatsListWithKarmaForChat(Chat chat, String sortBy, int limit, boolean allKarma);
+
+    /**
      * Clear user stats by last Month.
      *
      * @return list of tops for send its to chats

@@ -80,6 +80,17 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    public List<UserStats> getSortedUserStatsListWithKarmaForChat(Chat chat, String sortBy, int limit, boolean allKarma) {
+        if (allKarma) {
+            log.debug("Request to get users with allKarma of chat with id {} and limit {} sort by {}", chat, limit, sortBy);
+            return userStatsRepository.findByChatAndNumberOfAllKarmaNot(chat, PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, sortBy)), 0L);
+        }
+
+        log.debug("Request to get users with karma of chat with id {} and limit {} sort by {}", chat, limit, sortBy);
+        return userStatsRepository.findByChatAndNumberOfKarmaNot(chat, PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, sortBy)), 0);
+    }
+
+    @Override
     public List<SendMessage> clearMonthlyStats() {
         log.debug("Request to clear monthly stats of users");
         List<SendMessage> response = chatService.getAllGroups().stream()

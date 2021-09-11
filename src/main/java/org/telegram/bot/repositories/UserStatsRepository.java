@@ -12,5 +12,7 @@ public interface UserStatsRepository extends JpaRepository<UserStats, Long> {
     UserStats findByChatAndUser(Chat chat, User user);
     List<UserStats> findByChat(Chat chat);
     List<UserStats> findByChat(Chat chat, Pageable pageable);
+    List<UserStats> findByChatAndNumberOfKarmaNot(Chat chat, Pageable pageable, int karma);
+    List<UserStats> findByChatAndNumberOfAllKarmaNot(Chat chat, Pageable pageable, long karma);
     List<UserStats> findByChatChatIdLessThan(Long groupAttribute);
 }

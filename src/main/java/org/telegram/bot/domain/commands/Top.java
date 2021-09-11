@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.removeCapital;
@@ -180,7 +181,16 @@ public class Top implements CommandParent<SendMessage> {
         }
 
         String sortedField = removeCapital(sortParam.getMethod().getName().substring(3));
-        List<UserStats> userStatsList = userStatsService.getSortedUserStatsListForChat(chat, sortedField, 30);
+        List<UserStats> userStatsList;
+
+        //TODO переделать в enum
+        if ("numberOfKarma".equals(sortedField)) {
+            userStatsList = userStatsService.getSortedUserStatsListWithKarmaForChat(chat, sortedField, 30, false);
+        } else if ("numberOfAllKarma".equals(sortedField)) {
+            userStatsList = userStatsService.getSortedUserStatsListWithKarmaForChat(chat, sortedField, 30, true);
+        } else {
+            userStatsList = userStatsService.getSortedUserStatsListForChat(chat, sortedField, 30);
+        }
 
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
         int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(sortParam, userStatsList);
@@ -202,6 +212,7 @@ public class Top implements CommandParent<SendMessage> {
                 }
             }
 
+            //TODO убрать нули при запросе к БД
             if (value != 0) {
                 total.set(total.get() + value);
                 responseText
@@ -244,21 +255,41 @@ public class Top implements CommandParent<SendMessage> {
     }
 
     private Integer getSpacesAfterNumberOfMessageCount(SortParam sortParam, List<UserStats> userStatsList) {
-        return userStatsList
+        List<Long> values = userStatsList
                 .stream()
                 .map(userStats -> {
-                    long value = 0;
+                    long value;
+
                     try {
                         value = Long.parseLong(sortParam.getMethod().invoke(userStats).toString());
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                     }
+
                     return value;
                 })
+                .collect(Collectors.toList());
+
+        int maxValueLength = values.stream()
                 .max(Long::compareTo)
                 .orElse(6L)
                 .toString()
-                .length() + 2;
+                .length();
+
+        boolean valuesHasNegative = values.stream().filter(value -> value < 0).findFirst().orElse(null) != null;
+        if (valuesHasNegative) {
+            int minValueLength = values.stream()
+                    .min(Long::compareTo)
+                    .orElse(6L)
+                    .toString()
+                    .length();
+
+            if (minValueLength > maxValueLength) {
+                return minValueLength + 1;
+            }
+        }
+
+        return maxValueLength + 1;
     }
 
     @Data
