@@ -1,15 +1,16 @@
 package org.telegram.bot.domain.entities;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 
 /**
  * UserStats entity.
  */
-
+@Getter
+@Setter
 @Entity
-@Data
 @Table(name = "userstats", schema = "bot")
 public class UserStats {
     @Id

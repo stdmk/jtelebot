@@ -1,7 +1,9 @@
 package org.telegram.bot.domain.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Getter
 public enum Emoji {
     DELETE("❌"),
@@ -54,8 +56,4 @@ public enum Emoji {
     ;
 
     private final String emoji;
-
-    Emoji(String value) {
-        this.emoji = value;
-    }
 }
