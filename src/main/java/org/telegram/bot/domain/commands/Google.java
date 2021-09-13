@@ -2,10 +2,9 @@ package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,11 +26,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Google implements CommandParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(Google.class);
 
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
@@ -45,6 +43,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     public PartialBotApiMethod<?> parse(Update update) {
         String token = propertiesConfig.getGoogleToken();
         if (token == null || token.equals("")) {
+            log.error("Unable to find google token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
@@ -57,6 +56,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (textMessage == null) {
+            log.debug("Empty request. Turn on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
@@ -72,27 +72,24 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to get content of Google by id {}", googleSearchResult.getId());
             responseText = "<b>" + googleSearchResult.getTitle() + "</b>\n" +
                             googleSearchResult.getSnippet() + "\n" +
                             "<a href='" + googleSearchResult.getLink() + "'>" + googleSearchResult.getFormattedUrl() + "</a>\n";
 
             ImageUrl imageUrl = googleSearchResult.getImageUrl();
             if (imageUrl != null) {
-                try {
-                    SendPhoto sendPhoto = new SendPhoto();
-                    sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
-                    sendPhoto.setCaption(responseText);
-                    sendPhoto.setParseMode(ParseMode.HTML.getValue());
-                    sendPhoto.setReplyToMessageId(message.getMessageId());
-                    sendPhoto.setChatId(message.getChatId().toString());
+                SendPhoto sendPhoto = new SendPhoto();
+                sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
+                sendPhoto.setCaption(responseText);
+                sendPhoto.setParseMode(ParseMode.HTML.getValue());
+                sendPhoto.setReplyToMessageId(message.getMessageId());
+                sendPhoto.setChatId(message.getChatId().toString());
 
-                    return sendPhoto;
-
-                } catch (Exception ignored) {
-                }
+                return sendPhoto;
             }
         } else {
-
+            log.debug("Request to get google results for '{}'", textMessage);
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 
             if (googleSearchData.getItems() == null) {
@@ -102,40 +99,29 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             List<GoogleSearchResult> googleSearchResults = googleSearchData.getItems()
                     .stream()
                     .map(googleSearchItem -> {
-                        ImageUrl imageUrl = null;
-
                         Pagemap pagemap = googleSearchItem.getPagemap();
-                        if (pagemap != null) {
-                            List<Src> srcList = pagemap.getCseImage();
-                            if (srcList != null && !srcList.isEmpty()) {
-                                imageUrl = new ImageUrl();
-                                imageUrl.setTitle(googleSearchItem.getTitle());
-                                imageUrl.setUrl(srcList.get(0).getSrc());
-                                imageUrl = imageUrlService.save(imageUrl);
-                            }
-                        }
+                        List<Src> srcList = pagemap.getCseImage();
 
-                        GoogleSearchResult googleSearchResult = new GoogleSearchResult();
-                        googleSearchResult.setTitle(googleSearchItem.getTitle());
-                        googleSearchResult.setLink(googleSearchItem.getLink());
-                        googleSearchResult.setDisplayLink(googleSearchItem.getDisplayLink());
-                        googleSearchResult.setSnippet(googleSearchItem.getSnippet());
-                        googleSearchResult.setFormattedUrl(googleSearchItem.getFormattedUrl());
-                        googleSearchResult.setImageUrl(imageUrl);
+                        ImageUrl imageUrl = imageUrlService.save(new ImageUrl()
+                                .setTitle(googleSearchItem.getTitle())
+                                .setUrl(srcList.get(0).getSrc()));
 
-                        return googleSearchResult;
+                        return new GoogleSearchResult()
+                                .setTitle(googleSearchItem.getTitle())
+                                .setLink(googleSearchItem.getLink())
+                                .setDisplayLink(googleSearchItem.getDisplayLink())
+                                .setSnippet(googleSearchItem.getSnippet())
+                                .setFormattedUrl(googleSearchItem.getFormattedUrl())
+                                .setImageUrl(imageUrl);
                     })
                     .collect(Collectors.toList());
 
-            StringBuilder buf = new StringBuilder("Результаты по запросу <b>" + textMessage + "</b>\n\n");
+            StringBuilder buf = new StringBuilder();
             googleSearchResultService.save(googleSearchResults).forEach(googleSearchResult ->
-                    buf.append("<u>").append(googleSearchResult.getDisplayLink()).append("</u>\n")
-                            .append(googleSearchResult.getTitle()).append("\n")
-                            .append("/google_").append(googleSearchResult.getId()).append("\n\n")
+                    buf.append("<u>").append(googleSearchResult.getDisplayLink()).append("</u> ")
+                            .append(googleSearchResult.getTitle())
+                            .append("\n/google_").append(googleSearchResult.getId()).append("\n\n")
             );
-
-            SearchInformation searchInformation = googleSearchData.getSearchInformation();
-            buf.append("Результатов: примерно ").append(searchInformation.getFormattedTotalResults()).append(" (").append(searchInformation.getFormattedSearchTime()).append(" сек.) ");
 
             responseText = buf.toString();
         }
@@ -150,6 +136,13 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
+    /**
+     * Getting Google search results for request.
+     *
+     * @param requestText search text.
+     * @param googleToken service access token.
+     * @return google search data.
+     */
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
         ResponseEntity<GoogleSearchData> response = botRestTemplate.getForEntity(

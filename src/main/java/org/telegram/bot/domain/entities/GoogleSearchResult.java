@@ -1,6 +1,8 @@
 package org.telegram.bot.domain.entities;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 
@@ -8,7 +10,9 @@ import javax.persistence.*;
  * GoogleSearchResult entity.
  */
 @Entity
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
 @Table(name = "googlesearchresult", schema = "bot")
 public class GoogleSearchResult {
     @Id
