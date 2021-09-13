@@ -16,6 +16,7 @@
         <encoder
                 class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+            <charset>Windows-1251</charset>
         </encoder>
 
         <rollingPolicy
