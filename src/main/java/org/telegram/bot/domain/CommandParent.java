@@ -8,7 +8,7 @@ import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 
 public interface CommandParent<T extends PartialBotApiMethod<?>> {
 
-    T parse(Update update) throws Exception;
+    T parse(Update update);
 
     default Message getMessageFromUpdate(Update update) {
         if (update.hasMessage()) {

@@ -45,7 +45,7 @@ public class Weather implements CommandParent<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         String token = propertiesConfig.getOpenweathermapId();
         if (token == null || token.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));

@@ -45,7 +45,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_ADD_NEWS_COMMAND = CALLBACK_COMMAND + ADD_NEWS_COMMAND;
     private final String ADDING_HELP_TEXT = "\nНапиши мне имя нового источника новостей и ссылку на рсс-поток через пробел\nНапример: Лента https://lenta.ru/rss/last24";
 
-    public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();

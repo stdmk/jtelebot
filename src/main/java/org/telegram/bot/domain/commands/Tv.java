@@ -42,7 +42,7 @@ public class Tv implements CommandParent<SendMessage> {
     private final int HOURS_NUMBER_LONG = 12;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;

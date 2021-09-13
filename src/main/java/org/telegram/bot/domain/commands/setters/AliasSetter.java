@@ -45,7 +45,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String ADDING_ALIAS_TEXT = "\nНапиши мне имя алиаса и его содержимое, например: дождь правда завтра дождь?";
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();

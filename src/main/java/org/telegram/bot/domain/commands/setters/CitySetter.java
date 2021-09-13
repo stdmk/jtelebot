@@ -52,7 +52,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_SET_TIMEZONE = CALLBACK_COMMAND + SET_TIMEZONE;
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();

@@ -22,7 +22,7 @@ public class GreatAdvice implements CommandParent<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         if (getTextMessage(update) != null) {
             return null;
         }

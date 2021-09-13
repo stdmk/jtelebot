@@ -39,7 +39,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String responseText;
         String textMessage = commandWaitingService.getText(message);

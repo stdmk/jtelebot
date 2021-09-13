@@ -1,6 +1,6 @@
 package org.telegram.bot;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.bot.domain.BotStats;
@@ -17,7 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Parser extends Thread {
 
     private final Logger log = LoggerFactory.getLogger(Parser.class);
@@ -104,7 +104,7 @@ public class Parser extends Thread {
             }
         } catch (Exception e) {
             botStats.incrementErrors();
-            e.printStackTrace();
+            log.error("Unexpected error: ", e);
         }
 
         botStats.incrementCommandsProcessed();
@@ -173,7 +173,7 @@ public class Parser extends Thread {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
         sendMessage.setChatId(sendPhoto.getChatId());
-        sendMessage.setText(sendPhoto.getCaption() + "\nНе удалось загрузить картинку по адресу: " + imageUrl);
+        sendMessage.setText("Не удалось отправить картинку с адреса: " + imageUrl + "\n" + sendPhoto.getCaption());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
 

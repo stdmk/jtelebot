@@ -31,7 +31,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         String token = propertiesConfig.getWolframAlphaToken();
         if (token == null || token.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));

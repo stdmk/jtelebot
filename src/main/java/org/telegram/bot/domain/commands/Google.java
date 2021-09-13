@@ -42,7 +42,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     private final BotStats botStats;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         String token = propertiesConfig.getGoogleToken();
         if (token == null || token.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));

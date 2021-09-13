@@ -16,7 +16,7 @@ import java.io.File;
 public class Logs implements CommandParent<SendDocument> {
 
     @Override
-    public SendDocument parse(Update update) throws Exception {
+    public SendDocument parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         if (chatId < 0) {

@@ -45,7 +45,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_DELETE_TV_COMMAND = CALLBACK_COMMAND + DELETE_TV_COMMAND;
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();

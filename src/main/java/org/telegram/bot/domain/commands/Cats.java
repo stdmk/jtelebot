@@ -31,7 +31,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
     private static String CATS_API_URL = "https://api.thecatapi.com/v1/images/search";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         ResponseEntity<Cat[]> response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
 

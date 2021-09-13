@@ -46,7 +46,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String HOLIDAY = "праздник";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long userId = message.getFrom().getId();
         String textMessage = message.getText();

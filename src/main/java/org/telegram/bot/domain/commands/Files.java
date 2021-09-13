@@ -55,7 +55,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     private final Long ROOT_DIR_ID = 0L;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String textMessage;

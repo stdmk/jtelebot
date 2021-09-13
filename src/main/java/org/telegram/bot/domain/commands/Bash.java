@@ -27,7 +27,7 @@ public class Bash implements CommandParent<SendMessage> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String quot;

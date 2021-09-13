@@ -23,7 +23,7 @@ public class Cmd implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {
@@ -45,7 +45,11 @@ public class Cmd implements CommandParent<SendMessage> {
         }
 
         StringWriter writer = new StringWriter();
-        IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
+        try {
+            IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
+        } catch (IOException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
         String responseText = writer.toString();
         if (responseText.isEmpty()) {
             responseText = "executing...";

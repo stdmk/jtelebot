@@ -25,7 +25,7 @@ public class Backup implements CommandParent<SendDocument> {
 
     @Override
     @Transactional
-    public SendDocument parse(Update update) throws Exception {
+    public SendDocument parse(Update update) {
         return getDbBackup(update.getMessage().getFrom().getId().toString());
     }
 

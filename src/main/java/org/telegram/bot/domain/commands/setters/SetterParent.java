@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 public interface SetterParent<T extends PartialBotApiMethod<?>> {
 
-    T set(Update update, String commandText) throws Exception;
+    T set(Update update, String commandText);
 
     default Message getMessageFromUpdate(Update update) {
         if (update.hasMessage()) {

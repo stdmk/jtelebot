@@ -34,7 +34,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendPhoto parse(Update update) throws Exception {
+    public SendPhoto parse(Update update) {
         String token = propertiesConfig.getScreenshotMachineToken();
         if (token == null || token.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));

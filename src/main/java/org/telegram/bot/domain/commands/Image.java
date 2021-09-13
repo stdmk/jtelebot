@@ -1,14 +1,17 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -19,15 +22,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @Component
-@AllArgsConstructor
-public class Image implements CommandParent<SendPhoto> {
+@RequiredArgsConstructor
+public class Image implements CommandParent<PartialBotApiMethod<?>> {
 
-    ImageUrlService imageUrlService;
+    private final ImageUrlService imageUrlService;
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
+    private final GooglePics googlePics;
 
     @Override
-    public SendPhoto parse(Update update) throws Exception {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = getTextMessage(update);
         ImageUrl imageUrl;
@@ -37,7 +41,7 @@ public class Image implements CommandParent<SendPhoto> {
             if (imageUrl == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-        } else if (textMessage.startsWith("h")) {
+        } else if (textMessage.startsWith("http")) {
             URL url;
             try {
                 url = new URL(textMessage);
@@ -47,19 +51,18 @@ public class Image implements CommandParent<SendPhoto> {
 
             imageUrl = imageUrlService.get(url.toString());
             if (imageUrl == null) {
-                imageUrl = new ImageUrl();
-                imageUrl.setUrl(url.toString());
+                imageUrl = new ImageUrl().setUrl(url.toString());
                 imageUrl = imageUrlService.save(imageUrl);
             }
-        } else {
-            if (textMessage.startsWith("_")) {
-                textMessage = textMessage.substring(1);
-            }
+        } else if (textMessage.startsWith("_")) {
+            textMessage = textMessage.substring(1);
             try {
                 imageUrl = imageUrlService.get(Long.valueOf(textMessage));
             } catch (NumberFormatException numberFormatException) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
+        } else {
+            imageUrl = googlePics.searchImagesOnGoogle(textMessage).get(0);
         }
 
         if (imageUrl == null) {
@@ -67,16 +70,32 @@ public class Image implements CommandParent<SendPhoto> {
         }
 
         InputStream image;
+        Long imageId = imageUrl.getId();
         try {
-            image = networkUtils.getFileFromUrl(imageUrl.getUrl());
+            image = networkUtils.getFileFromUrl(imageUrl.getUrl(), 5000000);
         } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setReplyToMessageId(message.getMessageId());
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setText("Не удалось загрузить картинку по адресу: " + imageUrl.getUrl() +
+                    "\n" + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) +
+                    "\n\n" + Emoji.RIGHT_ARROW.getEmoji() + " /image_" + (imageId + 1));
+            sendMessage.enableHtml(true);
+            sendMessage.disableWebPagePreview();
+
+            return sendMessage;
         }
 
         SendPhoto sendPhoto = new SendPhoto();
+        String caption = "\n";
+
+        if (imageId > 1) {
+            caption = caption + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) + "\n\n";
+        }
+        caption = caption + "/image_" + imageId + "\n\n" + Emoji.RIGHT_ARROW.getEmoji() + " /image_" + (imageId + 1);
 
         sendPhoto.setPhoto(new InputFile(image, imageUrl.getUrl()));
-        sendPhoto.setCaption("/image_" + imageUrl.getId());
+        sendPhoto.setCaption(caption);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
 

@@ -17,7 +17,7 @@ public class Password implements CommandParent<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         int symbolsCount = 8;
         String text = getTextMessage(update);
 

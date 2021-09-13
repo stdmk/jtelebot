@@ -47,12 +47,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) throws Exception {
-        String token = propertiesConfig.getGoogleToken();
-        if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
-        }
-
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
 
@@ -100,25 +95,9 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             return sendPhoto;
 
         } else {
-            GooglePicsSearchData googlePicsSearchData = getResultOfSearch(textMessage, token);
-
-            if (googlePicsSearchData.getItems() == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-            }
-            List<ImageUrl> imageUrlList = googlePicsSearchData.getItems()
-                    .stream()
-                    .map(googlePicsSearchItem -> {
-                        ImageUrl imageUrl = new ImageUrl();
-                        imageUrl.setTitle(googlePicsSearchItem.getTitle());
-                        imageUrl.setUrl(googlePicsSearchItem.getLink());
-
-                        return imageUrl;
-                    })
-                    .collect(Collectors.toList());
-
             List<InputMedia> images = new ArrayList<>();
 
-            imageUrlService.save(imageUrlList)
+            searchImagesOnGoogle(textMessage)
                     .forEach(imageUrl -> {
                         InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
                         inputMediaPhoto.setMedia(imageUrl.getUrl());
@@ -136,14 +115,31 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
         }
     }
 
-    private GooglePicsSearchData getResultOfSearch(String requestText, String googleToken) {
+    public List<ImageUrl> searchImagesOnGoogle(String text) {
+        String googleToken = propertiesConfig.getGoogleToken();
+        if (googleToken == null || googleToken.equals("")) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
+        }
+
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
         ResponseEntity<GooglePicsSearchData> response = botRestTemplate.getForEntity(
-                GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GooglePicsSearchData.class);
+                GOOGLE_URL + "key=" + googleToken + "&q=" + text, GooglePicsSearchData.class);
 
         botStats.incrementGoogleRequests();
 
-        return response.getBody();
+        GooglePicsSearchData googlePicsSearchData = response.getBody();
+
+        if (googlePicsSearchData == null || googlePicsSearchData.getItems() == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+        }
+
+        return imageUrlService.save(googlePicsSearchData.getItems()
+                .stream()
+                .map(googlePicsSearchItem -> new ImageUrl()
+                        .setTitle(googlePicsSearchItem.getTitle())
+                        .setUrl(googlePicsSearchItem.getLink())
+                )
+                .collect(Collectors.toList()));
     }
 
     @Data

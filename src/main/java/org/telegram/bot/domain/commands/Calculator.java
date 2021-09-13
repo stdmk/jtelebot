@@ -25,7 +25,7 @@ public class Calculator implements CommandParent<SendMessage> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendMessage parse(Update update) throws Exception {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
         String responseText;

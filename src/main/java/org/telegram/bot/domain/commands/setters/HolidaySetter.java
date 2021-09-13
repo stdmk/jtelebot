@@ -49,7 +49,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String SELECT_PAGE_HOLIDAY_LIST = DELETE_HOLIDAY_COMMAND + " page";
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) throws Exception {
+    public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
         Chat chat = chatService.get(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
