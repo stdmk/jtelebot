@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210914112800-1" author="stdmk">
+        <modifyDataType columnName="help" newDataType="varchar(1024)" schemaName="bot" tableName="commandproperties"/>
+    </changeSet>
+
+    <changeSet id="20210914112800-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="45"/>
+            <column name="commandname" value="timedelta"/>
+            <column name="russifiedname" value="разность"/>
+            <column name="enruname" value="hfpyjcnm"/>
+            <column name="classname" value="timeDelta"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Разность,Разность дат,Дата; Дата+время,разность 01.01.2022; разность 14.09.2021 01.01.2021; разность 14.09.2021 21:53:27; разность 14.09.2021 21:53:27 31.12.2022 23:59:59,Бот воспринимает строго даты формата dd.MM.yyyy и даты/время формата dd.MM.yyyy HH:mm:ss Вперемешку дату с датой/временем сравнить не может. Если указывается только одна дата - бот сравнивает её с текущей"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

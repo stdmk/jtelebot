@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 
 public class DateUtils {
@@ -12,15 +13,15 @@ public class DateUtils {
     private static final String DATE_TIME_FORMAT_STRING = "dd.MM.yyyy HH:mm:ss";
     private static final String TIME_FORMAT_STRING = "HH:mm:ss";
     private static final String DATE_FORMAT_STRING = "dd.MM.yyyy";
-    private static final String DATE_TIME_TV_FORMAT_STRING = "dd.MM.yyyy HH:mm";
-    private static final String TIME_TV_FORMAT_STRING = "HH:mm";
+    private static final String DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING = "dd.MM.yyyy HH:mm";
+    private static final String TIME_WITHOUT_SECONDS_FORMAT_STRING = "HH:mm";
 
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
-    public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_TV_FORMAT_STRING);
-    public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_TV_FORMAT_STRING);
+    public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING);
+    public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_WITHOUT_SECONDS_FORMAT_STRING);
 
 
     public static String formatDate(Date date) {
@@ -71,8 +72,12 @@ public class DateUtils {
         return dateTime.format(timeFormatter);
     }
 
-    public static String deltaDatesToString(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
-        return deltaDatesToString(getDuration(dateTimeStart, dateTimeEnd));
+    public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
+        if (secondDateTime.isAfter(firstDateTime)) {
+            return deltaDatesToString(getDuration(firstDateTime, secondDateTime));
+        }
+
+        return (deltaDatesToString(secondDateTime, firstDateTime));
     }
 
     public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
@@ -95,22 +100,38 @@ public class DateUtils {
     public static String deltaDatesToString(long milliseconds) {
         StringBuilder responseText = new StringBuilder();
 
-        long days =  milliseconds / 86400000;
+        long years = milliseconds / 31536000000L;
+        if (years > 0) {
+            String postfix;
+            String yearsCount = String.valueOf(years);
+
+            if (Arrays.asList("11", "12", "13", "14", "15", "16", "17", "18", "19").contains(yearsCount)) {
+                postfix = " л. ";
+            } else if (yearsCount.endsWith("1") || yearsCount.endsWith("2") || yearsCount.endsWith("3") || yearsCount.endsWith("4")) {
+                postfix = " г. ";
+            } else {
+                postfix = " л. ";
+            }
+
+            responseText.append(years).append(postfix);
+        }
+
+        long days =  milliseconds % 31536000000L / 86400000;
         if (days > 0) {
             responseText.append(days).append(" д. ");
         }
 
-        long hours = milliseconds % 86400000 / 3600000;
+        long hours = milliseconds % 31536000000L % 86400000 / 3600000;
         if (hours > 0) {
             responseText.append(hours).append(" ч. ");
         }
 
-        long minutes = milliseconds % 86400000 % 3600000 / 60000;
+        long minutes = milliseconds % 31536000000L % 86400000 % 3600000 / 60000;
         if (minutes > 0) {
             responseText.append(minutes).append(" м. ");
         }
 
-        long seconds = milliseconds % 86400000 % 3600000 % 60000 / 1000;
+        long seconds = milliseconds % 31536000000L % 86400000 % 3600000 % 60000 / 1000;
         if (seconds > 0) {
             responseText.append(seconds).append(" с. ");
         }
