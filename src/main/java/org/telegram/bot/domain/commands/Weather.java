@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -31,10 +31,9 @@ import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 import static org.telegram.bot.utils.TextUtils.withCapital;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Weather implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Weather.class);
 
     private final PropertiesConfig propertiesConfig;
     private final UserService userService;
@@ -63,9 +62,11 @@ public class Weather implements CommandParent<SendMessage> {
         }
 
         if (textMessage == null) {
+            log.debug("Empty request. Searching for users city");
             User user = userService.get(userId);
             UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
             if (userCity == null) {
+                log.debug("City in not set. Turning on command waiting");
                 commandWaitingService.add(message, this.getClass());
 
                 SendMessage sendMessage = new SendMessage();
@@ -81,6 +82,7 @@ public class Weather implements CommandParent<SendMessage> {
             cityName = textMessage;
         }
 
+        log.debug("City name is {}", cityName);
         WeatherCurrent weatherCurrent = getWeatherCurrent(token, cityName);
         WeatherForecast weatherForecast = getWeatherForecast(token, cityName);
 
@@ -95,6 +97,14 @@ public class Weather implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
+    /**
+     * Getting current weather data from service.
+     *
+     * @param token access token.
+     * @param cityName name of city
+     * @return current weather data.
+     * @throws BotException if get an error from service.
+     */
     private WeatherCurrent getWeatherCurrent(String token, String cityName) throws BotException {
         final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?lang=ru&units=metric&appid=" + token + "&q=";
         ResponseEntity<WeatherCurrent> response;
@@ -108,6 +118,14 @@ public class Weather implements CommandParent<SendMessage> {
         return response.getBody();
     }
 
+    /**
+     * Getting weather forecast data from service.
+     *
+     * @param token access token.
+     * @param cityName name of city
+     * @return weather forecast data.
+     * @throws BotException if get an error from service.
+     */
     private WeatherForecast getWeatherForecast(String token, String cityName) throws BotException {
         final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&cnt=6&appid=" + token + "&q=";
         ResponseEntity<WeatherForecast> response;
@@ -121,7 +139,13 @@ public class Weather implements CommandParent<SendMessage> {
         return response.getBody();
     }
 
-    private String getErrorMessage(Exception e) {
+    /**
+     * Getting error message by Exception from service.
+     *
+     * @param e exception from Rest client.
+     * @return text of error message.
+     */
+    private String getErrorMessage(RestClientException e) {
         String errorText = e.getMessage();
         String responseText;
 
@@ -146,6 +170,12 @@ public class Weather implements CommandParent<SendMessage> {
         return responseText;
     }
 
+    /**
+     * Preparing current weather part of weather.
+     *
+     * @param weatherCurrent current weather data.
+     * @return current weather info.
+     */
     private String prepareCurrentWeatherText(WeatherCurrent weatherCurrent) {
         StringBuilder buf = new StringBuilder();
         Sys sys = weatherCurrent.getSys();
@@ -179,8 +209,8 @@ public class Weather implements CommandParent<SendMessage> {
                 buf.append(precipitations).append("\n");
             }
         }
-        buf.append("Температура:  ").append(String.format("%+.2f", main.getTemp())).append("°\n");
-        buf.append("Ощущается:    ").append(String.format("%+.2f", main.getFeelsLike())).append("°\n");
+        buf.append("Температура:  ").append(String.format("%+.2f", main.getTemp())).append("°C\n");
+        buf.append("Ощущается:    ").append(String.format("%+.2f", main.getFeelsLike())).append("°C\n");
         buf.append("Влажность:    ").append(main.getHumidity().intValue()).append("%\n");
         buf.append("Ветер:        ").append(wind.getSpeed()).append(" м/с ").append(getWindDirectionEmoji(wind.getDeg())).append("\n");
         Double gust = wind.getGust();
@@ -199,6 +229,12 @@ public class Weather implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
+    /**
+     * Preparing forecast part of weather.
+     *
+     * @param weatherForecast weather forecast data.
+     * @return forecast info.
+     */
     private String prepareForecastWeatherText(WeatherForecast weatherForecast) {
         Integer timezone = weatherForecast.getCity().getTimezone();
 
@@ -221,6 +257,12 @@ public class Weather implements CommandParent<SendMessage> {
         return buf + "```";
     }
 
+    /**
+     * Getting emoji symbol of wind direction.
+     *
+     * @param degree of direction.
+     * @return emoji symbol.
+     */
     private String getWindDirectionEmoji(Integer degree) {
         if (degree == null) {
             return "";
@@ -240,6 +282,12 @@ public class Weather implements CommandParent<SendMessage> {
         return directions[ (int)Math.round((  ((double) degree % 360) / 45)) % 8 ];
     }
 
+    /**
+     * Getting Emoji for weather.
+     *
+     * @param weatherId id of weather type.
+     * @return emoji symbol.
+     */
     private String getWeatherEmoji(Integer weatherId) {
         if (weatherId >= 200 && weatherId < 300) {
             return Emoji.ZAP.getEmoji();
@@ -266,6 +314,14 @@ public class Weather implements CommandParent<SendMessage> {
         }
     }
 
+    /**
+     * Getting precipitation string of weather.
+     *
+     * @param precipitations precipitations data.
+     * @param hours count of hours.
+     * @param rain rain?
+     * @return precipitation info.
+     */
     private String getPrecipitations(Precipitations precipitations, Integer hours, boolean rain) {
         String emoji;
         if (rain) {
@@ -290,7 +346,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class WeatherForecast {
         private String cod;
         private Integer message;
@@ -300,7 +355,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class WeatherForecastData {
         private Integer dt;
         private Main main;
@@ -317,14 +371,11 @@ public class Weather implements CommandParent<SendMessage> {
         private String dtTxt;
     }
 
-    @NoArgsConstructor
     private static class Rain extends Precipitations {}
 
-    @NoArgsConstructor
     private static class Snow extends Precipitations {}
 
     @Data
-    @NoArgsConstructor
     private static class Precipitations {
         @JsonProperty("1h")
         private Double oneHours;
@@ -335,7 +386,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class City {
         private Integer id;
         private String name;
@@ -348,7 +398,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class WeatherCurrent {
         private Coord coord;
         private List<WeatherData> weather;
@@ -368,14 +417,12 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class Coord {
         private Double lon;
         private Double lat;
     }
 
     @Data
-    @NoArgsConstructor
     private static class Main {
         private Double temp;
 
@@ -403,7 +450,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class Wind {
         private Double speed;
         private Integer deg;
@@ -411,13 +457,11 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class Clouds {
         private Integer all;
     }
 
     @Data
-    @NoArgsConstructor
     private static class Sys {
         private Integer type;
         private Integer id;
@@ -428,7 +472,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class WeatherData {
         private Integer id;
         private String main;
@@ -437,7 +480,6 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     @Data
-    @NoArgsConstructor
     private static class WeatherError implements Serializable {
         private String cod;
         private String message;
