@@ -46,7 +46,11 @@ public class TimeDelta implements CommandParent<SendMessage> {
             Matcher matcher = pattern.matcher(textMessage);
 
             if (matcher.find()) {
-                firstDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                try {
+                    firstDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                } catch (Exception e) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -62,7 +66,11 @@ public class TimeDelta implements CommandParent<SendMessage> {
             Matcher matcher = pattern.matcher(textMessage);
 
             if (matcher.find()) {
-                firstDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
+                try {
+                    firstDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
+                } catch (Exception e) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
