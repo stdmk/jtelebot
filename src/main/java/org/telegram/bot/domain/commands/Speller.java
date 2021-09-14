@@ -1,7 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -14,12 +14,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Speller implements CommandParent<SendMessage> {
 
     private final RestTemplate botRestTemplate;
@@ -35,7 +34,10 @@ public class Speller implements CommandParent<SendMessage> {
         if (textMessage == null) {
             textMessage = message.getReplyToMessage().getText();
             if (textMessage == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                textMessage = message.getReplyToMessage().getCaption();
+                if (textMessage == null) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
             }
             replyToMessage = message.getReplyToMessage().getMessageId();
         } else {
@@ -53,21 +55,13 @@ public class Speller implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String getRevisedText(String text) throws BotException {
-        List<SpellResult> spellResultList = getSpellerData(text);
-        if (spellResultList.isEmpty()) {
-            return "ошибок не обнаружено";
-        }
-
-        StringBuilder buf = new StringBuilder("<u>Найденные ошибки</u>\n");
-        spellResultList.forEach(spellResult -> buf
-                .append("<s>").append(spellResult.getWord()).append("</s> — ").append(spellResult.getS().get(0)).append("\n")
-        );
-
-        return buf.toString();
-    }
-
-    private List<SpellResult> getSpellerData(String text) throws BotException {
+    /**
+     * Sending text to Speller for review.
+     *
+     * @param text for review
+     * @return revised text
+     */
+    private String getRevisedText(String text) {
         final String SPELLER_API_URL = "https://speller.yandex.net/services/spellservice.json/checkText?text=";
         ResponseEntity<SpellResult[]> response;
 
@@ -79,10 +73,15 @@ public class Speller implements CommandParent<SendMessage> {
 
         SpellResult[] body = response.getBody();
         if (body == null) {
-            return new ArrayList<>();
+            return "ошибок не обнаружено";
         }
 
-        return new ArrayList<>(Arrays.asList(body));
+        StringBuilder buf = new StringBuilder("<u>Найденные ошибки</u>\n");
+        Arrays.asList(body).forEach(spellResult -> buf
+                .append("<s>").append(spellResult.getWord()).append("</s> — ").append(spellResult.getS().get(0)).append("\n")
+        );
+
+        return buf.toString();
     }
 
     @Data
