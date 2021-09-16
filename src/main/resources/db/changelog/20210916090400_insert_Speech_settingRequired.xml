@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210916090400-1" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="91"/>
+            <column name="tag" value="settingRequired"/>
+            <column name="message" value="для использования этой команды необходима настройка"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="92"/>
+            <column name="tag" value="settingRequired"/>
+            <column name="message" value="сперва настрой, прежде чем эту команду использовать"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="93"/>
+            <column name="tag" value="settingRequired"/>
+            <column name="message" value="не знаю что выводить тебе тут. Настрой сначала"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="94"/>
+            <column name="tag" value="settingRequired"/>
+            <column name="message" value="нет настройки - нет информации"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="95"/>
+            <column name="tag" value="settingRequired"/>
+            <column name="message" value="ты, наверное, настроить команду сперва забыл"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

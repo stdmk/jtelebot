@@ -1,15 +1,24 @@
 package org.telegram.bot.domain.commands.setters;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.commands.Set;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.News;
+import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.NewsService;
+import org.telegram.bot.services.NewsSourceService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -25,7 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private final Logger log = LoggerFactory.getLogger(NewsSetter.class);

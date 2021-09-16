@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.News;
@@ -13,10 +12,9 @@ import org.telegram.bot.services.NewsService;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class NewsServiceImpl implements NewsService {
-
-    private final Logger log = LoggerFactory.getLogger(NewsServiceImpl.class);
 
     private final NewsRepository newsRepository;
 
@@ -38,7 +36,8 @@ public class NewsServiceImpl implements NewsService {
         return getAll(chat)
                 .stream()
                 .filter(news -> news.getName().equals(newsName) || news.getNewsSource().equals(newsSource))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -67,6 +66,7 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public Boolean remove(Chat chat, Long newsId) {
         log.debug("Request to delete News by id {}", newsId);
+
         News news = get(chat, newsId);
         if (news == null) {
             return false;
@@ -79,6 +79,7 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public Boolean remove(Chat chat, String newsName) {
         log.debug("Request to delete News by name {}", newsName);
+
         News news = get(chat, newsName);
         if (news == null) {
             return false;

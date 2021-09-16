@@ -1,17 +1,16 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Token;
 import org.telegram.bot.repositories.TokenRepository;
 import org.telegram.bot.services.TokenService;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class TokenServiceImpl implements TokenService {
-    private final Logger log = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     private final TokenRepository tokenRepository;
 

@@ -1,6 +1,5 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,7 +12,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 @Component
-@AllArgsConstructor
 public class Ping implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {

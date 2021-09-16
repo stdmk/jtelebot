@@ -5,16 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.GoogleSearchResult;
+import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.GoogleSearchResultService;
+import org.telegram.bot.services.ImageUrlService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -42,7 +47,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         String token = propertiesConfig.getGoogleToken();
-        if (token == null || token.equals("")) {
+        if (StringUtils.isEmpty(token)) {
             log.error("Unable to find google token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
@@ -56,7 +61,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (textMessage == null) {
-            log.debug("Empty request. Turn on command waiting");
+            log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
@@ -67,12 +72,12 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to getting result of google by id {}", googleResultSearchId);
             GoogleSearchResult googleSearchResult = googleSearchResultService.get(googleResultSearchId);
             if (googleSearchResult == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            log.debug("Request to get content of Google by id {}", googleSearchResult.getId());
             responseText = "<b>" + googleSearchResult.getTitle() + "</b>\n" +
                             googleSearchResult.getSnippet() + "\n" +
                             "<a href='" + googleSearchResult.getLink() + "'>" + googleSearchResult.getFormattedUrl() + "</a>\n";
@@ -82,14 +87,14 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                 SendPhoto sendPhoto = new SendPhoto();
                 sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
                 sendPhoto.setCaption(responseText);
-                sendPhoto.setParseMode(ParseMode.HTML.getValue());
+                sendPhoto.setParseMode("HTML");
                 sendPhoto.setReplyToMessageId(message.getMessageId());
                 sendPhoto.setChatId(message.getChatId().toString());
 
                 return sendPhoto;
             }
         } else {
-            log.debug("Request to get google results for '{}'", textMessage);
+            log.debug("Request to get google results for: {}", textMessage);
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 
             if (googleSearchData.getItems() == null) {
@@ -129,7 +134,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setParseMode(ParseMode.HTML.getValue());
+        sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
@@ -145,8 +150,14 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
      */
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
         String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
-        ResponseEntity<GoogleSearchData> response = botRestTemplate.getForEntity(
-                GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+        ResponseEntity<GoogleSearchData> response;
+
+        try {
+            response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+        } catch (RestClientException e) {
+            log.error("Error receiving result of searching: ", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
 
         botStats.incrementGoogleRequests();
 

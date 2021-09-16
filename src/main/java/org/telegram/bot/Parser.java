@@ -1,8 +1,7 @@
 package org.telegram.bot;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.exception.BotException;
@@ -18,9 +17,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class Parser extends Thread {
-
-    private final Logger log = LoggerFactory.getLogger(Parser.class);
 
     private final Bot bot;
     private final CommandParent<?> command;

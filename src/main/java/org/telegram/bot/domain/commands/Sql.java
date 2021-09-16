@@ -1,6 +1,9 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +25,8 @@ import java.util.List;
 import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Sql implements CommandParent<SendMessage> {
 
     @PersistenceContext
@@ -37,10 +41,11 @@ public class Sql implements CommandParent<SendMessage> {
         Message message = getMessageFromUpdate(update);
         String responseText;
         String textMessage = cutCommandInText(message.getText());
-        if (textMessage == null || textMessage.equals("")) {
+        if (StringUtils.isEmpty(textMessage)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
+        log.debug("Request to execute sql request: {}", textMessage);
         try {
             if (textMessage.toLowerCase().startsWith("select")) {
                     StringBuilder buf = new StringBuilder();

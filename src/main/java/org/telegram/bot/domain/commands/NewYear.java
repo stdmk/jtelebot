@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NewYear implements CommandParent<SendMessage> {
 
     private final UserService userService;

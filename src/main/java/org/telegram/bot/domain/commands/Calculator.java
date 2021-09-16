@@ -1,7 +1,11 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -13,16 +17,18 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Calculator implements CommandParent<SendMessage> {
 
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
-    private final NetworkUtils networkUtils;
+    private final RestTemplate restTemplate;
 
     @Override
     public SendMessage parse(Update update) {
@@ -36,14 +42,28 @@ public class Calculator implements CommandParent<SendMessage> {
 
         if (textMessage == null) {
             commandWaitingService.add(message, this.getClass());
+            log.debug("Empty request. Enabling command waiting");
             responseText = "теперь напиши мне что нужно посчитать";
         } else {
+            log.debug("Request to calculate {}", textMessage);
             final String MATH_JS_URL = "http://api.mathjs.org/v4/?expr=";
+
             try {
-                responseText = networkUtils.readStringFromURL(MATH_JS_URL + URLEncoder.encode(textMessage, StandardCharsets.UTF_8.name()));
-            } catch (IOException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                ResponseEntity<String> response = restTemplate.getForEntity(MATH_JS_URL + URLEncoder.encode(textMessage, StandardCharsets.UTF_8.name()), String.class);
+                responseText = response.getBody();
+            } catch (UnsupportedEncodingException uee) {
+                log.error("Internal error: ", uee);
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            } catch (HttpClientErrorException hce) {
+                String errorText = hce.getResponseBodyAsString();
+                log.debug("Error from service: {}", errorText);
+                responseText = errorText;
             }
+        }
+
+        if (responseText == null) {
+            log.error("Empty response from service");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         SendMessage sendMessage = new SendMessage();

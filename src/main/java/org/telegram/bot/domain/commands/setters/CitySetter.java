@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands.setters;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import static org.telegram.bot.utils.DateUtils.TimeZones;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private final Logger log = LoggerFactory.getLogger(CitySetter.class);

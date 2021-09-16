@@ -1,6 +1,9 @@
 package org.telegram.bot.domain.entities;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,7 +14,10 @@ import javax.persistence.Table;
  * Wiki entity.
  */
 @Entity
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@ToString
 @Table(name = "wiki", schema = "bot")
 public class Wiki {
     @Id

@@ -1,14 +1,15 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -17,10 +18,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Help implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Help.class);
 
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
@@ -33,14 +33,12 @@ public class Help implements CommandParent<SendMessage> {
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null || textMessage.length() == 0) {
+            log.debug("Request to get general help");
             StringBuilder responseText = new StringBuilder();
-            if (checkIsThatAdmin(message)) {
+
+            if (checkIsThatAdmin(message.getFrom().getId())) {
                 responseText.append("Права администратора успешно предоставлены\n\n");
             }
-
-            log.debug("Requst to get general help");
-
-            responseText.append("*Без паники!*\n");
 
             Integer accessLevel;
             Integer userAccessLevel = userService.getUserAccessLevel(message.getFrom().getId());
@@ -51,6 +49,7 @@ public class Help implements CommandParent<SendMessage> {
                 accessLevel = chatAccessLevel;
             }
 
+            responseText.append("*Без паники!*\n");
             responseText.append("Твой текущий уровень - *").append(accessLevel)
                     .append("* (пользователь - ").append(userAccessLevel)
                     .append("; чат - ").append(chatAccessLevel)
@@ -83,13 +82,19 @@ public class Help implements CommandParent<SendMessage> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableMarkdown(true);
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(prepareHelpText(commandPropertiesService.getCommand(textMessage).getHelp()));
+            sendMessage.setText(formatHelpText(commandPropertiesService.getCommand(textMessage).getHelp()));
 
             return sendMessage;
         }
     }
 
-    private String prepareHelpText(String helpData) {
+    /**
+     * Formatting raw help data text.
+     *
+     * @param helpData raw text of help.
+     * @return formatted text of help.
+     */
+    private String formatHelpText(String helpData) {
         StringBuilder preparedText = new StringBuilder();
 
         int titleEndIndex = helpData.indexOf(",");
@@ -109,8 +114,12 @@ public class Help implements CommandParent<SendMessage> {
         return preparedText.toString();
     }
 
-    private Boolean checkIsThatAdmin(Message message) {
-        Long userId = message.getFrom().getId();
+    /**
+     * Checking if the user is specified by the admin and gives him admin rights.
+     *
+     * @param userId user id to check.
+     */
+    private Boolean checkIsThatAdmin(Long userId) {
         Long adminId;
         try {
             adminId = propertiesConfig.getAdminId();

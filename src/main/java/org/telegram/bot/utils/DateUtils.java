@@ -1,9 +1,15 @@
 package org.telegram.bot.utils;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
@@ -22,7 +28,6 @@ public class DateUtils {
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING);
     public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_WITHOUT_SECONDS_FORMAT_STRING);
-
 
     public static String formatDate(Date date) {
         return dateTimeFormat.format(date);
@@ -144,6 +149,7 @@ public class DateUtils {
     }
 
     @Getter
+    @RequiredArgsConstructor
     public enum TimeZones {
         MINUS_ONE("GMT-01:00"),
         MINUS_TWO("GMT-02:00"),
@@ -172,9 +178,5 @@ public class DateUtils {
         PLUS_TWELVE("GMT+12:00");
 
         private final String zone;
-
-        TimeZones(String zone) {
-            this.zone = zone;
-        }
     }
 }

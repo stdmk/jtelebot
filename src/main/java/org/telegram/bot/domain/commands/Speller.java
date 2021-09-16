@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Speller implements CommandParent<SendMessage> {
 
     private final RestTemplate botRestTemplate;
@@ -38,11 +40,14 @@ public class Speller implements CommandParent<SendMessage> {
                 if (textMessage == null) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
+                log.debug("Request to speller text from caption: {}", textMessage);
             }
+            log.debug("Request to speller text from replied message {}", textMessage);
             replyToMessage = message.getReplyToMessage().getMessageId();
         } else {
             replyToMessage = message.getMessageId();
         }
+        log.debug("Request to speller text from message: {}", textMessage);
 
         responseText = getRevisedText(textMessage);
 
@@ -68,6 +73,7 @@ public class Speller implements CommandParent<SendMessage> {
         try {
             response = botRestTemplate.getForEntity(SPELLER_API_URL + text, SpellResult[].class);
         } catch (RestClientException e) {
+            log.error("Error getting Speller review: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

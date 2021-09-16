@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
@@ -13,10 +12,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class TvProgramServiceImpl implements TvProgramService {
-
-    private final Logger log = LoggerFactory.getLogger(TvProgramServiceImpl.class);
 
     private final TvProgramRepository tvProgramRepository;
 

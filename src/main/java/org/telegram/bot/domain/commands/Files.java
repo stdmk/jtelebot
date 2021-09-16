@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
@@ -11,12 +11,21 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.FileService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.Audio;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -30,7 +39,7 @@ import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.formatFileSize;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
     private final FileService fileService;

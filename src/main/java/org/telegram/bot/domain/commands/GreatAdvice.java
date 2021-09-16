@@ -1,7 +1,8 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -15,7 +16,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class GreatAdvice implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
@@ -27,17 +29,18 @@ public class GreatAdvice implements CommandParent<SendMessage> {
             return null;
         }
 
+        log.debug("Request to get great advice");
         final String API_URL = "http://fucking-great-advice.ru/api/random";
 
-        ResponseEntity<FuckingGreateAdvice> response;
+        ResponseEntity<FuckingGreatAdvice> response;
         try {
-            response = botRestTemplate.getForEntity(API_URL, FuckingGreateAdvice.class);
+            response = botRestTemplate.getForEntity(API_URL, FuckingGreatAdvice.class);
         } catch (RestClientException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        FuckingGreateAdvice fuckingGreateAdvice = response.getBody();
-        if (fuckingGreateAdvice == null) {
+        FuckingGreatAdvice fuckingGreatAdvice = response.getBody();
+        if (fuckingGreatAdvice == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
@@ -46,13 +49,13 @@ public class GreatAdvice implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(fuckingGreateAdvice.getText());
+        sendMessage.setText(fuckingGreatAdvice.getText());
 
         return sendMessage;
     }
 
     @Data
-    private static class FuckingGreateAdvice {
+    private static class FuckingGreatAdvice {
         private Integer id;
         private String text;
         private Object sound;

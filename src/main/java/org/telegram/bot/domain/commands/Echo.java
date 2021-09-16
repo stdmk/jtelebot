@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -10,8 +10,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Echo implements CommandParent<SendMessage> {
+
     private final SpeechService speechService;
 
     @Override

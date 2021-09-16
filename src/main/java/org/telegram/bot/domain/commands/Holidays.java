@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -25,7 +26,8 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 import static org.telegram.bot.utils.DateUtils.formatDate;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Holidays implements CommandParent<SendMessage> {
 
     private final HolidayService holidayService;
@@ -39,7 +41,8 @@ public class Holidays implements CommandParent<SendMessage> {
         String responseText;
 
         if (textMessage == null) {
-            responseText = getCommingHolidays(chatService.get(message.getChatId()));
+            log.debug("Request to get coming holidays");
+            responseText = getComingHolidays(chatService.get(message.getChatId()));
         } else if (textMessage.startsWith("_")) {
             long holidayId;
             try {
@@ -47,6 +50,8 @@ public class Holidays implements CommandParent<SendMessage> {
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
+
+            log.debug("Request to get Holiday by id {}", holidayId);
             Holiday holiday = holidayService.get(holidayId);
             if (holiday == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -56,7 +61,8 @@ public class Holidays implements CommandParent<SendMessage> {
         } else {
             int i = textMessage.indexOf(".");
             if (i < 0) {
-                responseText = getHolidaysSearch(chatService.get(message.getChatId()), textMessage);
+                log.debug("Request to search holidays by text: {}", textMessage);
+                responseText = findHolidaysByText(chatService.get(message.getChatId()), textMessage);
             } else {
                 LocalDate requestedDate;
                 try {
@@ -68,6 +74,7 @@ public class Holidays implements CommandParent<SendMessage> {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
+                log.debug("Request to get holidays for date: {}", formatDate(requestedDate));
                 responseText = getHolidaysForDate(chatService.get(message.getChatId()), requestedDate);
                 if (responseText == null) {
                     responseText = "Праздники на эту дату отсутствуют";
@@ -85,7 +92,13 @@ public class Holidays implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String getCommingHolidays(Chat chat) {
+    /**
+     * Getting list of coming holidays.
+     *
+     * @param chat chat in which to search.
+     * @return formatted text with holidays.
+     */
+    private String getComingHolidays(Chat chat) {
         StringBuilder buf = new StringBuilder("<u>Ближайшие праздники:</u>\n");
         final LocalDate dateNow = LocalDate.now();
 
@@ -99,9 +112,18 @@ public class Holidays implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
+    /**
+     * Getting list of holidays to specific date.
+     *
+     * @param chat chat in which to search.
+     * @param date date by which will search.
+     * @return formatted text with holidays.
+     */
     public String getHolidaysForDate(Chat chat, LocalDate date) {
-        List<Holiday> holidayList = holidayService.get(chat).stream()
-                .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue() && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
+        List<Holiday> holidayList = holidayService.get(chat)
+                .stream()
+                .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue()
+                        && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
                 .collect(Collectors.toList());
         if (holidayList.isEmpty()) {
             return null;
@@ -115,13 +137,27 @@ public class Holidays implements CommandParent<SendMessage> {
         return buf.toString();
     }
 
-    private String getHolidaysSearch(Chat chat, String name) {
+    /**
+     * Finding holidays by text.
+     *
+     * @param chat chat in which to search.
+     * @param name name of searching holiday.
+     * @return formatted text with holidays.
+     */
+    private String findHolidaysByText(Chat chat, String name) {
         StringBuilder buf = new StringBuilder("<u>Результаты поиска:</u>\n");
         holidayService.get(chat, name).forEach(holiday -> buf.append(buildStringOfHoliday(holiday, true)));
 
         return buf.toString();
     }
 
+    /**
+     * Getting details of Holiday.
+     *
+     * @param holiday Holiday entity.
+     * @return formatted text with details of Holiday.
+     * @see Holiday
+     */
     private String getHolidayDetails(Holiday holiday) {
         String date;
         LocalDate storedDate = holiday.getDate();
@@ -138,6 +174,14 @@ public class Holidays implements CommandParent<SendMessage> {
                 "Автор: " + getLinkToUser(holiday.getUser(), true);
     }
 
+    /**
+     * Getting formatted string of short information about Holiday.
+     *
+     * @param holiday Holiday entity.
+     * @param withDayOfWeek flag to add day of week.
+     * @return formatted string with short info about Holiday
+     * @see Holiday
+     */
     private String buildStringOfHoliday(Holiday holiday, Boolean withDayOfWeek) {
         LocalDate storedDate = holiday.getDate();
         LocalDate dateOfHoliday = getDateOfHoliday(storedDate);
@@ -154,15 +198,28 @@ public class Holidays implements CommandParent<SendMessage> {
                 "/holidays_" + holiday.getId() + "\n";
     }
 
+    /**
+     * Getting name of day of week.
+     *
+     * @param date date
+     * @return name of day of week.
+     */
     private String getDayOfWeek(LocalDate date) {
         return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
     }
 
-    private String getNumberOfYear(LocalDate storedDate, LocalDate dateOfHoliday) {
+    /**
+     * Getting postfix with number of years.
+     *
+     * @param storedDate date of creating the holiday.
+     * @param currentDateOfHoliday current celebration date.
+     * @return postfix with number of years.
+     */
+    private String getNumberOfYear(LocalDate storedDate, LocalDate currentDateOfHoliday) {
         String numberOfYears = "";
         if (storedDate.getYear() != 1) {
             String postfix;
-            String years = String.valueOf(dateOfHoliday.getYear() - storedDate.getYear());
+            String years = String.valueOf(currentDateOfHoliday.getYear() - storedDate.getYear());
 
             if (years.endsWith("11") || years.endsWith("12") ||  years.endsWith("13") ||  years.endsWith("14") ||  years.endsWith("15") ||  years.endsWith("16") ||  years.endsWith("17") ||  years.endsWith("18") ||  years.endsWith("19")) {
                 postfix = " лет)";
@@ -180,6 +237,12 @@ public class Holidays implements CommandParent<SendMessage> {
         return numberOfYears;
     }
 
+    /**
+     * Getting current celebration date of holiday.
+     *
+     * @param date date of creating the holiday
+     * @return current celebration date.
+     */
     private LocalDate getDateOfHoliday(LocalDate date) {
         return LocalDate.of(LocalDate.now().getYear(), date.getMonth(), date.getDayOfMonth());
     }

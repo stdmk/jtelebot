@@ -1,8 +1,10 @@
 package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -21,7 +23,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class WolframAlpha implements CommandParent<SendMessage> {
 
     private final PropertiesConfig propertiesConfig;
@@ -32,10 +35,6 @@ public class WolframAlpha implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {
-        String token = propertiesConfig.getWolframAlphaToken();
-        if (token == null || token.equals("")) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
-        }
 
         Message message = getMessageFromUpdate(update);
         String responseText;
@@ -46,10 +45,12 @@ public class WolframAlpha implements CommandParent<SendMessage> {
         }
 
         if (textMessage == null) {
+            log.debug("Empty request. Enabling command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else {
-            responseText = getWolframAlphaSearchResult(token, textMessage);
+            log.debug("Request to get wolfram alpha for text {}", textMessage);
+            responseText = getWolframAlphaSearchResult(textMessage);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -60,10 +61,21 @@ public class WolframAlpha implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String getWolframAlphaSearchResult(String token, String requestText) throws BotException {
-        final String WOLFRAM_ALPHA_API_URL = "http://api.wolframalpha.com/v2/query?output=json&includepodid=Result&";
-        ResponseEntity<WolframAlphaData> response;
+    /**
+     * Getting Wolfram alpha result.
+     *
+     * @param requestText text of request
+     * @return result of wolfram alpha.
+     */
+    private String getWolframAlphaSearchResult(String requestText) {
+        String token = propertiesConfig.getWolframAlphaToken();
+        if (StringUtils.isEmpty(token)) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
+        }
 
+        final String WOLFRAM_ALPHA_API_URL = "http://api.wolframalpha.com/v2/query?output=json&includepodid=Result&";
+
+        ResponseEntity<WolframAlphaData> response;
         try {
             response = botRestTemplate.getForEntity(
                     WOLFRAM_ALPHA_API_URL + "appid=" + token + "&input=" + requestText, WolframAlphaData.class);

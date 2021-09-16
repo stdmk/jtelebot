@@ -1,11 +1,13 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -21,10 +23,9 @@ import java.io.Serializable;
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Boobs implements CommandParent<SendPhoto> {
-
-    private final Logger log = LoggerFactory.getLogger(Boobs.class);
 
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -34,12 +35,18 @@ public class Boobs implements CommandParent<SendPhoto> {
 
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
+        ResponseEntity<BoobsCount[]> response;
 
-        ResponseEntity<BoobsCount[]> response = botRestTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
+        try {
+            response = botRestTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
+        } catch (RestClientException e) {
+            log.error("Error receiving boobs");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
 
         BoobsCount[] boobsCounts = response.getBody();
         if (boobsCounts == null) {
-            log.debug("No response from service");
+            log.debug("Empty response from service");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

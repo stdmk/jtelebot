@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,11 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -24,10 +29,9 @@ import static org.telegram.bot.utils.DateUtils.formatDateTime;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Where implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Where.class);
 
     private final SpeechService speechService;
     private final UserService userService;
@@ -43,7 +47,6 @@ public class Where implements CommandParent<SendMessage> {
         }
 
         Integer messageId = message.getMessageId();
-
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {
@@ -53,15 +56,17 @@ public class Where implements CommandParent<SendMessage> {
         String responseText;
         if (textMessage == null) {
             commandWaitingService.add(message, this.getClass());
-
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {
             User user = userService.get(textMessage);
             Chat chat = chatService.get(message.getChatId());
 
+            //чтобы команда не срабатывала на каждое слово "Где"
             if (user == null) {
                 return null;
             }
+
+            log.debug("Request to get last message of user {} for chat {}", user, chat);
             UserStats userStats = userStatsService.get(chat, user);
 
             LastMessage lastMessage = userStats.getLastMessage();

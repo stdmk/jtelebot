@@ -1,11 +1,12 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -21,7 +22,7 @@ import java.io.Serializable;
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Butts implements CommandParent<SendPhoto> {
 
     private final Logger log = LoggerFactory.getLogger(Butts.class);
@@ -34,12 +35,18 @@ public class Butts implements CommandParent<SendPhoto> {
 
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
+        ResponseEntity<Butts.ButtsCount[]> response;
 
-        ResponseEntity<Butts.ButtsCount[]> response = botRestTemplate.getForEntity(BUTTS_API_URL + "count", Butts.ButtsCount[].class);
+        try {
+            response = botRestTemplate.getForEntity(BUTTS_API_URL + "count", Butts.ButtsCount[].class);
+        } catch (RestClientException e) {
+            log.error("Error receiving butts");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
 
         Butts.ButtsCount[] buttsCounts = response.getBody();
         if (buttsCounts == null) {
-            log.debug("No response from service");
+            log.debug("Empty response from service");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

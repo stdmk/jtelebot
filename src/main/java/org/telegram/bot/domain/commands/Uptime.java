@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
@@ -18,7 +18,7 @@ import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.formatLongValue;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Uptime implements CommandParent<SendMessage> {
 
     private final BotStats botStats;

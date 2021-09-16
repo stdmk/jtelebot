@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -22,6 +23,7 @@ import static org.telegram.bot.utils.DateUtils.formatDateTime;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class TimeDelta implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
@@ -81,6 +83,8 @@ public class TimeDelta implements CommandParent<SendMessage> {
                 secondDateTime = LocalDateTime.now();
             }
         }
+
+        log.debug("Request to compare {} and {}", formatDateTime(firstDateTime), formatDateTime(secondDateTime));
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

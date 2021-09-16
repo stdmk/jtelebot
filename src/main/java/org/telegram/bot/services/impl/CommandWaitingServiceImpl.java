@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -15,10 +14,9 @@ import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class CommandWaitingServiceImpl implements CommandWaitingService {
-
-    private final Logger log = LoggerFactory.getLogger(CommandWaitingServiceImpl.class);
 
     private final CommandWaitingRepository commandWaitingRepository;
 
@@ -43,7 +41,6 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
         remove(commandWaiting);
 
         return message.getText();
-
     }
 
     @Override
@@ -60,14 +57,16 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
         CommandWaiting commandWaiting = get(chat, user);
         if (commandWaiting == null) {
-            commandWaiting = new CommandWaiting();
-            commandWaiting.setChat(chat);
-            commandWaiting.setUser(user);
+            commandWaiting = new CommandWaiting()
+                    .setChat(chat)
+                    .setUser(user);
         }
 
-        commandWaiting.setCommandName(commandName);
-        commandWaiting.setIsFinished(false);
-        commandWaiting.setTextMessage("/" + commandText + " ");
+        commandWaiting
+                .setCommandName(commandName)
+                .setIsFinished(false)
+                .setTextMessage("/" + commandText + " ");
+
         save(commandWaiting);
     }
 

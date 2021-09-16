@@ -1,15 +1,24 @@
 package org.telegram.bot.domain.commands.setters;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.TvChannel;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserTv;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.TvChannelService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserTvService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -24,7 +33,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private final Logger log = LoggerFactory.getLogger(TvSetter.class);

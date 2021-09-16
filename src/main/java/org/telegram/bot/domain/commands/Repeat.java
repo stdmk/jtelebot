@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -21,7 +22,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?>> {
 
     private final ApplicationContext context;
@@ -44,6 +46,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
 
             if (lastCommand != null) {
                 CommandProperties commandProperties = lastCommand.getCommandProperties();
+                log.debug("Request to repeat Command {}", commandProperties);
 
                 if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
                     Update newUpdate = copyUpdate(update);
@@ -57,6 +60,8 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
                     Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
                     parser.start();
                 }
+
+                log.debug("User does not have access to with command");
             }
         }
     }

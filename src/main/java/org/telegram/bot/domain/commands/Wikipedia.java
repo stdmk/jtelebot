@@ -2,10 +2,13 @@ package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -17,10 +20,13 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
+import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,15 +34,15 @@ import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Wikipedia implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Wikipedia.class);
 
     private final WikiService wikiService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
+    private final NetworkUtils networkUtils;
 
     @Override
     public SendMessage parse(Update update) {
@@ -50,7 +56,6 @@ public class Wikipedia implements CommandParent<SendMessage> {
 
         if (textMessage == null) {
             commandWaitingService.add(message, this.getClass());
-
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
             int wikiPageId;
@@ -60,16 +65,19 @@ public class Wikipedia implements CommandParent<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to get wiki details by pageId {}", wikiPageId);
             Wiki wiki = wikiService.get(wikiPageId);
             if (wiki == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            responseText = prepareSearchResponse(wiki);
+            responseText = getWikiPageDetails(wiki);
         } else {
+            log.debug("Request to search wiki pages by text {}", textMessage);
             Wiki wiki = getWiki(textMessage);
+
             if (wiki != null && !wiki.getText().equals("")) {
-                responseText = prepareSearchResponse(wiki);
+                responseText = getWikiPageDetails(wiki);
             } else {
                 List<String> titles = searchPageTitles(textMessage);
 
@@ -80,10 +88,10 @@ public class Wikipedia implements CommandParent<SendMessage> {
                     if (wiki1 == null || wiki1.getText().equals("")) {
                         responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
                     } else {
-                        responseText = prepareSearchResponse(wiki1);
+                        responseText = getWikiPageDetails(wiki1);
                     }
                 } else {
-                    responseText = "<b>Результаты по запросу " + textMessage + "</b>\n" + prepareSearchResponse(titles);
+                    responseText = "<b>Результаты по запросу " + textMessage + "</b>\n" + buildSearchResponseText(titles);
                 }
             }
         }
@@ -98,21 +106,42 @@ public class Wikipedia implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private String prepareSearchResponse(Wiki wiki) {
+    /**
+     * Getting wiki page details.
+     *
+     * @param wiki Wiki entity.
+     * @return details of wiki page.
+     */
+    private String getWikiPageDetails(Wiki wiki) {
         return "<b>" + wiki.getTitle() + "</b>\n" +
                 wiki.getText() + "\n" +
                 "<a href='https://ru.wikipedia.org/wiki/" + wiki.getTitle() + "'>Ссылка на статью</a>\n";
     }
 
-    private String prepareSearchResponse(List<String> titles) {
+    /**
+     * Getting search response text by page titles.
+     *
+     * @param titles titles of pages.
+     * @return formatted text with list of pages.
+     */
+    private String buildSearchResponseText(List<String> titles) {
         StringBuilder buf = new StringBuilder();
-
-        getListOfWikiPages(titles)
+        titles
+                .stream()
+                .map(this::getWiki)
+                .filter(Objects::nonNull)
+                .map(wikiService::save)
                 .forEach(wiki -> buf.append(wiki.getTitle()).append("\n").append("/wiki_").append(wiki.getPageId()).append("\n"));
 
         return buf.toString();
     }
 
+    /**
+     * Getting list of found titles by text.
+     *
+     * @param searchText search text.
+     * @return list of found titles.
+     */
     private List<String> searchPageTitles(String searchText) {
         final String WIKI_SEARCH_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
         List<String> titles = new ArrayList<>();
@@ -127,7 +156,6 @@ public class Wikipedia implements CommandParent<SendMessage> {
         if (responseBody[1] instanceof List) {
             titles = ((List<?>) responseBody[1])
                     .stream()
-                    .filter(item -> item instanceof String)
                     .map(item -> (String) item)
                     .collect(Collectors.toList());
         }
@@ -135,17 +163,14 @@ public class Wikipedia implements CommandParent<SendMessage> {
         return titles;
     }
 
-    private List<Wiki> getListOfWikiPages(List<String> titles) {
-        return wikiService.save(titles
-                .stream()
-                .map(this::getWiki)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
-    }
-
+    /**
+     * Getting Wiki by title.
+     *
+     * @param title title of wiki.
+     * @return Wiki entity.
+     */
     private Wiki getWiki(String title) {
         final String WIKI_API_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
-        Wiki wiki;
 
         ResponseEntity<WikiData> response;
         try {
@@ -166,12 +191,10 @@ public class Wikipedia implements CommandParent<SendMessage> {
             return null;
         }
 
-        wiki = new Wiki();
-        wiki.setPageId(wikiPage.getPageid());
-        wiki.setTitle(wikiPage.getTitle());
-        wiki.setText(cutHtmlTags(wikiPage.getExtract()));
-
-        return wiki;
+        return new Wiki()
+                .setPageId(wikiPage.getPageid())
+                .setTitle(wikiPage.getTitle())
+                .setText(cutHtmlTags(wikiPage.getExtract()));
     }
 
     @Data

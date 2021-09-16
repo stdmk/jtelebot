@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,10 +19,9 @@ import java.io.IOException;
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Bash implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Bash.class);
 
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
@@ -45,10 +45,6 @@ public class Bash implements CommandParent<SendMessage> {
             quot = getDefineQuot(textMessage);
         }
 
-        if (quot == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
-
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableMarkdown(true);
@@ -59,6 +55,11 @@ public class Bash implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
+    /**
+     * Getting random quot from Bash.org.
+     *
+     * @return raw text of quot.
+     */
     private String getRandomQuot() {
         String BASH_RANDOM_QUOT_URL = "https://bash.im/forweb/?u";
         String quot;
@@ -66,10 +67,8 @@ public class Bash implements CommandParent<SendMessage> {
         try {
             quot = networkUtils.readStringFromURL(BASH_RANDOM_QUOT_URL);
         } catch (IOException e) {
-            return null;
-        }
-        if (quot == null) {
-            return null;
+            log.error("Error receiving quot", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         String quoteNumber = quot.substring(quot.indexOf("href=\"/quote/") + 13);
@@ -80,11 +79,16 @@ public class Bash implements CommandParent<SendMessage> {
 
         quot = quot.substring(quot.indexOf("color: #21201e\">") + 16);
         quot = quot.substring(0, quot.indexOf("<' + '/div>"));
-        quot = formatBashQuot(quot);
 
         return buildResultMessage(quot, quoteNumber, date);
     }
 
+    /**
+     * Getting quot from Bash.org by number.
+     *
+     * @param quotNumber number of quot.
+     * @return raw text of quot.
+     */
     private String getDefineQuot(String quotNumber) {
         String BASH_DEFINITE_QUOT_URL = "https://bash.im/quote/";
         String quot;
@@ -92,10 +96,8 @@ public class Bash implements CommandParent<SendMessage> {
         try {
             quot = networkUtils.readStringFromURL(BASH_DEFINITE_QUOT_URL + quotNumber);
         } catch (IOException e) {
-            return null;
-        }
-        if (quot == null) {
-            return null;
+            log.error("Error receiving quot", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         String date = quot.substring(quot.indexOf("<div class=\"quote__header_date\">") + 41);
@@ -103,23 +105,26 @@ public class Bash implements CommandParent<SendMessage> {
 
         quot = quot.substring(quot.indexOf("<div class=\"quote__body\">") + 32);
         quot = quot.substring(0, quot.indexOf("</div>"));
-        quot = formatBashQuot(quot);
 
         return buildResultMessage(quot, quotNumber, date);
     }
 
-    private String formatBashQuot(String quot) {
+    /**
+     * Formatting raw text of Bash.org quot.
+     *
+     * @param quot raw text of quot.
+     * @param quotNumber number of quot.
+     * @param date date of quot.
+     * @return formatted text of quot.
+     */
+    private String buildResultMessage(String quot, String quotNumber, String date) {
         quot = quot.replace("&quot;", "_");
         quot = quot.replace("<br>", "\n");
         quot = quot.replace("<br />", "\n");
         quot = quot.replace("<' + 'br>", "\n");
-
-        return quot;
-    }
-
-    private String buildResultMessage(String quot, String quotNumber, String date) {
-        quot = cutMarkdownSymbolsInText(quot);
         quot = quot.replace("&lt;", "<").replace("&gt;", ">");
+        quot = cutMarkdownSymbolsInText(quot);
+
         return "[Цитата #" + quotNumber + "](http://bash.im/quote/" + quotNumber + ")\n" + "_" + date + "_\n" + quot;
     }
 }

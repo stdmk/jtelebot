@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
@@ -11,10 +10,9 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.UserService;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
-
-    private final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final ChatService chatService;
@@ -40,6 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer getUserAccessLevel(Long userId) {
         log.debug("Request to get userLevel for userId {} ", userId);
+
         User user = get(userId);
         if (user == null) {
             return AccessLevel.NEWCOMER.getValue();

@@ -1,6 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Truth implements CommandParent<SendMessage> {
 
     @Override

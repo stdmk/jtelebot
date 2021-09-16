@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,10 +17,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Todo implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Todo.class);
 
     private final TodoService todoService;
     private final UserService userService;
@@ -33,23 +33,27 @@ public class Todo implements CommandParent<SendMessage> {
         if (textMessage == null) {
             log.debug("Request to get all todo list");
             final StringBuilder buf = new StringBuilder();
+
             buf.append("Туду лист\n");
             todoService.getList().forEach(todo -> buf.append(buildTodoStringLine(todo)));
+
             responseText = buf.toString();
         } else {
-            if (textMessage.charAt(0) == '-') {
+            if (textMessage.startsWith("-")) {
                 long todoId;
                 try {
                     todoId = Long.parseLong(textMessage.substring(1));
                 } catch (NumberFormatException e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-                log.debug("Request to delete todo by id " + todoId);
+
+                log.debug("Request to delete Todo by id " + todoId);
                 if (!userService.isUserHaveAccessForCommand(
                         userService.get(message.getFrom().getId()).getAccessLevel(),
                         AccessLevel.ADMIN.getValue())) {
-                    throw new BotException("Удалять может только админ");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
                 }
+
                 if (todoService.remove(todoId)) {
                     responseText = "Задача успешно удалена";
                 } else {
@@ -58,17 +62,22 @@ public class Todo implements CommandParent<SendMessage> {
             } else {
                 try {
                     Long todoId = Long.parseLong(textMessage);
+
+                    log.debug("Request to get Todo by id {}", todoId);
                     org.telegram.bot.domain.entities.Todo todo = todoService.get(todoId);
                     if (todo == null) {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
+
                     responseText = buildTodoStringLine(todo);
                 } catch (NumberFormatException e) {
-                    log.debug("Request to add new todo");
+                    log.debug("Request to add new Todo");
+
                     org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
                     todo.setUser(userService.get(message.getFrom().getId()));
                     todo.setTodoText(textMessage);
                     todoService.save(todo);
+
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 }
             }

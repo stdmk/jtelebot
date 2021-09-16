@@ -3,11 +3,10 @@ package org.telegram.bot.timers;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -38,10 +37,9 @@ import java.util.zip.ZipFile;
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class TvProgramDownloaderTimer extends TimerParent {
-
-    private final Logger log = LoggerFactory.getLogger(TvProgramDownloaderTimer.class);
 
     private final TimerService timerService;
     private final TvChannelService tvChannelService;
@@ -56,9 +54,9 @@ public class TvProgramDownloaderTimer extends TimerParent {
         Timer timer = timerService.get("tvProgramDownloader");
         if (timer == null) {
             log.error("Unable to read timer tvProgramDownloader. Creating new...");
-            timer = new Timer();
-            timer.setName("tvProgramDownloader");
-            timer.setLastAlarmDt(LocalDateTime.now().minusDays(1));
+            timer = new Timer()
+                    .setName("tvProgramDownloader")
+                    .setLastAlarmDt(LocalDateTime.now().minusDays(1));
             timerService.save(timer);
         }
 
@@ -66,7 +64,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
         LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
-            log.info("Timer for downloading and transfering tv-program");
+            log.info("Timer for downloading and transferring tv-program");
             final String TV_PROGRAM_DATA_URL ="https://www.teleguide.info/download/new3/tvguide.zip";
 
             try {
@@ -90,10 +88,16 @@ public class TvProgramDownloaderTimer extends TimerParent {
             timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
             timerService.save(timer);
 
-            log.info("Timer for downloading and transfering tv-program completed successfully");
+            log.info("Timer for downloading and transferring tv-program completed successfully");
         }
     }
 
+    /**
+     * Parsing tv data from file.
+     *
+     * @return tv data
+     * @throws IOException if failed to read.
+     */
     private Tv getNewTvData() throws IOException {
         ZipFile zipFile = new ZipFile(TV_PROGRAM_DATA_FILE_NAME);
         ZipEntry entry = zipFile.entries().nextElement();
@@ -110,50 +114,38 @@ public class TvProgramDownloaderTimer extends TimerParent {
         return tv;
     }
 
+    /**
+     * Saving tv data to database.
+     *
+     * @param tv tv data.
+     */
     private void transferTvProgramDataToDb(Tv tv) {
-        tvChannelService.clearTable();
-        List<Integer> tvChannelIdList = tvChannelService.save(
-                mapChannelToEntity(
-                        tv.getChannel()))
-                            .stream()
-                            .map(TvChannel::getId)
-                            .collect(Collectors.toList()
-                        );
-
-        tvProgramService.clearTable();
-        tvProgramService.save(
-                mapProgramToEntity(
-                        tv.getProgramme())
-                            .stream()
-                            .filter(tvProgram -> tvChannelIdList.contains(tvProgram.getChannel().getId()))
-                            .collect(Collectors.toList())
-                        );
-    }
-
-    private TvChannel mapChannelToEntity(Channel channel) {
-        TvChannel entity = new TvChannel();
-        entity.setId(channel.getId());
-        entity.setName(channel.getDisplayName().getContent());
-
-        return entity;
-    }
-
-    private TvProgram mapProgramToEntity(Program program) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyMMddHHmmss");
 
-        TvChannel tvChannel = new TvChannel();
-        tvChannel.setId(program.getChannel());
+        tvChannelService.clearTable();
 
-        TvProgram entity = new TvProgram();
-        entity.setChannel(tvChannel);
-        entity.setStart(LocalDateTime.parse(program.getStart().substring(0, 14), formatter));
-        entity.setStop(LocalDateTime.parse(program.getStop().substring(0, 14), formatter));
+        List<Integer> tvChannelIdList = tv.getChannel()
+                .stream()
+                .map(channel -> new TvChannel()
+                        .setId(channel.getId())
+                        .setName(channel.getDisplayName().getContent()))
+                .map(tvChannelService::save)
+                .map(TvChannel::getId)
+                .collect(Collectors.toList());
 
-        entity.setTitle(getContent(program.getTitle()));
-        entity.setCategory(getContent(program.getCategory()));
-        entity.setDesc(getContent(program.getDesc()));
+        tvProgramService.clearTable();
 
-        return entity;
+        tvProgramService.save(tv.getProgramme()
+                .stream()
+                .filter(tvProgram -> tvChannelIdList.contains(tvProgram.getChannel()))
+                .map(program -> new TvProgram()
+                        .setChannel(new TvChannel().setId(program.getChannel()))
+                        .setStart(LocalDateTime.parse(program.getStart().substring(0, 14), formatter))
+                        .setStop(LocalDateTime.parse(program.getStop().substring(0, 14), formatter))
+                        .setTitle(getContent(program.getTitle()))
+                        .setCategory(getContent(program.getCategory()))
+                        .setDesc(getContent(program.getDesc())))
+                .collect(Collectors.toList()));
     }
 
     private String getContent(Content content) {
@@ -162,14 +154,6 @@ public class TvProgramDownloaderTimer extends TimerParent {
         }
 
         return content.getContent();
-    }
-
-    private List<TvChannel> mapChannelToEntity(List<Channel> channels) {
-        return channels.stream().map(this::mapChannelToEntity).collect(Collectors.toList());
-    }
-
-    private List<TvProgram> mapProgramToEntity(List<Program> programList) {
-        return programList.stream().map(this::mapProgramToEntity).collect(Collectors.toList());
     }
 
     @Data
