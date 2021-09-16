@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Wiki;
 import org.telegram.bot.repositories.WikiRepository;
@@ -11,10 +10,9 @@ import org.telegram.bot.services.WikiService;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class WikiServiceImpl implements WikiService {
-
-    private final Logger log = LoggerFactory.getLogger(WikiServiceImpl.class);
 
     private final WikiRepository wikiRepository;
 

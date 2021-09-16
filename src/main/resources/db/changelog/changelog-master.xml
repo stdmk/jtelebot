@@ -30,6 +30,7 @@
     <include file="db/changelog/20201029122700_added_entity_NewsMessage.xml"/>
     <include file="db/changelog/20201030144500_added_entity_News.xml"/>
     <include file="db/changelog/20201103095000_lower_AccessLevel_News.xml"/>
+    <include file="db/changelog/20201103095800_insert_Speech_noAccess.xml"/>
     <include file="db/changelog/20201105120500_added_command_Logs.xml"/>
     <include file="db/changelog/20201106093600_added_command_Where.xml"/>
     <include file="db/changelog/20201106104900_added_entity_CommandWaiting.xml"/>
@@ -93,4 +94,5 @@
     <include file="db/changelog/20210421172100_added_command_Backup.xml"/>
     <include file="db/changelog/20210706094100_added_command_Cats.xml"/>
     <include file="db/changelog/20210914112800_added_command_TimeDelta.xml"/>
+    <include file="db/changelog/20210916090400_insert_Speech_settingRequired.xml"/>
 </databaseChangeLog>

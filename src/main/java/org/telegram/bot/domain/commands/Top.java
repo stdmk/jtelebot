@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -34,9 +36,8 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Top implements CommandParent<SendMessage> {
-
-    private final Logger log = LoggerFactory.getLogger(Top.class);
 
     private final UserStatsService userStatsService;
     private final UserService userService;
@@ -50,7 +51,6 @@ public class Top implements CommandParent<SendMessage> {
         String responseText;
         Chat chat = chatService.get(message.getChatId());
 
-        //TODO переделать на айди, если пользователь без юзернейма
         User user;
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
@@ -59,12 +59,16 @@ public class Top implements CommandParent<SendMessage> {
             } else {
                 user = userService.get(message.getFrom().getId());
             }
+
+            log.debug("Request to get top of user {} for chat {}", user, chat);
             responseText = getTopOfUser(chat, user);
         } else {
             user = userService.get(textMessage);
             if (user != null) {
+                log.debug("Request to get top of user {} for chat {}", user, chat);
                 responseText = getTopOfUser(chat, user);
             } else {
+                log.debug("Request to get top of users for chat {} by param {}", chat, textMessage);
                 responseText = getTopListOfUsers(chat, textMessage);
             }
         }
@@ -99,8 +103,6 @@ public class Top implements CommandParent<SendMessage> {
      * @return user stats.
      */
     private String getTopOfUser(Chat chat, User user) {
-        log.debug("Request to get top of user by username {}", user.getUsername());
-
         Map<String, String> fieldsOfStats = new LinkedHashMap<>();
         StringBuilder buf = new StringBuilder();
         String valueForSkip = "0";

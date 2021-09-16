@@ -1,12 +1,14 @@
 package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -20,10 +22,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Cats implements CommandParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(Cats.class);
 
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -33,17 +34,25 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        ResponseEntity<Cat[]> response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
+        ResponseEntity<Cat[]> response;
+
+        try {
+            response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
+        } catch (RestClientException e) {
+            log.error("Error receiving cats picture: ", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
 
         Cat[] cats = response.getBody();
         if (cats == null) {
-            log.debug("No response from service");
+            log.debug("Empty response from service");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         Cat cat = cats[0];
         String url = cat.getUrl();
         if (url.endsWith(".gif")) {
+            log.debug("The response is a gif");
             SendDocument sendDocument = new SendDocument();
             sendDocument.setChatId(message.getChatId().toString());
             sendDocument.setReplyToMessageId(message.getMessageId());

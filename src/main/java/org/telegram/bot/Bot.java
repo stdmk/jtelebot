@@ -1,8 +1,7 @@
 package org.telegram.bot;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -11,8 +10,13 @@ import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -25,10 +29,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Bot extends TelegramLongPollingBot {
-
-    private final Logger log = LoggerFactory.getLogger(Bot.class);
 
     private final List<TextAnalyzer> textAnalyzerList;
     private final ApplicationContext context;
@@ -73,7 +76,7 @@ public class Bot extends TelegramLongPollingBot {
         Long userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
         if (chatId > 0 && spyMode != null && spyMode) {
-            reportToAdmin(message);
+            reportToAdmin(message, user);
         }
 
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
@@ -106,7 +109,7 @@ public class Bot extends TelegramLongPollingBot {
         try {
             command = (CommandParent<?>) context.getBean(commandProperties.getClassName());
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
@@ -144,7 +147,7 @@ public class Bot extends TelegramLongPollingBot {
         return telegramBotApiToken;
     }
 
-    private void reportToAdmin(Message message) {
+    private void reportToAdmin(Message message, User user) {
         Long adminId = propertiesConfig.getAdminId();
         if (adminId.equals(message.getFrom().getId()) || this.getBotUsername().equals(message.getFrom().getUserName())) {
             return;
@@ -153,7 +156,8 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
 
         sendMessage.setChatId(propertiesConfig.getAdminId().toString());
-        sendMessage.setText("Received a message from (" + message.getFrom().getId() + ") @" + message.getFrom().getUserName() + ": " + message.getText());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setText("Received a message from (" + TextUtils.getLinkToUser(user, false) + ": " + message.getText());
 
         try {
             execute(sendMessage);

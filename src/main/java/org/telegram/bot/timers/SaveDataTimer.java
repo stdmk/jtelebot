@@ -1,8 +1,7 @@
 package org.telegram.bot.timers;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -12,10 +11,9 @@ import org.telegram.bot.services.TimerService;
 import java.time.LocalDateTime;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class SaveDataTimer extends TimerParent {
-
-    private final Logger log = LoggerFactory.getLogger(SaveDataTimer.class);
 
     private final TimerService timerService;
     private final BotStats botStats;
@@ -26,9 +24,9 @@ public class SaveDataTimer extends TimerParent {
         Timer timer = timerService.get("saveDataTimer");
         if (timer == null) {
             log.error("Unable to read timer saveDataTimer. Creating new...");
-            timer = new Timer();
-            timer.setName("saveDataTimer");
-            timer.setLastAlarmDt(LocalDateTime.now());
+            timer = new Timer()
+                    .setName("saveDataTimer")
+                    .setLastAlarmDt(LocalDateTime.now());
             timerService.save(timer);
         }
 

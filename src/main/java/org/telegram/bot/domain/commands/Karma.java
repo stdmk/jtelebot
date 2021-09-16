@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
@@ -15,19 +16,25 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final CommandPropertiesService commandPropertiesService;
@@ -51,13 +58,20 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null) {
+            Chat chat = chatService.get(message.getChatId());
+            User user;
             UserStats userStats;
             Message repliedMessage = message.getReplyToMessage();
+
+
             if (repliedMessage != null) {
-                userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(repliedMessage.getFrom().getId()));
+                user = userService.get(repliedMessage.getFrom().getId());
             } else {
-                userStats = userStatsService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+                user = userService.get(message.getFrom().getId());
             }
+
+            log.debug("Request to get karma info for user {} and chat {}", user, chat);
+            userStats = userStatsService.get(chat, user);
 
             String karmaEmoji;
             if (userStats.getNumberOfKarma() >= 0) {
@@ -71,7 +85,6 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 .append(Emoji.RED_HEART.getEmoji()).append("Доброта: <b>").append(userStats.getNumberOfGoodness()).append("</b> (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
                 .append(Emoji.BROKEN_HEART.getEmoji()).append("Злобота: <b>").append(userStats.getNumberOfWickedness()).append("</b> (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
         } else {
-
             int i = textMessage.indexOf(" ");
             if (i < 0) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -99,19 +112,20 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to change karma {} of user {} ", value, anotherUser);
             Chat chat = chatService.get(message.getChatId());
             UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
-            anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value);
-            anotherUserStats.setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
+            anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value)
+                    .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
 
             User user = userService.get(message.getFrom().getId());
             UserStats userStats = userStatsService.get(chat, user);
             if (value > 0) {
-                userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1);
-                userStats.setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
+                userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)
+                        .setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
             } else {
-                userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1);
-                userStats.setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
+                userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1)
+                        .setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
             }
 
             userStatsService.save(Arrays.asList(anotherUserStats, userStats));
@@ -138,6 +152,19 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
+        log.debug("Initialization of searching changing karma in text {}", textMessage);
+
+        boolean wrongNumber = true;
+        try {
+            Integer.parseInt(textMessage.substring(0, 2));
+        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            wrongNumber = false;
+        }
+        if ((textMessage.startsWith("+") || textMessage.startsWith("-")) && (!"+1".equals(textMessage) && !"-1".equals(textMessage)) && wrongNumber) {
+            log.debug("Value of karma change is too large. No karma changes");
+            return;
+        }
+
         int value = 0;
 
         if (startsWithElementInList(textMessage, increaseSymbols)) {

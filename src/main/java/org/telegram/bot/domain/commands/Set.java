@@ -1,9 +1,13 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.commands.setters.*;
+import org.telegram.bot.domain.commands.setters.AliasSetter;
+import org.telegram.bot.domain.commands.setters.CitySetter;
+import org.telegram.bot.domain.commands.setters.HolidaySetter;
+import org.telegram.bot.domain.commands.setters.NewsSetter;
+import org.telegram.bot.domain.commands.setters.TvSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -25,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private final CommandWaitingService commandWaitingService;

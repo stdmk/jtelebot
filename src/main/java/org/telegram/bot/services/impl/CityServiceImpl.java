@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
@@ -12,10 +11,9 @@ import org.telegram.bot.services.CityService;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class CityServiceImpl implements CityService {
-
-    private final Logger log = LoggerFactory.getLogger(CityServiceImpl.class);
 
     private final CityRepository cityRepository;
 

@@ -1,11 +1,15 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,17 +18,20 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 import static org.telegram.bot.utils.DateUtils.formatTime;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class UserTime implements CommandParent<SendMessage> {
 
     private final UserService userService;
     private final ChatService chatService;
     private final UserCityService userCityService;
+    private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
@@ -44,10 +51,7 @@ public class UserTime implements CommandParent<SendMessage> {
             user = userService.get(textMessage);
         }
 
-        if (user == null) {
-            return null;
-        }
-
+        log.debug("Request to get time of user {}", user);
         UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
         if (userCity == null) {
             responseText = "У " + getLinkToUser(user, false) + " не задан город";

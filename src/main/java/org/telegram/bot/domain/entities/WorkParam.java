@@ -1,16 +1,27 @@
 package org.telegram.bot.domain.entities;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * WorkParam entity.
  */
 @Entity
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@ToString
 @Table(name = "workparam", schema = "bot")
 public class WorkParam {
     @Id

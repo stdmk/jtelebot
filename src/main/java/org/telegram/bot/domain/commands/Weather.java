@@ -7,8 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
@@ -17,7 +20,11 @@ import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserCityService;
+import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -46,7 +53,7 @@ public class Weather implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         String token = propertiesConfig.getOpenweathermapId();
-        if (token == null || token.equals("")) {
+        if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
@@ -111,7 +118,7 @@ public class Weather implements CommandParent<SendMessage> {
 
         try {
             response = botRestTemplate.getForEntity(WEATHER_API_URL + cityName, WeatherCurrent.class);
-        } catch (RestClientException e) {
+        } catch (HttpClientErrorException e) {
             throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
         }
 
@@ -132,7 +139,7 @@ public class Weather implements CommandParent<SendMessage> {
 
         try {
             response = botRestTemplate.getForEntity(FORECAST_API_URL + cityName, WeatherForecast.class);
-        } catch (RestClientException e) {
+        } catch (HttpClientErrorException e) {
             throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
         }
 
@@ -145,29 +152,8 @@ public class Weather implements CommandParent<SendMessage> {
      * @param e exception from Rest client.
      * @return text of error message.
      */
-    private String getErrorMessage(RestClientException e) {
-        String errorText = e.getMessage();
-        String responseText;
-
-        if (errorText == null) {
-            return speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
-        }
-
-        int i = errorText.indexOf("{");
-        if (i < 0) {
-            responseText = errorText;
-        } else {
-            ObjectMapper objectMapper = new ObjectMapper();
-            WeatherError weatherError;
-            try {
-                weatherError = objectMapper.readValue(errorText.substring(i, errorText.length() - 1), WeatherError.class);
-            } catch (JsonProcessingException jsonMappingException) {
-                return speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
-            }
-            responseText = weatherError.getMessage();
-        }
-
-        return responseText;
+    private String getErrorMessage(HttpClientErrorException e) {
+        return "Ответ сервиса погоды: " + new JSONObject(e.getResponseBodyAsString()).getString("message");
     }
 
     /**
@@ -240,7 +226,7 @@ public class Weather implements CommandParent<SendMessage> {
 
         StringBuilder buf = new StringBuilder("*Прогноз по часам:*\n```\n");
 
-        int maxLenghtOfTemp = weatherForecast.getList()
+        int maxLengthOfTemp = weatherForecast.getList()
                 .stream()
                 .mapToInt(data -> String.format("%+.2f", data.getMain().getTemp()).length())
                 .max()
@@ -249,7 +235,7 @@ public class Weather implements CommandParent<SendMessage> {
         weatherForecast.getList()
                 .forEach(forecast -> buf.append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
-                    .append(String.format("%-" + maxLenghtOfTemp + "s", String.format("%+.2f", forecast.getMain().getTemp()) + "°"))
+                    .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.2f", forecast.getMain().getTemp()) + "°"))
                     .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
                     .append(forecast.getWind().getSpeed()).append("м/c")
                     .append("\n"));
@@ -477,11 +463,5 @@ public class Weather implements CommandParent<SendMessage> {
         private String main;
         private String description;
         private String icon;
-    }
-
-    @Data
-    private static class WeatherError implements Serializable {
-        private String cod;
-        private String message;
     }
 }

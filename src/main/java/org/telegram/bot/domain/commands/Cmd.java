@@ -1,7 +1,9 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -11,13 +13,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Cmd implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
@@ -29,30 +31,23 @@ public class Cmd implements CommandParent<SendMessage> {
         if (textMessage == null || textMessage.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
+        String responseText;
 
         ProcessBuilder processBuilder = new ProcessBuilder(textMessage.split(" "));
-
-        //TODO убрать
-        if (textMessage.endsWith(".bat\"")) {
-            processBuilder.directory(new File(textMessage.substring(1, textMessage.lastIndexOf("\\"))));
-        }
+        log.debug("Request to execute {}", textMessage);
 
         Process process;
-        try {
-            process = processBuilder.start();
-        } catch (IOException e) {
-            throw new BotException(e.getMessage());
-        }
-
         StringWriter writer = new StringWriter();
         try {
+            process = processBuilder.start();
             IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
+            responseText = writer.toString();
+            if (StringUtils.isEmpty(responseText)) {
+                responseText = "executing...";
+            }
         } catch (IOException e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-        }
-        String responseText = writer.toString();
-        if (responseText.isEmpty()) {
-            responseText = "executing...";
+            log.debug("Error while executing command {}", textMessage);
+            responseText = e.getMessage();
         }
 
         SendMessage sendMessage = new SendMessage();

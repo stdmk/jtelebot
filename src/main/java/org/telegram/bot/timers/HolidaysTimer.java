@@ -1,8 +1,7 @@
 package org.telegram.bot.timers;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,10 +19,9 @@ import java.time.LocalDateTime;
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class HolidaysTimer extends TimerParent {
-
-    private final Logger log = LoggerFactory.getLogger(HolidaysTimer.class);
 
     private final ApplicationContext context;
     private final TimerService timerService;
@@ -36,9 +34,9 @@ public class HolidaysTimer extends TimerParent {
         Timer timer = timerService.get("holidaysTimer");
         if (timer == null) {
             log.error("Unable to read timer holidaysTimer. Creating new...");
-            timer = new Timer();
-            timer.setName("holidaysTimer");
-            timer.setLastAlarmDt(LocalDateTime.now());
+            timer = new Timer()
+                    .setName("holidaysTimer")
+                    .setLastAlarmDt(LocalDateTime.now());
             timerService.save(timer);
         }
 

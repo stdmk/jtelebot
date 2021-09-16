@@ -2,7 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,6 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.domain.enums.ParseMode;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.NetworkUtils;
@@ -27,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class News implements CommandParent<PartialBotApiMethod<?>> {
 
     private final Logger log = LoggerFactory.getLogger(News.class);
@@ -65,6 +64,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to get details of news by id {}", newsId);
             NewsMessage newsMessage = newsMessageService.get(newsId);
             if (newsMessage == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -89,13 +89,13 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(new InputFile(newsMessage.getAttachUrl()));
             sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode(ParseMode.HTML.getValue());
+            sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(messageId);
             sendPhoto.setChatId(message.getChatId().toString());
 
             return sendPhoto;
         } else {
-            log.debug("Request to get news by {}", textMessage);
+            log.debug("Request to get news from {}", textMessage);
             org.telegram.bot.domain.entities.News news = newsService.get(chat, textMessage);
             String url;
             if (news != null) {
@@ -104,7 +104,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
                 try {
                     url = new URL(textMessage).toString();
                 } catch (MalformedURLException e) {
-                    throw new BotException("Ошибочный адрес url");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
             }
             responseText = getAllNews(url);
@@ -120,6 +120,12 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
+    /**
+     * Getting formatted list of news from url.
+     *
+     * @param url url of rss resource.
+     * @return formatted news.
+     */
     private String getAllNews(String url) {
         SyndFeed feed = networkUtils.getRssFeedFromUrl(url);
         if (feed == null) {
@@ -129,6 +135,12 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
         return buildListOfNewsMessageText(feed.getEntries());
     }
 
+    /**
+     * Creating formatted list of news from feeds.
+     *
+     * @param entries feeds of news.
+     * @return formatted news.
+     */
     private String buildListOfNewsMessageText(List<SyndEntry> entries) {
         List<NewsMessage> newsMessages = entries
                 .stream()

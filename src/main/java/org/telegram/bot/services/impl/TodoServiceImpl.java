@@ -1,8 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Todo;
 import org.telegram.bot.repositories.TodoRepository;
@@ -12,10 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class TodoServiceImpl implements TodoService {
-
-    private final Logger log = LoggerFactory.getLogger(TodoServiceImpl.class);
 
     private final TodoRepository todoRepository;
 
@@ -40,11 +38,13 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public Boolean remove(Long todoId) {
         log.debug("Request to remove Todo by id {}", todoId);
+
         Optional<Todo> optionalTodo = todoRepository.findById(todoId);
         if (optionalTodo.isPresent()) {
             todoRepository.deleteById(todoId);
             return true;
         }
+
         return false;
     }
 }

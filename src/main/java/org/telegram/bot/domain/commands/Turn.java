@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.Parser;
@@ -21,7 +22,8 @@ import java.util.regex.Pattern;
 import static org.telegram.bot.utils.TextUtils.deleteWordsInText;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final SpeechService speechService;
@@ -46,6 +48,8 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         }
+
+        log.debug("Request to turn text: {}", textMessage);
         for (char textChar : textMessage.toCharArray()) {
             try {
                 buf.append(ruLayout.charAt(enLayout.indexOf(textChar)));
@@ -66,38 +70,28 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     public void analyze(Bot bot, CommandParent<?> command,  Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
-        String mistakenText = getMistakenText(textMessage);
-
-        if (mistakenText != null) {
-            String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
-            Update newUpdate = copyUpdate(update);
-            if (newUpdate == null) {
-                return;
-            }
-
-            newUpdate.getMessage().setText(commandName + " " + mistakenText);
-
-            Parser parser = new Parser(bot, command, newUpdate, botStats);
-            parser.start();
-        }
-    }
-
-    private String getMistakenText(String text) {
-
-        text = deleteWordsInText("@", text);
-
-        text = deleteWordsInText("http", text);
+        log.debug("Initialization of unturned text search in {}", textMessage);
+        
+        textMessage = deleteWordsInText("@", textMessage);
+        textMessage = deleteWordsInText("http", textMessage);
 
         Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(textMessage);
         if (!matcher.find()) {
             pattern = Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
-            matcher = pattern.matcher(text);
+            matcher = pattern.matcher(textMessage);
             if (matcher.find()) {
-                return text;
+                String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
+                Update newUpdate = copyUpdate(update);
+
+                if (newUpdate == null) {
+                    return;
+                }
+                newUpdate.getMessage().setText(commandName + " " + textMessage);
+
+                Parser parser = new Parser(bot, command, newUpdate, botStats);
+                parser.start();
             }
         }
-
-        return null;
     }
 }

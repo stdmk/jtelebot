@@ -1,6 +1,8 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -17,15 +19,15 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class WebScreen implements CommandParent<SendPhoto> {
-
-    private final Logger log = LoggerFactory.getLogger(WebScreen.class);
 
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
@@ -36,7 +38,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     @Override
     public SendPhoto parse(Update update) {
         String token = propertiesConfig.getScreenshotMachineToken();
-        if (token == null || token.equals("")) {
+        if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
@@ -49,7 +51,6 @@ public class WebScreen implements CommandParent<SendPhoto> {
 
         if (textMessage == null) {
             commandWaitingService.add(message, this.getClass());
-
             throw new BotException("теперь напиши мне url-адрес");
         } else {
             URL url;
@@ -64,13 +65,15 @@ public class WebScreen implements CommandParent<SendPhoto> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            log.debug("Request to get screen of url: {}", url);
             SendPhoto sendPhoto = new SendPhoto();
             String API_URL = "https://api.screenshotmachine.com?device=desktop&dimension=1350x950&format=png&cacheLimit=0&timeout=5000";
 
             InputStream screen;
             try {
                 screen = networkUtils.getFileFromUrl(API_URL + "&key=" + token + "&url=" + url);
-            } catch (Exception e) {
+            } catch (IOException e) {
+                log.debug("Error getting screen ", e);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 

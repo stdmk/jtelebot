@@ -1,9 +1,8 @@
 package org.telegram.bot.services.impl;
 
 import com.rometools.rome.feed.synd.SyndEntry;
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
@@ -18,10 +17,9 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 import static org.telegram.bot.utils.DateUtils.formatDate;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class NewsMessageServiceImpl implements NewsMessageService {
-
-    private final Logger log = LoggerFactory.getLogger(NewsMessageServiceImpl.class);
 
     private final NewsMessageRepository newsMessageRepository;
 
@@ -57,9 +55,9 @@ public class NewsMessageServiceImpl implements NewsMessageService {
 
     @Override
     public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
-        NewsMessage newsMessage = new NewsMessage();
-        newsMessage.setTitle(reduceSpaces(cutHtmlTags(syndEntry.getTitle())));
-        newsMessage.setLink(syndEntry.getLink());
+        NewsMessage newsMessage = new NewsMessage()
+                .setTitle(reduceSpaces(cutHtmlTags(syndEntry.getTitle())))
+                .setLink(syndEntry.getLink());
 
         String description;
         if (syndEntry.getDescription() == null) {

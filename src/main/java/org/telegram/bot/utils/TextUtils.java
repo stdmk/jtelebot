@@ -89,10 +89,18 @@ public class TextUtils {
     }
 
     public static String getLinkToUser(User user, Boolean htmlMode) {
+        return getLinkToUser(user.getUserId(), user.getUsername(), htmlMode);
+    }
+
+    public static String getLinkToUser(org.telegram.telegrambots.meta.api.objects.User user, Boolean htmlMode) {
+        return getLinkToUser(user.getId(), user.getUserName(), htmlMode);
+    }
+
+    public static String getLinkToUser(Long userId, String userName, Boolean htmlMode) {
         if (htmlMode) {
-            return "<a href=\"tg://user?id=" + user.getUserId() + "\">" + user.getUsername() + "</a>";
+            return "<a href=\"tg://user?id=" + userId + "\">" + userName + "</a>";
         }
-        return "[" + user.getUsername() + "](tg://user?id=" + user.getUserId() + ")";
+        return "[" + userName + "](tg://user?id=" + userId + ")";
     }
 
     public static String formatLongValue(long value) {

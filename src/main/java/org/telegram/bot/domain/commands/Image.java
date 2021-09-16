@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.ImageUrl;
@@ -23,6 +24,7 @@ import java.net.URL;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Image implements CommandParent<PartialBotApiMethod<?>> {
 
     private final ImageUrlService imageUrlService;
@@ -37,11 +39,14 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
         ImageUrl imageUrl;
 
         if (textMessage == null) {
+            log.debug("Request to get random image");
             imageUrl = imageUrlService.getRandom();
             if (imageUrl == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else if (textMessage.startsWith("http")) {
+            log.debug("Request to get image from address {}", textMessage);
+
             URL url;
             try {
                 url = new URL(textMessage);
@@ -56,12 +61,15 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
             }
         } else if (textMessage.startsWith("_")) {
             textMessage = textMessage.substring(1);
+
+            log.debug("Request to get image by id {}", textMessage);
             try {
                 imageUrl = imageUrlService.get(Long.valueOf(textMessage));
             } catch (NumberFormatException numberFormatException) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
+            log.debug("Request to search image by text {}", textMessage);
             imageUrl = googlePics.searchImagesOnGoogle(textMessage).get(0);
         }
 

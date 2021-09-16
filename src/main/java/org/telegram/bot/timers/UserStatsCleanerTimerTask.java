@@ -1,8 +1,7 @@
 package org.telegram.bot.timers;
 
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,10 +16,9 @@ import java.time.LocalDateTime;
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class UserStatsCleanerTimerTask extends TimerParent {
-
-    private final Logger log = LoggerFactory.getLogger(UserStatsCleanerTimerTask.class);
 
     private final ApplicationContext context;
     private final TimerService timerService;
@@ -32,9 +30,9 @@ public class UserStatsCleanerTimerTask extends TimerParent {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
             log.error("Unable to read timer statsCleanTimer. Creating new...");
-            timer = new Timer();
-            timer.setName("statsCleanTimer");
-            timer.setLastAlarmDt(atStartOfDay(LocalDateTime.now().plusMonths(1).withDayOfMonth(1)));
+            timer = new Timer()
+                    .setName("statsCleanTimer")
+                    .setLastAlarmDt(atStartOfDay(LocalDateTime.now().plusMonths(1).withDayOfMonth(1)));
             timerService.save(timer);
         }
 

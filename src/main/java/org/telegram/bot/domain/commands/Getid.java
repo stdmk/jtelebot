@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
@@ -15,7 +16,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Getid implements CommandParent<SendMessage> {
 
     private final UserService userService;
@@ -29,6 +31,7 @@ public class Getid implements CommandParent<SendMessage> {
         Long chatId = message.getChatId();
 
         if (textMessage != null) {
+            log.debug("Request to getting telegram id of {}", textMessage);
             User user = userService.get(textMessage);
             if (user == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -38,11 +41,14 @@ public class Getid implements CommandParent<SendMessage> {
 
         Message repliedMessage = message.getReplyToMessage();
         if (repliedMessage != null) {
-            User user = userService.get(repliedMessage.getFrom().getId());
+            org.telegram.telegrambots.meta.api.objects.User repliedUser = repliedMessage.getFrom();
+            log.debug("Request to getting telegram id of {}", repliedUser);
+            User user = userService.get(repliedUser.getId());
             responseText.append("Айди ").append(user.getUsername()).append(": `").append(user.getUserId()).append("`\n");
         }
 
         if (chatId < 0) {
+            log.debug("Request to getting telegram id of public chat {}", message.getChat());
             responseText.append("Айди этого чата: `").append(chatId).append("`\n");
         }
 

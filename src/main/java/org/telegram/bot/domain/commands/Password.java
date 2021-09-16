@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
@@ -11,7 +12,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class Password implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
@@ -29,13 +31,11 @@ public class Password implements CommandParent<SendMessage> {
             }
         }
 
-        if (symbolsCount < 1) {
+        if (symbolsCount < 1 || symbolsCount > 1024) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        if (symbolsCount > 1024) {
-            throw new BotException("Не, ну по-моему это уже перебор");
-        }
+        log.debug("Request to generate password with {} symbols", symbolsCount);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId().toString());
