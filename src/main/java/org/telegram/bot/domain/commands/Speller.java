@@ -78,7 +78,7 @@ public class Speller implements CommandParent<SendMessage> {
         }
 
         SpellResult[] body = response.getBody();
-        if (body == null) {
+        if (body == null || body.length == 0) {
             return "ошибок не обнаружено";
         }
 

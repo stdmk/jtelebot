@@ -157,7 +157,7 @@ public class Bot extends TelegramLongPollingBot {
 
         sendMessage.setChatId(propertiesConfig.getAdminId().toString());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText("Received a message from (" + TextUtils.getLinkToUser(user, false) + ": " + message.getText());
+        sendMessage.setText("Received a message from " + TextUtils.getLinkToUser(user, false) + ": " + message.getText());
 
         try {
             execute(sendMessage);
