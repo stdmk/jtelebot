@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20210917120100-1" author="stdmk">
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="Перевод,Переводчик,код языка; текст,перевод hello; перевод привет; перевод kk привет,Используется Google переводчик; коды языков используются гугл переводчика. По умолчанию - ru, если текст русский - en; при отправке пустой команды в ответ на сообщение - бот переведёт ответное сообщение" />
+            <where>id = 46</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

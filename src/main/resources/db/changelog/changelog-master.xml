@@ -96,4 +96,5 @@
     <include file="db/changelog/20210914112800_added_command_TimeDelta.xml"/>
     <include file="db/changelog/20210916090400_insert_Speech_settingRequired.xml"/>
     <include file="db/changelog/20210917104200_added_command_Translate.xml"/>
+    <include file="db/changelog/20210917120100_fix_help_Translate.xml"/>
 </databaseChangeLog>

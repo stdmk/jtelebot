@@ -14,11 +14,11 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.config.PropertiesConfig;
-import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +29,17 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
 
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
-    private final NetworkUtils networkUtils;
     private final RestTemplate botRestTemplate;
     private final PropertiesConfig propertiesConfig;
 
-    private final List<Character> enAlphabet = "qwertyuiopasdfghjklzxcvbnm".chars().mapToObj(s -> (char) s).collect(Collectors.toList());
+    private final List<Character> ruAlphabet = "йцукенгшщзхъфывапролджэячсмитьбюё".chars().mapToObj(s -> (char) s).collect(Collectors.toList());
+    private final List<String> langCodeList = Arrays.asList("af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs",
+            "bg", "ca", "ceb", "zh", "zh", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka",
+            "de", "el", "gu", "ht", "ha", "haw", "he", "hi", "hmn", "hu", "is", "ig", "id", "ga", "it", "ja", "jv", "kn",
+            "kk", "km", "rw", "ko", "ku", "ky", "lo", "lv", "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn",
+            "my", "ne", "no", "ny", "or", "ps", "fa", "pl", "pt", "pa", "ro", "ru", "sm", "gd", "sr", "st", "sn", "sd",
+            "si", "sk", "sl", "so", "es", "su", "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "tr", "tk", "uk", "ur",
+            "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu");
 
     @Override
     public SendMessage parse(Update update) {
@@ -82,6 +88,12 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
+    /**
+     * Translate text with Google Translate.
+     *
+     * @param requestText translatable text.
+     * @return translated text.
+     */
     private String translateText(String requestText) {
         String token = propertiesConfig.getGoogleTranslateToken();
         if (StringUtils.isEmpty(token)) {
@@ -90,20 +102,20 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         }
         final String GOOGLE_TRANSLATE_URL = "https://script.google.com/macros/s/" + token + "/exec?";
 
-        String targetLang;
-        String sourceLang;
-        if (enAlphabet.contains(requestText.charAt(0))) {
-            sourceLang = "en";
-            targetLang = "ru";
+        String targetLang = getTargetLang(requestText);
+        if (targetLang != null) {
+            requestText = requestText.substring(targetLang.length() + 1);
         } else {
-            sourceLang = "ru";
-            targetLang = "en";
+            if (ruAlphabet.contains(requestText.charAt(0))) {
+                targetLang = "en";
+            } else {
+                targetLang = "ru";
+            }
         }
 
         ResponseEntity<TranslateResult> response;
         try {
-            response = botRestTemplate.getForEntity(GOOGLE_TRANSLATE_URL +
-                    "q=" + requestText + "&target=" + targetLang + "&source=" + sourceLang, TranslateResult.class);
+            response = botRestTemplate.getForEntity(GOOGLE_TRANSLATE_URL + "q=" + requestText + "&target=" + targetLang, TranslateResult.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -115,6 +127,21 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         }
 
         return response.getBody().getText();
+    }
+
+    /**
+     * Searching target language code in text.
+     *
+     * @param text search text.
+     * @return language code.
+     */
+    private String getTargetLang(String text) {
+        int i = text.indexOf(" ");
+        if (i > 0 && i <= 3) {
+            return langCodeList.stream().filter(text::startsWith).findFirst().orElse(null);
+        }
+
+        return null;
     }
 
     @Data
