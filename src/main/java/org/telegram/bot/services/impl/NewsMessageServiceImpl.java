@@ -55,9 +55,15 @@ public class NewsMessageServiceImpl implements NewsMessageService {
 
     @Override
     public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
-        NewsMessage newsMessage = new NewsMessage()
-                .setTitle(reduceSpaces(cutHtmlTags(syndEntry.getTitle())))
-                .setLink(syndEntry.getLink());
+        String title = reduceSpaces(cutHtmlTags(syndEntry.getTitle()));
+        if (title.length() > 255) {
+            int i = title.indexOf(".");
+            if (i < 0 || i > 255) {
+                title = title.substring(0, 50) + "...";
+            } else {
+                title = title.substring(0, i);
+            }
+        }
 
         String description;
         if (syndEntry.getDescription() == null) {
@@ -69,8 +75,6 @@ public class NewsMessageServiceImpl implements NewsMessageService {
             }
         }
 
-        newsMessage.setDescription(description);
-
         Date publishedDate = syndEntry.getPublishedDate();
         if (publishedDate == null) {
             publishedDate = syndEntry.getUpdatedDate();
@@ -79,7 +83,11 @@ public class NewsMessageServiceImpl implements NewsMessageService {
             }
         }
 
-        newsMessage.setPubDate(publishedDate);
+        NewsMessage newsMessage = new NewsMessage()
+                .setLink(syndEntry.getLink())
+                .setTitle(title)
+                .setDescription(description)
+                .setPubDate(publishedDate);
         if (!syndEntry.getEnclosures().isEmpty()) {
             newsMessage.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());
         }
