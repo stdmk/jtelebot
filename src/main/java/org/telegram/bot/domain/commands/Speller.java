@@ -34,14 +34,20 @@ public class Speller implements CommandParent<SendMessage> {
         String responseText;
 
         if (textMessage == null) {
-            textMessage = message.getReplyToMessage().getText();
+            Message repliedMessage = message.getReplyToMessage();
+            if (repliedMessage == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            textMessage = repliedMessage.getText();
             if (textMessage == null) {
-                textMessage = message.getReplyToMessage().getCaption();
+                textMessage = repliedMessage.getCaption();
                 if (textMessage == null) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
                 log.debug("Request to speller text from caption: {}", textMessage);
             }
+
             log.debug("Request to speller text from replied message {}", textMessage);
             replyToMessage = message.getReplyToMessage().getMessageId();
         } else {

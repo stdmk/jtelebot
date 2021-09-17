@@ -15,6 +15,7 @@ public class PropertiesConfig {
     private Long adminId;
     private String openweathermapId;
     private String googleToken;
+    private String googleTranslateToken;
     private String screenshotMachineToken;
     private String wolframAlphaToken;
     private Boolean spyMode;
