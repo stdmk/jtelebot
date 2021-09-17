@@ -50,12 +50,23 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
+            textMessage = cutCommandInText(message.getText() + " ");
         }
 
-        if (textMessage != null) {
+        String targetLang = getTargetLang(textMessage);
+        if (targetLang != null) {
+            textMessage = textMessage.substring(targetLang.length() + 1);
+        } else {
+            if (!textMessage.equals("") && ruAlphabet.contains(textMessage.charAt(0))) {
+                targetLang = "en";
+            } else {
+                targetLang = "ru";
+            }
+        }
+
+        if (!textMessage.equals("")) {
             log.debug("Request to translate text from message: {}", textMessage);
-            responseText = translateText(textMessage);
+            responseText = translateText(textMessage, targetLang);
             replyToMessage = message.getMessageId();
         } else {
             if (message.getReplyToMessage() == null) {
@@ -74,7 +85,7 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
                     }
                 }
 
-                responseText = translateText(requestText);
+                responseText = translateText(requestText + " ", targetLang);
                 replyToMessage = message.getReplyToMessage().getMessageId();
             }
         }
@@ -92,26 +103,16 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
      * Translate text with Google Translate.
      *
      * @param requestText translatable text.
+     * @param targetLang code of language into which the translation will be.
      * @return translated text.
      */
-    private String translateText(String requestText) {
+    private String translateText(String requestText, String targetLang) {
         String token = propertiesConfig.getGoogleTranslateToken();
         if (StringUtils.isEmpty(token)) {
             log.error("Unable to find google translate token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
         final String GOOGLE_TRANSLATE_URL = "https://script.google.com/macros/s/" + token + "/exec?";
-
-        String targetLang = getTargetLang(requestText);
-        if (targetLang != null) {
-            requestText = requestText.substring(targetLang.length() + 1);
-        } else {
-            if (ruAlphabet.contains(requestText.charAt(0))) {
-                targetLang = "en";
-            } else {
-                targetLang = "ru";
-            }
-        }
 
         ResponseEntity<TranslateResult> response;
         try {
