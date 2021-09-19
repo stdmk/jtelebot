@@ -164,7 +164,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         City city = cityService.get(cityId);
-        if (!city.getUser().equals(user)) {
+        if (!city.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
@@ -199,7 +199,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
         }
 
         City city = cityService.get(cityId);
-        if (!city.getUser().equals(user)) {
+        if (!city.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 

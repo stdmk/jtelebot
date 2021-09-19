@@ -252,7 +252,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        if (!userTv.getUser().equals(user)) {
+        if (!userTv.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 

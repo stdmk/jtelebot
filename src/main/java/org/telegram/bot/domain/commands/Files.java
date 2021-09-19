@@ -135,7 +135,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        if (!chat.equals(file.getChat())) {
+        if (!chat.getChatId().equals(file.getChat().getChatId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
@@ -253,7 +253,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        if (!user.equals(file.getUser())) {
+        if (!user.getUserId().equals(file.getUser().getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 

@@ -158,7 +158,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        if (!holiday.getUser().equals(user)) {
+        if (!holiday.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
@@ -188,7 +188,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        if (!holiday.getUser().equals(user)) {
+        if (!holiday.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
