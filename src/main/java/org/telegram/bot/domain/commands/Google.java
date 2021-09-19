@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.BotStats;
@@ -105,11 +106,14 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                     .stream()
                     .map(googleSearchItem -> {
                         Pagemap pagemap = googleSearchItem.getPagemap();
-                        List<Src> srcList = pagemap.getCseImage();
+                        ImageUrl imageUrl = null;
 
-                        ImageUrl imageUrl = imageUrlService.save(new ImageUrl()
-                                .setTitle(googleSearchItem.getTitle())
-                                .setUrl(srcList.get(0).getSrc()));
+                        List<Src> srcList = pagemap.getCseImage();
+                        if (!CollectionUtils.isEmpty(srcList)) {
+                            imageUrl = imageUrlService.save(new ImageUrl()
+                                    .setTitle(googleSearchItem.getTitle())
+                                    .setUrl(srcList.get(0).getSrc()));
+                        }
 
                         return new GoogleSearchResult()
                                 .setTitle(googleSearchItem.getTitle())
