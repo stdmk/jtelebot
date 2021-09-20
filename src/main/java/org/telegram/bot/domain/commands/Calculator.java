@@ -42,6 +42,7 @@ public class Calculator implements CommandParent<SendMessage> {
             log.debug("Empty request. Enabling command waiting");
             responseText = "теперь напиши мне что нужно посчитать";
         } else {
+            textMessage = textMessage.replace(",", ".");
             log.debug("Request to calculate {}", textMessage);
             final String MATH_JS_URL = "http://api.mathjs.org/v4/?expr=";
 
