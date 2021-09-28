@@ -19,7 +19,7 @@ public enum UserStatsParam {
     NUMBER_OF_MESSAGES(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), "getNumberOfMessages"),
     NUMBER_OF_ALL_MESSAGES(Arrays.asList("все", "всё"), "getNumberOfAllMessages"),
     NUMBER_OF_KARMA(Arrays.asList("карма", "кармы"), "getNumberOfKarma"),
-    NUMBER_OF_ALL_KARMA(Collections.singletonList(""), "getNumberOfAllKarma"),
+    NUMBER_OF_ALL_KARMA(Arrays.asList("кармавсе", "кармавсё"), "getNumberOfAllKarma"),
     NUMBER_OF_STICKERS(Arrays.asList("стикеры", "стикер", "стикеров"), "getNumberOfStickers"),
     NUMBER_OF_PHOTOS(Arrays.asList("изображения", "изображений", "изоражение"), "getNumberOfPhotos"),
     NUMBER_OF_ANIMATIONS(Arrays.asList("анимаций", "анимация"), "getNumberOfAnimations"),
