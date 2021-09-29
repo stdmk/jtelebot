@@ -58,6 +58,7 @@ public class NewsTimer extends TimerParent {
                                     SendMessage sendMessage = new SendMessage();
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
+                                    sendMessage.disableWebPagePreview();
                                     sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
 
                                     bot.execute(sendMessage);
