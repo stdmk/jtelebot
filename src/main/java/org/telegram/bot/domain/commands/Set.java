@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.AliasSetter;
 import org.telegram.bot.domain.commands.setters.CitySetter;
+import org.telegram.bot.domain.commands.setters.DisableCommandSetter;
 import org.telegram.bot.domain.commands.setters.HolidaySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.commands.setters.TvSetter;
@@ -42,12 +43,14 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final AliasSetter aliasSetter;
     private final TvSetter tvSetter;
     private final HolidaySetter holidaySetter;
+    private final DisableCommandSetter disableCommandSetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
     private final String ALIAS = "алиас";
     private final String TV = "тв";
     private final String HOLIDAY = "праздник";
+    private final String COMMAND = "команда";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -96,6 +99,10 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.toLowerCase().startsWith(HOLIDAY)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return holidaySetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(COMMAND)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
+                    return disableCommandSetter.set(update, textMessage);
                 }
             }
             if (callback) {
@@ -166,12 +173,20 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> holidayRow = new ArrayList<>();
         holidayRow.add(holidayButton);
 
+        InlineKeyboardButton commandButton = new InlineKeyboardButton();
+        commandButton.setText(SET + COMMAND);
+        commandButton.setCallbackData(SET + COMMAND);
+
+        List<InlineKeyboardButton> commandRow = new ArrayList<>();
+        commandRow.add(commandButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
         rows.add(aliasRow);
         rows.add(tvRow);
         rows.add(holidayRow);
+        rows.add(commandRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);

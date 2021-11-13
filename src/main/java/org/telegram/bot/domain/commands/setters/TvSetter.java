@@ -1,8 +1,7 @@
 package org.telegram.bot.domain.commands.setters;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
@@ -34,9 +33,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(TvSetter.class);
 
     private final ChatService chatService;
     private final UserService userService;
@@ -211,7 +209,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableHtml(true);
             sendMessage.setText(prepareTextOfListUserTvList(userTvList));
-            sendMessage.setReplyMarkup(prepareKeyboardWithUserTvList(userTvList));
+            sendMessage.setReplyMarkup(prepareKeyboardWithUserTvList());
 
             return sendMessage;
         }
@@ -221,7 +219,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
         editMessageText.setText(prepareTextOfListUserTvList(userTvList));
-        editMessageText.setReplyMarkup(prepareKeyboardWithUserTvList(userTvList));
+        editMessageText.setReplyMarkup(prepareKeyboardWithUserTvList());
 
         return editMessageText;
     }
@@ -350,7 +348,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithUserTvList(List<UserTv> userTvList) {
+    private InlineKeyboardMarkup prepareKeyboardWithUserTvList() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();

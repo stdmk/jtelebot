@@ -1,11 +1,14 @@
 package org.telegram.bot.domain.commands.setters;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.commands.Set;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.City;
+import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
@@ -29,9 +32,8 @@ import static org.telegram.bot.utils.DateUtils.TimeZones;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(CitySetter.class);
 
     private final CityService cityService;
     private final UserCityService userCityService;

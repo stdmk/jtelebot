@@ -52,7 +52,8 @@ public enum Emoji {
     MEMO("\uD83D\uDCDD"),
     HEADPHONE("\uD83C\uDFA7"),
     CLIPBOARD("📋"),
-    CHECK_MARK("✔️")
+    CHECK_MARK("✔️"),
+    NO_ENTRY_SIGN("\uD83D\uDEAB")
     ;
 
     private final String emoji;

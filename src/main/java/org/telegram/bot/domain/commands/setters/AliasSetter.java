@@ -1,8 +1,7 @@
 package org.telegram.bot.domain.commands.setters;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.commands.Set;
 import org.telegram.bot.domain.entities.Alias;
@@ -34,9 +33,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(AliasSetter.class);
 
     private final AliasService aliasService;
     private final SpeechService speechService;
