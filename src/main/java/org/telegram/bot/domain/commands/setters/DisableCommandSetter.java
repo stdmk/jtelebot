@@ -49,6 +49,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
     private final String SELECT_PAGE_COMMAND_LIST = DISABLE_COMMAND + " page";
     private final String ENABLE_COMMAND = "команда вкл";
     private final String CALLBACK_ENABLE_COMMAND = CALLBACK_COMMAND + ENABLE_COMMAND;
+    private final String SET_COMMAND_NAME = "set";
 
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
@@ -120,7 +121,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
         }
 
         CommandProperties commandProperties = commandPropertiesService.getCommand(commandPropertiesId);
-        if (commandProperties == null) {
+        if (commandProperties == null || SET_COMMAND_NAME.equals(commandProperties.getCommandName())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
@@ -208,17 +209,9 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
 
         String param = command.substring(DISABLE_COMMAND.length() + 1);
 
-        String commandName = param.toLowerCase(Locale.ROOT);
-        CommandProperties commandProperties = commandPropertiesService.getCommand(commandName);
-        if (commandProperties == null) {
-            try {
-                commandProperties = commandPropertiesService.getCommand(Long.parseLong(param));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-            if (commandProperties == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
+        CommandProperties commandProperties = commandPropertiesService.getCommand(param.toLowerCase(Locale.ROOT));
+        if (commandProperties == null || SET_COMMAND_NAME.equals(commandProperties.getCommandName())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         DisableCommand disableCommand = disableCommandService.get(chat, commandProperties);
@@ -253,6 +246,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
 
         List<List<InlineKeyboardButton>> commandPropertyRows = commandPropertiesList
                 .stream()
+                .filter(commandProperties -> !SET_COMMAND_NAME.equals(commandProperties.getCommandName()))
                 .map(commandProperties -> {
                     List<InlineKeyboardButton> commandPropertyRow = new ArrayList<>();
 
