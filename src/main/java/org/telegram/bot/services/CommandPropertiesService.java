@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.springframework.data.domain.Page;
 import org.telegram.bot.domain.entities.CommandProperties;
 
 import java.util.List;
@@ -43,10 +44,26 @@ public interface CommandPropertiesService {
     CommandProperties getCommand(String name);
 
     /**
+     * Get the command by its id.
+     *
+     * @param id - id of entity.
+     * @return entity.
+     */
+    CommandProperties getCommand(Long id);
+
+    /**
      * Get the command name by class.
      *
      * @param commandClass - class of command.
      * @return entity.
      */
     CommandProperties getCommand(Class<?> commandClass);
+
+    /**
+     * Get all CommandProperties.
+     *
+     * @param page page of entities.
+     * @return the persisted entities.
+     */
+    Page<CommandProperties> getAll(int page);
 }

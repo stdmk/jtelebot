@@ -7,14 +7,11 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -43,6 +40,7 @@ public class Bot extends TelegramLongPollingBot {
     private final ChatService chatService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
+    private final DisableCommandService disableCommandService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -91,8 +89,11 @@ public class Bot extends TelegramLongPollingBot {
             textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
         }
 
+        Chat chatEntity = chatService.get(chatId);
+        org.telegram.bot.domain.entities.User userEntity = userService.get(userId);
+
         CommandProperties commandProperties;
-        CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(chatId), userService.get(userId));
+        CommandWaiting commandWaiting = commandWaitingService.get(chatEntity, userEntity);
         if (commandWaiting != null) {
             commandProperties = commandPropertiesService.getCommand(commandWaiting.getCommandName());
         } else if (textOfMessage != null) {
@@ -101,7 +102,7 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        if (commandProperties == null) {
+        if (commandProperties == null || disableCommandService.get(chatEntity, commandProperties) != null) {
             return;
         }
 

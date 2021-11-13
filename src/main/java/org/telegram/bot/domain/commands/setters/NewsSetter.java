@@ -1,8 +1,7 @@
 package org.telegram.bot.domain.commands.setters;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.commands.Set;
 import org.telegram.bot.domain.entities.Chat;
@@ -35,9 +34,8 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
-
-    private final Logger log = LoggerFactory.getLogger(NewsSetter.class);
 
     private final ChatService chatService;
     private final UserService userService;
