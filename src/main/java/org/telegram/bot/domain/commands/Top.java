@@ -196,9 +196,9 @@ public class Top implements CommandParent<SendMessage> {
         String sortedField = removeCapital(methodName.substring(3));
         List<UserStats> userStatsList;
 
-        if (UserStatsParam.NUMBER_OF_KARMA.getMethod().equals(sortedField)) {
+        if (UserStatsParam.NUMBER_OF_KARMA.getFieldName().equals(sortedField)) {
             userStatsList = userStatsService.getSortedUserStatsListWithKarmaForChat(chat, sortedField, 30, false);
-        } else if (UserStatsParam.NUMBER_OF_ALL_KARMA.getMethod().equals(sortedField)) {
+        } else if (UserStatsParam.NUMBER_OF_ALL_KARMA.getFieldName().equals(sortedField)) {
             userStatsList = userStatsService.getSortedUserStatsListWithKarmaForChat(chat, sortedField, 30, true);
         } else {
             userStatsList = userStatsService.getSortedUserStatsListForChat(chat, sortedField, 30);
