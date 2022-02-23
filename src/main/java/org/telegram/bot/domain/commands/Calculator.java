@@ -19,6 +19,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.math.BigDecimal;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -62,7 +64,7 @@ public class Calculator implements CommandParent<SendMessage> {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
                 }
                 jsonObject = new JSONObject(response.getBody());
-                responseText = jsonObject.getString("result");
+                responseText = new BigDecimal(jsonObject.getString("result")).toPlainString();
             } catch (HttpClientErrorException hce) {
                 jsonObject = new JSONObject(hce.getResponseBodyAsString());
                 responseText = jsonObject.getString("error");
