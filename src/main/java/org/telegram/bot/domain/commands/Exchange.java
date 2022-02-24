@@ -38,18 +38,21 @@ public class Exchange implements CommandParent<SendMessage> {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
-        List<Valute> valuteList = getValCursData();
+
+        ValCurs valCurs = getValCursData();
+        List<Valute> valuteList = valCurs.getValute();
+        String cursDate = valCurs.getDate();
 
         if (textMessage == null) {
             log.debug("Request to get exchange rates for usd and eur");
-            responseText = getExchangeRatesForUsdAndEur(valuteList);
+            responseText = getExchangeRatesForUsdAndEur(valuteList, cursDate);
         } else {
             if (textMessage.startsWith("_")) {
                 textMessage = textMessage.substring(1);
             }
 
             log.debug("Request to get exchange rates for {}", textMessage);
-            responseText = getExchangeRatesForCode(valuteList, textMessage.toUpperCase(Locale.ROOT));
+            responseText = getExchangeRatesForCode(valuteList, textMessage.toUpperCase(Locale.ROOT), cursDate);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -67,13 +70,14 @@ public class Exchange implements CommandParent<SendMessage> {
      * @param valuteList list with data of exchange rates.
      * @return formatted text with exchange rates.
      */
-    private String getExchangeRatesForUsdAndEur(List<Valute> valuteList) {
+    private String getExchangeRatesForUsdAndEur(List<Valute> valuteList, String date) {
         Valute usdValute = getValuteByCode(valuteList, "USD");
         Valute eurValute = getValuteByCode(valuteList, "EUR");
 
         return "<b>Курс валют ЦБ РФ:</b>\n" +
                 "$ USD = " + usdValute.getValue() + " RUB\n" +
-                "€ EUR = " + eurValute.getValue() + " RUB";
+                "€ EUR = " + eurValute.getValue() + " RUB\n" +
+                "(" + date + ")";
     }
 
     /**
@@ -83,14 +87,15 @@ public class Exchange implements CommandParent<SendMessage> {
      * @param code code of the valute.
      * @return formatted text with exchange rates.
      */
-    private String getExchangeRatesForCode(List<Valute> valuteList, String code) {
+    private String getExchangeRatesForCode(List<Valute> valuteList, String code, String date) {
         Valute valute = getValuteByCode(valuteList, code);
         if (valute == null) {
             return "Не нашёл валюту <b>" + code + "</b>\nСписок доступных: " + getValuteList(valuteList);
         } else {
             return "<b>" + valute.getName() + "</b>\n" +
                     valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB\n" +
-                   "1 RUB = " + Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / Float.parseFloat(valute.getValue().replaceAll(",", ".")) + " " + valute.getCharCode();
+                   "1 RUB = " + Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / Float.parseFloat(valute.getValue().replaceAll(",", ".")) + " " + valute.getCharCode() + "\n" +
+                    "(" + date + ")";
         }
     }
 
@@ -131,7 +136,7 @@ public class Exchange implements CommandParent<SendMessage> {
      *
      * @return list with data of exchange rates.
      */
-    private List<Valute> getValCursData() {
+    private ValCurs getValCursData() {
         final String xmlUrl = "http://www.cbr.ru/scripts/XML_daily.asp";
         XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
@@ -143,7 +148,7 @@ public class Exchange implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        return valCurs.getValute();
+        return valCurs;
     }
 
     @Data
