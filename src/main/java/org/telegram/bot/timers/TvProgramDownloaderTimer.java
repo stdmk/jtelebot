@@ -135,17 +135,17 @@ public class TvProgramDownloaderTimer extends TimerParent {
 
         tvProgramService.clearTable();
 
-        tvProgramService.save(tv.getProgramme()
+        tv.getProgramme()
                 .stream()
                 .filter(tvProgram -> tvChannelIdList.contains(tvProgram.getChannel()))
-                .map(program -> new TvProgram()
-                        .setChannel(new TvChannel().setId(program.getChannel()))
-                        .setStart(LocalDateTime.parse(program.getStart().substring(0, 14), formatter))
-                        .setStop(LocalDateTime.parse(program.getStop().substring(0, 14), formatter))
-                        .setTitle(getContent(program.getTitle()))
-                        .setCategory(getContent(program.getCategory()))
-                        .setDesc(getContent(program.getDesc())))
-                .collect(Collectors.toList()));
+                .forEach(program -> tvProgramService.save(
+                        new TvProgram()
+                                .setChannel(new TvChannel().setId(program.getChannel()))
+                                .setStart(LocalDateTime.parse(program.getStart().substring(0, 14), formatter))
+                                .setStop(LocalDateTime.parse(program.getStop().substring(0, 14), formatter))
+                                .setTitle(getContent(program.getTitle()))
+                                .setCategory(getContent(program.getCategory()))
+                                .setDesc(getContent(program.getDesc()))));
     }
 
     private String getContent(Content content) {

@@ -40,6 +40,8 @@ test {
     useJUnitPlatform()
 }
 
+project.setProperty("mainClassName", "org.telegram.bot.BotApplication")
+
 jar {
     manifest {
         attributes(
