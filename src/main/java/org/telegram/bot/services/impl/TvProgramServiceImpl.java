@@ -3,6 +3,7 @@ package org.telegram.bot.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
 import org.telegram.bot.repositories.TvProgramRepository;
@@ -49,8 +50,9 @@ public class TvProgramServiceImpl implements TvProgramService {
     }
 
     @Override
+    @Transactional
     public void clearTable() {
-        log.debug("Request to delete all TvPrograms: ");
-        tvProgramRepository.deleteAll();
+        log.debug("Request to delete all TvPrograms");
+        tvProgramRepository.clearTable();
     }
 }

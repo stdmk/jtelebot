@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.repositories.TvChannelRepository;
 import org.telegram.bot.services.TvChannelService;
@@ -49,8 +50,9 @@ public class TvChannelServiceImpl implements TvChannelService {
     }
 
     @Override
+    @Transactional
     public void clearTable() {
-        log.debug("Request to delete all TvChannels: ");
-        tvChannelRepository.deleteAll();
+        log.debug("Request to delete all TvChannels");
+        tvChannelRepository.clearTable();
     }
 }
