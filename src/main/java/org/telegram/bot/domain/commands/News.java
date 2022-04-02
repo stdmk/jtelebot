@@ -132,7 +132,9 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
             return speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         }
 
-        return buildListOfNewsMessageText(feed.getEntries());
+        final int newsLimit = 10;
+
+        return buildListOfNewsMessageText(feed.getEntries().stream().limit(newsLimit).collect(Collectors.toList()));
     }
 
     /**
