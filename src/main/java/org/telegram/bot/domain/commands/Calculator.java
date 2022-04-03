@@ -64,7 +64,7 @@ public class Calculator implements CommandParent<SendMessage> {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
                 }
                 jsonObject = new JSONObject(response.getBody());
-                responseText = new BigDecimal(jsonObject.getString("result")).toPlainString();
+                responseText = "`" + new BigDecimal(jsonObject.getString("result")).toPlainString() + "`";
             } catch (HttpClientErrorException hce) {
                 jsonObject = new JSONObject(hce.getResponseBodyAsString());
                 responseText = jsonObject.getString("error");
@@ -74,6 +74,7 @@ public class Calculator implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
         return sendMessage;
