@@ -4,12 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
-import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.CityService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -18,7 +17,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Objects;
 
 import static org.telegram.bot.utils.DateUtils.formatTime;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -31,7 +29,7 @@ public class UserTime implements CommandParent<SendMessage> {
     private final UserService userService;
     private final ChatService chatService;
     private final UserCityService userCityService;
-    private final SpeechService speechService;
+    private final CityService cityService;
 
     @Override
     public SendMessage parse(Update update) {
@@ -51,11 +49,22 @@ public class UserTime implements CommandParent<SendMessage> {
             user = userService.get(textMessage);
         }
 
-        log.debug("Request to get time of user {}", user);
         UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
         if (userCity == null) {
-            responseText = "У " + getLinkToUser(user, false) + " не задан город";
+            City city = cityService.get(textMessage);
+            if (city == null) {
+                if (user == null) {
+                    log.debug("Unable to find user or city {}", textMessage);
+                    return null;
+                }
+                responseText = "У " + getLinkToUser(user, false) + " не задан город";
+            } else {
+                log.debug("Request to get time of city {}", city.getNameEn());
+                String dateTimeNow = formatTime(ZonedDateTime.now(ZoneId.of(city.getTimeZone())));
+                responseText = "В городе " + city.getNameRu() + " сейчас: *" + dateTimeNow + "*";
+            }
         } else {
+            log.debug("Request to get time of user {}", user);
             String dateTimeNow = formatTime(ZonedDateTime.now(ZoneId.of(userCity.getCity().getTimeZone())));
             responseText = "У " + getLinkToUser(user, false) + " сейчас *" + dateTimeNow + "*";
         }

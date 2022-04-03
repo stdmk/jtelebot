@@ -26,7 +26,7 @@ public class CityServiceImpl implements CityService {
     @Override
     public City get(String cityName) {
         log.debug("Request to get City by name: {}", cityName);
-        return cityRepository.findFirstByNameRuOrNameEn(cityName, cityName);
+        return cityRepository.findFirstByNameRuIgnoreCaseOrNameEnIgnoreCase(cityName, cityName);
     }
 
     @Override
