@@ -34,8 +34,12 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        ResponseEntity<Cat[]> response;
+        String textMessage = cutCommandInText(message.getText());
+        if (textMessage != null) {
+            return null;
+        }
 
+        ResponseEntity<Cat[]> response;
         try {
             response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
         } catch (RestClientException e) {
