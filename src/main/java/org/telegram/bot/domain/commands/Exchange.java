@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -82,14 +81,14 @@ public class Exchange implements CommandParent<SendMessage> {
      * @return formatted text with exchange rates.
      */
     private String getExchangeRatesForUsdAndEur(List<Valute> valuteList, List<Valute> valuteListYesterday, String date) {
-        BigDecimal usdCurrent = getValuteByCode(valuteList, "USD").getValuteValue();
-        BigDecimal usdBefore = getValuteByCode(valuteListYesterday, "USD").getValuteValue();
-        BigDecimal eurCurrent = getValuteByCode(valuteList, "EUR").getValuteValue();
-        BigDecimal eurBefore = getValuteByCode(valuteListYesterday, "EUR").getValuteValue();
+        Float usdCurrent = getValuteByCode(valuteList, "USD").getValuteValue();
+        Float usdBefore = getValuteByCode(valuteListYesterday, "USD").getValuteValue();
+        Float eurCurrent = getValuteByCode(valuteList, "EUR").getValuteValue();
+        Float eurBefore = getValuteByCode(valuteListYesterday, "EUR").getValuteValue();
 
         return "<b>Курс валют ЦБ РФ:</b>\n" +
-                "$ USD = " + usdCurrent + " RUB " + getDynamicEmojiForValuteValue(usdCurrent, usdBefore) + "\n" +
-                "€ EUR = " + eurCurrent + " RUB " + getDynamicEmojiForValuteValue(eurCurrent, eurBefore) + "\n" +
+                "$ USD = " + formatFloatValue(usdCurrent) + " RUB " + getDynamicsForValuteValue(usdCurrent, usdBefore) + "\n" +
+                "€ EUR = " + formatFloatValue(eurCurrent) + " RUB " + getDynamicsForValuteValue(eurCurrent, eurBefore) + "\n" +
                 "(" + date + ")";
     }
 
@@ -106,32 +105,37 @@ public class Exchange implements CommandParent<SendMessage> {
         if (valute == null) {
             return "Не нашёл валюту <b>" + code + "</b>\nСписок доступных: " + getValuteList(valuteList);
         } else {
-            BigDecimal valuteValueBefore = getValuteByCode(valuteListYesterday, code).getValuteValue();
+            Float valuteValueBefore = getValuteByCode(valuteListYesterday, code).getValuteValue();
+            String dynamicsForValuteValue = getDynamicsForValuteValue(valute.getValuteValue(), valuteValueBefore);
+            String reversExchangeRate = formatFloatValue(Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / valute.getValuteValue());
 
             return "<b>" + valute.getName() + "</b>\n" +
-                    valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB " + getDynamicEmojiForValuteValue(valute.getValuteValue(), valuteValueBefore) + "\n" +
-                   "1 RUB = " + Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / Float.parseFloat(valute.getValue().replaceAll(",", ".")) + " " + valute.getCharCode() + "\n" +
+                    valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB " + dynamicsForValuteValue + "\n" +
+                   "1 RUB = " + reversExchangeRate + " " + valute.getCharCode() + "\n" +
                     "(" + date + ")";
         }
     }
 
     /**
-     * Getting currency dynamics emoji.
+     * Getting currency dynamics.
      *
      * @param valuteCurrent current value of Valute.
      * @param valuteBefore yesterday value of Valute.
      * @return emoji.
      */
-    private String getDynamicEmojiForValuteValue(BigDecimal valuteCurrent, BigDecimal valuteBefore) {
+    private String getDynamicsForValuteValue(Float valuteCurrent, Float valuteBefore) {
         int compareResult = valuteCurrent.compareTo(valuteBefore);
 
+        String emoji;
         if (compareResult > 0) {
-            return Emoji.UP_ARROW.getEmoji();
+            emoji = Emoji.UP_ARROW.getEmoji();
         } else if (compareResult < 0) {
-            return Emoji.DOWN_ARROW.getEmoji();
+            emoji = Emoji.DOWN_ARROW.getEmoji();
         } else {
-            return "";
+            emoji = "";
         }
+
+        return emoji + " (" + formatFloatValueWithLeadingSing(valuteCurrent - valuteBefore) + ")";
     }
 
     /**
@@ -200,6 +204,18 @@ public class Exchange implements CommandParent<SendMessage> {
         return valCurs;
     }
 
+    private String formatFloatValue(Float value) {
+        return formatFloat("%.4f", value);
+    }
+
+    private String formatFloatValueWithLeadingSing(Float value) {
+        return formatFloat("%+.4f", value);
+    }
+
+    private String formatFloat(String format, Float value) {
+        return String.format(format, value);
+    }
+
     @Data
     private static class ValCurs {
         @XmlAttribute
@@ -232,8 +248,8 @@ public class Exchange implements CommandParent<SendMessage> {
         @XmlElement(name = "Name")
         private String name;
 
-        public BigDecimal getValuteValue() {
-            return new BigDecimal(this.value.replace(",", "."));
+        public Float getValuteValue() {
+            return Float.parseFloat(this.value.replace(",", "."));
         }
     }
 }
