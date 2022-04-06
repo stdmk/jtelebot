@@ -18,6 +18,7 @@ import org.telegram.bot.services.TalkerWordService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +47,7 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
         //importDataFromFile();
     }
 
-    private void importDataFromFile() {
+    private void test() throws IOException {
         JsonData jsonData;
         try {
             InputStream is = new FileInputStream("result.json");
@@ -56,8 +57,30 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
         } catch (IOException e) {
             return;
         }
-        
+
         List<TelegramMessage> messages = jsonData.getMessages();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.info("Начал фильтровать");
+        List<TelegramMessage> collect = messages.stream().filter(message -> message.getReplyToMessageId() != null).collect(Collectors.toList());
+        log.info("Начал писать");
+        objectMapper.writeValue(new File("output.json"), collect);
+        log.info("Закончил");
+    }
+
+    private void importDataFromFile() {
+        TelegramMessage[] data;
+        try {
+            InputStream is = new FileInputStream("output.json");
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            data = objectMapper.readValue(IOUtils.toString(is, StandardCharsets.UTF_8), TelegramMessage[].class);
+        } catch (IOException e) {
+            return;
+        }
+
+
+        List<TelegramMessage> messages = new ArrayList<>(Arrays.asList(data));
         messages.forEach(message -> {
             Integer messageId = message.getId();
             System.out.println(messageId);
