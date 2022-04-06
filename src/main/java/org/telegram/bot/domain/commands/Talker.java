@@ -38,7 +38,11 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
 
     @Override
     public SendMessage parse(Update update) {
-        importDataFromFile();
+        try {
+            test();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -48,23 +52,23 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private void test() throws IOException {
-        JsonData jsonData;
+        TelegramMessage[] data;
         try {
-            InputStream is = new FileInputStream("result.json");
+            InputStream is = new FileInputStream("output.json");
             ObjectMapper objectMapper = new ObjectMapper();
 
-            jsonData = objectMapper.readValue(IOUtils.toString(is, StandardCharsets.UTF_8), JsonData.class);
+            data = objectMapper.readValue(IOUtils.toString(is, StandardCharsets.UTF_8), TelegramMessage[].class);
         } catch (IOException e) {
             return;
         }
 
-        List<TelegramMessage> messages = jsonData.getMessages();
+        List<TelegramMessage> messages = new ArrayList<>(Arrays.asList(data));
 
         ObjectMapper objectMapper = new ObjectMapper();
         log.info("Начал фильтровать");
-        List<TelegramMessage> collect = messages.stream().filter(message -> message.getReplyToMessageId() != null).collect(Collectors.toList());
+        List<TelegramMessage> collect = messages.stream().filter(message -> message.getText() instanceof String).collect(Collectors.toList());
         log.info("Начал писать");
-        objectMapper.writeValue(new File("output.json"), collect);
+        objectMapper.writeValue(new File("output2.json"), collect);
         log.info("Закончил");
     }
 
@@ -78,7 +82,6 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
         } catch (IOException e) {
             return;
         }
-
 
         List<TelegramMessage> messages = new ArrayList<>(Arrays.asList(data));
         messages.forEach(message -> {
