@@ -37,6 +37,7 @@ public class Talker implements CommandParent<SendMessage>, TextAnalyzer {
 
     @Override
     public SendMessage parse(Update update) {
+        importDataFromFile();
         return null;
     }
 

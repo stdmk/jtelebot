@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20220406075600-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="47"/>
+            <column name="commandname" value="import"/>
+            <column name="russifiedname" value="импорт"/>
+            <column name="enruname" value="bvgjhn"/>
+            <column name="classname" value="talker"/>
+            <column name="accesslevel" value="10"/>
+            <column name="help" value="Перевод,Перевод текстов,текст,перевод hello, перевод привет,Если отправить пустую команду в ответ на сообщение - бот переведёт ответное сообщение"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
