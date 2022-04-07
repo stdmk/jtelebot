@@ -102,4 +102,5 @@
     <include file="db/changelog/20220405084800_added_entity_TalkerPhrase.xml"/>
     <include file="db/changelog/20220405142800_added_table_talkerwordphrase.xml"/>
     <include file="db/changelog/20220406212900_added_entity_TalkerDegree.xml"/>
+    <include file="db/changelog/20220407092900_TalkerPhrase_add_column_chat.xml"/>
 </databaseChangeLog>

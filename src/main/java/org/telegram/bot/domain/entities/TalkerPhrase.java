@@ -26,6 +26,10 @@ public class TalkerPhrase {
     @Column(name = "phrase")
     private String phrase;
 
+    @ManyToOne
+    @JoinColumn(name = "chatid", nullable = false)
+    private Chat chat;
+
     @ManyToMany(mappedBy = "phrases")
     private Set<TalkerWord> talkerWords;
 }

@@ -8,6 +8,7 @@ import org.telegram.bot.Parser;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerPhrase;
 import org.telegram.bot.domain.entities.TalkerWord;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -49,7 +50,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
 
-        String responseText = getReplyForText(cutCommandInText(textMessage));
+        String responseText = getReplyForText(cutCommandInText(textMessage), message.getChatId());
 
         if (responseText == null) {
             responseText = speechService.getRandomMessageByTag(BotSpeechTag.ECHO);
@@ -100,7 +101,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
     }
 
-    private String getReplyForText(String text) {
+    private String getReplyForText(String text, Long chatId) {
         if (text == null) {
             return null;
         }
@@ -110,6 +111,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
                 .stream()
                 .map(TalkerWord::getPhrases)
                 .flatMap(Collection::stream)
+                .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
                 .forEach(talkerPhrase -> {
                     if (phrasesRating.containsKey(talkerPhrase)) {
                         phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
@@ -150,7 +152,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
         List<TalkerPhrase> storedTalkerPhraseList = talkerPhraseService.save(phrases
                 .stream()
-                .map(phrase -> new TalkerPhrase().setPhrase(phrase))
+                .map(phrase -> new TalkerPhrase().setPhrase(phrase).setChat(new Chat().setChatId(message.getChatId())))
                 .collect(Collectors.toSet()));
 
         talkerWordService.save(words
