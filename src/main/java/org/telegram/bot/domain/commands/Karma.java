@@ -151,7 +151,11 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = message.getText();
+        String textMessage = getTextMessage(update);
+        if (textMessage == null) {
+            return;
+        }
+
         log.debug("Initialization of searching changing karma in text {}", textMessage);
 
         boolean wrongNumber = true;

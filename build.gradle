@@ -31,6 +31,8 @@ dependencies {
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.3'
 
     implementation 'org.apache.commons:commons-lang3:3.11'
+    implementation group: 'com.google.zxing', name: 'core', version: '3.4.1'
+    implementation group: 'com.google.zxing', name: 'javase', version: '3.4.1'
 
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'

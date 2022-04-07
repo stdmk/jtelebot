@@ -6,6 +6,9 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,6 +39,13 @@ public class NetworkUtils {
         }
 
         return new ByteArrayInputStream(Objects.requireNonNull(file));
+    }
+
+    public InputStream getFileFromTelegram(Bot bot, String fileId) throws TelegramApiException {
+        GetFile getFile = new GetFile();
+        getFile.setFileId(fileId);
+
+        return bot.downloadFileAsStream(bot.execute(getFile).getFilePath());
     }
 
     public String readStringFromURL(String url) throws IOException {

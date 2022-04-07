@@ -85,9 +85,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        if (textOfMessage != null) {
-            textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
-        }
+        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
 
         Chat chatEntity = chatService.get(chatId);
         org.telegram.bot.domain.entities.User userEntity = userService.get(userId);
