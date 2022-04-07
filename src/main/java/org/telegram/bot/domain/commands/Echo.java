@@ -138,13 +138,13 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
         List<String> words = getWordsFromText(messagesWithWords.getText());
         if (words.isEmpty()) {
-            log.info("Unable to find words in text {}", messagesWithWords.getText());
+            log.debug("Unable to find words in text {}", messagesWithWords.getText());
             return;
         }
 
         List<String> phrases = getPhrasesFromText(message.getText());
         if (phrases.isEmpty()) {
-            log.info("Unable to find phrases in text {}", message.getText());
+            log.debug("Unable to find phrases in text {}", message.getText());
             return;
         }
 
