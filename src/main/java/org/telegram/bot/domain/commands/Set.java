@@ -8,6 +8,7 @@ import org.telegram.bot.domain.commands.setters.CitySetter;
 import org.telegram.bot.domain.commands.setters.DisableCommandSetter;
 import org.telegram.bot.domain.commands.setters.HolidaySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
+import org.telegram.bot.domain.commands.setters.TalkerSetter;
 import org.telegram.bot.domain.commands.setters.TvSetter;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
@@ -44,6 +45,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final TvSetter tvSetter;
     private final HolidaySetter holidaySetter;
     private final DisableCommandSetter disableCommandSetter;
+    private final TalkerSetter talkerSetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
@@ -51,6 +53,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String TV = "тв";
     private final String HOLIDAY = "праздник";
     private final String COMMAND = "команда";
+    private final String TALKER = "болтун";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -104,7 +107,11 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
                     return disableCommandSetter.set(update, textMessage);
                 }
+            } else if (textMessage.toLowerCase().startsWith(TALKER)) {
+            if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
+                return talkerSetter.set(update, textMessage);
             }
+        }
             if (callback) {
                 return buildMainPageWithCallback(message);
             }
@@ -180,6 +187,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> commandRow = new ArrayList<>();
         commandRow.add(commandButton);
 
+        InlineKeyboardButton talkerButton = new InlineKeyboardButton();
+        talkerButton.setText(SET + TALKER);
+        talkerButton.setCallbackData(SET + TALKER);
+
+        List<InlineKeyboardButton> talkerRow = new ArrayList<>();
+        talkerRow.add(talkerButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
@@ -187,6 +201,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(tvRow);
         rows.add(holidayRow);
         rows.add(commandRow);
+        rows.add(talkerRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
