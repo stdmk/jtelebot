@@ -27,6 +27,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -95,9 +97,11 @@ public class Qr implements CommandParent<SendPhoto>, TextAnalyzer {
         Message message = getMessageFromUpdate(update);
 
         if (message.hasPhoto()) {
+            List<PhotoSize> photoList = message.getPhoto();
             BufferedImage image;
+
             try {
-                image = ImageIO.read(networkUtils.getFileFromTelegram(bot, message.getPhoto().get(0).getFileId()));
+                image = ImageIO.read(networkUtils.getFileFromTelegram(bot, photoList.get(photoList.size() - 1).getFileId()));
             } catch (TelegramApiException | IOException e) {
                 log.error("Failed to get file from telegram: {}", e.getMessage());
                 return;
