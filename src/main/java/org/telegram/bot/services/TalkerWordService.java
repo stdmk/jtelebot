@@ -21,7 +21,8 @@ public interface TalkerWordService {
      * Get a TalkerWords.
      *
      * @param words of TalkerWords to get.
+     * @param chatId of Chat entity.
      * @return the persisted entities.
      */
-    Set<TalkerWord> get(List<String> words);
+    Set<TalkerWord> get(List<String> words, Long chatId);
 }

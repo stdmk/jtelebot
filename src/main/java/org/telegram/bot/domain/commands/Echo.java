@@ -110,11 +110,10 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
-        talkerWordService.get(getWordsFromText(text))
+        talkerWordService.get(getWordsFromText(text), chatId)
                 .stream()
                 .map(TalkerWord::getPhrases)
                 .flatMap(Collection::stream)
-                .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
                 .forEach(talkerPhrase -> {
                     if (phrasesRating.containsKey(talkerPhrase)) {
                         phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
