@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20220407154100-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="47"/>
+            <column name="commandname" value="qr"/>
+            <column name="russifiedname" value="куар"/>
+            <column name="enruname" value="refh"/>
+            <column name="classname" value="qr"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Куар,Генерация QR-кодов,текст,qr http://wikipedia.org; куар http://google.com,Чтобы считать QR-код - просто отправьте изображение боту"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

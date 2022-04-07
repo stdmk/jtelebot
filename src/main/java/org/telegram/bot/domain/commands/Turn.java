@@ -69,7 +69,10 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public void analyze(Bot bot, CommandParent<?> command,  Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = message.getText();
+        String textMessage = getTextMessage(update);
+        if (textMessage == null) {
+            return;
+        }
         log.debug("Initialization of unturned text search in {}", textMessage);
         
         textMessage = deleteWordsInText("@", textMessage);

@@ -71,7 +71,10 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         Message message = getMessageFromUpdate(update);
-        String textMessage = message.getText();
+        String textMessage = getTextMessage(update);
+        if (textMessage == null) {
+            return;
+        }
         parseTalkerData(message);
 
         boolean sendMessage = false;
