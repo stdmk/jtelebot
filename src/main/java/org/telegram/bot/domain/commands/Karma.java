@@ -151,7 +151,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = getTextMessage(update);
+        String textMessage = message.getText();
         if (textMessage == null) {
             return;
         }
