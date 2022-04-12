@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.repositories.TalkerPhraseRepository;
+import org.telegram.bot.repositories.TalkerWordRepository;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -22,6 +25,7 @@ import static org.telegram.bot.utils.TextUtils.formatLongValue;
 public class Uptime implements CommandParent<SendMessage> {
 
     private final BotStats botStats;
+    private final TalkerPhraseRepository talkerPhraseRepository;
 
     @Override
     public SendMessage parse(Update update) {
@@ -47,6 +51,7 @@ public class Uptime implements CommandParent<SendMessage> {
 
         buf.append("<b><u>Статистика:</u></b>\n");
         buf.append("Принято сообщений: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(formatLongValue(botStats.getTotalReceivedMessages())).append(")\n");
+        buf.append("Фраз болтуна: <b>").append(talkerPhraseRepository.countByChat(new Chat().setChatId(message.getChatId()))).append("</b> (").append(talkerPhraseRepository.count()).append(")\n");
         buf.append("Обработано команд: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(formatLongValue(botStats.getTotalCommandsProcessed())).append(")\n");
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
