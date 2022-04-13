@@ -1,5 +1,6 @@
 package org.telegram.bot.services.impl;
 
+import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.telegram.bot.services.NewsMessageService;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
@@ -83,16 +85,12 @@ public class NewsMessageServiceImpl implements NewsMessageService {
             }
         }
 
-        NewsMessage newsMessage = new NewsMessage()
+        return new NewsMessage()
                 .setLink(syndEntry.getLink())
                 .setTitle(title)
                 .setDescription(description)
-                .setPubDate(publishedDate);
-        if (!syndEntry.getEnclosures().isEmpty()) {
-            newsMessage.setAttachUrl(syndEntry.getEnclosures().get(0).getUrl());
-        }
-
-        return newsMessage;
+                .setPubDate(publishedDate)
+                .setAttachUrl(getAttachUrl(syndEntry));
     }
 
     @Override
@@ -101,5 +99,42 @@ public class NewsMessageServiceImpl implements NewsMessageService {
                 "<i>" + formatDate(newsMessage.getPubDate()) + "</i>\n" +
                 newsMessage.getDescription() +
                 "\n<a href=\"" + newsMessage.getLink() + "\">Читать полностью</a>";
+    }
+
+    private String getAttachUrl(SyndEntry syndEntry) {
+        if (!syndEntry.getEnclosures().isEmpty()) {
+            return syndEntry.getEnclosures().get(0).getUrl();
+        }
+
+        Optional<String> optionalDesc = Optional.of(syndEntry).map(SyndEntry::getDescription).map(SyndContent::getValue);
+        if (optionalDesc.isPresent()) {
+            String description = optionalDesc.get();
+            int a = description.indexOf("<img");
+            if (a >= 0) {
+                String buf = description.substring(a);
+                int b = buf.indexOf("/>");
+                if (b < 0) {
+                    b = buf.indexOf("/img>");
+                    if (b < 0) {
+                        return null;
+                    }
+                }
+                String imageTag = buf.substring(4, b);
+
+                a = imageTag.indexOf("src=");
+                if (a < 0) {
+                    return null;
+                }
+                buf = imageTag.substring(a + 5);
+                b = buf.indexOf("\"");
+                if (b < 0) {
+                    return null;
+                }
+
+                return buf.substring(0, b);
+            }
+        }
+
+        return null;
     }
 }
