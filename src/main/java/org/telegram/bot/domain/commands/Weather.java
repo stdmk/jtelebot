@@ -153,7 +153,7 @@ public class Weather implements CommandParent<SendMessage> {
      * @return text of error message.
      */
     private String getErrorMessage(HttpClientErrorException e) {
-        return "Ответ сервиса погоды: " + new JSONObject(e.getResponseBodyAsString()).getString("message");
+        return new JSONObject(e.getResponseBodyAsString()).getString("message");
     }
 
     /**
