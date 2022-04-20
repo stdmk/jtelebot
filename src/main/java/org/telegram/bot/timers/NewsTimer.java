@@ -1,5 +1,6 @@
 package org.telegram.bot.timers;
 
+import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class NewsTimer extends TimerParent {
     private final NetworkUtils networkUtils;
 
     @Override
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 60000)
     public void execute() {
         Bot bot = (Bot) context.getBean("bot");
         List<NewsSource> newsSources = newsService.getAll()
@@ -44,7 +45,7 @@ public class NewsTimer extends TimerParent {
 
         newsSources.forEach(newsSource -> {
             SyndFeed syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
-            syndFeed.getEntries().forEach(syndEntry -> {
+            for (SyndEntry syndEntry : syndFeed.getEntries()) {
                 NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
 
                 if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().before(newsMessage.getPubDate())) {
@@ -52,22 +53,21 @@ public class NewsTimer extends TimerParent {
                     newsSource.setNewsMessage(newsMessage);
                     newsSourceService.save(newsSource);
                     NewsMessage finalNewsMessage = newsMessage;
-                    newsService.getAll(newsSource)
-                            .forEach(news -> {
-                                try {
-                                    SendMessage sendMessage = new SendMessage();
-                                    sendMessage.setChatId(news.getChat().getChatId().toString());
-                                    sendMessage.enableHtml(true);
-                                    sendMessage.disableWebPagePreview();
-                                    sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
+                    for (News news : newsService.getAll(newsSource)) {
+                        try {
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(news.getChat().getChatId().toString());
+                            sendMessage.enableHtml(true);
+                            sendMessage.disableWebPagePreview();
+                            sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
 
-                                    bot.execute(sendMessage);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
-                            });
+                            bot.execute(sendMessage);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-            });
+            }
         });
 
 
