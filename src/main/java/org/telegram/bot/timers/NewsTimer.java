@@ -43,7 +43,7 @@ public class NewsTimer extends TimerParent {
                 .distinct()
                 .collect(Collectors.toList());
 
-        newsSources.forEach(newsSource -> {
+        for (NewsSource newsSource : newsSources) {
             SyndFeed syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
             for (SyndEntry syndEntry : syndFeed.getEntries()) {
                 NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
@@ -68,7 +68,7 @@ public class NewsTimer extends TimerParent {
                     }
                 }
             }
-        });
+        }
 
 
     }
