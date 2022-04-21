@@ -121,9 +121,14 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
                         phrasesRating.put(talkerPhrase, 1);
                     }
                 });
-        Optional<Map.Entry<TalkerPhrase, Integer>> optionalTalkerPhrase = phrasesRating.entrySet().stream().max(Map.Entry.comparingByValue());
 
-        return optionalTalkerPhrase.map(talkerPhraseIntegerEntry -> talkerPhraseIntegerEntry.getKey().getPhrase()).orElse(null);
+        return phrasesRating
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 0)
+                .findAny()
+                .map(talkerPhraseIntegerEntry -> talkerPhraseIntegerEntry.getKey().getPhrase())
+                .orElse(null);
     }
 
     private void parseTalkerData(Message message) {
