@@ -71,7 +71,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         Message message = getMessageFromUpdate(update);
-        String textMessage = getTextMessage(update);
+        String textMessage = message.getText();
         if (textMessage == null) {
             return;
         }
@@ -83,11 +83,11 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
             if (bot.getBotUsername().equals(replyToMessage.getFrom().getUserName())) {
                 sendMessage = true;
             }
-        }
-
-        Integer degree = talkerDegreeService.get(message.getChatId()).getDegree();
-        if (!sendMessage && MathUtils.getRandomInRange(1, 100) <= degree) {
-            sendMessage = true;
+        } else {
+            Integer degree = talkerDegreeService.get(message.getChatId()).getDegree();
+            if (MathUtils.getRandomInRange(1, 100) <= degree) {
+                sendMessage = true;
+            }
         }
 
         if (sendMessage) {
