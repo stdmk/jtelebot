@@ -1,6 +1,7 @@
 package org.telegram.bot.timers;
 
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -13,11 +14,12 @@ import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
-import org.telegram.bot.services.TimerService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,20 @@ public class NewsTimer extends TimerParent {
                 .collect(Collectors.toList());
 
         newsSources.forEach(newsSource -> {
-            SyndFeed syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
+            SyndFeed syndFeed;
+            try {
+                syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
+            } catch (FeedException e) {
+                log.error("Failed to parse NewsSource: {}", newsSource.getId(), e);
+                return;
+            } catch (MalformedURLException e) {
+                log.error("Malformed URL: {}", newsSource.getUrl());
+                return;
+            } catch (IOException e) {
+                log.error("Failed to connect to NewsSource: {}", newsSource.getUrl());
+                return;
+            }
+
             syndFeed.getEntries().forEach(syndEntry -> {
                 NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
 

@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -127,14 +129,23 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
      * @return formatted news.
      */
     private String getAllNews(String url) {
-        SyndFeed feed = networkUtils.getRssFeedFromUrl(url);
-        if (feed == null) {
+        SyndFeed syndFeed;
+        try {
+            syndFeed = networkUtils.getRssFeedFromUrl(url);
+        } catch (FeedException e) {
+            log.debug("Failed to parse news from url: {}: {}", url, e.getMessage());
+            return speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        } catch (MalformedURLException e) {
+            log.debug("Malformed URL: {}", url);
             return speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        } catch (IOException e) {
+            log.debug("Failed to connect to url: {}: {}", url, e.getMessage());
+            return speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
         }
 
         final int newsLimit = 10;
 
-        return buildListOfNewsMessageText(feed.getEntries().stream().limit(newsLimit).collect(Collectors.toList()));
+        return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsLimit).collect(Collectors.toList()));
     }
 
     /**
