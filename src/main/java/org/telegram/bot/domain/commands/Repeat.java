@@ -13,7 +13,6 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.LastCommand;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.LastCommandService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
@@ -29,7 +28,6 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
     private final ApplicationContext context;
     private final BotStats botStats;
 
-    private final ChatService chatService;
     private final UserService userService;
     private final UserStatsService userStatsService;
     private final LastCommandService lastCommandService;
@@ -40,8 +38,8 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
         String textMessage = message.getText();
 
         if (textMessage != null && textMessage.equals(".")) {
-            Chat chat = chatService.get(message.getChatId());
-            User user = userService.get(message.getFrom().getId());
+            Chat chat = new Chat().setChatId(message.getChatId());
+            User user = new User().setUserId(message.getFrom().getId());
             LastCommand lastCommand = lastCommandService.get(chat);
 
             if (lastCommand != null) {
@@ -55,7 +53,7 @@ public class Repeat implements TextAnalyzer, CommandParent<PartialBotApiMethod<?
                     }
 
                     newUpdate.getMessage().setText(lastCommand.getCommandProperties().getCommandName());
-                    userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
+                    userStatsService.incrementUserStatsCommands(chat, user);
 
                     Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
                     parser.start();

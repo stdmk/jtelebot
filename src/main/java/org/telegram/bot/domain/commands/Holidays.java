@@ -8,7 +8,6 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -31,7 +30,6 @@ import static org.telegram.bot.utils.DateUtils.formatDate;
 public class Holidays implements CommandParent<SendMessage> {
 
     private final HolidayService holidayService;
-    private final ChatService chatService;
     private final SpeechService speechService;
 
     @Override
@@ -42,7 +40,7 @@ public class Holidays implements CommandParent<SendMessage> {
 
         if (textMessage == null) {
             log.debug("Request to get coming holidays");
-            responseText = getComingHolidays(chatService.get(message.getChatId()));
+            responseText = getComingHolidays(new Chat().setChatId(message.getChatId()));
         } else if (textMessage.startsWith("_")) {
             long holidayId;
             try {
@@ -62,7 +60,7 @@ public class Holidays implements CommandParent<SendMessage> {
             int i = textMessage.indexOf(".");
             if (i < 0) {
                 log.debug("Request to search holidays by text: {}", textMessage);
-                responseText = findHolidaysByText(chatService.get(message.getChatId()), textMessage);
+                responseText = findHolidaysByText(new Chat().setChatId(message.getChatId()), textMessage);
             } else {
                 LocalDate requestedDate;
                 try {
@@ -75,7 +73,7 @@ public class Holidays implements CommandParent<SendMessage> {
                 }
 
                 log.debug("Request to get holidays for date: {}", formatDate(requestedDate));
-                responseText = getHolidaysForDate(chatService.get(message.getChatId()), requestedDate);
+                responseText = getHolidaysForDate(new Chat().setChatId(message.getChatId()), requestedDate);
                 if (responseText == null) {
                     responseText = "Праздники на эту дату отсутствуют";
                 }

@@ -8,7 +8,6 @@ import org.telegram.bot.domain.entities.TalkerDegree;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TalkerDegreeService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -30,7 +29,6 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private final TalkerDegreeService talkerDegreeService;
     private final SpeechService speechService;
-    private final ChatService chatService;
 
     private final String CALLBACK_COMMAND = "установить ";
     private final String EMPTY_TALKER_COMMAND = "болтун";
@@ -39,7 +37,7 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         if (update.hasCallbackQuery()) {

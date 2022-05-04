@@ -9,7 +9,12 @@ import org.telegram.bot.domain.commands.Top;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.LastCommandService;
+import org.telegram.bot.services.LastMessageService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -92,9 +97,11 @@ public class UserStatsServiceImpl implements UserStatsService {
     @Override
     public List<SendMessage> clearMonthlyStats() {
         log.debug("Request to clear monthly stats of users");
+
+        Top top = new Top(this, userService, speechService);
         List<SendMessage> response = chatService.getAllGroups()
                 .stream()
-                .map(chat -> new Top(this, userService, chatService, speechService).getTopByChat(chat))
+                .map(top::getTopByChat)
                 .collect(Collectors.toList());
 
         userStatsRepository.saveAll(getAllGroupStats()

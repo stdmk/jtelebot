@@ -13,7 +13,6 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
@@ -30,7 +29,6 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     private final BotStats botStats;
 
     private final AliasService aliasService;
-    private final ChatService chatService;
     private final UserService userService;
     private final UserStatsService userStatsService;
     private final CommandPropertiesService commandPropertiesService;
@@ -38,8 +36,8 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(message.getFrom().getId());
         log.debug("Request to get list of user {} and chat {}", user, chat);
         StringBuilder buf = new StringBuilder("*Список твоих алиасов:*\n");
 
@@ -62,8 +60,8 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public void analyze(Bot bot, CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(message.getFrom().getId());
         log.debug("Initialization of alias search for user {} and chat {}", user, chat);
 
         org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, message.getText());
@@ -82,7 +80,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
 
             if (commandProperties != null) {
                 if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
-                    userStatsService.incrementUserStatsCommands(chatService.get(chat.getChatId()), userService.get(user.getUserId()));
+                    userStatsService.incrementUserStatsCommands(chat, user);
 
                     Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
                     parser.start();

@@ -11,7 +11,11 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.DisableCommandService;
+import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -37,7 +41,6 @@ public class Bot extends TelegramLongPollingBot {
     private final PropertiesConfig propertiesConfig;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
-    private final ChatService chatService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
     private final DisableCommandService disableCommandService;
@@ -87,8 +90,8 @@ public class Bot extends TelegramLongPollingBot {
 
         textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(this, (CommandParent<?>) textAnalyzer, update));
 
-        Chat chatEntity = chatService.get(chatId);
-        org.telegram.bot.domain.entities.User userEntity = userService.get(userId);
+        Chat chatEntity = new Chat().setChatId(chatId);
+        org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);
 
         CommandProperties commandProperties;
         CommandWaiting commandWaiting = commandWaitingService.get(chatEntity, userEntity);
@@ -112,7 +115,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(chatService.get(chatId), userService.get(userId), commandProperties);
+            userStatsService.incrementUserStatsCommands(chatEntity, userEntity, commandProperties);
             Parser parser = new Parser(this, command, update, botStats);
             parser.start();
         }

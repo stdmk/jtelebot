@@ -11,11 +11,9 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.FileService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -43,8 +41,6 @@ import static org.telegram.bot.utils.TextUtils.formatFileSize;
 public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
     private final FileService fileService;
-    private final ChatService chatService;
-    private final UserService userService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
@@ -66,12 +62,12 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;
         String EMPTY_COMMAND = "files";
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, userService.get(message.getFrom().getId()));
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
 
         if (commandWaiting != null) {
             String text = message.getText();
@@ -81,7 +77,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             textMessage = cutCommandInText(commandWaiting.getTextMessage()) + text;
         } else {
             if (update.hasCallbackQuery()) {
-                commandWaiting = commandWaitingService.get(chat, userService.get(update.getCallbackQuery().getFrom().getId()));
+                commandWaiting = commandWaitingService.get(chat, new User().setUserId(update.getCallbackQuery().getFrom().getId()));
                 CallbackQuery callbackQuery = update.getCallbackQuery();
                 textMessage = cutCommandInText(callbackQuery.getData());
                 callback = true;
@@ -91,7 +87,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (callback) {
-            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (textMessage.equals(EMPTY_COMMAND)) {
                 return selectDirectory(message, chat, false, 0, null);
@@ -109,7 +105,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = userService.get(message.getFrom().getId());
+        User user = new User().setUserId(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
             return selectDirectory(message,  chat, true, 0, null);
         } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {

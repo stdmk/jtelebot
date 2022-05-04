@@ -2,8 +2,6 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -13,7 +11,6 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.domain.enums.UserStatsParam;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
@@ -26,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -41,7 +37,6 @@ public class Top implements CommandParent<SendMessage> {
 
     private final UserStatsService userStatsService;
     private final UserService userService;
-    private final ChatService chatService;
     private final SpeechService speechService;
 
     @Override
@@ -49,16 +44,19 @@ public class Top implements CommandParent<SendMessage> {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
 
         User user;
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
+
+            Long userId;
             if (repliedMessage != null) {
-                user = userService.get(repliedMessage.getFrom().getId());
+                userId = repliedMessage.getFrom().getId();
             } else {
-                user = userService.get(message.getFrom().getId());
+                userId = message.getFrom().getId();
             }
+            user = new User().setUserId(userId);
 
             log.debug("Request to get top of user {} for chat {}", user, chat);
             responseText = getTopOfUser(chat, user);

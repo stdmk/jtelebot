@@ -12,11 +12,9 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -28,7 +26,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
@@ -38,8 +40,6 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 @Slf4j
 public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
 
-    private final ChatService chatService;
-    private final UserService userService;
     private final HolidayService holidayService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -56,11 +56,11 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         if (update.hasCallbackQuery()) {
-            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (lowerCaseCommandText.equals(EMPTY_HOLIDAY_COMMAND) || lowerCaseCommandText.equals(UPDATE_TV_COMMAND)) {
                 return getHolidayListWithKeyboard(message, chat, user, false);
@@ -71,7 +71,7 @@ public class HolidaySetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = userService.get(message.getFrom().getId());
+        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_HOLIDAY_COMMAND)) {
             return getHolidayListWithKeyboard(message, chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_HOLIDAY_COMMAND)) {

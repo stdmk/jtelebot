@@ -12,7 +12,10 @@ import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.CityService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserCityService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -39,8 +42,6 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     private final UserCityService userCityService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
-    private final UserService userService;
-    private final ChatService chatService;
 
     private final String CALLBACK_COMMAND = "установить ";
     private final String UPDATE_CITY_COMMAND = "город обновить";
@@ -56,12 +57,12 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         String EMPTY_CITY_COMMAND = "город";
         if (update.hasCallbackQuery()) {
-            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_CITY_COMMAND)) {
                 return getMainKeyboard(message, chat, user, false);
@@ -76,7 +77,7 @@ public class CitySetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = userService.get(message.getFrom().getId());
+        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
             return getMainKeyboard(message,  chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_CITY_COMMAND)) {

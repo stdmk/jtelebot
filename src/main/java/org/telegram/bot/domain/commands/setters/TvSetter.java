@@ -12,11 +12,9 @@ import org.telegram.bot.domain.entities.UserTv;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TvChannelService;
-import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserTvService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -36,8 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
 
-    private final ChatService chatService;
-    private final UserService userService;
     private final UserTvService userTvService;
     private final SpeechService speechService;
     private final TvChannelService tvChannelService;
@@ -54,12 +50,12 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         String EMPTY_CITY_COMMAND = "тв";
         if (update.hasCallbackQuery()) {
-            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_TV_COMMAND)) {
                 return getUserTvListWithKeyboard(message, chat, user, false);
@@ -70,7 +66,7 @@ public class TvSetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = userService.get(message.getFrom().getId());
+        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
             return getUserTvListWithKeyboard(message,  chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_TV_COMMAND)) {

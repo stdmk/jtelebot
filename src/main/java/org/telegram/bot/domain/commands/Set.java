@@ -10,11 +10,12 @@ import org.telegram.bot.domain.commands.setters.HolidaySetter;
 import org.telegram.bot.domain.commands.setters.NewsSetter;
 import org.telegram.bot.domain.commands.setters.TalkerSetter;
 import org.telegram.bot.domain.commands.setters.TvSetter;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
@@ -35,7 +36,6 @@ import java.util.List;
 public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
     private final CommandWaitingService commandWaitingService;
-    private final ChatService chatService;
     private final UserService userService;
     private final SpeechService speechService;
 
@@ -62,7 +62,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         String textMessage = message.getText();
         boolean callback = false;
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chatService.get(message.getChatId()), userService.get(message.getFrom().getId()));
+        CommandWaiting commandWaiting = commandWaitingService.get(new Chat().setChatId(message.getChatId()), new User().setUserId(message.getFrom().getId()));
 
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();

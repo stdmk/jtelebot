@@ -2,8 +2,6 @@ package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,25 +10,22 @@ import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.Serializable;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.formatTime;
@@ -43,8 +38,6 @@ import static org.telegram.bot.utils.TextUtils.withCapital;
 public class Weather implements CommandParent<SendMessage> {
 
     private final PropertiesConfig propertiesConfig;
-    private final UserService userService;
-    private final ChatService chatService;
     private final UserCityService userCityService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
@@ -70,8 +63,7 @@ public class Weather implements CommandParent<SendMessage> {
 
         if (textMessage == null) {
             log.debug("Empty request. Searching for users city");
-            User user = userService.get(userId);
-            UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
+            UserCity userCity = userCityService.get(new User().setUserId(userId), new Chat().setChatId(message.getChatId()));
             if (userCity == null) {
                 log.debug("City in not set. Turning on command waiting");
                 commandWaitingService.add(message, this.getClass());

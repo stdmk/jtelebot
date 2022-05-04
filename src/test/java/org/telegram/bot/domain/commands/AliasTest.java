@@ -51,7 +51,7 @@ class AliasTest {
 
     @BeforeAll
     void init() {
-        aliasCommand = new org.telegram.bot.domain.commands.Alias(context, botStats, aliasService, chatService, userService, userStatsService, commandPropertiesService);
+        aliasCommand = new org.telegram.bot.domain.commands.Alias(context, botStats, aliasService, userService, userStatsService, commandPropertiesService);
 
         Alias savedAlias = new Alias();
         savedAlias.setId(1L);

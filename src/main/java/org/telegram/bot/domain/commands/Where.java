@@ -2,8 +2,6 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -12,7 +10,6 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
@@ -35,7 +32,6 @@ public class Where implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
     private final UserService userService;
-    private final ChatService chatService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
 
@@ -59,7 +55,7 @@ public class Where implements CommandParent<SendMessage> {
             responseText = "теперь напиши мне username того, кого хочешь найти";
         } else {
             User user = userService.get(textMessage);
-            Chat chat = chatService.get(message.getChatId());
+            Chat chat = new Chat().setChatId(message.getChatId());
 
             //чтобы команда не срабатывала на каждое слово "Где"
             if (user == null) {

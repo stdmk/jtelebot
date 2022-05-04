@@ -12,7 +12,9 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.NewsMessageService;
+import org.telegram.bot.services.NewsService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -35,7 +37,6 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
 
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
-    private final ChatService chatService;
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
 
@@ -43,7 +44,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
     public PartialBotApiMethod<?> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String responseText;
 
         if (textMessage == null) {

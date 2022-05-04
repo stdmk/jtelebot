@@ -2,10 +2,9 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -74,7 +73,7 @@ public class Todo implements CommandParent<SendMessage> {
                     log.debug("Request to add new Todo");
 
                     org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
-                    todo.setUser(userService.get(message.getFrom().getId()));
+                    todo.setUser(new User().setUserId(message.getFrom().getId()));
                     todo.setTodoText(textMessage);
                     todoService.save(todo);
 

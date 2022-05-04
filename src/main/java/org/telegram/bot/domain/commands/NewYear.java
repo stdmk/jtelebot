@@ -6,9 +6,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -22,8 +20,6 @@ import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 @RequiredArgsConstructor
 public class NewYear implements CommandParent<SendMessage> {
 
-    private final UserService userService;
-    private final ChatService chatService;
     private final UserCityService userCityService;
 
     @Override
@@ -31,8 +27,8 @@ public class NewYear implements CommandParent<SendMessage> {
         final String defaultTimeZone = "GMT+03:00";
 
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
-        User user = userService.get(message.getFrom().getId());
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(message.getFrom().getId());
         ZoneId userTimeZone;
 
         UserCity userCity = userCityService.get(user, chat);

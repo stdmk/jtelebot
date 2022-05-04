@@ -13,11 +13,9 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -40,8 +38,6 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final CommandPropertiesService commandPropertiesService;
-    private final UserService userService;
-    private final ChatService chatService;
 
     private final String CALLBACK_COMMAND = "установить ";
     private final String UPDATE_ALIAS_COMMAND = "алиас обновить";
@@ -54,12 +50,12 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
         String EMPTY_ALIAS_COMMAND = "алиас";
 
         if (update.hasCallbackQuery()) {
-            User user = userService.get(update.getCallbackQuery().getFrom().getId());
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND) || lowerCaseCommandText.equals(UPDATE_ALIAS_COMMAND)) {
                 return getAliasListWithKeyboard(message, chat, user, false);
@@ -70,7 +66,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = userService.get(message.getFrom().getId());
+        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND)) {
             return getAliasListWithKeyboard(message, chat, user, true);
         } else if (lowerCaseCommandText.startsWith(DELETE_ALIAS_COMMAND)) {
@@ -169,7 +165,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
     private EditMessageText addAliasByCallback(Message message, Chat chat, User user) {
         commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_ALIAS_COMMAND);
 
-        List<Alias> aliasList = aliasService.get(chat, userService.get(message.getFrom().getId()));
+        List<Alias> aliasList = aliasService.get(chat, user);
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());

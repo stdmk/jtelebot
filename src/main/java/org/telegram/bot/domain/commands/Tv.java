@@ -4,16 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.TvChannel;
+import org.telegram.bot.domain.entities.TvProgram;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.entities.UserTv;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserTvService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -41,8 +44,6 @@ public class Tv implements CommandParent<SendMessage> {
     private final TvProgramService tvProgramService;
     private final UserTvService userTvService;
     private final CommandPropertiesService commandPropertiesService;
-    private final ChatService chatService;
-    private final UserService userService;
     private final UserCityService userCityService;
     private final SpeechService speechService;
 
@@ -60,8 +61,8 @@ public class Tv implements CommandParent<SendMessage> {
         String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
 
         if (textMessage == null) {
-            Chat chat = chatService.get(message.getChatId());
-            User user = userService.get(message.getFrom().getId());
+            Chat chat = new Chat().setChatId(message.getChatId());
+            User user = new User().setUserId(message.getFrom().getId());
             log.debug("Request to get tv-program for user {} and chat {}", user, chat);
 
             List<UserTv> userTvList = userTvService.get(chat, user);
@@ -311,7 +312,7 @@ public class Tv implements CommandParent<SendMessage> {
      */
     private ZoneId getUserZoneId(Message message) {
         ZoneId zoneId;
-        UserCity userCity = userCityService.get(userService.get(message.getFrom().getId()), chatService.get(message.getChatId()));
+        UserCity userCity = userCityService.get(new User().setUserId(message.getFrom().getId()), new Chat().setChatId(message.getChatId()));
         if (userCity == null) {
             zoneId = ZoneId.systemDefault();
         } else {

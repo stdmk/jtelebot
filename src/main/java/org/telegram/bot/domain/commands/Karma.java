@@ -16,7 +16,6 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
@@ -39,7 +38,6 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
-    private final ChatService chatService;
     private final UserService userService;
     private final UserStatsService userStatsService;
     private final BotStats botStats;
@@ -58,16 +56,16 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null) {
-            Chat chat = chatService.get(message.getChatId());
+            Chat chat = new Chat().setChatId(message.getChatId());
             User user;
             UserStats userStats;
             Message repliedMessage = message.getReplyToMessage();
 
 
             if (repliedMessage != null) {
-                user = userService.get(repliedMessage.getFrom().getId());
+                user = new User().setUserId(repliedMessage.getFrom().getId());
             } else {
-                user = userService.get(message.getFrom().getId());
+                user = new User().setUserId(message.getFrom().getId());
             }
 
             log.debug("Request to get karma info for user {} and chat {}", user, chat);
@@ -103,7 +101,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
             User anotherUser;
             try {
-                anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
+                anotherUser = new User().setUserId(Long.parseLong(textMessage.substring(0, i)));
             } catch (NumberFormatException e) {
                 anotherUser = userService.get(textMessage.substring(0, i));
             }
@@ -113,12 +111,12 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             }
 
             log.debug("Request to change karma {} of user {} ", value, anotherUser);
-            Chat chat = chatService.get(message.getChatId());
+            Chat chat = new Chat().setChatId(message.getChatId());
             UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
             anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value)
                     .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
 
-            User user = userService.get(message.getFrom().getId());
+            User user = new User().setUserId(message.getFrom().getId());
             UserStats userStats = userStatsService.get(chat, user);
             if (value > 0) {
                 userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)

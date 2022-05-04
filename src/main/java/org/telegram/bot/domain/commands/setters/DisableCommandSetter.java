@@ -8,15 +8,14 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.DisableCommand;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.DisableCommandService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>> {
 
-    private final ChatService chatService;
-    private final UserService userService;
     private final DisableCommandService disableCommandService;
     private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
@@ -54,7 +51,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = chatService.get(message.getChatId());
+        Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
         String EMPTY_CITY_COMMAND = "команда";
@@ -222,7 +219,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
         disableCommand = new DisableCommand().setChat(chat).setCommandProperties(commandProperties);
         disableCommandService.save(disableCommand);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, userService.get(message.getFrom().getId()));
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
         if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
             commandWaitingService.remove(commandWaiting);
         }

@@ -44,7 +44,7 @@ public class ChatServiceImpl implements ChatService {
             return AccessLevel.NEWCOMER.getValue();
         }
 
-        return get(chatId).getAccessLevel();
+        return chat.getAccessLevel();
     }
 
     @Override

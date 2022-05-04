@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
-import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CityService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserService;
@@ -27,7 +27,6 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 public class UserTime implements CommandParent<SendMessage> {
 
     private final UserService userService;
-    private final ChatService chatService;
     private final UserCityService userCityService;
     private final CityService cityService;
 
@@ -41,15 +40,15 @@ public class UserTime implements CommandParent<SendMessage> {
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
-                user = userService.get(repliedMessage.getFrom().getId());
+                user = new User().setUserId(repliedMessage.getFrom().getId());
             } else {
-                user = userService.get(message.getFrom().getId());
+                user = new User().setUserId(message.getFrom().getId());
             }
         } else {
             user = userService.get(textMessage);
         }
 
-        UserCity userCity = userCityService.get(user, chatService.get(message.getChatId()));
+        UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
         if (userCity == null) {
             City city = cityService.get(textMessage);
             if (city == null) {
