@@ -21,6 +21,8 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Locale;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -28,8 +30,6 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
-
-    private static String CATS_API_URL = "https://api.thecatapi.com/v1/images/search";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -39,9 +39,10 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
             return null;
         }
 
+        String catsApiUrl = "https://api.thecatapi.com/v1/images/search";
         ResponseEntity<Cat[]> response;
         try {
-            response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
+            response = botRestTemplate.getForEntity(catsApiUrl, Cat[].class);
         } catch (RestClientException e) {
             log.error("Error receiving cats picture: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -55,10 +56,12 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
         Cat cat = cats[0];
         String url = cat.getUrl();
+        String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
         if (url.endsWith(".gif")) {
             log.debug("The response is a gif");
             SendDocument sendDocument = new SendDocument();
             sendDocument.setChatId(message.getChatId().toString());
+            sendDocument.setCaption(commandName);
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(new InputFile(url));
 
@@ -67,7 +70,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setPhoto(new InputFile(url));
-        sendPhoto.setCaption("cats");
+        sendPhoto.setCaption(commandName);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
 
