@@ -153,4 +153,18 @@ public class TextUtils {
 
         return String.format("%.2f", result) + unit;
     }
+
+    public static boolean startsWithNumber(String text) {
+        try {
+            Integer.parseInt(text.substring(0, 1));
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static Float parseFloat(String text) {
+        return Float.parseFloat(text.replace(",", "."));
+    }
 }

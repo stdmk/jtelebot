@@ -29,6 +29,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+import static org.telegram.bot.utils.TextUtils.startsWithNumber;
+import static org.telegram.bot.utils.TextUtils.parseFloat;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -44,23 +47,28 @@ public class Exchange implements CommandParent<SendMessage> {
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 
-        ValCurs valCursCurrent = getValCursData();
-        String cursDate = valCursCurrent.getDate();
-        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, DateUtils.dateFormatter).minusDays(1));
-
-        List<Valute> valuteList = valCursCurrent.getValute();
-        List<Valute> valuteListYesterday = valCursBefore.getValute();
-
         if (textMessage == null) {
             log.debug("Request to get exchange rates for usd and eur");
-            responseText = getExchangeRatesForUsdAndEur(valuteList, valuteListYesterday, cursDate);
+            responseText = getExchangeRatesForUsdAndEur();
         } else {
-            if (textMessage.startsWith("_")) {
-                textMessage = textMessage.substring(1);
-            }
+            if (startsWithNumber(textMessage)) {
+                int space = textMessage.indexOf(" ");
+                if (space > 0) {
+                    String currencyCode = textMessage.substring(space + 1);
+                    float amount = parseFloat(textMessage.substring(0, space));
+                    log.debug("Request to get rubles count for currency {} amount {}", currencyCode, amount);
+                    responseText = getRublesForCurrencyValue(currencyCode, amount);
+                } else {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
+            } else {
+                if (textMessage.startsWith("_")) {
+                    textMessage = textMessage.substring(1);
+                }
 
-            log.debug("Request to get exchange rates for {}", textMessage);
-            responseText = getExchangeRatesForCode(valuteList, valuteListYesterday, textMessage.toUpperCase(Locale.ROOT), cursDate);
+                log.debug("Request to get exchange rates for {}", textMessage);
+                responseText = getExchangeRatesForCode(textMessage.toUpperCase(Locale.ROOT));
+            }
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -75,12 +83,16 @@ public class Exchange implements CommandParent<SendMessage> {
     /**
      * Getting exchange rates for USD and EUR.
      *
-     * @param valuteList list with data of exchange rates.
-     * @param date date of current exchange rates.
-     * @param valuteListYesterday exchange rate for yesterday.
      * @return formatted text with exchange rates.
      */
-    private String getExchangeRatesForUsdAndEur(List<Valute> valuteList, List<Valute> valuteListYesterday, String date) {
+    private String getExchangeRatesForUsdAndEur() {
+        ValCurs valCursCurrent = getValCursData();
+        String cursDate = valCursCurrent.getDate();
+        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, DateUtils.dateFormatter).minusDays(1));
+
+        List<Valute> valuteList = valCursCurrent.getValute();
+        List<Valute> valuteListYesterday = valCursBefore.getValute();
+
         Float usdCurrent = getValuteByCode(valuteList, "USD").getValuteValue();
         Float usdBefore = getValuteByCode(valuteListYesterday, "USD").getValuteValue();
         Float eurCurrent = getValuteByCode(valuteList, "EUR").getValuteValue();
@@ -89,31 +101,58 @@ public class Exchange implements CommandParent<SendMessage> {
         return "<b>Курс валют ЦБ РФ:</b>\n" +
                 "$ USD = " + formatFloatValue(usdCurrent) + " RUB " + getDynamicsForValuteValue(usdCurrent, usdBefore) + "\n" +
                 "€ EUR = " + formatFloatValue(eurCurrent) + " RUB " + getDynamicsForValuteValue(eurCurrent, eurBefore) + "\n" +
-                "(" + date + ")";
+                "(" + cursDate + ")";
+    }
+
+    /**
+     * Getting rubles count for currency amount.
+     *
+     * @return formatted text with rubles count.
+     */
+    private String getRublesForCurrencyValue(String code, Float amount) {
+        List<Valute> valuteList = getValCursData().getValute();
+
+        Valute valute = getValuteByCode(valuteList, code);
+        if (valute == null) {
+            return "Не нашёл валюту <b>" + code + "</b>\nСписок доступных: " + getValuteList(valuteList);
+        } else {
+            float exchangeRate = getReversExchangeRate(valute);
+            return "<b>" + valute.getName() + " в Рубли</b>\n" +
+                    String.valueOf(amount).replaceAll("\\.", ",") + " " + valute.getCharCode() + " = " + formatFloatValue(amount / exchangeRate) + " ₽";
+        }
     }
 
     /**
      * Getting exchange rates for a specific valute.
      *
-     * @param valuteList list with data of exchange rates.
-     * @param valuteListYesterday exchange rate for yesterday.
      * @param code code of the valute.
      * @return formatted text with exchange rates.
      */
-    private String getExchangeRatesForCode(List<Valute> valuteList, List<Valute> valuteListYesterday, String code, String date) {
+    private String getExchangeRatesForCode(String code) {
+        ValCurs valCursCurrent = getValCursData();
+        String cursDate = valCursCurrent.getDate();
+        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, DateUtils.dateFormatter).minusDays(1));
+
+        List<Valute> valuteList = valCursCurrent.getValute();
+        List<Valute> valuteListYesterday = valCursBefore.getValute();
+
         Valute valute = getValuteByCode(valuteList, code);
         if (valute == null) {
             return "Не нашёл валюту <b>" + code + "</b>\nСписок доступных: " + getValuteList(valuteList);
         } else {
             Float valuteValueBefore = getValuteByCode(valuteListYesterday, code).getValuteValue();
             String dynamicsForValuteValue = getDynamicsForValuteValue(valute.getValuteValue(), valuteValueBefore);
-            String reversExchangeRate = formatFloatValue(Float.parseFloat(valute.getNominal().replaceAll(",", ".")) / valute.getValuteValue());
+            String reversExchangeRate = formatFloatValue(getReversExchangeRate(valute));
 
             return "<b>" + valute.getName() + "</b>\n" +
                     valute.getNominal() + " " + valute.getCharCode() + " = " + valute.getValue() + " RUB " + dynamicsForValuteValue + "\n" +
                    "1 RUB = " + reversExchangeRate + " " + valute.getCharCode() + "\n" +
-                    "(" + date + ")";
+                    "(" + cursDate + ")";
         }
+    }
+
+    private float getReversExchangeRate(Valute valute) {
+        return parseFloat(valute.getNominal()) / valute.getValuteValue();
     }
 
     /**
@@ -165,7 +204,7 @@ public class Exchange implements CommandParent<SendMessage> {
     private Valute getValuteByCode(List<Valute> valuteList, String code) {
         return valuteList
                 .stream()
-                .filter(valute -> valute.getCharCode().equals(code))
+                .filter(valute -> valute.getCharCode().equalsIgnoreCase(code))
                 .findFirst()
                 .orElse(null);
     }
@@ -204,15 +243,15 @@ public class Exchange implements CommandParent<SendMessage> {
         return valCurs;
     }
 
-    private String formatFloatValue(Float value) {
+    private String formatFloatValue(float value) {
         return formatFloat("%.4f", value);
     }
 
-    private String formatFloatValueWithLeadingSing(Float value) {
+    private String formatFloatValueWithLeadingSing(float value) {
         return formatFloat("%+.4f", value);
     }
 
-    private String formatFloat(String format, Float value) {
+    private String formatFloat(String format, float value) {
         return String.format(format, value);
     }
 
@@ -249,7 +288,7 @@ public class Exchange implements CommandParent<SendMessage> {
         private String name;
 
         public Float getValuteValue() {
-            return Float.parseFloat(this.value.replace(",", "."));
+            return parseFloat(this.value);
         }
     }
 }
