@@ -10,4 +10,5 @@ import org.telegram.bot.domain.entities.User;
  */
 public interface CommandWaitingRepository extends JpaRepository<CommandWaiting, Long> {
     CommandWaiting findByChatAndUser(Chat chat, User user);
+    void deleteByChatAndUser(Chat chat, User user);
 }

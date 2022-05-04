@@ -57,4 +57,12 @@ public interface CommandWaitingService {
      * @param commandWaiting the entity to remove.
      */
     void remove(CommandWaiting commandWaiting);
+
+    /**
+     * Remove a CommandWaiting.
+     *
+     * @param chat entity of Chat.
+     * @param user entity of User.
+     */
+    void remove(Chat chat, User user);
 }

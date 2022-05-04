@@ -3,6 +3,7 @@ package org.telegram.bot.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
@@ -78,5 +79,12 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
         }
         log.debug("Request to remove CommandWaiting {} ", commandWaiting);
         commandWaitingRepository.delete(commandWaiting);
+    }
+
+    @Override
+    @Transactional
+    public void remove(Chat chat, User user) {
+        log.debug("Request to remove CommandWaiting for Chat {} and User {}", chat, user);
+        commandWaitingRepository.deleteByChatAndUser(chat, user);
     }
 }
