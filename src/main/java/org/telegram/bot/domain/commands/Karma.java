@@ -26,7 +26,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -101,7 +100,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
             User anotherUser;
             try {
-                anotherUser = new User().setUserId(Long.parseLong(textMessage.substring(0, i)));
+                anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
             } catch (NumberFormatException e) {
                 anotherUser = userService.get(textMessage.substring(0, i));
             }
