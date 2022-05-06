@@ -2,6 +2,8 @@ package org.telegram.bot.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
@@ -37,9 +39,21 @@ public class AliasServiceImpl implements AliasService {
     }
 
     @Override
-    public List<Alias> get(Chat chat, User user) {
-        log.debug("Request to get UserCity by User: {} and chatId: {}", user, chat);
+    public List<Alias> getByChatAndUser(Chat chat, User user) {
+        log.debug("Request to get aliases by Chat: {}, User: {}", chat, user);
         return aliasRepository.findByChatAndUser(chat, user);
+    }
+
+    @Override
+    public Page<Alias> getByChatAndUser(Chat chat, User user, int page) {
+        log.debug("Request to get aliases by Chat: {}, User: {}, page: {}", chat, user, page);
+        return aliasRepository.findAllByChatAndUser(chat, user, PageRequest.of(page, 5));
+    }
+
+    @Override
+    public Page<Alias> getByChat(Chat chat, int page) {
+        log.debug("Request to get aliases by Chat: {}, page: {}", chat, page);
+        return aliasRepository.findAllByChat(chat, PageRequest.of(page, 5));
     }
 
     @Override

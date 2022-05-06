@@ -40,8 +40,9 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
         User user = new User().setUserId(message.getFrom().getId());
         log.debug("Request to get list of user {} and chat {}", user, chat);
         StringBuilder buf = new StringBuilder("*Список твоих алиасов:*\n");
+        final int firstPage = 0;
 
-        aliasService.get(chat, user)
+        aliasService.getByChatAndUser(chat, user, firstPage)
                 .forEach(alias -> buf
                         .append(alias.getId()).append(". ")
                         .append(alias.getName()).append(" - `")

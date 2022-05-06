@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.springframework.data.domain.Page;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
@@ -39,12 +40,29 @@ public interface AliasService {
     Alias get(Chat chat, User user, String name);
 
     /**
-     * Get an Alias.
+     * Get Aliases for User and Chat.
      * @param chat Chat entity of Alias to get.
      * @param user User entity of Alias to get.
+     * @return the persisted entities.
+     */
+    List<Alias> getByChatAndUser(Chat chat, User user);
+
+    /**
+     * Get Aliases for Chat.
+     * @param chat Chat entity of Alias to get.
+     * @param user User entity of Alias to get.
+     * @param page number of page.
      * @return the persisted entity.
      */
-    List<Alias> get(Chat chat, User user);
+    Page<Alias> getByChatAndUser(Chat chat, User user, int page);
+
+    /**
+     * Get Aliases for Chat excluding User.
+     * @param chat Chat entity of Alias to get.
+     * @param page number of page.
+     * @return the persisted entity.
+     */
+    Page<Alias> getByChat(Chat chat, int page);
 
     /**
      * Save an Alias.
