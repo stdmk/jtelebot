@@ -49,7 +49,8 @@ public class TextUtils {
     }
 
     public static String cutHtmlTags(String text) {
-        return text.replaceAll("<.*?>","");
+        text = text.replaceAll("<.*?>","");
+        return text.replaceAll("<", "");
     }
 
     public static String withCapital(String text) {
