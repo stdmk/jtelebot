@@ -40,9 +40,9 @@ public class UserTime implements CommandParent<SendMessage> {
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
-                user = new User().setUserId(repliedMessage.getFrom().getId());
+                user = userService.get(repliedMessage.getFrom().getId());
             } else {
-                user = new User().setUserId(message.getFrom().getId());
+                user = userService.get(message.getFrom().getId());
             }
         } else {
             user = userService.get(textMessage);
