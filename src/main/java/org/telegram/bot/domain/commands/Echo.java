@@ -125,8 +125,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         return phrasesRating
                 .entrySet()
                 .stream()
-                .filter(entry -> entry.getValue() > 0)
-                .findAny()
+                .max(Map.Entry.comparingByValue())
                 .map(talkerPhraseIntegerEntry -> talkerPhraseIntegerEntry.getKey().getPhrase())
                 .orElse(null);
     }
@@ -169,7 +168,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private List<String> getWordsFromText(String text) {
-        return parseText("[а-яА-Я]+", text);
+        return parseText("[а-яА-Я]{3,}", text);
     }
 
     private List<String> getPhrasesFromText(String text) {
