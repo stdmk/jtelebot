@@ -51,7 +51,7 @@ public class File {
     private LocalDateTime date;
 
     @Column(name = "size")
-    private Integer size;
+    private Long size;
 
     @Column(name = "type")
     private String type;

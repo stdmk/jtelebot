@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.PageImpl;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
@@ -19,7 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 
 @SpringBootTest(classes = {TestConfig.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -62,7 +63,8 @@ class AliasTest {
 
         Mockito.when(chatService.get(any(Long.class))).thenReturn(chat);
         Mockito.when(userService.get(any(Long.class))).thenReturn(user);
-        Mockito.when(aliasService.get(any(Chat.class), any(User.class))).thenReturn(Collections.singletonList(savedAlias));
+        Mockito.when(aliasService.getByChatAndUser(any(Chat.class), any(User.class), anyInt()))
+                .thenReturn(new PageImpl<>(Collections.singletonList(savedAlias)));
     }
 
     @Test
