@@ -130,10 +130,10 @@ public class TextUtils {
     }
 
     public static String formatFileSize(long size) {
-        return formatFileSize((int) size);
+        return formatFileSize((double) size);
     }
 
-    public static String formatFileSize(int size) {
+    public static String formatFileSize(double size) {
         float value = (float) size;
         String unit;
         float result;
