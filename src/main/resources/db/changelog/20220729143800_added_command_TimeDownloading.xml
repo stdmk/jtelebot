@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20220729143800-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="48"/>
+            <column name="commandname" value="timedownloading"/>
+            <column name="russifiedname" value="длительность"/>
+            <column name="enruname" value="lkbntkmyjcnm"/>
+            <column name="classname" value="timeDownloading"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Длительность,Расчёт времени скачивания файла,скорость; размер файла,длительность 1.3 гб 50 мбит; длительность 55 gb 100 mbit,бот понимает единицы размера файла: б кб мб гб тб пб b kb mb gb tb pb; единицы измерения скорости: бит кбит мбит гбит тбит пбит bit kbit mbit gbit tbit pbit"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
