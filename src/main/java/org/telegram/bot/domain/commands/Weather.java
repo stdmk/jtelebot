@@ -91,6 +91,7 @@ public class Weather implements CommandParent<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
+        sendMessage.setDisableWebPagePreview(true);
         sendMessage.setText(responseText);
 
         return sendMessage;
@@ -155,13 +156,14 @@ public class Weather implements CommandParent<SendMessage> {
      * @return current weather info.
      */
     private String prepareCurrentWeatherText(WeatherCurrent weatherCurrent) {
+        final String openWeatherMapWeatherUrl = "https://openweathermap.org/city/";
         StringBuilder buf = new StringBuilder();
         Sys sys = weatherCurrent.getSys();
         WeatherData weather = weatherCurrent.getWeather().get(0);
         Main main = weatherCurrent.getMain();
         Wind wind = weatherCurrent.getWind();
 
-        buf.append("*").append(weatherCurrent.getName()).append("*(").append(sys.getCountry()).append(")\n```\n");
+        buf.append("[").append(weatherCurrent.getName()).append("](" + openWeatherMapWeatherUrl).append(weatherCurrent.getId()).append(")(").append(sys.getCountry()).append(")\n```\n");
         buf.append(withCapital(weather.getDescription())).append(getWeatherEmoji(weather.getId())).append("\n");
         Rain rain = weatherCurrent.getRain();
         Snow snow = weatherCurrent.getSnow();
