@@ -3,8 +3,6 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
@@ -14,6 +12,8 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -27,7 +27,7 @@ import java.net.URL;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class WebScreen implements CommandParent<SendPhoto> {
+public class WebScreen implements CommandParent<PartialBotApiMethod<?>> {
 
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
@@ -36,7 +36,7 @@ public class WebScreen implements CommandParent<SendPhoto> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendPhoto parse(Update update) {
+    public PartialBotApiMethod<?> parse(Update update) {
         String token = propertiesConfig.getScreenshotMachineToken();
         if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
@@ -49,41 +49,74 @@ public class WebScreen implements CommandParent<SendPhoto> {
             textMessage = cutCommandInText(message.getText());
         }
 
+        URL url;
         if (textMessage == null) {
-            commandWaitingService.add(message, this.getClass());
-            throw new BotException("теперь напиши мне url-адрес");
+            Message replyToMessage = message.getReplyToMessage();
+            if (replyToMessage != null) {
+                if (replyToMessage.hasText()) {
+                    url = findFirstUrlInText(replyToMessage.getText());
+                } else {
+                    commandWaitingService.add(message, this.getClass());
+                    return getResponseForEmptyMessage(message);
+                }
+            } else {
+                commandWaitingService.add(message, this.getClass());
+                return getResponseForEmptyMessage(message);
+            }
         } else {
-            URL url;
-
-            if (!textMessage.startsWith("http")) {
-                textMessage = "http://" + textMessage;
-            }
-
-            try {
-                url = new URL(textMessage);
-            } catch (MalformedURLException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            log.debug("Request to get screen of url: {}", url);
-            SendPhoto sendPhoto = new SendPhoto();
-            String API_URL = "https://api.screenshotmachine.com?device=desktop&dimension=1350x950&format=png&cacheLimit=0&timeout=5000";
-
-            InputStream screen;
-            try {
-                screen = networkUtils.getFileFromUrl(API_URL + "&key=" + token + "&url=" + url);
-            } catch (IOException e) {
-                log.debug("Error getting screen ", e);
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-            }
-
-            botStats.incrementScreenshots();
-
-            sendPhoto.setPhoto(new InputFile(screen, "webscreen.png"));
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId().toString());
-
-            return sendPhoto;
+            url = findFirstUrlInText(textMessage);
         }
+
+        log.debug("Request to get screen of url: {}", url);
+        SendPhoto sendPhoto = new SendPhoto();
+        final String API_URL = "https://api.screenshotmachine.com?device=desktop&dimension=1350x950&format=png&cacheLimit=0&timeout=5000";
+
+        InputStream screen;
+        try {
+            screen = networkUtils.getFileFromUrl(API_URL + "&key=" + token + "&url=" + url);
+        } catch (IOException e) {
+            log.debug("Error getting screen ", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        botStats.incrementScreenshots();
+
+        sendPhoto.setPhoto(new InputFile(screen, "webscreen.png"));
+        sendPhoto.setReplyToMessageId(message.getMessageId());
+        sendPhoto.setChatId(message.getChatId().toString());
+
+        return sendPhoto;
+    }
+
+    private URL findFirstUrlInText(String text) {
+        String stringUrl;
+
+        int i = text.indexOf("http");
+        if (i < 0) {
+            stringUrl = "http://" + text;
+        } else {
+            text = text.substring(i);
+            int spaceIndex = text.indexOf(" ");
+            if (spaceIndex < 0) {
+                stringUrl = text;
+            } else {
+                stringUrl = text.substring(0, spaceIndex);
+            }
+        }
+
+        try {
+            return new URL(stringUrl);
+        } catch (MalformedURLException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
+    private SendMessage getResponseForEmptyMessage(Message message) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setText("теперь напиши мне url-адрес");
+
+        return sendMessage;
     }
 }
