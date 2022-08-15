@@ -270,8 +270,6 @@ public class UserStatsServiceImpl implements UserStatsService {
         if (message.hasText()) {
             userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1)
                     .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
-            LastMessage lastMessage = userStats.getLastMessage();
-            userStats.setLastMessage(lastMessageService.update(lastMessage, message));
         }
         else if (message.hasSticker()) {
             userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
@@ -305,6 +303,8 @@ public class UserStatsServiceImpl implements UserStatsService {
             userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
                     .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1);
         }
+
+        userStats.setLastMessage(lastMessageService.update(userStats.getLastMessage(), message));
 
         save(userStats);
     }
