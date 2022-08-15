@@ -18,7 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-import static org.telegram.bot.utils.DateUtils.formatTime;
+import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
@@ -37,9 +37,11 @@ public class UserTime implements CommandParent<SendMessage> {
         String responseText;
 
         User user;
+        Integer repliedMessageTime = null;
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
+                repliedMessageTime = repliedMessage.getDate();
                 user = userService.get(repliedMessage.getFrom().getId());
             } else {
                 user = userService.get(message.getFrom().getId());
@@ -64,8 +66,14 @@ public class UserTime implements CommandParent<SendMessage> {
             }
         } else {
             log.debug("Request to get time of user {}", user);
-            String dateTimeNow = formatTime(ZonedDateTime.now(ZoneId.of(userCity.getCity().getTimeZone())));
+
+            ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
+            String dateTimeNow = formatTime(ZonedDateTime.now(userZoneId));
             responseText = "У " + getLinkToUser(user, false) + " сейчас *" + dateTimeNow + "*";
+            if (repliedMessageTime != null) {
+                String pastDateTime = formatDateTime(unixTimeToLocalDateTime(repliedMessageTime, userZoneId));
+                responseText = responseText + "\n" + "На тот момент было: *" + pastDateTime + "*";
+            }
         }
 
         SendMessage sendMessage = new SendMessage();

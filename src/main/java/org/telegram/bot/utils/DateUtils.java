@@ -85,6 +85,10 @@ public class DateUtils {
         return (deltaDatesToString(secondDateTime, firstDateTime));
     }
 
+    public static LocalDateTime unixTimeToLocalDateTime(Integer time, ZoneId zoneId) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), zoneId);
+    }
+
     public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
         ZoneId zoneId = ZoneId.systemDefault();
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
