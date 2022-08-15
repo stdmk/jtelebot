@@ -127,7 +127,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
             StringBuilder buf = new StringBuilder();
             googleSearchResultService.save(googleSearchResults).forEach(googleSearchResult ->
-                    buf.append("<u>").append(googleSearchResult.getDisplayLink()).append("</u> ")
+                    buf.append("<a href=\"").append(googleSearchResult.getLink()).append("\"><u>").append(googleSearchResult.getDisplayLink()).append("</u></a> ")
                             .append(googleSearchResult.getTitle())
                             .append("\n/google_").append(googleSearchResult.getId()).append("\n\n")
             );
@@ -153,7 +153,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
      * @return google search data.
      */
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
-        String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
+        final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
         ResponseEntity<GoogleSearchData> response;
 
         try {
