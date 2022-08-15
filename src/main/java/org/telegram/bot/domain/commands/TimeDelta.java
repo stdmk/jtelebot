@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,28 +40,60 @@ public class TimeDelta implements CommandParent<SendMessage> {
 
         Pattern pattern;
         DateTimeFormatter dateFormatter;
+        LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime firstDateTime;
         LocalDateTime secondDateTime;
 
         if (textMessage.indexOf(":") > 0) {
-            pattern = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})");
-            dateFormatter = DateUtils.dateTimeFormatter;
-            Matcher matcher = pattern.matcher(textMessage);
+            if (textMessage.indexOf(".") > 0) {
+                pattern = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})");
+                dateFormatter = DateUtils.dateTimeFormatter;
+                Matcher matcher = pattern.matcher(textMessage);
 
-            if (matcher.find()) {
-                try {
-                    firstDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
-                } catch (Exception e) {
+                if (matcher.find()) {
+                    try {
+                        firstDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                    } catch (Exception e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                } else {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-            } else {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
 
-            if (matcher.find()) {
-                secondDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                if (matcher.find()) {
+                    secondDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                } else {
+                    secondDateTime = dateTimeNow;
+                }
             } else {
-                secondDateTime = LocalDateTime.now();
+                pattern = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
+                DateTimeFormatter timeFormatter = DateUtils.timeFormatter;
+                Matcher matcher = pattern.matcher(textMessage);
+
+                if (matcher.find()) {
+                    try {
+                        firstDateTime = LocalTime.parse(textMessage.substring(matcher.start(), matcher.end()), timeFormatter)
+                                .atDate(LocalDate.now());
+                    } catch (Exception e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                } else {
+                    pattern = Pattern.compile("(\\d{2}):(\\d{2})");
+                    matcher = pattern.matcher(textMessage);
+
+                    if (matcher.find()) {
+                        try {
+                            firstDateTime = LocalTime.parse(textMessage.substring(matcher.start(), matcher.end()) + ":00", timeFormatter)
+                                    .atDate(LocalDate.now());
+                        } catch (Exception e) {
+                            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                        }
+                    } else {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                }
+
+                secondDateTime = dateTimeNow;
             }
         } else {
             pattern = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
@@ -80,7 +113,7 @@ public class TimeDelta implements CommandParent<SendMessage> {
             if (matcher.find()) {
                 secondDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
             } else {
-                secondDateTime = LocalDateTime.now();
+                secondDateTime = dateTimeNow;
             }
         }
 
