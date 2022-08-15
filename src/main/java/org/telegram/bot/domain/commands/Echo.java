@@ -79,8 +79,13 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
         boolean sendMessage = false;
         Message replyToMessage = message.getReplyToMessage();
-        if (replyToMessage != null) {
-            if (bot.getBotUsername().equals(replyToMessage.getFrom().getUserName())) {
+        String botUsername = bot.getBotUsername();
+
+        if (textMessage.startsWith("@" + botUsername)) {
+            sendMessage = true;
+        }
+        else if (replyToMessage != null) {
+            if (botUsername.equals(replyToMessage.getFrom().getUserName())) {
                 sendMessage = true;
             }
         } else {
