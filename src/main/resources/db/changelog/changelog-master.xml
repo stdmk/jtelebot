@@ -106,4 +106,6 @@
     <include file="db/changelog/20220407154100_added_command_Qr.xml"/>
     <include file="db/changelog/20220727192800_change_File_size_type.xml"/>
     <include file="db/changelog/20220729143800_added_command_TimeDownloading.xml"/>
+    <include file="db/changelog/20220815120100_added_entity_UserZodiac.xml"/>
+    <include file="db/changelog/20220816094400_added_command_Horoscope.xml"/>
 </databaseChangeLog>

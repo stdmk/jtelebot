@@ -3,13 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.commands.setters.AliasSetter;
-import org.telegram.bot.domain.commands.setters.CitySetter;
-import org.telegram.bot.domain.commands.setters.DisableCommandSetter;
-import org.telegram.bot.domain.commands.setters.HolidaySetter;
-import org.telegram.bot.domain.commands.setters.NewsSetter;
-import org.telegram.bot.domain.commands.setters.TalkerSetter;
-import org.telegram.bot.domain.commands.setters.TvSetter;
+import org.telegram.bot.domain.commands.setters.*;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
@@ -46,6 +40,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final HolidaySetter holidaySetter;
     private final DisableCommandSetter disableCommandSetter;
     private final TalkerSetter talkerSetter;
+    private final ZodiacSetter zodiacSetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
@@ -54,6 +49,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String HOLIDAY = "праздник";
     private final String COMMAND = "команда";
     private final String TALKER = "болтун";
+    private final String ZODIAC = "зодиак";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -108,10 +104,14 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
                     return disableCommandSetter.set(update, textMessage);
                 }
             } else if (textMessage.toLowerCase().startsWith(TALKER)) {
-            if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
-                return talkerSetter.set(update, textMessage);
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.MODERATOR.getValue())) {
+                    return talkerSetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(ZODIAC)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return zodiacSetter.set(update, textMessage);
+                }
             }
-        }
             if (callback) {
                 return buildMainPageWithCallback(message);
             }
@@ -194,6 +194,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> talkerRow = new ArrayList<>();
         talkerRow.add(talkerButton);
 
+        InlineKeyboardButton zodiacButton = new InlineKeyboardButton();
+        zodiacButton.setText(SET + ZODIAC);
+        zodiacButton.setCallbackData(SET + ZODIAC);
+
+        List<InlineKeyboardButton> zodiacRow = new ArrayList<>();
+        zodiacRow.add(zodiacButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
@@ -202,6 +209,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(holidayRow);
         rows.add(commandRow);
         rows.add(talkerRow);
+        rows.add(zodiacRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
