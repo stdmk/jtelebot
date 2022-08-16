@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20220816094400-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="49"/>
+            <column name="commandname" value="horoscope"/>
+            <column name="russifiedname" value="гороскоп"/>
+            <column name="enruname" value="ujhjcrjg"/>
+            <column name="classname" value="horoscope"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="Гороскоп,Гороскоп на сегодня,тип,гороскоп; гороскоп анти,Есть возможность задать знак зодиака командой /set; данные берутся с сайта ignio.com"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
