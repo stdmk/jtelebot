@@ -3,7 +3,6 @@ package org.telegram.bot.timers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -25,7 +24,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.time.Instant;
@@ -33,8 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.GZIPInputStream;
 
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
@@ -100,22 +97,19 @@ public class TvProgramDownloaderTimer extends TimerParent {
      * @throws IOException if failed to transfer file.
      */
     private void transferTvProgramDataFile() throws IOException {
-        String zipFileName = "tvguide.zip";
-        final String tvProgramDataUrl = "https://www.teleguide.info/download/new3/" + zipFileName;
+        String zipFileName = "xmltv.xml.gz";
+        final String tvProgramDataUrl = "http://www.teleguide.info/download/new3/" + zipFileName;
 
         FileUtils.copyURLToFile(new URL(tvProgramDataUrl), new File(zipFileName));
 
-        ZipFile zipFile = new ZipFile(zipFileName);
-        ZipEntry entry = zipFile.entries().nextElement();
-
-        File entryDestination = new File(TV_PROGRAM_DATA_XML_FILE_NAME);
-        InputStream in = zipFile.getInputStream(entry);
-        OutputStream out = new FileOutputStream(entryDestination);
-        IOUtils.copy(in, out);
-
-        in.close();
-        out.close();
-        zipFile.close();
+        try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFileName));
+        OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+        }
     }
 
     void clearTvTables() {
