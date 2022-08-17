@@ -15,12 +15,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static org.telegram.bot.utils.DateUtils.getDayOfWeek;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 import static org.telegram.bot.utils.DateUtils.formatDate;
 
@@ -194,16 +193,6 @@ public class Holidays implements CommandParent<SendMessage> {
                 String.format("%02d", dateOfHoliday.getDayOfMonth()) + "." + String.format("%02d",dateOfHoliday.getMonth().getValue()) +
                 " </b><i>" + holiday.getName() + "</i> "  + getNumberOfYear(storedDate, dateOfHoliday) + "\n" +
                 "/holidays_" + holiday.getId() + "\n";
-    }
-
-    /**
-     * Getting name of day of week.
-     *
-     * @param date date
-     * @return name of day of week.
-     */
-    private String getDayOfWeek(LocalDate date) {
-        return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
     }
 
     /**

@@ -26,10 +26,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.telegram.bot.utils.DateUtils.formatTime;
-import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
+import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.withCapital;
 
 @Component
@@ -85,7 +85,9 @@ public class Weather implements CommandParent<SendMessage> {
         WeatherCurrent weatherCurrent = getWeatherCurrent(token, cityName);
         WeatherForecast weatherForecast = getWeatherForecast(token, cityName);
 
-        responseText = prepareCurrentWeatherText(weatherCurrent) + prepareForecastWeatherText(weatherForecast);
+        responseText = prepareCurrentWeatherText(weatherCurrent)
+                + prepareHourlyForecastWeatherText(weatherForecast)
+                + prepareDailyForecastWeatherText(weatherForecast);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
@@ -127,7 +129,7 @@ public class Weather implements CommandParent<SendMessage> {
      * @throws BotException if get an error from service.
      */
     private WeatherForecast getWeatherForecast(String token, String cityName) throws BotException {
-        final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&cnt=6&appid=" + token + "&q=";
+        final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&appid=" + token + "&q=";
         ResponseEntity<WeatherForecast> response;
 
         try {
@@ -210,29 +212,81 @@ public class Weather implements CommandParent<SendMessage> {
     }
 
     /**
-     * Preparing forecast part of weather.
+     * Preparing hourly forecast part of weather.
      *
      * @param weatherForecast weather forecast data.
      * @return forecast info.
      */
-    private String prepareForecastWeatherText(WeatherForecast weatherForecast) {
+    private String prepareHourlyForecastWeatherText(WeatherForecast weatherForecast) {
+        final int hoursOfForecastCount = 6;
         Integer timezone = weatherForecast.getCity().getTimezone();
 
         StringBuilder buf = new StringBuilder("*Прогноз по часам:*\n```\n");
 
         int maxLengthOfTemp = weatherForecast.getList()
                 .stream()
-                .mapToInt(data -> String.format("%+.2f", data.getMain().getTemp()).length())
+                .mapToInt(data -> String.format("%+.0f", data.getMain().getTemp()).length())
                 .max()
                 .orElse(5) + 2;
 
         weatherForecast.getList()
+                .stream()
+                .limit(hoursOfForecastCount)
                 .forEach(forecast -> buf.append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
-                    .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.2f", forecast.getMain().getTemp()) + "°"))
+                    .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.0f", forecast.getMain().getTemp()) + "°"))
                     .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
-                    .append(forecast.getWind().getSpeed()).append("м/c")
+                    .append(String.format("%.0f", forecast.getWind().getSpeed())).append("м/c ")
                     .append("\n"));
+
+        return buf + "```";
+    }
+
+    /**
+     * Preparing daily forecast part of weather.
+     *
+     * @param weatherForecast weather forecast data.
+     * @return forecast info.
+     */
+    private String prepareDailyForecastWeatherText(WeatherForecast weatherForecast) {
+        Integer timezone = weatherForecast.getCity().getTimezone();
+
+        StringBuilder buf = new StringBuilder("*Прогноз по дням:*\n```\n");
+
+        LocalDateTime firstDateTimeOfForecast = unixTimeToLocalDateTime(weatherForecast.getList().get(0).getDt() + timezone);
+        LocalDateTime lastDateTimeOfForecast = firstDateTimeOfForecast.plusDays(5);
+
+        List<WeatherForecastData> forecastList = weatherForecast.getList();
+        for (int i = 0; i < forecastList.size(); i++) {
+            LocalDateTime currentDateTime = unixTimeToLocalDateTime(forecastList.get(i).getDt());
+            int currentDayOfMonth = currentDateTime.getDayOfMonth();
+
+            if (currentDayOfMonth > firstDateTimeOfForecast.getDayOfMonth() && currentDayOfMonth != lastDateTimeOfForecast.getDayOfMonth()) {
+                WeatherForecastData minTemp = forecastList.get(i);
+                WeatherForecastData maxTemp = forecastList.get(i);
+
+                for (int j = i; j < i + 7 && j < forecastList.size(); j++) {
+                    WeatherForecastData currentForecast = forecastList.get(j);
+
+                    if (currentForecast.getMain().getTemp() < minTemp.getMain().getTemp()) {
+                        minTemp = currentForecast;
+                    }
+
+                    if (currentForecast.getMain().getTemp() > maxTemp.getMain().getTemp()) {
+                        maxTemp = currentForecast;
+                    }
+                }
+
+                buf.append(currentDateTime.getDayOfMonth()).append(" ").append(getDayOfWeek(currentDateTime)).append(" ")
+                        .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
+                        .append(String.format("%+.0f", maxTemp.getMain().getTemp())).append("° ")
+                        .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
+                        .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("° ").append("\n");
+
+                firstDateTimeOfForecast = currentDateTime;
+                i = i + 6;
+            }
+        }
 
         return buf + "```";
     }

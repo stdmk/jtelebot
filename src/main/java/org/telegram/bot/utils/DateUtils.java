@@ -11,8 +11,10 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 public class DateUtils {
 
@@ -85,8 +87,20 @@ public class DateUtils {
         return (deltaDatesToString(secondDateTime, firstDateTime));
     }
 
+    public static LocalDateTime unixTimeToLocalDateTime(Integer time) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.of("UTC"));
+    }
+
     public static LocalDateTime unixTimeToLocalDateTime(Integer time, ZoneId zoneId) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), zoneId);
+    }
+
+    public static String getDayOfWeek(LocalDateTime dateTime) {
+        return dateTime.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
+    }
+
+    public static String getDayOfWeek(LocalDate date) {
+        return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
     }
 
     public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
