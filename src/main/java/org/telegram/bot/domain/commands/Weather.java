@@ -276,9 +276,9 @@ public class Weather implements CommandParent<SendMessage> {
                     }
                 }
 
-                buf.append(currentDate.getDayOfMonth()).append(" ").append(getDayOfWeek(currentDate)).append(" ")
+                buf.append(String.format("%-7s", currentDate.getDayOfMonth() + " " + getDayOfWeek(currentDate) + " "))
                         .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
-                        .append(String.format("%+.0f", maxTemp.getMain().getTemp())).append("° ")
+                        .append(String.format("%-5s", String.format("%+.0f", maxTemp.getMain().getTemp()) + "° "))
                         .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
                         .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("° ").append("\n");
 
