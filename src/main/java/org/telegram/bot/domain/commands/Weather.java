@@ -26,7 +26,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -253,19 +253,18 @@ public class Weather implements CommandParent<SendMessage> {
 
         StringBuilder buf = new StringBuilder("*Прогноз по дням:*\n```\n");
 
-        LocalDateTime firstDateTimeOfForecast = unixTimeToLocalDateTime(weatherForecast.getList().get(0).getDt() + timezone);
-        LocalDateTime lastDateTimeOfForecast = firstDateTimeOfForecast.plusDays(5);
+        LocalDate firstDateOfForecast = unixTimeToLocalDateTime(weatherForecast.getList().get(0).getDt() + timezone).toLocalDate();
+        LocalDate lastDateOfForecast = firstDateOfForecast.plusDays(5);
 
         List<WeatherForecastData> forecastList = weatherForecast.getList();
         for (int i = 0; i < forecastList.size(); i++) {
-            LocalDateTime currentDateTime = unixTimeToLocalDateTime(forecastList.get(i).getDt());
-            int currentDayOfMonth = currentDateTime.getDayOfMonth();
+            LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
 
-            if (currentDayOfMonth > firstDateTimeOfForecast.getDayOfMonth() && currentDayOfMonth != lastDateTimeOfForecast.getDayOfMonth()) {
+            if (currentDate.isAfter(firstDateOfForecast) && currentDate.getDayOfMonth() != lastDateOfForecast.getDayOfMonth()) {
                 WeatherForecastData minTemp = forecastList.get(i);
                 WeatherForecastData maxTemp = forecastList.get(i);
 
-                for (int j = i; j < i + 7 && j < forecastList.size(); j++) {
+                for (int j = i; j < i + 9 && j < forecastList.size(); j++) {
                     WeatherForecastData currentForecast = forecastList.get(j);
 
                     if (currentForecast.getMain().getTemp() < minTemp.getMain().getTemp()) {
@@ -277,14 +276,14 @@ public class Weather implements CommandParent<SendMessage> {
                     }
                 }
 
-                buf.append(currentDateTime.getDayOfMonth()).append(" ").append(getDayOfWeek(currentDateTime)).append(" ")
+                buf.append(currentDate.getDayOfMonth()).append(" ").append(getDayOfWeek(currentDate)).append(" ")
                         .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
                         .append(String.format("%+.0f", maxTemp.getMain().getTemp())).append("° ")
                         .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
                         .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("° ").append("\n");
 
-                firstDateTimeOfForecast = currentDateTime;
-                i = i + 6;
+                firstDateOfForecast = currentDate;
+                i = i + 8;
             }
         }
 
