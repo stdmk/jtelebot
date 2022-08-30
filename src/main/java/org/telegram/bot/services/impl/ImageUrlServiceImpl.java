@@ -31,6 +31,12 @@ public class ImageUrlServiceImpl implements ImageUrlService {
     }
 
     @Override
+    public boolean isImageUrlExists(Long imageUrlId) {
+        log.debug("Request to check ImageUrl exists with id {}", imageUrlId);
+        return imageUrlRepository.existsById(imageUrlId);
+    }
+
+    @Override
     public ImageUrl getRandom() {
         log.debug("Request to get random ImageUrl");
 

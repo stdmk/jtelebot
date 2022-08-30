@@ -25,6 +25,14 @@ public interface ImageUrlService {
     ImageUrl get(String url);
 
     /**
+     * Is the ImageUrl exists.
+     *
+     * @param imageUrlId id of ImageUrl.
+     * @return the persisted entity.
+     */
+    boolean isImageUrlExists(Long imageUrlId);
+
+    /**
      * Get random ImageUrl.
      *
      * @return the persisted entity.

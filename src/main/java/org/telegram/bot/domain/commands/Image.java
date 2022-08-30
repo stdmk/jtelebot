@@ -87,7 +87,7 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setText("Не удалось загрузить картинку по адресу: " + imageUrl.getUrl() +
                     "\n" + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) +
-                    "\n\n" + Emoji.RIGHT_ARROW.getEmoji() + " /image_" + (imageId + 1));
+                    "\n\n" + getNextImageCommandText(imageId + 1));
             sendMessage.enableHtml(true);
             sendMessage.disableWebPagePreview();
 
@@ -100,7 +100,7 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
         if (imageId > 1) {
             caption = caption + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) + "\n\n";
         }
-        caption = caption + "/image_" + imageId + "\n\n" + Emoji.RIGHT_ARROW.getEmoji() + " /image_" + (imageId + 1);
+        caption = caption + "/image_" + imageId + "\n\n" + getNextImageCommandText(imageId + 1);
 
         sendPhoto.setPhoto(new InputFile(image, imageUrl.getUrl()));
         sendPhoto.setCaption(caption);
@@ -108,5 +108,13 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
         sendPhoto.setChatId(message.getChatId().toString());
 
         return sendPhoto;
+    }
+
+    private String getNextImageCommandText(Long imageId) {
+        if (imageUrlService.isImageUrlExists(imageId)) {
+            return Emoji.RIGHT_ARROW.getEmoji() + " /image_" + imageId;
+        } else {
+            return "";
+        }
     }
 }
