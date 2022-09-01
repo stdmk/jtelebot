@@ -223,11 +223,14 @@ public class Weather implements CommandParent<SendMessage> {
 
         StringBuilder buf = new StringBuilder("*Прогноз по часам:*\n```\n");
 
+        final int lengthOfAdditionalSymbols = 2;
+        final int minLengthOfTemp = 2;
         int maxLengthOfTemp = weatherForecast.getList()
                 .stream()
+                .limit(hoursOfForecastCount)
                 .mapToInt(data -> String.format("%+.0f", data.getMain().getTemp()).length())
                 .max()
-                .orElse(5) + 2;
+                .orElse(minLengthOfTemp) + lengthOfAdditionalSymbols;
 
         weatherForecast.getList()
                 .stream()
@@ -259,8 +262,9 @@ public class Weather implements CommandParent<SendMessage> {
         List<WeatherForecastData> forecastList = weatherForecast.getList();
         for (int i = 0; i < forecastList.size(); i++) {
             LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
+            int currentDayOfMonth = currentDate.getDayOfMonth();
 
-            if (currentDate.isAfter(firstDateOfForecast) && currentDate.getDayOfMonth() != lastDateOfForecast.getDayOfMonth()) {
+            if (currentDate.isAfter(firstDateOfForecast) && currentDayOfMonth != lastDateOfForecast.getDayOfMonth()) {
                 WeatherForecastData minTemp = forecastList.get(i);
                 WeatherForecastData maxTemp = forecastList.get(i);
 
@@ -276,7 +280,8 @@ public class Weather implements CommandParent<SendMessage> {
                     }
                 }
 
-                buf.append(String.format("%-7s", currentDate.getDayOfMonth() + " " + getDayOfWeek(currentDate) + " "))
+
+                buf.append(String.format("%02d", currentDayOfMonth)).append(" ").append(getDayOfWeek(currentDate)).append(" ")
                         .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
                         .append(String.format("%-5s", String.format("%+.0f", maxTemp.getMain().getTemp()) + "° "))
                         .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
