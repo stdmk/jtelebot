@@ -2,6 +2,8 @@ package org.telegram.bot.utils;
 
 import org.telegram.bot.domain.entities.User;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -171,5 +173,25 @@ public class TextUtils {
 
     public static Float parseFloat(String text) {
         return Float.parseFloat(text.replace(",", "."));
+    }
+
+    public static boolean isThatUrl(String text) {
+        try {
+            new URL(text);
+        } catch (MalformedURLException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isThatInteger(String text) {
+        try {
+            Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
     }
 }
