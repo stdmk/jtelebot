@@ -108,4 +108,5 @@
     <include file="db/changelog/20220729143800_added_command_TimeDownloading.xml"/>
     <include file="db/changelog/20220815120100_added_entity_UserZodiac.xml"/>
     <include file="db/changelog/20220816094400_added_command_Horoscope.xml"/>
+    <include file="db/changelog/20221203133800_added_command_Webcam.xml"/>
 </databaseChangeLog>

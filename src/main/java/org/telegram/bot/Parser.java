@@ -74,6 +74,10 @@ public class Parser extends Thread {
                 } catch (TelegramApiException e) {
                     tryToSendOnePhoto(sendMediaGroup);
                 }
+            } else if (method instanceof SendVideo) {
+                SendVideo sendVideo = (SendVideo) method;
+                log.info("To " + message.getChatId() + ": " + sendVideo.getCaption());
+                bot.execute(sendVideo);
             } else if (method instanceof EditMessageText) {
                 EditMessageText editMessageText = (EditMessageText) method;
                 log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
