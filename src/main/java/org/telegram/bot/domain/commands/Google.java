@@ -30,6 +30,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -105,10 +106,12 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             List<GoogleSearchResult> googleSearchResults = googleSearchData.getItems()
                     .stream()
                     .map(googleSearchItem -> {
-                        Pagemap pagemap = googleSearchItem.getPagemap();
                         ImageUrl imageUrl = null;
 
-                        List<Src> srcList = pagemap.getCseImage();
+                        List<Src> srcList = Optional.ofNullable(googleSearchItem.getPagemap())
+                                .map(Pagemap::getCseImage)
+                                .orElse(null);
+
                         if (!CollectionUtils.isEmpty(srcList)) {
                             imageUrl = imageUrlService.save(new ImageUrl()
                                     .setTitle(googleSearchItem.getTitle())
