@@ -14,9 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 @Component
 @RequiredArgsConstructor
@@ -55,12 +53,9 @@ public class Webcam implements CommandParent<SendVideo> {
         final String command = "ffmpeg -re -t " + duration + " -i " + url + " -c:v copy -c:a copy -bsf:a aac_adtstoasc " + fileName;
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+            ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command.split(" "));
+
             Process process = processBuilder.start();
-            InputStream inputStream = process.getInputStream();
-            InputStream errorStream = process.getErrorStream();
-            inputStream.close();
-            errorStream.close();
             process.waitFor();
         } catch (IOException | InterruptedException e) {
             log.error("Failed to call command {}: {}", command, e.getMessage());

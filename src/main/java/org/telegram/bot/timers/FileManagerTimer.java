@@ -36,7 +36,25 @@ public class FileManagerTimer extends TimerParent {
 
     public String addFile(String prefix, String postfix) {
         String fileName = prefix + filesCounter.incrementAndGet() + postfix;
+
+        File file = new File(fileName);
+        if (file.exists()) {
+            if (!file.delete()) {
+                return addFile(prefix, postfix);
+            }
+        }
+
         files.put(fileName, LocalDateTime.now());
         return fileName;
+    }
+
+    public void deleteAllFiles() {
+        for (Map.Entry<String, LocalDateTime> entry: files.entrySet()) {
+            if (new File(entry.getKey()).delete()) {
+                files.remove(entry.getKey());
+            }
+        }
+
+        log.warn("Failed to delete files: {}", String.join(", ", files.keySet()));
     }
 }

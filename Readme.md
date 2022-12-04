@@ -4,6 +4,9 @@ Java Telegram Bot (Spring)
 ### Properties
 You must specify the bot api token in the file properties.properties
 
+### System
+To use the /webcam command, you need to install ffmpeg on your system
+
 ### Build
 To build jar-file:
 
