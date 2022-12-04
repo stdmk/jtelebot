@@ -27,7 +27,7 @@ public class Webcam implements CommandParent<SendVideo> {
     private final static String fileNamePrefix = "file";
     private final static String fileNamePostfix = ".mp4";
     private final static int defaultVideoDurationInSeconds = 5;
-    private final static int maxVideoDurationInSeconds = 500;
+    private final static int maxVideoDurationInSeconds = 20;
 
     @Override
     public SendVideo parse(Update update) {
@@ -50,7 +50,7 @@ public class Webcam implements CommandParent<SendVideo> {
         }
 
         String fileName = fileManagerTimer.addFile(fileNamePrefix, fileNamePostfix);
-        final String command = "ffmpeg -re -t " + duration + " -i " + url + " -c:v copy -c:a copy -bsf:a aac_adtstoasc " + fileName;
+        final String command = "ffmpeg -re -t " + duration + " -i " + url + " -c:v copy -c:a copy -bsf:a aac_adtstoasc -t " + duration + " " + fileName;
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command.split(" "));
