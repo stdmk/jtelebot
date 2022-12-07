@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -22,16 +24,20 @@ public class FileManagerTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 30000)
     public void execute() {
-        final int fileLifeTimeMinutes = 10;
+        final int fileLifeTimeMinutes = 5;
         LocalDateTime dateTimeNow = LocalDateTime.now();
+        Set<String> fileNamesToRemove = new HashSet<>();
 
-        for (Map.Entry<String, LocalDateTime> entry: files.entrySet()) {
-            if (dateTimeNow.isAfter(entry.getValue().plusMinutes(fileLifeTimeMinutes))) {
-                if (new File(entry.getKey()).delete()) {
-                    files.remove(entry.getKey());
+        files.forEach((key, value) -> {
+            if (dateTimeNow.isAfter(value.plusMinutes(fileLifeTimeMinutes))) {
+                if (new File(key).delete()) {
+                    files.remove(key);
+                    fileNamesToRemove.add(key);
                 }
             }
-        }
+        });
+
+        deleteFiles(fileNamesToRemove);
     }
 
     public String addFile(String prefix, String postfix) {
@@ -50,6 +56,10 @@ public class FileManagerTimer extends TimerParent {
 
     public void deleteFile(String fileName) {
         files.remove(fileName);
+    }
+
+    public void deleteFiles(Set<String> fileNames) {
+        files.keySet().removeAll(fileNames);
     }
 
     public void deleteAllFiles() {
