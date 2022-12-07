@@ -62,11 +62,15 @@ public class FileManagerTimer extends TimerParent {
     }
 
     public void deleteAllFiles() {
-        for (Map.Entry<String, LocalDateTime> entry: files.entrySet()) {
-            if (new File(entry.getKey()).delete()) {
-                deleteFile(entry.getKey());
+        Set<String> fileNamesToRemove = new HashSet<>();
+
+        files.forEach((key, value) -> {
+            if (new File(key).delete()) {
+                fileNamesToRemove.add(key);
             }
-        }
+        });
+
+        deleteFiles(fileNamesToRemove);
 
         log.warn("Failed to delete files: {}", String.join(", ", files.keySet()));
     }
