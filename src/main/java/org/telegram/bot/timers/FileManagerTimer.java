@@ -31,7 +31,6 @@ public class FileManagerTimer extends TimerParent {
         files.forEach((key, value) -> {
             if (dateTimeNow.isAfter(value.plusMinutes(fileLifeTimeMinutes))) {
                 if (new File(key).delete()) {
-                    files.remove(key);
                     fileNamesToRemove.add(key);
                 }
             }
