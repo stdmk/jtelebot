@@ -71,7 +71,7 @@ public class Webcam implements CommandParent<SendVideo> {
         SendVideo sendVideo = new SendVideo();
         sendVideo.setChatId(message.getChatId());
         sendVideo.setReplyToMessageId(message.getMessageId());
-        sendVideo.setVideo(new InputFile(new File(fileName)));
+        sendVideo.setVideo(new InputFile(videoFile));
 
         return sendVideo;
     }
