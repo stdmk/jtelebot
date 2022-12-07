@@ -48,10 +48,14 @@ public class FileManagerTimer extends TimerParent {
         return fileName;
     }
 
+    public void deleteFile(String fileName) {
+        files.remove(fileName);
+    }
+
     public void deleteAllFiles() {
         for (Map.Entry<String, LocalDateTime> entry: files.entrySet()) {
             if (new File(entry.getKey()).delete()) {
-                files.remove(entry.getKey());
+                deleteFile(entry.getKey());
             }
         }
 

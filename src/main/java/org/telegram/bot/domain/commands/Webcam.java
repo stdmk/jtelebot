@@ -62,6 +62,12 @@ public class Webcam implements CommandParent<SendVideo> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
+        File videoFile = new File(fileName);
+        if (!videoFile.exists()) {
+            fileManagerTimer.deleteFile(fileName);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
         SendVideo sendVideo = new SendVideo();
         sendVideo.setChatId(message.getChatId());
         sendVideo.setReplyToMessageId(message.getMessageId());
