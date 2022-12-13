@@ -90,6 +90,7 @@ public class TrackCodeServiceImpl implements TrackCodeService {
     }
 
     @Override
+    @Transactional
     public void updateFromApi(TrackCode trackCode) throws BotException {
         List<TrackCodeEvent> trackCodeEventList = postTrackingService.getData(trackCode.getBarcode());
 
