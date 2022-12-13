@@ -19,4 +19,7 @@ public class PropertiesConfig {
     private String screenshotMachineToken;
     private String wolframAlphaToken;
     private Boolean spyMode;
+    private String russianPostLogin;
+    private String russianPostPassword;
+    private String russianPostRequestsLimit;
 }

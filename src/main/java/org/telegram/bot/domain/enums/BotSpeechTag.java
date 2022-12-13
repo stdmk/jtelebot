@@ -19,6 +19,7 @@ public enum BotSpeechTag {
     INTERNAL_ERROR("internalError"),
     FOUND_NOTHING("foundNothing"),
     SETTING_REQUIRED("settingRequired"),
+    DUPLICATE_ENTRY("duplicateEntry"),
     ;
 
     private final String value;

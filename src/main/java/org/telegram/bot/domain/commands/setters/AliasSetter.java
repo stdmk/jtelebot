@@ -210,7 +210,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
             Alias alias = aliasService.get(aliasId);
 
             if (aliasService.get(chat, user, alias.getName()) != null) {
-                return buildSendMessageWithText(message, "Алиас под таким именем уже существует");
+                return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY));
             }
 
             aliasService.save(new Alias()
@@ -271,7 +271,7 @@ public class AliasSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         Alias alias = aliasService.get(chat, user, aliasName);
         if (alias != null) {
-            return buildSendMessageWithText(message, "Алиас под таким именем уже существует");
+            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY));
         }
 
         alias = new Alias();

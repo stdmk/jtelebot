@@ -125,7 +125,7 @@ public class NewsSetter implements SetterParent<PartialBotApiMethod<?>> {
 
         org.telegram.bot.domain.entities.News news = newsService.get(chat, name, newsSource);
         if (news != null) {
-            return buildSendMessageWithText(message, "Такой источник уже существует: " + news.getName() + " - " + news.getNewsSource().getUrl());
+            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY));
         }
 
         if (newsSource.getId() == null) {
