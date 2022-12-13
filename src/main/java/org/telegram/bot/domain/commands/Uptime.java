@@ -14,9 +14,7 @@ import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
-import static org.telegram.bot.utils.DateUtils.formatDateTime;
-import static org.telegram.bot.utils.DateUtils.formatDate;
+import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.formatLongValue;
 
 @Component
@@ -56,8 +54,8 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Почтозапросов: <b>").append(botStats.getRussianPostRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
-        buf.append("Обновление ТВ: <b>").append(formatDate(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
-        buf.append("Обновление треков: <b>").append(formatDate(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");
+        buf.append("Обновление ТВ: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
+        buf.append("Обновление треков: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");
         buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" мб</b>\n");
 
         SendMessage sendMessage = new SendMessage();

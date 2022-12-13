@@ -24,12 +24,15 @@ public class DateUtils {
     private static final String DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING = "dd.MM.yyyy HH:mm";
     private static final String TIME_WITHOUT_SECONDS_FORMAT_STRING = "HH:mm";
 
+    private static final String DATE_TIME_WITHOUT_YEAR_AND_SECONDS_FORMAT_STRING = "dd.MM HH:mm";
+
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING);
     public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_WITHOUT_SECONDS_FORMAT_STRING);
+    public static final DateTimeFormatter dateTimeShortFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_YEAR_AND_SECONDS_FORMAT_STRING);
 
     public static String formatDate(Date date) {
         return dateTimeFormat.format(date);
@@ -69,6 +72,10 @@ public class DateUtils {
 
     public static String formatDateTime(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeFormatter);
+    }
+
+    public static String formatShortDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeShortFormatter);
     }
 
     public static String formatTvTime(LocalDateTime dateTime, ZoneId zoneId) {

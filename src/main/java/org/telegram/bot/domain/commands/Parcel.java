@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
+import static org.telegram.bot.utils.DateUtils.formatShortDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -444,8 +445,8 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         Instant nextAutomaticUpdate = Instant.ofEpochMilli(botStats.getLastTracksUpdate())
                 .plusSeconds(TrackCodeEventsTimer.FIXED_RATE_HOURS * 60 * 60);
 
-        buf.append("Последнее обновление: <b>").append(formatDateTime(lastUpdateDateTime)).append("</b>\n")
-                .append("Следующее обновление: <b>").append(formatDateTime(nextAutomaticUpdate)).append("</b>\n");
+        buf.append("Последнее обновление: <b>").append(formatShortDateTime(lastUpdateDateTime)).append("</b>\n")
+                .append("Следующее обновление: <b>").append(formatShortDateTime(nextAutomaticUpdate)).append("</b>\n");
 
         return buf.toString();
     }
