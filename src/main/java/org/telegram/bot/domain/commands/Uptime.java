@@ -6,7 +6,6 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.repositories.TalkerPhraseRepository;
-import org.telegram.bot.repositories.TalkerWordRepository;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -54,9 +53,11 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Фраз болтуна: <b>").append(talkerPhraseRepository.countByChat(new Chat().setChatId(message.getChatId()))).append("</b> (").append(talkerPhraseRepository.count()).append(")\n");
         buf.append("Обработано команд: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(formatLongValue(botStats.getTotalCommandsProcessed())).append(")\n");
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
+        buf.append("Почтозапросов: <b>").append(botStats.getRussianPostRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
         buf.append("Обновление ТВ: <b>").append(formatDate(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
+        buf.append("Обновление треков: <b>").append(formatDate(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");
         buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" мб</b>\n");
 
         SendMessage sendMessage = new SendMessage();

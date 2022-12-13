@@ -22,6 +22,8 @@ import static org.telegram.bot.utils.DateUtils.getDuration;
 public class BotStats {
     private final WorkParamService workParamService;
 
+    private final PropertiesConfig propertiesConfig;
+
     private final String botToken;
 
     private final LocalDateTime botStartDateTime;
@@ -48,24 +50,33 @@ public class BotStats {
 
     private Integer wolframRequests;
 
+    private Integer russianPostRequests;
+
     private Long lastTvUpdate;
+
+    private Long lastTracksUpdate;
 
     private static final String TOTAL_RECEIVED_MESSAGES = "totalReceivedMessages";
     private static final String TOTAL_RUNNING_TIME = "totalRunningTime";
     private static final String TOTAL_COMMANDS_PROCESSED = "totalCommandsProcessed";
     private static final String GOOGLE_REQUESTS = "googleRequests";
     private static final String WOLFRAM_REQUESTS = "wolframRequests";
+    private static final String RUSSIAN_POST_REQUESTS = "russianPostRequests";
     private static final String LAST_TV_UPDATE = "lastTvUpdate";
+    private static final String LAST_TRACKS_UPDATE = "lastTracksUpdate";
     private final List<String> botStatsFieldsToSave = Arrays.asList(
                                                             TOTAL_RECEIVED_MESSAGES,
                                                             TOTAL_RUNNING_TIME,
                                                             TOTAL_COMMANDS_PROCESSED,
                                                             GOOGLE_REQUESTS,
                                                             WOLFRAM_REQUESTS,
-                                                            LAST_TV_UPDATE);
+                                                            RUSSIAN_POST_REQUESTS,
+                                                            LAST_TV_UPDATE,
+                                                            LAST_TRACKS_UPDATE);
 
     public BotStats(WorkParamService workParamService, PropertiesConfig propertiesConfig) {
         this.workParamService = workParamService;
+        this.propertiesConfig = propertiesConfig;
         this.botToken = propertiesConfig.getTelegramBotApiToken();
 
         List<WorkParam> workParamList = workParamService.get(this.botToken);
@@ -74,10 +85,12 @@ public class BotStats {
         this.commandsProcessed = 0;
         this.errors = 0;
         this.screenshots = 0;
-        Arrays.asList(TOTAL_RECEIVED_MESSAGES, TOTAL_COMMANDS_PROCESSED, LAST_TV_UPDATE).forEach(field -> setTotalBaseField(workParamList, field));
+        Arrays.asList(TOTAL_RECEIVED_MESSAGES, TOTAL_COMMANDS_PROCESSED, LAST_TV_UPDATE, LAST_TRACKS_UPDATE)
+                .forEach(field -> setTotalBaseField(workParamList, field));
         setTotalRunningTime(workParamList);
         setGoogleRequests(workParamList);
         setWolframRequests(workParamList);
+        setRussianPostRequests(workParamList);
     }
 
     public void incrementReceivedMessages() {
@@ -106,12 +119,20 @@ public class BotStats {
         this.wolframRequests = this.wolframRequests - 1;
     }
 
+    public void incrementRussianPostRequests() {
+        this.russianPostRequests = this.russianPostRequests - 1;
+    }
+
     public void resetGoogleRequests() {
         this.googleRequests = 100;
     }
 
     public void resetWolframRequests() {
         this.wolframRequests = 1000;
+    }
+
+    public void resetRussianPostRequests() {
+        this.wolframRequests = Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
     }
 
     public void saveStats() {
@@ -146,6 +167,10 @@ public class BotStats {
         this.lastTvUpdate = lastTvUpdate.toEpochMilli();
     }
 
+    public void setLastTracksUpdate(Instant lastTracksUpdate) {
+        this.lastTracksUpdate = lastTracksUpdate.toEpochMilli();
+    }
+
     private void setTotalBaseField(List<WorkParam> workParamList, String fieldName) {
         WorkParam workParam = getWorkParamByName(workParamList, fieldName);
         long value;
@@ -177,6 +202,15 @@ public class BotStats {
             this.wolframRequests = 1000;
         } else {
             this.wolframRequests = Integer.parseInt(workParam.getValue());
+        }
+    }
+
+    private void setRussianPostRequests(List<WorkParam> workParamList) {
+        WorkParam workParam = getWorkParamByName(workParamList, RUSSIAN_POST_REQUESTS);
+        if (workParam == null) {
+            this.russianPostRequests = 100;
+        } else {
+            this.russianPostRequests = Integer.parseInt(workParam.getValue());
         }
     }
 

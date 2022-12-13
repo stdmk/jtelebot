@@ -109,4 +109,9 @@
     <include file="db/changelog/20220815120100_added_entity_UserZodiac.xml"/>
     <include file="db/changelog/20220816094400_added_command_Horoscope.xml"/>
     <include file="db/changelog/20221203133800_added_command_Webcam.xml"/>
+    <include file="db/changelog/20221209174100_insert_Speech_duplicateEntry.xml"/>
+    <include file="db/changelog/20221209175200_added_entity_TrackCodeEvent.xml"/>
+    <include file="db/changelog/20221209175800_added_entity_TrackCode.xml"/>
+    <include file="db/changelog/20221209175900_added_entity_Parcel.xml"/>
+    <include file="db/changelog/20221209180200_added_command_Parcel.xml"/>
 </databaseChangeLog>

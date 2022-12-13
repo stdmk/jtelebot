@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20221209174100-1" author="stdmk">
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="96"/>
+            <column name="tag" value="duplicateEntry"/>
+            <column name="message" value="такая запись уже есть, алё"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="97"/>
+            <column name="tag" value="duplicateEntry"/>
+            <column name="message" value="уже сохранял я такое, ты чего?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="98"/>
+            <column name="tag" value="duplicateEntry"/>
+            <column name="message" value="да есть уже такое, что у тебя с памятью?"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="99"/>
+            <column name="tag" value="duplicateEntry"/>
+            <column name="message" value="запись уже есть, можешь пользоваться"/>
+        </insert>
+        <insert schemaName="bot" tableName="speech">
+            <column name="id" value="100"/>
+            <column name="tag" value="duplicateEntry"/>
+            <column name="message" value="ты, наверное, забыл, но запись уже такая есть"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

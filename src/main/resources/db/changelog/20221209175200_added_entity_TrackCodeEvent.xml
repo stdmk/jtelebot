@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20221209175200-1" author="stdmk">
+        <createTable tableName="trackcodeevent" schemaName="bot">
+            <column name="track_code_event_id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="track_code_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="event_barcode" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="event_date_time" type="datetime">
+                <constraints nullable="true" />
+            </column>
+            <column name="address" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="index" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="item_name" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="gram" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="operation_type" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="operation_desc" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="country_from" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="country_to" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="sender" type="varchar">
+                <constraints nullable="true" />
+            </column>
+            <column name="recipient" type="varchar">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
