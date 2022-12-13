@@ -113,9 +113,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                     .stream()
                     .max(Comparator.comparing(TrackCodeEvent::getEventDateTime));
             buf.append("<code>").append(trackCode.getBarcode()).append("</code> — <b>").append(parcel.getName()).append("</b>\n");
-            optionalLastTrackCodeEvent.ifPresent(trackCodeEvent -> buf.append(formatDateTime(trackCodeEvent.getEventDateTime())).append("\n")
-                    .append(trackCodeEvent.getAddress()).append("\n")
-                    .append(trackCodeEvent.getOperationType()).append(" ").append(trackCodeEvent.getOperationDescription()).append("\n\n"));
+            optionalLastTrackCodeEvent.ifPresent(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent)).append(BORDER));
         });
 
         buf.append(buildStringUpdateTimesInformation());

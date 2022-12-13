@@ -33,7 +33,6 @@ public class TrackCodeEventsTimer extends TimerParent {
     private final TrackCodeService trackCodeService;
 
     public static final int FIXED_RATE_HOURS = 3;
-    private static final int FIXED_RATE_MILLISECONDS = FIXED_RATE_HOURS * 60 * 60 * 1000;
 
     @Override
     @Scheduled(fixedRate = 300000)
