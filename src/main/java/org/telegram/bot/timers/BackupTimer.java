@@ -2,9 +2,6 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -23,7 +20,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class BackupTimer extends TimerParent {
 
-    private final ApplicationContext context;
+    private final Bot bot;
     private final TimerService timerService;
     private final PropertiesConfig propertiesConfig;
     private final Backup backup;
@@ -44,8 +41,6 @@ public class BackupTimer extends TimerParent {
         LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
-            Bot bot = (Bot) context.getBean("bot");
-
             try {
                 bot.execute(backup.getDbBackup(propertiesConfig.getAdminId().toString()));
             } catch (TelegramApiException e) {

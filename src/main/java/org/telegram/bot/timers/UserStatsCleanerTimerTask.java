@@ -2,7 +2,6 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -20,7 +19,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class UserStatsCleanerTimerTask extends TimerParent {
 
-    private final ApplicationContext context;
+    private final Bot bot;
     private final TimerService timerService;
     private final UserStatsService userStatsService;
 
@@ -41,7 +40,6 @@ public class UserStatsCleanerTimerTask extends TimerParent {
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");
-            Bot bot = (Bot) context.getBean("bot");
             userStatsService.clearMonthlyStats().forEach(sendMessage -> {
                 try {
                     bot.execute((sendMessage));

@@ -2,7 +2,6 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -23,7 +22,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class HolidaysTimer extends TimerParent {
 
-    private final ApplicationContext context;
+    private final Bot bot;
     private final TimerService timerService;
     private final ChatService chatService;
     private final Holidays holidays;
@@ -45,7 +44,6 @@ public class HolidaysTimer extends TimerParent {
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             LocalDate dateNow = LocalDate.now();
-            Bot bot = (Bot) context.getBean("bot");
 
             chatService.getChatsWithHolidays()
                     .stream()

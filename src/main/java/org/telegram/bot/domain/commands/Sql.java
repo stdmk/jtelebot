@@ -1,10 +1,8 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
@@ -32,7 +30,7 @@ public class Sql implements CommandParent<SendMessage> {
     @PersistenceContext
     EntityManager entityManager;
 
-    private final ApplicationContext context;
+    private final Bot bot;
     private final SpeechService speechService;
 
     @Override
@@ -90,7 +88,6 @@ public class Sql implements CommandParent<SendMessage> {
     }
 
     private void sendErrorMessage(Message message, String responseText) {
-        Bot bot = (Bot) context.getBean("bot");
         try {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());

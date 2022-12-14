@@ -4,7 +4,6 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NewsTimer extends TimerParent {
 
-    private final ApplicationContext context;
+    private final Bot bot;
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
@@ -37,7 +36,6 @@ public class NewsTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 300000)
     public void execute() {
-        Bot bot = (Bot) context.getBean("bot");
         List<NewsSource> newsSources = newsService.getAll()
                 .stream()
                 .map(News::getNewsSource)
