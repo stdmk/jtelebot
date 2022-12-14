@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     implementation 'org.telegram:telegrambots-spring-boot-starter:6.1.0'
     implementation 'org.liquibase:liquibase-core'
+    implementation group: 'com.sun.xml.ws', name: 'jaxws-rt', version: '4.0.0'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
