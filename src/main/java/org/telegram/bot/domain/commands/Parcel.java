@@ -52,6 +52,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final String ADD_PARCEL_COMMAND = "добавить";
     private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
     private final String BORDER = "-----------------------------\n";
+    private final static String DELIVERED_OPERATION_TYPE = "Вручение";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -287,9 +288,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage getTrackCodeData(Message message, User user, String command) {
-        final int freePostAccountRequestsLimit = 100;
-        final boolean economyMode = freePostAccountRequestsLimit >= Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
-
         TrackCode trackCode;
         org.telegram.bot.domain.entities.Parcel parcel = parcelService.getByBarcodeOrName(user, command);
         if (parcel == null) {
@@ -301,6 +299,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
             trackCode = parcel.getTrackCode();
         }
 
+        final boolean economyMode = isEconomyMode(Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit()));
         String lastUpdatesTimeInfo;
         if (!economyMode || AccessLevel.ADMIN.getValue().equals(userService.getUserAccessLevel(user.getUserId()))) {
             trackCodeService.updateFromApi(trackCode);
@@ -386,6 +385,8 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         if (event.getAddress() != null) buf.append(event.getAddress());
         if (event.getIndex() != null) buf.append(" (").append(event.getIndex()).append(")\n"); else buf.append("\n");
 
+        if (isTheDeliveryEvent(event)) buf.append("\nПохоже, что посылка доставлена.\n" + "<b>Не забудьте удалить.</b> Это важно.\n");
+
         return buf.toString();
     }
 
@@ -400,10 +401,9 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                 .ifPresent(firstDateTime -> {
                     buf.append("Зарегистрирован: \n").append("<b>").append(formatDateTime(firstDateTime)).append("</b>\n");
 
-                    final String deliveredOperationType = "Вручение";
                     LocalDateTime lastDateTime = trackCodeEventList
                             .stream()
-                            .filter(trackCodeEvent -> deliveredOperationType.equalsIgnoreCase(trackCodeEvent.getOperationType()))
+                            .filter(trackCodeEvent -> DELIVERED_OPERATION_TYPE.equalsIgnoreCase(trackCodeEvent.getOperationType()))
                             .findFirst()
                             .map(TrackCodeEvent::getEventDateTime)
                             .orElse(LocalDateTime.now());
@@ -451,5 +451,13 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
+    private static boolean isEconomyMode(int requestsLimit) {
+        final int freePostAccountRequestsLimit = 100;
+        return freePostAccountRequestsLimit >= requestsLimit;
+    }
+
+    private static boolean isTheDeliveryEvent(TrackCodeEvent event) {
+        return DELIVERED_OPERATION_TYPE.equalsIgnoreCase(event.getOperationType());
+    }
 
 }
