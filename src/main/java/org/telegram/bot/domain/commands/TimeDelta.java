@@ -19,8 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
-import static org.telegram.bot.utils.DateUtils.formatDateTime;
+import static org.telegram.bot.utils.DateUtils.*;
 
 @Component
 @RequiredArgsConstructor
@@ -43,6 +42,7 @@ public class TimeDelta implements CommandParent<SendMessage> {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime firstDateTime;
         LocalDateTime secondDateTime;
+        String responseText;
 
         if (textMessage.indexOf(":") > 0) {
             if (textMessage.indexOf(".") > 0) {
@@ -95,14 +95,17 @@ public class TimeDelta implements CommandParent<SendMessage> {
 
                 secondDateTime = dateTimeNow;
             }
+            responseText = "До " + formatDateTime(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
         } else {
             pattern = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
             dateFormatter = DateUtils.dateFormatter;
             Matcher matcher = pattern.matcher(textMessage);
 
+            String textFirstDate;
             if (matcher.find()) {
+                textFirstDate = textMessage.substring(matcher.start(), matcher.end());
                 try {
-                    firstDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
+                    firstDateTime = LocalDate.parse(textFirstDate, dateFormatter).atStartOfDay();
                 } catch (Exception e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
@@ -112,8 +115,24 @@ public class TimeDelta implements CommandParent<SendMessage> {
 
             if (matcher.find()) {
                 secondDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
+                responseText = "До " + formatDate(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
             } else {
-                secondDateTime = dateTimeNow;
+                if (textMessage.length() != textFirstDate.length()) {
+                    int days;
+
+                    try {
+                        days = Integer.parseInt(textMessage.substring(textFirstDate.length() + 1));
+                    } catch (NumberFormatException e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+
+                    secondDateTime = firstDateTime.plusDays(days);
+
+                    responseText = formatDate(firstDateTime) + " *" + String.format("%+d", days) + "* = *" + formatDate(secondDateTime) + "*";
+                } else {
+                    secondDateTime = dateTimeNow;
+                    responseText = "До " + formatDate(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
+                }
             }
         }
 
@@ -123,7 +142,7 @@ public class TimeDelta implements CommandParent<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText("До " + formatDateTime(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*");
+        sendMessage.setText(responseText);
 
         return sendMessage;
     }
