@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
+import static org.telegram.bot.utils.TextUtils.isThatInteger;
 import static org.telegram.bot.utils.TextUtils.withCapital;
 
 @Component
@@ -103,16 +104,21 @@ public class Weather implements CommandParent<SendMessage> {
      * Getting current weather data from service.
      *
      * @param token access token.
-     * @param cityName name of city
+     * @param city name of city
      * @return current weather data.
      * @throws BotException if get an error from service.
      */
-    private WeatherCurrent getWeatherCurrent(String token, String cityName) throws BotException {
-        final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather?lang=ru&units=metric&appid=" + token + "&q=";
-        ResponseEntity<WeatherCurrent> response;
+    private WeatherCurrent getWeatherCurrent(String token, String city) throws BotException {
+        String weatherApiUrl;
+        if (isThatInteger(city)) {
+            weatherApiUrl = "http://api.openweathermap.org/data/2.5/weather?lang=ru&units=metric&appid=" + token + "&id=";
+        } else {
+            weatherApiUrl = "http://api.openweathermap.org/data/2.5/weather?lang=ru&units=metric&appid=" + token + "&q=";
+        }
 
+        ResponseEntity<WeatherCurrent> response;
         try {
-            response = botRestTemplate.getForEntity(WEATHER_API_URL + cityName, WeatherCurrent.class);
+            response = botRestTemplate.getForEntity(weatherApiUrl + city, WeatherCurrent.class);
         } catch (HttpClientErrorException e) {
             throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
         }
@@ -124,16 +130,21 @@ public class Weather implements CommandParent<SendMessage> {
      * Getting weather forecast data from service.
      *
      * @param token access token.
-     * @param cityName name of city
+     * @param city name of city
      * @return weather forecast data.
      * @throws BotException if get an error from service.
      */
-    private WeatherForecast getWeatherForecast(String token, String cityName) throws BotException {
-        final String FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&appid=" + token + "&q=";
-        ResponseEntity<WeatherForecast> response;
+    private WeatherForecast getWeatherForecast(String token, String city) throws BotException {
+        String forecastApiUrl;
+        if (isThatInteger(city)) {
+            forecastApiUrl = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&appid=" + token + "&id=";
+        } else {
+            forecastApiUrl = "https://api.openweathermap.org/data/2.5/forecast?lang=ru&units=metric&appid=" + token + "&q=";
+        }
 
+        ResponseEntity<WeatherForecast> response;
         try {
-            response = botRestTemplate.getForEntity(FORECAST_API_URL + cityName, WeatherForecast.class);
+            response = botRestTemplate.getForEntity(forecastApiUrl + city, WeatherForecast.class);
         } catch (HttpClientErrorException e) {
             throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
         }
