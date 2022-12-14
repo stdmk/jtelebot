@@ -34,6 +34,7 @@ public class TalkerWordServiceImpl implements TalkerWordService {
     @Override
     public Set<TalkerWord> get(List<String> words, Long chatId) {
         log.debug("Request to get TalkerWord for chat {} by words {}", chatId, String.join(", ", words));
+        words = words.stream().map(String::toLowerCase).collect(Collectors.toList());
         return talkerWordRepository.findAllByWordInIgnoreCaseAndPhrasesChatIdEq(words, chatId);
     }
 }
