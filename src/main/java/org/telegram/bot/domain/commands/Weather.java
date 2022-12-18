@@ -27,6 +27,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -271,6 +272,7 @@ public class Weather implements CommandParent<SendMessage> {
         LocalDate lastDateOfForecast = firstDateOfForecast.plusDays(5);
 
         List<WeatherForecastData> forecastList = weatherForecast.getList();
+        int spaceCount = getSpaceCount(forecastList, timezone);
         for (int i = 0; i < forecastList.size(); i++) {
             LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
             int currentDayOfMonth = currentDate.getDayOfMonth();
@@ -291,12 +293,11 @@ public class Weather implements CommandParent<SendMessage> {
                     }
                 }
 
-
                 buf.append(String.format("%02d", currentDayOfMonth)).append(" ").append(getDayOfWeek(currentDate)).append(" ")
                         .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
-                        .append(String.format("%-5s", String.format("%+.0f", maxTemp.getMain().getTemp()) + "° "))
+                        .append(String.format("%-" + spaceCount + "s", String.format("%+.0f", maxTemp.getMain().getTemp()) + "°"))
                         .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
-                        .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("° ").append("\n");
+                        .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("°").append("\n");
 
                 firstDateOfForecast = currentDate;
                 i = i + 8;
@@ -304,6 +305,42 @@ public class Weather implements CommandParent<SendMessage> {
         }
 
         return buf + "```";
+    }
+
+    private int getSpaceCount(List<WeatherForecastData> forecastList, Integer timezone) {
+        LocalDate firstDateOfForecast = unixTimeToLocalDateTime(forecastList.get(0).getDt() + timezone).toLocalDate();
+        LocalDate lastDateOfForecast = firstDateOfForecast.plusDays(5);
+
+        List<Double> maxDailyTempList = new ArrayList<>();
+        for (int i = 0; i < forecastList.size(); i++) {
+            LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
+            int currentDayOfMonth = currentDate.getDayOfMonth();
+
+            if (currentDate.isAfter(firstDateOfForecast) && currentDayOfMonth != lastDateOfForecast.getDayOfMonth()) {
+                WeatherForecastData maxTemp = forecastList.get(i);
+
+                for (int j = i; j < i + 9 && j < forecastList.size(); j++) {
+                    WeatherForecastData currentForecast = forecastList.get(j);
+
+                    if (currentForecast.getMain().getTemp() > maxTemp.getMain().getTemp()) {
+                        maxTemp = currentForecast;
+                    }
+                }
+
+                firstDateOfForecast = currentDate;
+                maxDailyTempList.add(maxTemp.getMain().getTempMax());
+                i = i + 8;
+            }
+        }
+
+        final int minimumRequiredSpaceCount = 3;
+        Long maxTempValueAbs = maxDailyTempList.stream()
+                .map(Math::round)
+                .map(Math::abs)
+                .max(Long::compareTo)
+                .orElse(1L);
+
+        return minimumRequiredSpaceCount + String.valueOf(maxTempValueAbs).length();
     }
 
     /**
