@@ -10,6 +10,7 @@ import org.telegram.bot.services.TalkerPhraseService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +24,16 @@ public class TalkerPhraseServiceImpl implements TalkerPhraseService {
         Set<String> words = talkerPhraseSet.stream().map(TalkerPhrase::getPhrase).collect(Collectors.toSet());
         log.debug("Request to save TalkerWords {}", words);
 
-        Set<String> alreadyStoredWords = talkerPhraseRepository.findAllByPhraseInIgnoreCase(words).stream().map(TalkerPhrase::getPhrase).collect(Collectors.toSet());
+        Set<TalkerPhrase> storedTalkerPhraseList = talkerPhraseRepository.findAllByPhraseInIgnoreCase(words);
+        List<String> storedPhrases = storedTalkerPhraseList.stream().map(TalkerPhrase::getPhrase).collect(Collectors.toList());
 
-        return talkerPhraseRepository.saveAll(talkerPhraseSet
-                .stream()
-                .filter(talkerWord -> !alreadyStoredWords.contains(talkerWord.getPhrase()))
-                .collect(Collectors.toSet()));
+        return Stream.concat(
+                storedTalkerPhraseList.stream(),
+                talkerPhraseRepository.saveAll(talkerPhraseSet
+                        .stream()
+                        .filter(talkerWord -> !storedPhrases.contains(talkerWord.getPhrase()))
+                        .collect(Collectors.toSet())).stream()
+                )
+                .collect(Collectors.toList());
     }
 }

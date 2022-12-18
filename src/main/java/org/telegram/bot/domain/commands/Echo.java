@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -127,12 +126,24 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
                     }
                 });
 
-        return phrasesRating
-                .entrySet()
-                .stream()
-                .max(Map.Entry.comparingByValue())
-                .map(talkerPhraseIntegerEntry -> talkerPhraseIntegerEntry.getKey().getPhrase())
-                .orElse(null);
+        String selectedPhrase = null;
+        Integer maxValue = phrasesRating.values().stream().max(Integer::compareTo).orElse(null);
+        if (maxValue != null) {
+            List<TalkerPhrase> talkerPhraseWithMaxRatingList = phrasesRating.entrySet()
+                    .stream()
+                    .filter(entry -> maxValue.equals(entry.getValue()))
+                    .map(Map.Entry::getKey).collect(Collectors.toList());
+
+            int talkerPhrasesWithMaxRatingCount = talkerPhraseWithMaxRatingList.size();
+            if (talkerPhrasesWithMaxRatingCount > 1) {
+                selectedPhrase = talkerPhraseWithMaxRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithMaxRatingCount))
+                        .getPhrase();
+            } else {
+                selectedPhrase = talkerPhraseWithMaxRatingList.get(0).getPhrase();
+            }
+        }
+
+        return selectedPhrase;
     }
 
     private void parseTalkerData(Message message) {
@@ -163,7 +174,10 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
         List<TalkerPhrase> storedTalkerPhraseList = talkerPhraseService.save(phrases
                 .stream()
-                .map(phrase -> new TalkerPhrase().setPhrase(phrase).setChat(new Chat().setChatId(message.getChatId())))
+                .map(phrase -> new TalkerPhrase()
+//                        .setTalkerWords()
+                        .setPhrase(phrase)
+                        .setChat(new Chat().setChatId(message.getChatId())))
                 .collect(Collectors.toSet()));
 
         talkerWordService.save(words
