@@ -132,7 +132,7 @@ public class BotStats {
     }
 
     public void resetRussianPostRequests() {
-        this.wolframRequests = Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
+        this.russianPostRequests = Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
     }
 
     public void saveStats() {
