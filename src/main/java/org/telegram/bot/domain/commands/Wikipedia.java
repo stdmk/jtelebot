@@ -2,13 +2,9 @@ package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -20,13 +16,12 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
-import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,7 +37,6 @@ public class Wikipedia implements CommandParent<SendMessage> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
-    private final NetworkUtils networkUtils;
 
     @Override
     public SendMessage parse(Update update) {
@@ -115,7 +109,8 @@ public class Wikipedia implements CommandParent<SendMessage> {
     private String getWikiPageDetails(Wiki wiki) {
         return "<b>" + wiki.getTitle() + "</b>\n" +
                 wiki.getText() + "\n" +
-                "<a href='https://ru.wikipedia.org/wiki/" + wiki.getTitle() + "'>Ссылка на статью</a>\n";
+                "<a href='https://ru.wikipedia.org/wiki/" + URLEncoder.encode(wiki.getTitle(), StandardCharsets.UTF_8)
+                    .replaceAll("\\+", "_") + "'>Ссылка на статью</a>\n";
     }
 
     /**
