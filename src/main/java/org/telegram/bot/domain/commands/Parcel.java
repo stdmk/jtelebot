@@ -46,13 +46,15 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
 
-    private final String CALLBACK_COMMAND = "parcel ";
+    private final static String EMPTY_COMMAND = "parcel";
+    private final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
     private final String DELETE_PARCEL_COMMAND = "удалить";
     private final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
     private final String ADD_PARCEL_COMMAND = "добавить";
     private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
     private final String BORDER = "-----------------------------\n";
     private final static String DELIVERED_OPERATION_TYPE = "Вручение";
+    private final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -60,7 +62,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;
-        String EMPTY_COMMAND = "parcel";
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
 
@@ -111,11 +112,14 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         StringBuilder buf = new StringBuilder("<b>Список твоих посылок:</b>\n");
         parcelList.forEach(parcel -> {
             TrackCode trackCode = parcel.getTrackCode();
+            String barcode = trackCode.getBarcode();
             Optional<TrackCodeEvent> optionalLastTrackCodeEvent = trackCode.getEvents()
                     .stream()
                     .max(Comparator.comparing(TrackCodeEvent::getEventDateTime));
-            buf.append("<code>").append(trackCode.getBarcode()).append("</code> — <b>").append(parcel.getName()).append("</b>\n");
-            optionalLastTrackCodeEvent.ifPresent(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent)).append(BORDER));
+            buf.append("<code>").append(barcode).append("</code> — <b>")
+                    .append("<a href='").append(TRACKING_ON_SITE_URL).append(barcode).append("'>").append(parcel.getName()).append("</a></b>\n");
+            optionalLastTrackCodeEvent.ifPresent(trackCodeEvent ->
+                    buf.append(buildStringEventMessage(trackCodeEvent, parcel.getId())).append(BORDER));
         });
 
         buf.append(buildStringUpdateTimesInformation());
@@ -288,8 +292,16 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage getTrackCodeData(Message message, User user, String command) {
+
+        org.telegram.bot.domain.entities.Parcel parcel = null;
+        try {
+            parcel = parcelService.get(Long.parseLong(command.substring(1)));
+        } catch (NumberFormatException ignored) {}
+        if (parcel == null) {
+            parcel = parcelService.getByBarcodeOrName(user, command);
+        }
+
         TrackCode trackCode;
-        org.telegram.bot.domain.entities.Parcel parcel = parcelService.getByBarcodeOrName(user, command);
         if (parcel == null) {
             trackCode = trackCodeService.get(command);
             if (trackCode == null) {
@@ -371,10 +383,14 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     public static String buildStringEventMessage(org.telegram.bot.domain.entities.Parcel parcel, TrackCodeEvent trackCodeEvent) {
         return "<b>" + parcel.getName() + "</b>\n" +
                 "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
-                buildStringEventMessage(trackCodeEvent);
+                buildStringEventMessage(trackCodeEvent, parcel.getId());
     }
 
     public static String buildStringEventMessage(TrackCodeEvent event) {
+        return buildStringEventMessage(event, null);
+    }
+
+    public static String buildStringEventMessage(TrackCodeEvent event, Long parcelId) {
         StringBuilder buf = new StringBuilder();
 
         if (event.getItemName() != null) buf.append("<u>").append(event.getItemName()).append("</u>");
@@ -385,6 +401,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         if (event.getAddress() != null) buf.append(event.getAddress());
         if (event.getIndex() != null) buf.append(" (").append(event.getIndex()).append(")\n"); else buf.append("\n");
 
+        if (parcelId != null) buf.append("/" + EMPTY_COMMAND + "_").append(parcelId).append("\n");
         if (isTheDeliveryEvent(event)) buf.append("\nПохоже, что посылка доставлена.\n" + "<b>Не забудьте удалить.</b> Это важно.\n");
 
         return buf.toString();
@@ -424,7 +441,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         getOptionalEventWithFieldFromEventList(trackCodeEventList, trackCodeEvent -> trackCodeEvent.getRecipient() != null)
                 .ifPresent(event -> buf.append("Получатель: <b>").append(event.getRecipient()).append("</b>\n"));
 
-        buf.append("<a href='https://www.pochta.ru/tracking?barcode=").append(barcode).append("'>Посмотреть на сайте</a>\n");
+        buf.append("<a href='").append(TRACKING_ON_SITE_URL).append(barcode).append("'>Посмотреть на сайте</a>\n");
 
         buf.append(BORDER);
 
