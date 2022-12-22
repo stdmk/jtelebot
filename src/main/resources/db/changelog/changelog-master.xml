@@ -114,4 +114,5 @@
     <include file="db/changelog/20221209175800_added_entity_TrackCode.xml"/>
     <include file="db/changelog/20221209175900_added_entity_Parcel.xml"/>
     <include file="db/changelog/20221209180200_added_command_Parcel.xml"/>
+    <include file="db/changelog/20221222115000_update_help_Bash.xml"/>
 </databaseChangeLog>

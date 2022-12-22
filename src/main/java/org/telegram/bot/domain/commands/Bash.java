@@ -2,8 +2,6 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -15,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
@@ -25,6 +24,8 @@ public class Bash implements CommandParent<SendMessage> {
 
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
+
+    private final static String BASHORG_URL = "http://bashorg.org/";
 
     @Override
     public SendMessage parse(Update update) {
@@ -61,24 +62,19 @@ public class Bash implements CommandParent<SendMessage> {
      * @return raw text of quot.
      */
     private String getRandomQuot() {
-        String BASH_RANDOM_QUOT_URL = "https://bash.im/forweb/?u";
-        String quot;
+        String BASH_RANDOM_QUOT_URL = BASHORG_URL + "/casual";
 
-        try {
-            quot = networkUtils.readStringFromURL(BASH_RANDOM_QUOT_URL);
-        } catch (IOException e) {
-            log.error("Error receiving quot", e);
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
+        String quot = getBashOrgRawData(BASH_RANDOM_QUOT_URL);
+        checkForError(quot);
 
-        String quoteNumber = quot.substring(quot.indexOf("href=\"/quote/") + 13);
-        quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("\">"));
+        String quoteNumber = quot.substring(quot.indexOf(">Цитата #") + 9);
+        quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("</a>"));
 
-        String date = quot.substring(quot.indexOf("'span style=\"padding: 15px 15px 12px\">") + 38);
-        date = date.substring(0, date.indexOf("<' + '/span>"));
+        String date = quot.substring(quot.indexOf("</a>,-->") + 9);
+        date = date.substring(0, date.indexOf("<a href"));
 
-        quot = quot.substring(quot.indexOf("color: #21201e\">") + 16);
-        quot = quot.substring(0, quot.indexOf("<' + '/div>"));
+        quot = quot.substring(quot.indexOf("<div>") + 5);
+        quot = quot.substring(0, quot.indexOf("</div>"));
 
         return buildResultMessage(quot, quoteNumber, date);
     }
@@ -90,23 +86,34 @@ public class Bash implements CommandParent<SendMessage> {
      * @return raw text of quot.
      */
     private String getDefineQuot(String quotNumber) {
-        String BASH_DEFINITE_QUOT_URL = "https://bash.im/quote/";
-        String quot;
+        String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "quote/";
 
+        String quot = getBashOrgRawData(BASH_DEFINITE_QUOT_URL + quotNumber);
+        checkForError(quot);
+
+        String date = quot.substring(quot.indexOf("| добавлено: ") + 18);
+        date = date.substring(date.indexOf("</a> ") + 5, date.indexOf("</div>") - 1);
+
+        quot = quot.substring(quot.indexOf("<div class=\"quote\">") + 19);
+        quot = quot.substring(0, quot.indexOf("</div>"));
+
+        return buildResultMessage(quot, quotNumber, date);
+    }
+
+    private String getBashOrgRawData(String url) {
         try {
-            quot = networkUtils.readStringFromURL(BASH_DEFINITE_QUOT_URL + quotNumber);
+            return networkUtils.readStringFromURL(url, Charset.forName("windows-1251"));
         } catch (IOException e) {
             log.error("Error receiving quot", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
+    }
 
-        String date = quot.substring(quot.indexOf("<div class=\"quote__header_date\">") + 41);
-        date = date.substring(0, date.indexOf("</div>") - 7);
-
-        quot = quot.substring(quot.indexOf("<div class=\"quote__body\">") + 32);
-        quot = quot.substring(0, quot.indexOf("</div>"));
-
-        return buildResultMessage(quot, quotNumber, date);
+    private void checkForError(String data) {
+        final String errorText = "не имеют доступа для просмотра статей из данного раздела";
+        if (data.indexOf(errorText) > 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+        }
     }
 
     /**
@@ -125,6 +132,6 @@ public class Bash implements CommandParent<SendMessage> {
         quot = quot.replace("&lt;", "<").replace("&gt;", ">");
         quot = cutMarkdownSymbolsInText(quot);
 
-        return "[Цитата #" + quotNumber + "](http://bash.im/quote/" + quotNumber + ")\n" + "_" + date + "_\n" + quot;
+        return "[Цитата #" + quotNumber + "](" + BASHORG_URL + "/quote/" + quotNumber + ")\n" + "*" + date + "*\n" + quot;
     }
 }
