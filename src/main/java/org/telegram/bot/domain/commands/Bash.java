@@ -25,7 +25,7 @@ public class Bash implements CommandParent<SendMessage> {
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
 
-    private final static String BASHORG_URL = "http://bashorg.org/";
+    private final static String BASHORG_URL = "http://bashorg.org";
 
     @Override
     public SendMessage parse(Update update) {
@@ -67,8 +67,9 @@ public class Bash implements CommandParent<SendMessage> {
         String quot = getBashOrgRawData(BASH_RANDOM_QUOT_URL);
         checkForError(quot);
 
-        String quoteNumber = quot.substring(quot.indexOf(">Цитата #") + 9);
-        quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("</a>"));
+        String quoteNumber = quot.substring(quot.indexOf("<a href=\"/quote/") + 16);
+        quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("\">"));
+        quoteNumber = quoteNumber.replaceAll("/bayan", "");
 
         String date = quot.substring(quot.indexOf("</a>,-->") + 9);
         date = date.substring(0, date.indexOf("<a href"));
@@ -86,9 +87,9 @@ public class Bash implements CommandParent<SendMessage> {
      * @return raw text of quot.
      */
     private String getDefineQuot(String quotNumber) {
-        String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "quote/";
+        String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
 
-        String quot = getBashOrgRawData(BASH_DEFINITE_QUOT_URL + quotNumber);
+        String quot = getBashOrgRawData(BASH_DEFINITE_QUOT_URL + "/" + quotNumber);
         checkForError(quot);
 
         String date = quot.substring(quot.indexOf("| добавлено: ") + 18);
