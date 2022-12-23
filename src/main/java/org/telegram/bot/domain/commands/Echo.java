@@ -118,6 +118,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
                 .stream()
                 .map(TalkerWord::getPhrases)
                 .flatMap(Collection::stream)
+                .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
                 .forEach(talkerPhrase -> {
                     if (phrasesRating.containsKey(talkerPhrase)) {
                         phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
@@ -172,13 +173,15 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
             return;
         }
 
-        List<TalkerPhrase> storedTalkerPhraseList = talkerPhraseService.save(phrases
-                .stream()
-                .map(phrase -> new TalkerPhrase()
-//                        .setTalkerWords()
-                        .setPhrase(phrase)
-                        .setChat(new Chat().setChatId(message.getChatId())))
-                .collect(Collectors.toSet()));
+        Chat chat = new Chat().setChatId(message.getChatId());
+        List<TalkerPhrase> storedTalkerPhraseList = talkerPhraseService.save(
+                phrases
+                        .stream()
+                        .map(phrase -> new TalkerPhrase()
+                                .setPhrase(phrase)
+                                .setChat(chat))
+                        .collect(Collectors.toSet()),
+                chat);
 
         talkerWordService.save(words
                 .stream()

@@ -3,6 +3,7 @@ package org.telegram.bot.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerPhrase;
 import org.telegram.bot.repositories.TalkerPhraseRepository;
 import org.telegram.bot.services.TalkerPhraseService;
@@ -20,11 +21,11 @@ public class TalkerPhraseServiceImpl implements TalkerPhraseService {
     private final TalkerPhraseRepository talkerPhraseRepository;
 
     @Override
-    public List<TalkerPhrase> save(Set<TalkerPhrase> talkerPhraseSet) {
+    public List<TalkerPhrase> save(Set<TalkerPhrase> talkerPhraseSet, Chat chat) {
         Set<String> words = talkerPhraseSet.stream().map(TalkerPhrase::getPhrase).collect(Collectors.toSet());
         log.debug("Request to save TalkerWords {}", words);
 
-        Set<TalkerPhrase> storedTalkerPhraseList = talkerPhraseRepository.findAllByPhraseInIgnoreCase(words);
+        Set<TalkerPhrase> storedTalkerPhraseList = talkerPhraseRepository.findAllByPhraseInIgnoreCaseAndChat(words, chat);
         List<String> storedPhrases = storedTalkerPhraseList.stream().map(TalkerPhrase::getPhrase).collect(Collectors.toList());
 
         return Stream.concat(

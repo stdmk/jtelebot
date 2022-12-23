@@ -10,7 +10,7 @@ import java.util.Set;
  * Spring Data repository for the TalkerPhrase entity.
  */
 public interface TalkerPhraseRepository extends JpaRepository<TalkerPhrase, Long> {
-    Set<TalkerPhrase> findAllByPhraseInIgnoreCase(Set<String> phrases);
+    Set<TalkerPhrase> findAllByPhraseInIgnoreCaseAndChat(Set<String> phrases, Chat chat);
     long count();
     long countByChat(Chat chat);
 }

@@ -16,7 +16,6 @@ public interface TalkerWordRepository extends JpaRepository<TalkerWord, Long> {
 
     @Query("SELECT tw FROM TalkerWord tw " +
             "INNER JOIN tw.phrases tp " +
-            "INNER JOIN tp.chat c " +
-            "WHERE lower(tw.word) in (:words) AND c.chatId = :chatId")
+            "WHERE lower(tw.word) in (:words) AND tp.chat.chatId = :chatId")
     Set<TalkerWord> findAllByWordInIgnoreCaseAndPhrasesChatIdEq(@Param("words") List<String> words, @Param("chatId") Long chatId);
 }

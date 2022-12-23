@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerPhrase;
 
 import java.util.List;
@@ -14,6 +15,7 @@ public interface TalkerPhraseService {
      * Save a TalkerPhrase.
      *
      * @param talkerPhraseSet the set of entities to save.
+     * @param chat chat entity.
      */
-    List<TalkerPhrase> save(Set<TalkerPhrase> talkerPhraseSet);
+    List<TalkerPhrase> save(Set<TalkerPhrase> talkerPhraseSet, Chat chat);
 }
