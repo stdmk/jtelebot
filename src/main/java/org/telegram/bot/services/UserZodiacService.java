@@ -4,8 +4,6 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
 
-import java.util.List;
-
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.UserZodiac}.
  */

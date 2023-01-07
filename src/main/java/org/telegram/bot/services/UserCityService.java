@@ -5,6 +5,8 @@ import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 
+import javax.annotation.Nullable;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -43,4 +45,12 @@ public interface UserCityService {
      * @return the persisted entity.
      */
     UserCity save(UserCity userCity);
+
+    /**
+     * @param chat Chat entity of UserCity to get.
+     * @param user User entity of UserCity to get.
+     * @return zoneId of User.
+     */
+    @Nullable
+    ZoneId getZoneIdOfUser(Chat chat, User user);
 }

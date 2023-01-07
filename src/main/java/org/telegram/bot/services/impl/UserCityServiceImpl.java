@@ -10,6 +10,7 @@ import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.repositories.UserCityRepository;
 import org.telegram.bot.services.UserCityService;
 
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -41,5 +42,17 @@ public class UserCityServiceImpl implements UserCityService {
     public UserCity save(UserCity userCity) {
         log.debug("Request to save UserCity: {}", userCity);
         return userCityRepository.save(userCity);
+    }
+
+    @Override
+    public ZoneId getZoneIdOfUser(Chat chat, User user) {
+        log.debug("Request to get ZoneId of User {} for Chat {}", user, chat);
+
+        UserCity userCity = this.get(user, chat);
+        if (userCity != null) {
+            return ZoneId.of(userCity.getCity().getTimeZone());
+        }
+
+        return null;
     }
 }

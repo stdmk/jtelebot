@@ -55,6 +55,7 @@ public enum Emoji {
     CHECK_MARK("✔️"),
     NO_ENTRY_SIGN("\uD83D\uDEAB"),
     CHECK_MARK_BUTTON("✅"),
+    SETTINGS("⚙️"),
     ;
 
     private final String emoji;
