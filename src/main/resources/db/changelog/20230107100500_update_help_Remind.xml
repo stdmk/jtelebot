@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230107100500-1" author="stdmk">
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="Напомнить,Установка напоминаний,текст напоминания,напомнить; напомнить захватить вселенную; напомнить 05.01 доесть оливье; напомнить 23:00 лечь спать; напомнить 31.12.2348 23:58 поздравить всех с концом света,Работа с напоминаниями происходит с помощью пустой команды Напомнить; Есть возможность указать дату (форматы ДД.ММ и ДД.ММ.ГГГГ) и время (ЧЧ:ММ) сразу в тексте напоминания" />
+            <where>id = 52</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

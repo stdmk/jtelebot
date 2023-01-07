@@ -117,4 +117,5 @@
     <include file="db/changelog/20221222115000_update_help_Bash.xml"/>
     <include file="db/changelog/20230103095400_added_entity_Remind.xml"/>
     <include file="db/changelog/20230103095900_added_command_Remind.xml"/>
+    <include file="db/changelog/20230107100500_update_help_Remind.xml"/>
 </databaseChangeLog>
