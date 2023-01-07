@@ -4,12 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Arrays;
@@ -31,7 +26,7 @@ public class DateUtils {
     public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeTvFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_SECONDS_FORMAT_STRING);
-    public static final DateTimeFormatter timeTvFormatter = DateTimeFormatter.ofPattern(TIME_WITHOUT_SECONDS_FORMAT_STRING);
+    public static final DateTimeFormatter timeShortFormatter = DateTimeFormatter.ofPattern(TIME_WITHOUT_SECONDS_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeShortFormatter = DateTimeFormatter.ofPattern(DATE_TIME_WITHOUT_YEAR_AND_SECONDS_FORMAT_STRING);
 
     public static String formatDate(Date date) {
@@ -70,6 +65,10 @@ public class DateUtils {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.of("UTC")).format(timeFormatter);
     }
 
+    public static String formatTime(LocalTime time) {
+        return time.format(timeFormatter);
+    }
+
     public static String formatDateTime(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeFormatter);
     }
@@ -79,7 +78,7 @@ public class DateUtils {
     }
 
     public static String formatTvTime(LocalDateTime dateTime, ZoneId zoneId) {
-        return timeTvFormatter.format(ZonedDateTime.of(dateTime, zoneId));
+        return timeShortFormatter.format(ZonedDateTime.of(dateTime, zoneId));
     }
 
     public static String formatTime(ZonedDateTime dateTime) {

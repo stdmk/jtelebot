@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230103095900-1" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="52"/>
+            <column name="commandname" value="remind"/>
+            <column name="russifiedname" value="напомнить"/>
+            <column name="enruname" value="yfgjvybnm"/>
+            <column name="classname" value="remind"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="Напомнить,Установка напоминаний,текст напоминания,напомнить; напомнить захватить вселенную,Работа с напоминаниями происходит с помощью пустой команды Напомнить"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
