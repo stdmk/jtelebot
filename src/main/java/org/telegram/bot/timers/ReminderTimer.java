@@ -44,7 +44,7 @@ public class ReminderTimer extends TimerParent {
                 sendMessage.setChatId(chat.getChatId());
                 sendMessage.enableHtml(true);
                 sendMessage.setText(Remind.prepareTextOfReminder(reminder));
-                sendMessage.setReplyMarkup(Remind.prepareKeyBoard(reminder));
+                sendMessage.setReplyMarkup(Remind.preparePostponeKeyboard(reminder));
 
                 try {
                     bot.execute(sendMessage);

@@ -643,50 +643,51 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 "Отложить на:\n";
     }
 
-    public static InlineKeyboardMarkup prepareKeyBoard(Reminder reminder) {
+    public static InlineKeyboardMarkup preparePostponeKeyboard(Reminder reminder) {
         Long reminderId = reminder.getId();
         LocalDate reminderDate = reminder.getDate();
+        LocalTime timeNow = LocalTime.now();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         InlineKeyboardButton postponeForFiveMinutesButton = new InlineKeyboardButton();
         postponeForFiveMinutesButton.setText("5 минут");
         postponeForFiveMinutesButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
                 SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(reminder.getTime().plusMinutes(5)));
+                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(5)));
         rows.add(List.of(postponeForFiveMinutesButton));
 
         InlineKeyboardButton postponeForFifteenMinutesButton = new InlineKeyboardButton();
         postponeForFifteenMinutesButton.setText("15 минут");
         postponeForFifteenMinutesButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
                 SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(reminder.getTime().plusMinutes(15)));
+                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(15)));
         rows.add(List.of(postponeForFifteenMinutesButton));
 
         InlineKeyboardButton postponeForHalfHourButton = new InlineKeyboardButton();
         postponeForHalfHourButton.setText("30 минут");
         postponeForHalfHourButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
                 SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(reminder.getTime().plusMinutes(15)));
+                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(15)));
         rows.add(List.of(postponeForHalfHourButton));
 
         InlineKeyboardButton postponeForHourButton = new InlineKeyboardButton();
         postponeForHourButton.setText("1 час");
         postponeForHourButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
                 SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(reminder.getTime().plusHours(1)));
+                SET_TIME + timeShortFormatter.format(timeNow.plusHours(1)));
         rows.add(List.of(postponeForHourButton));
 
         InlineKeyboardButton postponeForThreeHoursButton = new InlineKeyboardButton();
         postponeForThreeHoursButton.setText("3 часа");
         postponeForThreeHoursButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
                 SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(reminder.getTime().plusHours(3)));
+                SET_TIME + timeShortFormatter.format(timeNow.plusHours(3)));
         rows.add(List.of(postponeForThreeHoursButton));
 
         InlineKeyboardButton postponeForNextDayButton = new InlineKeyboardButton();
         postponeForNextDayButton.setText("Следующий день");
         postponeForNextDayButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate.plusDays(1)));
+                SET_DATE + dateFormatter.format(LocalDate.now().plusDays(1)));
         rows.add(List.of(postponeForNextDayButton));
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
