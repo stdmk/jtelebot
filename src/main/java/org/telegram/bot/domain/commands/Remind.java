@@ -1,6 +1,8 @@
 package org.telegram.bot.domain.commands;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -55,11 +57,12 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     private static final String CALLBACK_INFO_REMINDER = CALLBACK_COMMAND + INFO_REMINDER;
     private static final String SET_DATE = "d";
     private static final String SET_TIME = "t";
+    private static final String SET_POSTPONE = "p";
     private static final int FIRST_PAGE = 0;
 
-    private static final Pattern fullDatePattern = Pattern.compile("d(\\d{2})\\.(\\d{2})\\.(\\d{4})");
-    private static final Pattern shortDatePattern = Pattern.compile("d(\\d{2})\\.(\\d{2})");
-    private static final Pattern timePattern = Pattern.compile("t(\\d{2}):(\\d{2})");
+    private static final Pattern fullDatePattern = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+    private static final Pattern shortDatePattern = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})");
+    private static final Pattern timePattern = Pattern.compile(SET_TIME + "(\\d{2}):(\\d{2})");
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -176,10 +179,10 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             command = command.replaceAll(datePatternString, "").trim();
         } else {
             LocalDate dateNow = LocalDate.now();
-            if (reminderTime != null) {
-                reminderDate = dateNow;
-            } else {
+            if (reminderTime == null || LocalTime.now().isAfter(reminderTime)) {
                 reminderDate = dateNow.plusDays(1);
+            } else {
+                reminderDate = dateNow;
             }
         }
 
@@ -317,10 +320,23 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                         SET_DATE + dateFormatter.format(reminder.getDate()) + SET_TIME);
             }
         } else {
-            caption = "Выберите или введите вручную ДД.ММ или ДД.ММ.ГГГГ\n";
-            rowsWithButtons = prepareButtonRowsWithDateSetting(reminder);
-            commandWaitingService.add(chat, user, Remind.class, CALLBACK_COMMAND + SET_REMINDER + reminder.getId() +
+            Pattern postponePattern = Pattern.compile(SET_POSTPONE + "(\\d+),(\\d+)");
+            matcher = postponePattern.matcher(command);
+            if (matcher.find()) {
+                PostponeValue postponeValue = new PostponeValue(command.substring(matcher.start() + 1, matcher.end()));
+
+                if (postponeValue.hasMinutes()) {
+                    reminder.setTime(postponeValue.getPostponeTime(LocalTime.now()));
+                }
+                if (postponeValue.hasDays()) {
+                    reminder.setDate(postponeValue.getPostponeDate(LocalDate.now()));
+                }
+            } else {
+                caption = "Выберите или введите вручную ДД.ММ или ДД.ММ.ГГГГ\n";
+                rowsWithButtons = prepareButtonRowsWithDateSetting(reminder);
+                commandWaitingService.add(chat, user, Remind.class, CALLBACK_COMMAND + SET_REMINDER + reminder.getId() +
                         SET_DATE);
+            }
         }
 
         reminderService.save(reminder.setNotified(false));
@@ -645,49 +661,37 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
     public static InlineKeyboardMarkup preparePostponeKeyboard(Reminder reminder) {
         Long reminderId = reminder.getId();
-        LocalDate reminderDate = reminder.getDate();
-        LocalTime timeNow = LocalTime.now();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        String startOfCallbackCommand = CALLBACK_SET_REMINDER + reminderId + SET_POSTPONE;
 
         InlineKeyboardButton postponeForFiveMinutesButton = new InlineKeyboardButton();
         postponeForFiveMinutesButton.setText("5 минут");
-        postponeForFiveMinutesButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(5)));
+        postponeForFiveMinutesButton.setCallbackData(startOfCallbackCommand + new PostponeValue(5, 0));
         rows.add(List.of(postponeForFiveMinutesButton));
 
         InlineKeyboardButton postponeForFifteenMinutesButton = new InlineKeyboardButton();
         postponeForFifteenMinutesButton.setText("15 минут");
-        postponeForFifteenMinutesButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(15)));
+        postponeForFifteenMinutesButton.setCallbackData(startOfCallbackCommand + new PostponeValue(15, 0));
         rows.add(List.of(postponeForFifteenMinutesButton));
 
         InlineKeyboardButton postponeForHalfHourButton = new InlineKeyboardButton();
         postponeForHalfHourButton.setText("30 минут");
-        postponeForHalfHourButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(timeNow.plusMinutes(15)));
+        postponeForHalfHourButton.setCallbackData(startOfCallbackCommand + new PostponeValue(30, 0));
         rows.add(List.of(postponeForHalfHourButton));
 
         InlineKeyboardButton postponeForHourButton = new InlineKeyboardButton();
         postponeForHourButton.setText("1 час");
-        postponeForHourButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(timeNow.plusHours(1)));
+        postponeForHourButton.setCallbackData(startOfCallbackCommand + new PostponeValue(60, 0));
         rows.add(List.of(postponeForHourButton));
 
         InlineKeyboardButton postponeForThreeHoursButton = new InlineKeyboardButton();
         postponeForThreeHoursButton.setText("3 часа");
-        postponeForThreeHoursButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(reminderDate) +
-                SET_TIME + timeShortFormatter.format(timeNow.plusHours(3)));
+        postponeForThreeHoursButton.setCallbackData(startOfCallbackCommand + new PostponeValue(180, 0));
         rows.add(List.of(postponeForThreeHoursButton));
 
         InlineKeyboardButton postponeForNextDayButton = new InlineKeyboardButton();
         postponeForNextDayButton.setText("Следующий день");
-        postponeForNextDayButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId +
-                SET_DATE + dateFormatter.format(LocalDate.now().plusDays(1)));
+        postponeForNextDayButton.setCallbackData(startOfCallbackCommand + new PostponeValue(0, 1));
         rows.add(List.of(postponeForNextDayButton));
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
@@ -704,5 +708,42 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         inlineKeyboardMarkup.setKeyboard(rows);
 
         return inlineKeyboardMarkup;
+    }
+
+    @AllArgsConstructor
+    @Value
+    private static class PostponeValue {
+        long minutes;
+        long days;
+
+        public PostponeValue(String values) {
+            List<Long> postponeValues = Arrays.stream(values.split("\\s*,\\s*"))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+
+            this.minutes = postponeValues.get(0);
+            this.days = postponeValues.get(1);
+        }
+
+        public LocalDate getPostponeDate(LocalDate date) {
+            return date.plusDays(this.days);
+        }
+
+        public LocalTime getPostponeTime(LocalTime time) {
+            return time.plusMinutes(this.minutes);
+        }
+
+        public boolean hasMinutes() {
+            return this.minutes != 0L;
+        }
+
+        public boolean hasDays() {
+            return this.days != 0;
+        }
+
+        @Override
+        public String toString() {
+            return this.minutes + "," + this.days;
+        }
     }
 }
