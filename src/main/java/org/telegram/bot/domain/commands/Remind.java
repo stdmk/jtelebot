@@ -15,6 +15,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -41,6 +42,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
     private final ReminderService reminderService;
     private final CommandWaitingService commandWaitingService;
+    private final UserService userService;
     private final UserCityService userCityService;
     private final SpeechService speechService;
     private final BotStats botStats;
@@ -94,9 +96,9 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (callback) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
+            User user = userService.get(update.getCallbackQuery().getFrom().getId());
 
-            if (StringUtils.isEmpty(textMessage)) {
+            if (StringUtils.isEmpty(textMessage) || UPDATE_COMMAND.equals(textMessage)) {
                 return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false);
             } else if (textMessage.equals(ADD_COMMAND)) {
                 return addReminderByCallback(message, chat, user);
@@ -111,7 +113,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
+        User user = userService.get(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(emptyCommand)) {
             return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, true);
         } else if (textMessage.startsWith(SET_REMINDER) && commandWaiting != null) {
@@ -584,7 +586,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.enableHtml(true);
-            sendMessage.setText("<b>Список твоих напоминаний:</b>\n");
+            sendMessage.setText(TextUtils.getLinkToUser(user, true) + "<b> твои напоминания:</b>\n");
             sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
             return sendMessage;
@@ -594,7 +596,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
-        editMessageText.setText("<b>Список твоих напоминаний:</b>\n");
+        editMessageText.setText(TextUtils.getLinkToUser(user, true) + "<b> твои напоминания:</b>\n");
         editMessageText.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
         return editMessageText;
