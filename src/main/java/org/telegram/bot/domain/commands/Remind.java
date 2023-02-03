@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +24,11 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.Nullable;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -178,18 +181,25 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         if (reminderDate != null) {
             command = command.replaceAll(datePatternString, "").trim();
         } else {
-            LocalDate dateNow = LocalDate.now();
-            if (reminderTime == null || LocalTime.now().isAfter(reminderTime)) {
-                reminderDate = dateNow.plusDays(1);
-            } else {
-                reminderDate = dateNow;
+            reminderDate = getDateByKeyWords(command);
+
+            if (reminderDate == null) {
+                LocalDate dateNow = LocalDate.now();
+                if (reminderTime == null || LocalTime.now().isAfter(reminderTime)) {
+                    reminderDate = dateNow.plusDays(1);
+                } else {
+                    reminderDate = dateNow;
+                }
             }
         }
 
         if (reminderTime != null) {
             command = command.replaceAll(timePatternString, "").trim();
         } else {
-            reminderTime = LocalTime.MIN;
+            reminderTime = getTimeByKeyWords(command);
+            if (reminderTime == null) {
+                reminderTime = LocalTime.MIN;
+            }
         }
 
         if (command.length() <= 1) {
@@ -213,6 +223,30 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder.getId()));
 
         return sendMessage;
+    }
+
+    @Nullable
+    private LocalDate getDateByKeyWords(String text) {
+        LocalDate date = null;
+
+        DateKeyword dateKeyword = DateKeyword.getKeyWordFromText(text);
+        if (dateKeyword != null) {
+            date = dateKeyword.dateSupplier.get();
+        }
+
+        return date;
+    }
+
+    @Nullable
+    private LocalTime getTimeByKeyWords(String text) {
+        LocalTime time = null;
+
+        TimeKeyword timeKeyword = TimeKeyword.getKeyWordFromText(text);
+        if (timeKeyword != null) {
+            time = timeKeyword.getDateSupplier().get();
+        }
+
+        return time;
     }
 
     private SendMessage manualReminderEdit(Message message, Chat chat, User user, CommandWaiting commandWaiting, String command) {
@@ -761,6 +795,55 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         @Override
         public String toString() {
             return this.minutes + "," + this.days;
+        }
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    private enum DateKeyword {
+        TODAY("сегодня", LocalDate::now),
+        TOMORROW("завтра", () -> LocalDate.now().plusDays(1)),
+        AFTER_TOMORROW("послезавтра", () -> LocalDate.now().plusDays(2)),
+        MONDAY("понедельник", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))),
+        TUESDAY("вторник", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))),
+        WEDNESDAY("среду", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))),
+        THURSDAY("четверг", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY))),
+        FRIDAY("пятницу", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY))),
+        SATURDAY("субботу", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY))),
+        SUNDAY("воскресенье", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY))),
+        ;
+
+        private final String keyword;
+        private final Supplier<LocalDate> dateSupplier;
+
+        public static DateKeyword getKeyWordFromText(String text) {
+            return Arrays.stream(DateKeyword.values())
+                    .filter(dateKeyword -> text.contains(dateKeyword.getKeyword()))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    private enum TimeKeyword {
+        MORNING("утром", () -> LocalTime.of(7, 0)),
+        LUNCH("обед", () -> LocalTime.of(12, 0)),
+        AFTERNOON("днём", () -> LocalTime.of(15, 0)),
+        AFTERNOOON("днем", () -> LocalTime.of(15, 0)),
+        DINNER("вечером", () -> LocalTime.of(19, 0)),
+        EVENING("поздним вечером", () -> LocalTime.of(22, 0)),
+        NIGHT("ночью", () -> LocalTime.of(3, 0)),
+        ;
+
+        private final String keyword;
+        private final Supplier<LocalTime> dateSupplier;
+
+        public static TimeKeyword getKeyWordFromText(String text) {
+            return Arrays.stream(TimeKeyword.values())
+                    .filter(dateKeyword -> text.contains(dateKeyword.getKeyword()))
+                    .findFirst()
+                    .orElse(null);
         }
     }
 }
