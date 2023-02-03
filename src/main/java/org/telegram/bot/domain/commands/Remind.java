@@ -162,7 +162,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             matcher = shortDatePattern.matcher(command);
             if (matcher.find()) {
                 try {
-                    reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()));
+                    reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()), LocalDate.now().getYear());
                 } catch (Exception ignored) {
                 }
             }
