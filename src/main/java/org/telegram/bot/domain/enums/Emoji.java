@@ -56,6 +56,10 @@ public enum Emoji {
     NO_ENTRY_SIGN("\uD83D\uDEAB"),
     CHECK_MARK_BUTTON("✅"),
     SETTINGS("⚙️"),
+    HOURGLASS_DONE("⌛"),
+    HOURGLASS_NOT_DONE("⏳"),
+    BELL("\uD83D\uDD14"),
+    NO_BELL("\uD83D\uDD15"),
     ;
 
     private final String emoji;

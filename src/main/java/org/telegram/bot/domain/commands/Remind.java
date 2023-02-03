@@ -590,6 +590,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 reminderText = reminderText.substring(0, maxButtonTextLength - 3) + "...";
             }
 
+            reminderText = getConditionEmoji(reminder) + reminderText;
+
             InlineKeyboardButton reminderButton = new InlineKeyboardButton();
             reminderButton.setText(reminderText);
             reminderButton.setCallbackData(CALLBACK_INFO_REMINDER + " " + reminder.getId());
@@ -605,6 +607,21 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         inlineKeyboardMarkup.setKeyboard(rows);
 
         return inlineKeyboardMarkup;
+    }
+
+    private String getConditionEmoji(Reminder reminder) {
+        ZoneId zoneId = userCityService.getZoneIdOfUser(reminder.getChat(), reminder.getUser());
+        if (zoneId == null) {
+            zoneId = ZoneId.systemDefault();
+        }
+
+        ZonedDateTime zonedDateTime = LocalDateTime.of(reminder.getDate(), reminder.getTime()).atZone(zoneId);
+
+        if (LocalDateTime.now().isAfter(zonedDateTime.toLocalDateTime())) {
+            return Emoji.NO_BELL.getEmoji();
+        } else {
+            return Emoji.BELL.getEmoji();
+        }
     }
 
     private void addingMainRows(List<List<InlineKeyboardButton>> rows, int page, int totalPages) {
