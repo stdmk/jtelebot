@@ -178,6 +178,15 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             reminderTime = getTimeFromText(command.substring(matcher.start(), matcher.end()));
         }
 
+        if (reminderTime != null) {
+            command = command.replaceAll(timePatternString, "").trim();
+        } else {
+            reminderTime = getTimeByKeyWords(command);
+            if (reminderTime == null) {
+                reminderTime = LocalTime.MIN;
+            }
+        }
+
         if (reminderDate != null) {
             command = command.replaceAll(datePatternString, "").trim();
         } else {
@@ -190,15 +199,6 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 } else {
                     reminderDate = dateNow;
                 }
-            }
-        }
-
-        if (reminderTime != null) {
-            command = command.replaceAll(timePatternString, "").trim();
-        } else {
-            reminderTime = getTimeByKeyWords(command);
-            if (reminderTime == null) {
-                reminderTime = LocalTime.MIN;
             }
         }
 
@@ -218,6 +218,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.setText(prepareReminderInfoText(reminder));
         sendMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder.getId()));
@@ -310,6 +311,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.setText(prepareReminderInfoText(reminder) + "<b>" + caption + "</b>");
         sendMessage.setReplyMarkup(keyboard);
@@ -596,6 +598,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.enableHtml(true);
             sendMessage.setText("<b>Список твоих напоминаний:</b>\n");
             sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
