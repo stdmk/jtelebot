@@ -26,7 +26,7 @@ public class ReminderTimer extends TimerParent {
     private final Bot bot;
 
     @Override
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 30000)
     public void execute() {
         Map<User, ZoneId> userDateTimeMap = new HashMap<>();
         LocalDateTime dateTimeNow = LocalDateTime.now();
