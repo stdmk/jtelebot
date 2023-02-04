@@ -819,8 +819,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         LUNCH("в обед", () -> LocalTime.of(12, 0)),
         AFTERNOON("днём", () -> LocalTime.of(15, 0)),
         AFTERNOOON("днем", () -> LocalTime.of(15, 0)),
-        DINNER("вечером", () -> LocalTime.of(19, 0)),
         EVENING("поздним вечером", () -> LocalTime.of(22, 0)),
+        DINNER("вечером", () -> LocalTime.of(19, 0)),
         NIGHT("ночью", () -> LocalTime.of(3, 0)),
         ;
 
