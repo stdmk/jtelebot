@@ -134,8 +134,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         Reminder reminder = reminderService.get(chat, user, reminderId);
         if (reminder == null) {
-            botStats.incrementErrors();
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            return null;
         }
 
         EditMessageText editMessage = new EditMessageText();
@@ -320,7 +319,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
             reminder = reminderService.get(chat, user, reminderId);
             if (reminder == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                return null;
             }
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
@@ -551,7 +550,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private PartialBotApiMethod<?> deleteReminderByCallback(Message message, Chat chat, User user, String command) throws BotException {
+    private PartialBotApiMethod<?> deleteReminderByCallback(Message message, Chat chat, User user, String command) {
         log.debug("Request to delete reminder");
 
         if (command.equals(DELETE_COMMAND)) {
@@ -567,7 +566,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         Reminder reminder = reminderService.get(chat, user, reminderId);
         if (reminder == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            return null;
         }
 
         try {
