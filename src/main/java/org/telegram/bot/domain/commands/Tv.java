@@ -223,6 +223,9 @@ public class Tv implements CommandParent<SendMessage> {
         buf.append("<u>").append(tvChannel.getName()).append("</u>").append(" /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n");
 
         List<TvProgram> tvProgramList = tvProgramService.get(tvChannel, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(), hours);
+        if (tvProgramList.isEmpty()) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+        }
 
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
         TvProgram currentTvProgram = tvProgramList.get(0);
