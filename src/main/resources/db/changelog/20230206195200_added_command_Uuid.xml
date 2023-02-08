@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20230206195000-1" author="klikli">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="53"/>
+            <column name="commandname" value="uuid"/>
+            <column name="russifiedname" value="юайди"/>
+            <column name="enruname" value=".fqlb"/>
+            <column name="classname" value="uuid"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="UUID,Генерация uuid,отсутствуют,uuid; юайди,отсутствуют"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
