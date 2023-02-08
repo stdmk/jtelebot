@@ -21,34 +21,16 @@ import java.util.UUID;
 @Slf4j
 public class Uuid implements CommandParent<SendMessage> {
 
-    private final UserService userService;
-    private final SpeechService speechService;
-
-
     @Override
     public SendMessage parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        String textMessage = getTextMessage(update);
-        StringBuilder responseText = new StringBuilder();
+        StringBuilder text = new StringBuilder();
         UUID uuid = UUID.randomUUID();
-
-
-        if (textMessage != null) {
-            log.debug("Request to getting telegram id of {}", textMessage);
-            User user = userService.get(textMessage);
-            if (user == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-        }
-
-        responseText.append("`").append(uuid).append("`");
-
+        text.append("`").append(uuid).append("`");
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setChatId(update.getMessage().getChatId().toString());
+        sendMessage.setText(text.toString());
+        sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText(responseText.toString());
-
 
         return sendMessage;
     }

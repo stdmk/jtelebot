@@ -12,7 +12,7 @@
             <column name="enruname" value=".fqlb"/>
             <column name="classname" value="uuid"/>
             <column name="accesslevel" value="0"/>
-            <column name="help" value="Юайди,Бот присылает юайди чата/пользователя,отсутствуют"/>
+            <column name="help" value="UUID,Генерация uuid,отсутствуют,uuid; юайди,отсутствуют"/>
         </insert>
     </changeSet>
 </databaseChangeLog>
