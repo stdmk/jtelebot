@@ -119,4 +119,6 @@
     <include file="db/changelog/20230103095900_added_command_Remind.xml"/>
     <include file="db/changelog/20230107100500_update_help_Remind.xml"/>
     <include file="db/changelog/20230206195200_added_command_Uuid.xml"/>
+    <include file="db/changelog/20230212120600_insert_Speech_tooBigFile.xml"/>
+    <include file="db/changelog/20230212120900_added_command_Download.xml"/>
 </databaseChangeLog>
