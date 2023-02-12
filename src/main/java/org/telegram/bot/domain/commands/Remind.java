@@ -181,10 +181,32 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         if (reminderTime != null) {
             command = command.replaceFirst(timePatternString, "").trim();
         } else {
-            TimeKeyword timeKeyword = TimeKeyword.getKeyWordFromText(command);
-            if (timeKeyword != null) {
-                reminderTime = timeKeyword.getDateSupplier().get();
-                command = command.replaceFirst(timeKeyword.getKeyword(), "").trim();
+            String afterMinutesPhrase = getAfterMinutesPhrase(command);
+            if (afterMinutesPhrase != null) {
+                Integer minutes = getValueFromAfterTimePhrase(afterMinutesPhrase);
+                if (minutes != null) {
+                    reminderTime = LocalTime.now().plusMinutes(minutes);
+                    command = command.replaceFirst(afterMinutesPhrase, "").trim();
+                }
+            }
+
+            if (reminderTime == null) {
+                String afterHoursPhrase = getAfterHoursPhrase(command);
+                if (afterHoursPhrase != null) {
+                    Integer hours = getValueFromAfterTimePhrase(afterHoursPhrase);
+                    if (hours != null) {
+                        reminderTime = LocalTime.now().plusMinutes(hours);
+                        command = command.replaceFirst(afterHoursPhrase, "").trim();
+                    }
+                }
+            }
+
+            if (reminderTime == null) {
+                TimeKeyword timeKeyword = TimeKeyword.getKeyWordFromText(command);
+                if (timeKeyword != null) {
+                    reminderTime = timeKeyword.getDateSupplier().get();
+                    command = command.replaceFirst(timeKeyword.getKeyword(), "").trim();
+                }
             }
 
             if (reminderTime == null) {
@@ -195,10 +217,21 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         if (reminderDate != null) {
             command = command.replaceFirst(datePatternString, "").trim();
         } else {
-            DateKeyword dateKeyword = DateKeyword.getKeyWordFromText(command);
-            if (dateKeyword != null) {
-                reminderDate = dateKeyword.dateSupplier.get();
-                command = command.replaceFirst(dateKeyword.getKeyword(), "").trim();
+            String afterDaysPhrase = getAfterDaysPhrase(command);
+            if (afterDaysPhrase != null) {
+                Integer days = getValueFromAfterTimePhrase(afterDaysPhrase);
+                if (days != null) {
+                    reminderDate = LocalDate.now().plusDays(days);
+                    command = command.replaceFirst(afterDaysPhrase, "").trim();
+                }
+            }
+
+            if (reminderDate == null) {
+                DateKeyword dateKeyword = DateKeyword.getKeyWordFromText(command);
+                if (dateKeyword != null) {
+                    reminderDate = dateKeyword.dateSupplier.get();
+                    command = command.replaceFirst(dateKeyword.getKeyword(), "").trim();
+                }
             }
 
             if (reminderDate == null) {
@@ -233,6 +266,66 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder.getId()));
 
         return sendMessage;
+    }
+
+    private String getAfterMinutesPhrase(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        Pattern afterMinutesPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bминуту\\b)|(\\bминуты\\b)|(\\bминут\\b))");
+        Matcher matcher = afterMinutesPattern.matcher(text);
+
+        if (matcher.find()) {
+            return text.substring(matcher.start(), matcher.end());
+        }
+
+        return null;
+    }
+
+    private String getAfterHoursPhrase(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        Pattern afterHoursPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bчас\\b)|(\\bчаса\\b)|(\\bчасов\\b))");
+        Matcher matcher = afterHoursPattern.matcher(text);
+
+        if (matcher.find()) {
+            return text.substring(matcher.start(), matcher.end());
+        }
+
+        return null;
+    }
+
+    private String getAfterDaysPhrase(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        Pattern afterDaysPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bдень\\b)|(\\bдня\\b)|(\\bдней\\b))");
+        Matcher matcher = afterDaysPattern.matcher(text);
+
+        if (matcher.find()) {
+            return text.substring(matcher.start(), matcher.end());
+        }
+
+        return null;
+    }
+
+    private Integer getValueFromAfterTimePhrase(String text) {
+        String afterHoursTimePattern = "\\d+";
+        Pattern fullDatePattern = Pattern.compile(afterHoursTimePattern);
+        Matcher matcher = fullDatePattern.matcher(text);
+
+        if (matcher.find()) {
+            int value = Integer.parseInt(text.substring(matcher.start(), matcher.end()));
+            if (value > 0) {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     private SendMessage manualReminderEdit(Message message, Chat chat, User user, CommandWaiting commandWaiting, String command) {
