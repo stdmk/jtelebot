@@ -95,6 +95,10 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
+        if (commandWaiting != null && commandWaiting.getCommandName().equals(this.getClass().getSimpleName().toLowerCase(Locale.ROOT))) {
+            commandWaitingService.remove(commandWaiting);
+        }
+
         if (callback) {
             User user = userService.get(update.getCallbackQuery().getFrom().getId());
 
@@ -117,7 +121,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         if (textMessage == null || textMessage.equals(emptyCommand)) {
             return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, true);
         } else if (textMessage.startsWith(SET_REMINDER) && commandWaiting != null) {
-            return manualReminderEdit(message, chat, user, commandWaiting, textMessage);
+            return manualReminderEdit(message, chat, user, textMessage);
         } else {
             return addReminder(message, chat, user, textMessage);
         }
@@ -328,10 +332,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         return null;
     }
 
-    private SendMessage manualReminderEdit(Message message, Chat chat, User user, CommandWaiting commandWaiting, String command) {
-        if (commandWaiting != null && commandWaiting.getCommandName().equals(this.getClass().getSimpleName().toLowerCase(Locale.ROOT))) {
-            commandWaitingService.remove(commandWaiting);
-        }
+    private SendMessage manualReminderEdit(Message message, Chat chat, User user, String command) {
         command = command.replaceAll("\\s+","");
 
         InlineKeyboardMarkup keyboard;
