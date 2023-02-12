@@ -2,6 +2,7 @@ package org.telegram.bot.utils;
 
 import org.telegram.bot.domain.entities.User;
 
+import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -183,6 +184,18 @@ public class TextUtils {
         }
 
         return true;
+    }
+
+    @Nullable
+    public static String getFileNameFromUrl(String url) {
+        Pattern fileNamePattern = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
+        Matcher matcher = fileNamePattern.matcher(url);
+
+        if (matcher.find()) {
+            return url.substring(matcher.start() + 1, matcher.end());
+        }
+
+        return null;
     }
 
     public static boolean isThatInteger(String text) {
