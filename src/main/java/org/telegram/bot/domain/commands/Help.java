@@ -7,8 +7,11 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -26,18 +29,20 @@ public class Help implements CommandParent<SendMessage> {
     private final UserService userService;
     private final ChatService chatService;
     private final PropertiesConfig propertiesConfig;
+    private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
 
+        String responseText;
         if (textMessage == null || textMessage.length() == 0) {
             log.debug("Request to get general help");
-            StringBuilder responseText = new StringBuilder();
+            StringBuilder buf = new StringBuilder();
 
             if (checkIsThatAdmin(message.getFrom().getId())) {
-                responseText.append("Права администратора успешно предоставлены\n\n");
+                buf.append("Права администратора успешно предоставлены\n\n");
             }
 
             Integer accessLevel;
@@ -49,43 +54,44 @@ public class Help implements CommandParent<SendMessage> {
                 accessLevel = chatAccessLevel;
             }
 
-            responseText.append("*Без паники!*\n");
-            responseText.append("Твой текущий уровень - *").append(accessLevel)
+            buf.append("*Без паники!*\n");
+            buf.append("Твой текущий уровень - *").append(accessLevel)
                     .append("* (пользователь - ").append(userAccessLevel)
                     .append("; чат - ").append(chatAccessLevel)
                     .append(")\n");
 
             List<CommandProperties> commandsList = commandPropertiesService.getAvailableCommandsForLevel(accessLevel);
 
-            responseText.append("Список доступных тебе команд (").append(commandsList.size()).append("):\n");
-            commandsList.forEach(commandProperties -> responseText
+            buf.append("Список доступных тебе команд (").append(commandsList.size()).append("):\n");
+            commandsList.forEach(commandProperties -> buf
                     .append("/")
                     .append(commandProperties.getCommandName())
                     .append(" — ")
                     .append(commandProperties.getRussifiedName())
                     .append("\n"));
 
-            responseText.append("Я понимаю команды как на латинице (help), так и на кириллице (помощь)\n")
+            buf.append("Я понимаю команды как на латинице (help), так и на кириллице (помощь)\n")
                         .append("Для получения помощи по определённой команде, напиши 'помощь ИмяКоманды' без кавычек\n");
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableMarkdown(true);
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(responseText.toString());
-
-            return sendMessage;
+            responseText = buf.toString();
         } else {
             log.debug("Request to get help for command: {}", textMessage);
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableMarkdown(true);
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(formatHelpText(commandPropertiesService.getCommand(textMessage).getHelp()));
+            CommandProperties command = commandPropertiesService.getCommand(textMessage);
+            if (command == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
 
-            return sendMessage;
+            responseText = formatHelpText(command.getHelp());
         }
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableMarkdown(true);
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setText(responseText);
+
+        return sendMessage;
     }
 
     /**
