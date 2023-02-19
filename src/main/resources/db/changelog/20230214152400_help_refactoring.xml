@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230214152400-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="1"/>
+            <column name="name" value="Бот"/>
+            <column name="description" value="Проверка работоспособности бота, общение"/>
+            <column name="params" value="[текст]"/>
+            <column name="examples" value="бот, bot, бот как дела?"/>
+            <column name="comment" value="С ботом также можно разговаривать, отвечая на его сообщение. Обучение происходит постепенно. Вероятность отправки ботом случайного сообщения задаётся с помощью команды /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="1" />
+            <where>id = 1</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="2"/>
+            <column name="name" value="Левел"/>
+            <column name="description" value="Изменение уровня доступа к боту для чата или пользователя"/>
+            <column name="params" value="[username], число от 1 до 10"/>
+            <column name="examples" value="левел 5, level @username 3"/>
+            <column name="comment" value="Посмотреть текущий уровень можно с помощью команды Помощь без параметров. Необходимый для использования команды уровень прописан в помощи по команде"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="2" />
+            <where>id = 2</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="3"/>
+            <column name="name" value="Сиськи"/>
+            <column name="description" value="Бот присылает случайную фотографию эротического характера"/>
+            <column name="examples" value="сиськи, boobs"/>
+            <column name="comment" value="Изображения берутся с сайта oboobs.ru"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="3" />
+            <where>id = 3</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="4"/>
+            <column name="name" value="Попки"/>
+            <column name="description" value="Бот присылает случайную фотографию эротического характера"/>
+            <column name="examples" value="попки, butts"/>
+            <column name="comment" value="Картинки берутся с сайта obutts.ru"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="4" />
+            <where>id = 4</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="5"/>
+            <column name="name" value="Помощь"/>
+            <column name="description" value="Помощь по командам бота"/>
+            <column name="params" value="[имя команды]"/>
+            <column name="examples" value="помощь, help weather, помощь погода"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="5" />
+            <where>id = 5</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="6"/>
+            <column name="name" value="Айди"/>
+            <column name="description" value="Бот присылает telegram-id чата/пользователя"/>
+            <column name="params" value="[имя пользователя]"/>
+            <column name="examples" value="айди, getid @username"/>
+            <column name="comment" value="Идентификатор пользователя также можно получить, отправив команду без параметров в ответ на сообщение пользователя"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="6" />
+            <where>id = 6</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="7"/>
+            <column name="name" value="Старт"/>
+            <column name="description" value="Костыль, чтобы бот имел команду /start"/>
+            <column name="examples" value="старт, start"/>
+            <column name="comment" value="команда полностью повторяет функционал команды Помощь"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="7" />
+            <where>id = 7</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="8"/>
+            <column name="name" value="Топ"/>
+            <column name="description" value="Различная статистика пользователей"/>
+            <column name="params" value="[@username], [категория], [месяц, всё]"/>
+            <column name="examples" value="топ, top @username, топ карма месяц, топ злобота всё"/>
+            <column name="comment" value="месяц — статистика за текущий месяц, всё — за всё время"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="8" />
+            <where>id = 8</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="9"/>
+            <column name="name" value="Sql"/>
+            <column name="description" value="Обработка sql-запросов в базе бота"/>
+            <column name="params" value="запрос"/>
+            <column name="examples" value="sql drop schema bot"/>
+            <column name="comment" value="Рекомендуется перед внесением изменений создать бекап БД командой Архив"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="9" />
+            <where>id = 9</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="10"/>
+            <column name="name" value="Баш"/>
+            <column name="description" value="Цитаты с сайта bashorg.org"/>
+            <column name="params" value="[Номер цитаты]"/>
+            <column name="examples" value="баш, bash 123"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="10" />
+            <where>id = 10</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="11"/>
+            <column name="name" value="Туду"/>
+            <column name="description" value="Список задач"/>
+            <column name="params" value="[Номер задачи]"/>
+            <column name="examples" value="туду, туду сделать кофеварку, todo 123, todo -123"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="11" />
+            <where>id = 11</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="12"/>
+            <column name="name" value="Новости"/>
+            <column name="description" value="Чтение новостей из rss-потоков"/>
+            <column name="params" value="[ссылка]"/>
+            <column name="examples" value="новости, news https://lenta.ru/rss/last24"/>
+            <column name="comment" value="Для установки режима автоматического чтения новостей ботом воспользуйтесь командой /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="12" />
+            <where>id = 12</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="13"/>
+            <column name="name" value="Логи"/>
+            <column name="description" value="Бот присылает логи за текущую дату"/>
+            <column name="examples" value="логи, logs"/>
+            <column name="comment" value="Логи за предыдущие дни лежат в папке logs"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="13" />
+            <where>id = 13</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="14"/>
+            <column name="name" value="Где"/>
+            <column name="description" value="Бот показывает последнее сообщение пользователя и время его молчания"/>
+            <column name="params" value="@username"/>
+            <column name="examples" value="где @username, where"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="14" />
+            <where>id = 14</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="15"/>
+            <column name="name" value="Cmd"/>
+            <column name="description" value="Выполнение команд в командной строке операционной системы"/>
+            <column name="params" value="команда"/>
+            <column name="examples" value="cmd ping ya.ru, cmd ping ya.ru -c 5"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="15" />
+            <where>id = 15</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="16"/>
+            <column name="name" value="Установить"/>
+            <column name="description" value="Установка различных параметров в боте"/>
+            <column name="params" value="[параметры]"/>
+            <column name="examples" value="установить, set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="16" />
+            <where>id = 16</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="17"/>
+            <column name="name" value="Погода"/>
+            <column name="description" value="Погода в указанном городе"/>
+            <column name="params" value="[Наименование города], [идентификатор города]"/>
+            <column name="examples" value="погода, погода Тверь, weather 480060"/>
+            <column name="comment" value="город по умолчанию можно установить с помощью команды /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="17" />
+            <where>id = 17</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="18"/>
+            <column name="name" value="Пароль"/>
+            <column name="description" value="Генерация случайного пароля"/>
+            <column name="params" value="[количество символов]"/>
+            <column name="examples" value="пароль, password 12"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="18" />
+            <where>id = 18</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="19"/>
+            <column name="name" value="Гугл"/>
+            <column name="description" value="Поиск в гугле"/>
+            <column name="params" value="Текст"/>
+            <column name="examples" value="гугл суслики, google test"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="19" />
+            <where>id = 19</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="20"/>
+            <column name="name" value="Картинки"/>
+            <column name="description" value="Поиск изображений в гугле"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="картинки суслики, picture test"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="20" />
+            <where>id = 20</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="21"/>
+            <column name="name" value="Пинг"/>
+            <column name="description" value="Пинг от сервера до бота"/>
+            <column name="examples" value="пинг, ping"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="21" />
+            <where>id = 21</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="22"/>
+            <column name="name" value="Скрин"/>
+            <column name="description" value="Скриншоты веб-страниц"/>
+            <column name="params" value="url"/>
+            <column name="examples" value="скрин google.com, webscreen google.com"/>
+            <column name="comment" value="Скриншот также можно сделать, ответив на сообщение, в котором присутствует ссылка, командой без параметров. Скриншоты делаются сервисом www.screenshotmachine.com"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="22" />
+            <where>id = 22</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="23"/>
+            <column name="name" value="Совет"/>
+            <column name="description" value="Ох**нные советы"/>
+            <column name="examples" value="совет, advice"/>
+            <column name="comment" value="Ненормативная лексика. Советы берутся с сайта fucking-great-advice.ru"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="23" />
+            <where>id = 23</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="24"/>
+            <column name="name" value="Правда"/>
+            <column name="description" value="Бот оценивает правдивость высказываний"/>
+            <column name="params" value="высказывание"/>
+            <column name="examples" value="правда что земля плоская?"/>
+            <column name="comment" value="также можно проверить правдивость чужого высказывания, отправив команду без параметров в ответ на сообщение"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="24" />
+            <where>id = 24</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="25"/>
+            <column name="name" value="Вики"/>
+            <column name="description" value="Поиск статей в русской Википедии"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="вики суслики"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="25" />
+            <where>id = 25</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="26"/>
+            <column name="name" value="Новый год"/>
+            <column name="description" value="Время до нового года"/>
+            <column name="examples" value="новыйгод, newyear"/>
+            <column name="comment" value=""/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="26" />
+            <where>id = 26</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="27"/>
+            <column name="name" value="Turn"/>
+            <column name="description" value="Переводит русский текст с en-раскладки в ru"/>
+            <column name="params" value="[текст]"/>
+            <column name="examples" value="тюрн, turn ghbdtn"/>
+            <column name="comment" value="Также можно перевести текст чужого сообщения, отправив в ответ к нему команду без параметров"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="27" />
+            <where>id = 27</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="28"/>
+            <column name="name" value="Вольфрам"/>
+            <column name="description" value="Обращение к системе Wolfram|Alpha"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="вольфрам 2*2, wolframalpha population of Russia"/>
+            <column name="comment" value="только на английском"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="28" />
+            <where>id = 28</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="29"/>
+            <column name="name" value="Алиас"/>
+            <column name="description" value="Просмотр списка собственных алиасов"/>
+            <column name="examples" value="алиас"/>
+            <column name="comment" value="Добавление/удаление алиасов осуществляется командой /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="29" />
+            <where>id = 29</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="30"/>
+            <column name="name" value="Картинка"/>
+            <column name="description" value="Скачивание, поиск изображений"/>
+            <column name="params" value="[url], [номер], [текст]"/>
+            <column name="examples" value="картинка, image_23, картинка http://example.com/image.jpg, image суслик"/>
+            <column name="comment" value="Номер картинки — это её идентификатор в БД бота. По команде без параметров бот пришлёт случайную картинку из уже сохранённых"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="30" />
+            <where>id = 30</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="31"/>
+            <column name="name" value="Карма"/>
+            <column name="description" value="Просмотр собственной кармы, изменение чужой"/>
+            <column name="params" value="[@username значение(1/-1)]"/>
+            <column name="examples" value="карма @username 1, карма @username -1"/>
+            <column name="comment" value="Изменить карму пользователя можно также, оправив в ответ на сообщение 👍, 👎, +1, -1, ++, --"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="31" />
+            <where>id = 31</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="32"/>
+            <column name="name" value="Время "/>
+            <column name="description" value="Бот присылает текущее время пользователя"/>
+            <column name="params" value="[@username]"/>
+            <column name="examples" value="время, время @username"/>
+            <column name="comment" value="команда без параметров выведет ваше текущее время. Время пользователя можно узнать также отправив команду без параметров в ответ на сообщение пользователя"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="32" />
+            <where>id = 32</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="33"/>
+            <column name="name" value="Курс"/>
+            <column name="description" value="Курс валют ЦБ РФ"/>
+            <column name="params" value="[код валюты]"/>
+            <column name="examples" value="курс, курс kzt, exchange 10,2 usd"/>
+            <column name="comment" value="При указании суммы иностранной валюты, бот переведёт её в рубли по текущему курсу"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="33" />
+            <where>id = 33</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="34"/>
+            <column name="name" value="Тв"/>
+            <column name="description" value="Телепрограмма"/>
+            <column name="params" value="[телеканал/телепрограмма]"/>
+            <column name="examples" value="тв, tv paramount comedy, тв Друзья"/>
+            <column name="comment" value="Бот найдёт по указанным аргументам тв-программы и телеканалы и пришлёт результат. При отправке команды без параметров бот выведет сводную краткую телепрограмму на ближайшее время по выбранным телеканалам. Интересующие телеканалы для сводной телепрограммы можно установить с помощью команды /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="34" />
+            <where>id = 34</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="35"/>
+            <column name="name" value="Калк"/>
+            <column name="description" value="Калькулятор"/>
+            <column name="params" value="Математическое выражение"/>
+            <column name="examples" value="Калк 2+2*2, calc 2+3*sqrt(4)"/>
+            <column name="comment" value="Используется api сервиса api.mathjs.org"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="35" />
+            <where>id = 35</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="36"/>
+            <column name="name" value="Аптайм"/>
+            <column name="description" value="Различная статистика работы бота"/>
+            <column name="examples" value="Аптайм, uptime"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="36" />
+            <where>id = 36</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="37"/>
+            <column name="name" value="Выкл"/>
+            <column name="description" value="Нормальное завершение работы бота"/>
+            <column name="examples" value="Выкл, shutdown"/>
+            <column name="comment" value="Рекомендуется именно таким образом отключать бота"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="37" />
+            <where>id = 37</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="38"/>
+            <column name="name" value="Праздники"/>
+            <column name="description" value="Информация по праздникам"/>
+            <column name="params" value="[текст/дата]"/>
+            <column name="examples" value="Праздники, праздники день рождения, holidays 31.12"/>
+            <column name="comment" value="По команде без параметров бот выведет ближайшие праздники, при указании текста бот найдёт праздники, включающие такое наименование, при указании даты (формат строго ДД.ММ), бот выведет праздники за указанную дату. Установка праздников происходит с помощью команды /set"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="38" />
+            <where>id = 38</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="39"/>
+            <column name="name" value="Сказать"/>
+            <column name="description" value="Бот повторяет написанное"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="сказать бот хороший, say @username hey!"/>
+            <column name="comment" value="Может быть полезным при использовании алиасов (например, чтоб пингануть людей)"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="29" />
+            <where>id = 39</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="40"/>
+            <column name="name" value="Вверх"/>
+            <column name="description" value="Сдвиг переписки вверх"/>
+            <column name="examples" value="вверх, up"/>
+            <column name="comment" value="Бот присылает кучу переносов строк, чтобы сдвинуть переписку вверх"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="40" />
+            <where>id = 40</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="41"/>
+            <column name="name" value="Спеллер"/>
+            <column name="description" value="Поиск орфографических ошибок в тексте"/>
+            <column name="params" value="[текст]"/>
+            <column name="examples" value="спеллер превед, speller helllo"/>
+            <column name="comment" value="Для проверки текста чужого сообщения на ошибки, отправьте команду без параметров в ответ на сообщение с текстом. Используется сервис Используется yandex.ru/dev/speller/"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="41" />
+            <where>id = 41</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="42"/>
+            <column name="name" value="Файлы"/>
+            <column name="description" value="Облачное хранилище"/>
+            <column name="examples" value="Файлы, files"/>
+            <column name="comment" value="Хранить здесь конфиденциальные данные не стоит"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="42" />
+            <where>id = 42</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="43"/>
+            <column name="name" value="Архив"/>
+            <column name="description" value="Бекап базы данных бота"/>
+            <column name="examples" value="архив, backup"/>
+            <column name="comment" value="Бот пришлёт вам файл базы данных ответным сообщением. В данный момент размер файла, отправляемого ботом, ограничен на стороне Telegram, размером в 50 мб"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="43" />
+            <where>id = 43</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="44"/>
+            <column name="name" value="Котики"/>
+            <column name="description" value="Фото и гифки с котиками"/>
+            <column name="examples" value="Котики, cats"/>
+            <column name="comment" value="Изображения берутся с сервиса thecatapi.com"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="44" />
+            <where>id = 44</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="45"/>
+            <column name="name" value="Разность"/>
+            <column name="description" value="Разность дат"/>
+            <column name="params" value="дата [дата], дата [число]"/>
+            <column name="examples" value="разность 01.01.2022, разность 14.09.2021 01.01.2021, разность 14.09.2021 21:53:27, разность 14.09.2021 21:53:27 31.12.2022 23:59:59, timedelta 14.09.2021 5, timedelta 14.09.2021 -5"/>
+            <column name="comment" value="Бот воспринимает строго даты формата dd.MM.yyyy и даты/время формата dd.MM.yyyy HH:mm:ss Вперемешку дату с датой/временем сравнить не может. Если указывается только одна дата - бот сравнивает её с текущей. Также бот может прибавить или отнять от указанной даты указанное количество дней"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="45" />
+            <where>id = 45</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="46"/>
+            <column name="name" value="Перевол"/>
+            <column name="description" value="Переводчик"/>
+            <column name="params" value="[текст]"/>
+            <column name="examples" value="перевод hello, перевод привет, translate kk привет"/>
+            <column name="comment" value="Бот переводит текст на любом языке автоматически на русский. Текст, написанный на русском языке, автоматически переведётся на английский. Для указания целевого языка укажите его код перед текстом. Список кодов доступен по ссылке: https://cloud.google.com/translate/docs/languages"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="46" />
+            <where>id = 46</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="47"/>
+            <column name="name" value="Куар"/>
+            <column name="description" value="Генерация QR-кодов"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="qr http://wikipedia.org, куар http://google.com"/>
+            <column name="comment" value="Для считывания qr-кода просто отправьте изображение боту"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="47" />
+            <where>id = 47</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="48"/>
+            <column name="name" value="Длительность"/>
+            <column name="description" value="Расчёт времени скачивания файла"/>
+            <column name="params" value="скорость, размер файла"/>
+            <column name="examples" value="длительность 1.3 гб 50 мбит, длительность 55 gb 100 mbit"/>
+            <column name="comment" value="Бот принимает единицы размера файла: б кб мб гб тб пб b kb mb gb tb pb, единицы измерения скорости: бит кбит мбит гбит тбит пбит bit kbit mbit gbit tbit pbit"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="48" />
+            <where>id = 48</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="49"/>
+            <column name="name" value="Гороскоп"/>
+            <column name="description" value="Гороскоп на сегодня"/>
+            <column name="params" value="[тип]"/>
+            <column name="examples" value="гороскоп, horoscope, гороскоп анти"/>
+            <column name="comment" value="Есть возможность задать знак зодиака командой /set; данные берутся с сайта ignio.com"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="49" />
+            <where>id = 49</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="50"/>
+            <column name="name" value="Вебкам"/>
+            <column name="description" value="Стрим с веб-камер"/>
+            <column name="params" value="ссылка, [секунды]"/>
+            <column name="comment" value="Принимаются стримы формата m3u. Для удобства рекомендуется использовать с алиасами"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="50" />
+            <where>id = 50</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="51"/>
+            <column name="name" value="Посылка"/>
+            <column name="description" value="Отслеживание посылок по трек-коду"/>
+            <column name="params" value="[добавить], [удалить], [имя посылки], [трек-код посылки]"/>
+            <column name="examples" value="посылка добавить RU123456789HK, посылка добавить RU123456789HK кабель, посылка RU245816324HK, посылка кабель, посылка удалить кабель, посылка удалить RU245816324HK, посылка удалить кабель"/>
+            <column name="comment" value="Удобнее пользоваться не текстовыми командами, а меню, доступному по отправке команды без параметров. Отслеживание происходит в автоматическом режиме. При новых событиях вам придёт сообщение"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="51" />
+            <where>id = 51</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="52"/>
+            <column name="name" value="Напомнить"/>
+            <column name="description" value="Установка напоминания"/>
+            <column name="params" value="[текст], [дата], [дата+время], [время], [день недели]"/>
+            <column name="examples" value="напомнить, remind, напомнить захватить вселенную, напомнить 31.12 поздравить всех с новым годом, напомнить 08.03.2023 поздравить женщин, напомнить 30.02.2132 17:22 полёт на Марс, напомнить 18:00 пора отдыхать, напомнить в воскресенье сходи за продуктами, напомнить завтра купи батон, напомнить в обед пообедай уже!, напомнить через 5 дней где деньги, Лебовски?, напомнить через 10 минут выключи чайник"/>
+            <column name="comment" value="Команда без параметров выведет список напоминаний с возможностью перенастроить, удалить"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="52" />
+            <where>id = 52</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="53"/>
+            <column name="name" value="UUID"/>
+            <column name="description" value="Бот генерирует случайный uuid"/>
+            <column name="examples" value="uuid, юайди"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="53" />
+            <where>id = 53</where>
+        </update>
+
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="54"/>
+            <column name="name" value="Скачать"/>
+            <column name="description" value="Бот скачивает и присылает файл"/>
+            <column name="params" value="ссылка [имя файла]"/>
+            <column name="examples" value="скачать https://www.google.com/favicon.ico, скачать https://www.google.com/favicon.ico иконка.ico"/>
+            <column name="comment" value="Размер файла на данный момент ограничен со стороны Telegram в 50 мб"/>
+        </insert>
+
+        <update schemaName="bot" tableName="commandproperties">
+            <column name="help" value="54" />
+            <where>id = 54</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20230214152400-2" author="stdmk">
+        <dropDefaultValue schemaName="bot" tableName="commandproperties" columnName="help" />
+    </changeSet>
+</databaseChangeLog>

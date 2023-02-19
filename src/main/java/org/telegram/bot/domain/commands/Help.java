@@ -54,9 +54,9 @@ public class Help implements CommandParent<SendMessage> {
                 accessLevel = chatAccessLevel;
             }
 
-            buf.append("*Без паники!*\n");
-            buf.append("Твой текущий уровень - *").append(accessLevel)
-                    .append("* (пользователь - ").append(userAccessLevel)
+            buf.append("<b>Без паники!</b>\n");
+            buf.append("Твой текущий уровень - <b>").append(accessLevel)
+                    .append("</b> (пользователь - ").append(userAccessLevel)
                     .append("; чат - ").append(chatAccessLevel)
                     .append(")\n");
 
@@ -87,7 +87,7 @@ public class Help implements CommandParent<SendMessage> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableMarkdown(true);
+        sendMessage.enableHtml(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
@@ -97,27 +97,19 @@ public class Help implements CommandParent<SendMessage> {
     /**
      * Formatting raw help data text.
      *
-     * @param helpData raw text of help.
+     * @param help Help entity.
      * @return formatted text of help.
      */
-    private String formatHelpText(String helpData) {
-        StringBuilder preparedText = new StringBuilder();
+    private String formatHelpText(org.telegram.bot.domain.entities.Help help) {
+        return "<b>Команда:</b> " + getHelpPartValueWithDefault(help.getName()) + "\n" +
+                "<b>Описание:</b> " + getHelpPartValueWithDefault(help.getDescription()) + "\n" +
+                "<b>Параметры:</b> " + getHelpPartValueWithDefault(help.getParams()) + "\n" +
+                "<b>Примеры:</b> " + getHelpPartValueWithDefault(help.getExamples()) + "\n" +
+                "<b>Примечания:</b> " + getHelpPartValueWithDefault(help.getComment());
+    }
 
-        int titleEndIndex = helpData.indexOf(",");
-        preparedText.append("*Команда:* ").append(helpData, 0, titleEndIndex).append("\n");
-
-        int descEndIndex = helpData.indexOf(",", titleEndIndex + 1);
-        preparedText.append("*Описание:* ").append(helpData, titleEndIndex + 1, descEndIndex).append("\n");
-
-        int paramsEndIndex = helpData.indexOf(",", descEndIndex + 1);
-        preparedText.append("*Параметры:* ").append(helpData, descEndIndex + 1, paramsEndIndex).append("\n");
-
-        int examplesEndIndex = helpData.indexOf(",", paramsEndIndex + 1);
-        preparedText.append("*Примеры:* ").append(helpData, paramsEndIndex + 1, examplesEndIndex).append("\n");
-
-        preparedText.append("*Примечания:* ").append(helpData.substring(examplesEndIndex + 1));
-
-        return preparedText.toString();
+    private String getHelpPartValueWithDefault(String value) {
+        return value != null ? value : "отсутствуют";
     }
 
     /**

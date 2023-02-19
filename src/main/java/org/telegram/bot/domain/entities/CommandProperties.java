@@ -5,12 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * CommandProperties entity.
@@ -41,6 +36,7 @@ public class CommandProperties {
     @Column(name = "accesslevel")
     private Integer accessLevel;
 
-    @Column(name = "help")
-    private String help;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "help", nullable = false)
+    private Help help;
 }
