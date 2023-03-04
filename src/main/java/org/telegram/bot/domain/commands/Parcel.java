@@ -256,7 +256,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private void checkFreeTrackCodeSlots(long occupiedSlots) {
-        final int requestsLimit = Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
+        final int requestsLimit = propertiesConfig.getRussianPostRequestsLimit();
 
         int availableSlots = requestsLimit / (24 / TrackCodeEventsTimer.FIXED_RATE_HOURS);
 
@@ -311,7 +311,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
             trackCode = parcel.getTrackCode();
         }
 
-        final boolean economyMode = isEconomyMode(Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit()));
+        final boolean economyMode = isEconomyMode(propertiesConfig.getRussianPostRequestsLimit());
         String lastUpdatesTimeInfo;
         if (!economyMode || AccessLevel.ADMIN.getValue().equals(userService.getUserAccessLevel(user.getUserId()))) {
             trackCodeService.updateFromApi(trackCode);

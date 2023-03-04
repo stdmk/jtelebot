@@ -1,6 +1,9 @@
 package org.telegram.bot.services.config;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -9,6 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 @ConfigurationProperties
 @PropertySource(value = "file:properties.properties", ignoreResourceNotFound = true)
 @Data
+@Slf4j
 public class PropertiesConfig {
     private String telegramBotApiToken;
     private String telegramBotUsername;
@@ -21,5 +25,15 @@ public class PropertiesConfig {
     private Boolean spyMode;
     private String russianPostLogin;
     private String russianPostPassword;
-    private String russianPostRequestsLimit;
+    @Getter(AccessLevel.NONE)
+    private Integer russianPostRequestsLimit;
+
+    public Integer getRussianPostRequestsLimit() {
+        if (this.russianPostRequestsLimit == null) {
+            this.russianPostRequestsLimit = 100;
+            log.error("The parameter russianPostRequestsLimit is not set. Default value set. (100)");
+        }
+
+        return this.russianPostRequestsLimit;
+    }
 }

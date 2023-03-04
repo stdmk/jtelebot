@@ -2,6 +2,7 @@ package org.telegram.bot.domain;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.WorkParam;
@@ -19,6 +20,7 @@ import static org.telegram.bot.utils.DateUtils.getDuration;
 @Component
 @Scope("singleton")
 @Getter
+@Slf4j
 public class BotStats {
     private final WorkParamService workParamService;
 
@@ -132,7 +134,7 @@ public class BotStats {
     }
 
     public void resetRussianPostRequests() {
-        this.russianPostRequests = Integer.parseInt(propertiesConfig.getRussianPostRequestsLimit());
+        this.russianPostRequests = propertiesConfig.getRussianPostRequestsLimit();
     }
 
     public void saveStats() {
