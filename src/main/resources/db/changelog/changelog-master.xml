@@ -123,4 +123,5 @@
     <include file="db/changelog/20230212120900_added_command_Download.xml"/>
     <include file="db/changelog/20230214151600_added_entity_Help.xml"/>
     <include file="db/changelog/20230214152400_help_refactoring.xml"/>
+    <include file="db/changelog/20230304115900_added_command_Phone.xml"/>
 </databaseChangeLog>
