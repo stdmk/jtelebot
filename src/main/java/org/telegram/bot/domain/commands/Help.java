@@ -68,6 +68,7 @@ public class Help implements CommandParent<SendMessage> {
                     .append(commandProperties.getCommandName())
                     .append(" — ")
                     .append(commandProperties.getRussifiedName())
+                    .append(" (").append(commandProperties.getAccessLevel()).append(")")
                     .append("\n"));
 
             buf.append("Я понимаю команды как на латинице (help), так и на кириллице (помощь)\n")
@@ -82,7 +83,7 @@ public class Help implements CommandParent<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            responseText = formatHelpText(command.getHelp());
+            responseText = formatHelpText(command.getHelp(), command.getAccessLevel());
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -100,12 +101,13 @@ public class Help implements CommandParent<SendMessage> {
      * @param help Help entity.
      * @return formatted text of help.
      */
-    private String formatHelpText(org.telegram.bot.domain.entities.Help help) {
+    private String formatHelpText(org.telegram.bot.domain.entities.Help help, Integer level) {
         return "<b>Команда:</b> " + getHelpPartValueWithDefault(help.getName()) + "\n" +
                 "<b>Описание:</b> " + getHelpPartValueWithDefault(help.getDescription()) + "\n" +
                 "<b>Параметры:</b> " + getHelpPartValueWithDefault(help.getParams()) + "\n" +
                 "<b>Примеры:</b> " + getHelpPartValueWithDefault(help.getExamples()) + "\n" +
-                "<b>Примечания:</b> " + getHelpPartValueWithDefault(help.getComment());
+                "<b>Примечания:</b> " + getHelpPartValueWithDefault(help.getComment()) + "\n" +
+                "<b>Уровень:</b> " + level;
     }
 
     private String getHelpPartValueWithDefault(String value) {
