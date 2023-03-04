@@ -65,8 +65,8 @@ public class Holidays implements CommandParent<SendMessage> {
                 try {
                     requestedDate = LocalDate.of(
                             LocalDate.now().getYear(),
-                            Integer.parseInt(textMessage.substring(0, i)),
-                            Integer.parseInt(textMessage.substring(i + 1)));
+                            Integer.parseInt(textMessage.substring(i + 1)),
+                            Integer.parseInt(textMessage.substring(0, i)));
                 } catch (NumberFormatException e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
