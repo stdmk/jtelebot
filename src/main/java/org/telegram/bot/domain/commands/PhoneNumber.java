@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -62,6 +63,8 @@ public class PhoneNumber implements CommandParent<SendMessage> {
         String rawResponse;
         try {
             rawResponse = networkUtils.readStringFromURL(apiUrl + text);
+        } catch (FileNotFoundException fnf) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         } catch (IOException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
