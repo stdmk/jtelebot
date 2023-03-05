@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -51,11 +52,7 @@ public class Top implements CommandParent<SendMessage> {
             Message repliedMessage = message.getReplyToMessage();
 
             Long userId;
-            if (repliedMessage != null) {
-                userId = repliedMessage.getFrom().getId();
-            } else {
-                userId = message.getFrom().getId();
-            }
+            userId = Objects.requireNonNullElse(repliedMessage, message).getFrom().getId();
             user = new User().setUserId(userId);
 
             log.debug("Request to get top of user {} for chat {}", user, chat);
@@ -189,6 +186,8 @@ public class Top implements CommandParent<SendMessage> {
         String methodName = sortParam.getMethod();
         if (!param.equals("все") && !param.equals("всё") && (param.endsWith("всё") || param.endsWith("все"))) {
             methodName = methodName.substring(0, 11) + "All" + methodName.substring(11);
+        } else if (!param.equals("день") && param.endsWith("день")) {
+            methodName = methodName + "PerDay";
         }
 
         String sortedField = removeCapital(methodName.substring(3));

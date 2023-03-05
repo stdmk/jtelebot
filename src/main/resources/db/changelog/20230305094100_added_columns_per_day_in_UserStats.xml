@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20230305094100" author="stdmk">
+        <addColumn schemaName="bot"
+                   tableName="userstats">
+            <column name="numberofmessagesperday" type="int"/>
+            <column name="numberofstickersperday" type="int"/>
+            <column name="numberofphotosperday" type="int"/>
+            <column name="numberofanimationsperday" type="int"/>
+            <column name="numberofaudioperday" type="int"/>
+            <column name="numberofdocumentsperday" type="int"/>
+            <column name="numberofvideosperday" type="int"/>
+            <column name="numberofvideonotesperday" type="int"/>
+            <column name="numberofvoicesperday" type="int"/>
+            <column name="numberofcommandsperday" type="int"/>
+            <column name="numberofkarmaperday" type="int"/>
+            <column name="numberofgoodnessperday" type="int"/>
+            <column name="numberofwickednessperday" type="int"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

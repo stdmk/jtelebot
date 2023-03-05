@@ -72,12 +72,6 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<UserStats> getUserStatsListForChat(Chat chat) {
-        log.debug("Request to get users of chat with id {}", chat);
-        return userStatsRepository.findByChat(chat);
-    }
-
-    @Override
     public List<UserStats> getSortedUserStatsListForChat(Chat chat, String sortBy, int limit) {
         log.debug("Request to get users of chat with id {} and limit {} sort by {}", chat, limit, sortBy);
         return userStatsRepository.findByChat(chat, PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, sortBy)));
@@ -129,12 +123,38 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    public void clearDailyStats() {
+        log.debug("Request to clear daily stats of users");
+        userStatsRepository.saveAll(getAllGroupStats()
+                .stream()
+                .peek(this::clearUserStatsPerDayFields)
+                .collect(Collectors.toList()));
+    }
+
+    private void clearUserStatsPerDayFields(UserStats userStats) {
+        userStats.setNumberOfMessagesPerDay(0)
+                .setNumberOfPhotosPerDay(0)
+                .setNumberOfAnimationsPerDay(0)
+                .setNumberOfAudioPerDay(0)
+                .setNumberOfDocumentsPerDay(0)
+                .setNumberOfVideosPerDay(0)
+                .setNumberOfVideoNotesPerDay(0)
+                .setNumberOfVoicesPerDay(0)
+                .setNumberOfCommandsPerDay(0)
+                .setNumberOfStickersPerDay(0)
+                .setNumberOfKarmaPerDay(0)
+                .setNumberOfGoodnessPerDay(0)
+                .setNumberOfWickednessPerDay(0);
+    }
+
+    @Override
     public void incrementUserStatsCommands(Chat chat, User user) {
         log.debug("Request to increment users stats commands using");
 
         UserStats userStats = get(chat, user);
         userStats
                 .setNumberOfCommands(userStats.getNumberOfCommands() + 1)
+                .setNumberOfCommandsPerDay(userStats.getNumberOfCommandsPerDay() + 1)
                 .setNumberOfAllCommands(userStats.getNumberOfAllCommands() + 1);
 
         save(userStats);
@@ -231,68 +251,90 @@ public class UserStatsServiceImpl implements UserStatsService {
                     .setChat(chat)
                     .setUser(user)
                     .setNumberOfMessages(0)
+                    .setNumberOfMessagesPerDay(0)
                     .setNumberOfAllMessages(0L)
                     .setNumberOfStickers(0)
+                    .setNumberOfStickersPerDay(0)
                     .setNumberOfAllStickers(0L)
                     .setNumberOfPhotos(0)
+                    .setNumberOfPhotosPerDay(0)
                     .setNumberOfAllPhotos(0L)
                     .setNumberOfAnimations(0)
+                    .setNumberOfAnimationsPerDay(0)
                     .setNumberOfAllAnimations(0L)
                     .setNumberOfAudio(0)
+                    .setNumberOfAudioPerDay(0)
                     .setNumberOfAllAudio(0L)
                     .setNumberOfDocuments(0)
+                    .setNumberOfDocumentsPerDay(0)
                     .setNumberOfAllDocuments(0L)
                     .setNumberOfVideos(0)
+                    .setNumberOfVideosPerDay(0)
                     .setNumberOfAllVideos(0L)
                     .setNumberOfVideoNotes(0)
+                    .setNumberOfVideoNotesPerDay(0)
                     .setNumberOfAllVideoNotes(0L)
                     .setNumberOfVoices(0)
+                    .setNumberOfVoicesPerDay(0)
                     .setNumberOfAllVoices(0L)
                     .setNumberOfCommands(0)
+                    .setNumberOfCommandsPerDay(0)
                     .setNumberOfAllCommands(0L)
                     .setLastMessage(lastMessageService.update(lastMessage, message))
                     .setNumberOfKarma(0)
+                    .setNumberOfKarmaPerDay(0)
                     .setNumberOfAllKarma(0L)
                     .setNumberOfGoodness(0)
+                    .setNumberOfGoodnessPerDay(0)
                     .setNumberOfAllGoodness(0L)
                     .setNumberOfWickedness(0)
+                    .setNumberOfWickednessPerDay(0)
                     .setNumberOfAllWickedness(0L);
         }
 
         if (message.hasText()) {
             userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1)
+                    .setNumberOfMessagesPerDay(userStats.getNumberOfMessagesPerDay() + 1)
                     .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
         }
         else if (message.hasSticker()) {
             userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
+                    .setNumberOfStickersPerDay(userStats.getNumberOfStickersPerDay() + 1)
                     .setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1);
         }
         else if (message.hasPhoto()) {
             userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1)
+                    .setNumberOfPhotosPerDay(userStats.getNumberOfPhotosPerDay() + 1)
                     .setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1);
         }
         else if (message.hasAnimation()) {
             userStats.setNumberOfAnimations(userStats.getNumberOfAnimations() + 1)
+                    .setNumberOfAnimationsPerDay(userStats.getNumberOfAnimationsPerDay() + 1)
                     .setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1);
         }
         else if (message.hasAudio()) {
             userStats.setNumberOfAudio(userStats.getNumberOfAudio() + 1)
+                    .setNumberOfAudioPerDay(userStats.getNumberOfAudioPerDay() + 1)
                     .setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1);
         }
         else if (message.hasDocument()) {
             userStats.setNumberOfDocuments(userStats.getNumberOfDocuments() + 1)
+                    .setNumberOfDocumentsPerDay(userStats.getNumberOfDocumentsPerDay() + 1)
                     .setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1);
         }
         else if (message.hasVideo()) {
             userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1)
+                    .setNumberOfVideosPerDay(userStats.getNumberOfVideosPerDay() + 1)
                     .setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1);
         }
         else if (message.hasVideoNote()) {
             userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1)
+                    .setNumberOfVideoNotesPerDay(userStats.getNumberOfVideoNotesPerDay() + 1)
                     .setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1);
         }
         else if (message.hasVoice()) {
             userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
+                    .setNumberOfVoicesPerDay(userStats.getNumberOfVoicesPerDay() + 1)
                     .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1);
         }
 

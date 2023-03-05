@@ -26,6 +26,33 @@ public class UserStatsCleanerTimerTask extends TimerParent {
     @Override
     @Scheduled(fixedRate = 10800000)
     public void execute() {
+        checkMonthlyStats();
+        checkDailyStats();
+    }
+
+    private void checkDailyStats() {
+        Timer timer = timerService.get("statsDailyCleanTimer");
+        if (timer == null) {
+            log.error("Unable to read timer statsDailyCleanTimer. Creating new...");
+            timer = new Timer()
+                    .setName("statsDailyCleanTimer")
+                    .setLastAlarmDt(LocalDateTime.now());
+            timerService.save(timer);
+        }
+
+        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
+
+        if (dateTimeNow.isAfter(nextAlarm)) {
+            log.info("Timer for cleaning top by day");
+            userStatsService.clearDailyStats();
+
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
+            timerService.save(timer);
+        }
+    }
+
+    private void checkMonthlyStats() {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
             log.error("Unable to read timer statsCleanTimer. Creating new...");

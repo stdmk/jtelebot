@@ -26,6 +26,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -61,11 +62,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             Message repliedMessage = message.getReplyToMessage();
 
 
-            if (repliedMessage != null) {
-                user = new User().setUserId(repliedMessage.getFrom().getId());
-            } else {
-                user = new User().setUserId(message.getFrom().getId());
-            }
+            user = new User().setUserId(Objects.requireNonNullElse(repliedMessage, message).getFrom().getId());
 
             log.debug("Request to get karma info for user {} and chat {}", user, chat);
             userStats = userStatsService.get(chat, user);
@@ -113,15 +110,18 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
             Chat chat = new Chat().setChatId(message.getChatId());
             UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
             anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value)
+                    .setNumberOfKarmaPerDay(anotherUserStats.getNumberOfKarmaPerDay() + value)
                     .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
 
             User user = new User().setUserId(message.getFrom().getId());
             UserStats userStats = userStatsService.get(chat, user);
             if (value > 0) {
                 userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)
+                        .setNumberOfGoodnessPerDay(userStats.getNumberOfGoodnessPerDay() + 1)
                         .setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
             } else {
                 userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1)
+                        .setNumberOfWickednessPerDay(userStats.getNumberOfWickednessPerDay() + 1)
                         .setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
             }
 

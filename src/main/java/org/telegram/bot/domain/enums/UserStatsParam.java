@@ -18,6 +18,7 @@ import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 public enum UserStatsParam {
     NUMBER_OF_MESSAGES(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), "getNumberOfMessages", "numberOfMessages"),
     NUMBER_OF_ALL_MESSAGES(Arrays.asList("все", "всё"), "getNumberOfAllMessages", "numberOfAllMessages"),
+    NUMBER_OF_MESSAGES_PER_DAY(Arrays.asList("день", "сутки"), "getNumberOfMessagesPerDay", "numberOfMessagesPerDay"),
     NUMBER_OF_KARMA(Arrays.asList("карма", "кармы"), "getNumberOfKarma", "numberOfKarma"),
     NUMBER_OF_ALL_KARMA(Arrays.asList("кармавсе", "кармавсё"), "getNumberOfAllKarma", "numberOfAllKarma"),
     NUMBER_OF_STICKERS(Arrays.asList("стикеры", "стикер", "стикеров"), "getNumberOfStickers", "numberOfStickers"),
