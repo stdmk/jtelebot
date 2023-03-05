@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.DisableCommand;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.ChatRepository;
 import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.DisableCommandService;
 
 import java.util.List;
 
@@ -17,11 +20,37 @@ import java.util.List;
 public class ChatServiceImpl implements ChatService {
 
     private final ChatRepository chatRepository;
+    private final CommandPropertiesService commandPropertiesService;
+    private final DisableCommandService disableCommandService;
 
     @Override
     public Chat get(Long chatId) {
         log.debug("Request to get Chat by chatId: {} ", chatId);
-        return chatRepository.findByChatId(chatId);
+
+        Chat chat = chatRepository.findByChatId(chatId);
+        if (chat == null) {
+            chat = createNewChat(chatId);
+        }
+
+        return chat;
+    }
+
+    private Chat createNewChat(Long chatId) {
+        log.debug("Creating new Chat with id {}", chatId);
+
+        Chat chat = this.save(new Chat()
+                .setChatId(chatId)
+                .setAccessLevel(AccessLevel.NEWCOMER.getValue()));
+
+        if (chatId < 0) {
+            log.debug("New chat is a group. Disabling default commands");
+            commandPropertiesService.getAllDisabledByDefaultForGroups()
+                    .forEach(commandProperties ->
+                            disableCommandService.save(
+                                    new DisableCommand().setChat(chat).setCommandProperties(commandProperties)));
+        }
+
+        return chat;
     }
 
     @Override

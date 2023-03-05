@@ -20,14 +20,6 @@ public interface CommandPropertiesService {
     CommandProperties findCommandInText(String textOfMessage, String botUsername);
 
     /**
-     * Find the access level for command by its class name.
-     *
-     * @param className - name of class of command.
-     * @return access level for command.
-     */
-    Integer getAccessLevelForCommand(String className);
-
-    /**
      * Find available commands for level.
      *
      * @param accessLevel - access level for commands.
@@ -66,4 +58,11 @@ public interface CommandPropertiesService {
      * @return the persisted entities.
      */
     Page<CommandProperties> getAll(int page);
+
+    /**
+     * Get all disabled by default CommandProperties.
+     *
+     * @return the persisted entities.
+     */
+    List<CommandProperties> getAllDisabledByDefaultForGroups();
 }

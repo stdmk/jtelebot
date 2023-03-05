@@ -24,4 +24,6 @@ public interface CommandPropertiesRepository extends JpaRepository<CommandProper
     CommandProperties findByClassName(String className);
 
     List<CommandProperties> findByAccessLevelLessThanEqual(Integer level);
+
+    List<CommandProperties> findAllByDefaultDisabledForGroups(boolean disabled);
 }

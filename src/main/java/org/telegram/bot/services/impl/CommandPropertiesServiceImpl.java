@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.CommandPropertiesRepository;
 import org.telegram.bot.services.CommandPropertiesService;
 
@@ -45,17 +44,6 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     }
 
     @Override
-    public Integer getAccessLevelForCommand(String className) {
-        log.debug("Request to get access level for command by its class name");
-        CommandProperties commandProperties = commandPropertiesRepository.findByClassName(className);
-        if (commandProperties == null || commandProperties.getAccessLevel() == null) {
-            return AccessLevel.ADMIN.getValue();
-        }
-
-        return commandProperties.getAccessLevel();
-    }
-
-    @Override
     public List<CommandProperties> getAvailableCommandsForLevel(Integer accessLevel) {
         log.debug("Request to get available commands for level {}", accessLevel);
         return commandPropertiesRepository.findByAccessLevelLessThanEqual(accessLevel);
@@ -83,5 +71,11 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     public Page<CommandProperties> getAll(int page) {
         log.debug("Request to get all CommandProperties. Page " + page);
         return commandPropertiesRepository.findAll(PageRequest.of(page, 10));
+    }
+
+    @Override
+    public List<CommandProperties> getAllDisabledByDefaultForGroups() {
+        log.debug("Request to get all disabled by default CommandProperties entities");
+        return commandPropertiesRepository.findAllByDefaultDisabledForGroups(true);
     }
 }

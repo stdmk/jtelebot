@@ -207,15 +207,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         }
 
         Chat chat = chatService.get(chatId);
-        if (chat == null) {
-            chat = new Chat()
-                    .setChatId(chatId)
-                    .setName(chatName)
-                    .setAccessLevel(AccessLevel.NEWCOMER.getValue());
-            chat = chatService.save(chat);
-        }
-
-        else if (!chat.getName().equals(chatName)) {
+        if (!chatName.equals(chat.getName())) {
             chat.setName(chatName);
             chat = chatService.save(chat);
         }
