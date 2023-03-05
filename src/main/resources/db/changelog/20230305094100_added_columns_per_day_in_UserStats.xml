@@ -21,4 +21,22 @@
             <column name="numberofwickednessperday" type="int"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="20230305094100-2" author="stdmk">
+        <update schemaName="bot" tableName="userstats">
+            <column name="numberofmessagesperday" value="0"/>
+            <column name="numberofstickersperday" value="0"/>
+            <column name="numberofphotosperday" value="0"/>
+            <column name="numberofanimationsperday" value="0"/>
+            <column name="numberofaudioperday" value="0"/>
+            <column name="numberofdocumentsperday" value="0"/>
+            <column name="numberofvideosperday" value="0"/>
+            <column name="numberofvideonotesperday" value="0"/>
+            <column name="numberofvoicesperday" value="0"/>
+            <column name="numberofcommandsperday" value="0"/>
+            <column name="numberofkarmaperday" value="0"/>
+            <column name="numberofgoodnessperday" value="0"/>
+            <column name="numberofwickednessperday" value="0"/>
+        </update>
+    </changeSet>
 </databaseChangeLog>
