@@ -126,4 +126,6 @@
     <include file="db/changelog/20230304115900_added_command_Phone.xml"/>
     <include file="db/changelog/20230305085000_by_default_disabled_commands.xml"/>
     <include file="db/changelog/20230305094100_added_columns_per_day_in_UserStats.xml"/>
+    <include file="db/changelog/20230305102700_update_help_Parcel.xml"/>
+    <include file="db/changelog/20230305103100_update_help_Top.xml"/>
 </databaseChangeLog>

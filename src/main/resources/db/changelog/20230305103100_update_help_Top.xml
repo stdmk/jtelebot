@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230305103100-1" author="stdmk">
+        <update schemaName="bot" tableName="help">
+            <column name="params" value="[@username], [категория], [день, месяц, всё]"/>
+            <column name="examples" value="топ, top @username, топ стикеры день, топ карма месяц, топ злобота всё"/>
+            <column name="comment" value="день — статистика за текущий день, месяц — за текущий месяц, всё — за всё время"/>
+            <where>id = 8</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>
