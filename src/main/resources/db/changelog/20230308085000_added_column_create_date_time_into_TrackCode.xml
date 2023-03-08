@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20230308085000-1" author="stdmk">
+        <addColumn schemaName="bot" tableName="trackcode">
+            <column name="create_date_time" type="datetime"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20230308085000-2" author="stdmk">
+        <update schemaName="bot" tableName="trackcode">
+            <column name="create_date_time" value="1970-01-01 00:00:00.0"/>
+        </update>
+    </changeSet>
+</databaseChangeLog>

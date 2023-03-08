@@ -4,8 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -28,4 +30,8 @@ public class TrackCode {
 
     @OneToMany(mappedBy = "trackCode", fetch = FetchType.EAGER)
     private Set<TrackCodeEvent> events;
+
+    @CreationTimestamp
+    @Column(name = "create_date_time")
+    private LocalDateTime createDateTime;
 }

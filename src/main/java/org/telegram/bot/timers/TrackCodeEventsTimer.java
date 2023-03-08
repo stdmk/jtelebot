@@ -62,7 +62,7 @@ public class TrackCodeEventsTimer extends TimerParent {
                                     .stream()
                                     .map(TrackCodeEvent::getEventDateTime)
                                     .max(LocalDateTime::compareTo)
-                                    .orElse(dateTimeNow)));
+                                    .orElse(trackCode.getCreateDateTime())));
 
             if (!trackCodeService.updateFromApi()) {
                 log.error("Failed to update some TrackCodeEvents");
