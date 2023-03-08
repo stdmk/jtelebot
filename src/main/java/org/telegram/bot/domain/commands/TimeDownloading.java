@@ -22,17 +22,22 @@ import java.util.Arrays;
 @Slf4j
 public class TimeDownloading implements CommandParent<SendMessage> {
 
+    private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = cutCommandInText(message.getText());
-        String responseText;
+        String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {
-            log.debug("Empty command");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            textMessage = cutCommandInText(message.getText());
+        }
+
+        String responseText;
+        if (textMessage == null) {
+            commandWaitingService.add(message, this.getClass());
+            responseText = "теперь напиши мне что нужно рассчитать";
         } else {
             textMessage = textMessage.replace(",", ".");
             int i = getNextSpaceIndex(textMessage);

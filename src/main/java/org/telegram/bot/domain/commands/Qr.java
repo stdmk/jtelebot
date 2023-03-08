@@ -21,8 +21,10 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -45,28 +47,43 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Qr implements CommandParent<SendPhoto>, TextAnalyzer {
+public class Qr implements CommandParent<PartialBotApiMethod<?>>, TextAnalyzer {
 
+    private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final BotStats botStats;
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendPhoto parse(Update update) {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
-        String textMessage = getTextMessage(update);
+        String textMessage = commandWaitingService.getText(message);
+
         if (textMessage == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            textMessage = cutCommandInText(message.getText());
         }
 
-        SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setPhoto(new InputFile(generateQrFromText(textMessage), "qr"));
-        sendPhoto.setCaption(textMessage);
-        sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(message.getChatId().toString());
+        if (textMessage == null) {
+            log.debug("Empty request. Turning on command waiting");
+            commandWaitingService.add(message, this.getClass());
 
-        return sendPhoto;
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setReplyToMessageId(message.getMessageId());
+            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setText("теперь напиши мне что нужно закодировать");
+
+            return sendMessage;
+        } else {
+
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setPhoto(new InputFile(generateQrFromText(textMessage), "qr"));
+            sendPhoto.setCaption(textMessage);
+            sendPhoto.setReplyToMessageId(message.getMessageId());
+            sendPhoto.setChatId(message.getChatId().toString());
+
+            return sendPhoto;
+        }
     }
 
     private InputStream generateQrFromText(String text) {

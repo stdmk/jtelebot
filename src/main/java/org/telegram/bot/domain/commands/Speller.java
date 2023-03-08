@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -23,6 +24,7 @@ import java.util.List;
 @Slf4j
 public class Speller implements CommandParent<SendMessage> {
 
+    private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
     private final SpeechService speechService;
 
@@ -30,32 +32,39 @@ public class Speller implements CommandParent<SendMessage> {
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Integer replyToMessage;
-        String textMessage = getTextMessage(update);
-        String responseText;
+        String textMessage = commandWaitingService.getText(message);
 
+        if (textMessage == null) {
+            textMessage = cutCommandInText(message.getText());
+        }
+
+        String responseText;
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            textMessage = repliedMessage.getText();
-            if (textMessage == null) {
-                textMessage = repliedMessage.getCaption();
+                commandWaitingService.add(message, this.getClass());
+                responseText = "теперь напиши мне что нужно проверить";
+                replyToMessage = message.getMessageId();
+            } else {
+                textMessage = repliedMessage.getText();
                 if (textMessage == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    textMessage = repliedMessage.getCaption();
+                    if (textMessage == null) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                    log.debug("Request to speller text from caption: {}", textMessage);
+                    responseText = getRevisedText(textMessage);
+                    replyToMessage = repliedMessage.getMessageId();
+                } else {
+                    log.debug("Request to speller text from replied message {}", textMessage);
+                    responseText = getRevisedText(textMessage);
+                    replyToMessage = message.getReplyToMessage().getMessageId();
                 }
-                log.debug("Request to speller text from caption: {}", textMessage);
             }
-
-            log.debug("Request to speller text from replied message {}", textMessage);
-            replyToMessage = message.getReplyToMessage().getMessageId();
         } else {
             replyToMessage = message.getMessageId();
+            responseText = getRevisedText(textMessage);
         }
-        log.debug("Request to speller text from message: {}", textMessage);
-
-        responseText = getRevisedText(textMessage);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
