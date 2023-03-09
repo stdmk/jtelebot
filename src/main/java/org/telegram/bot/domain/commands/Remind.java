@@ -201,7 +201,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 if (afterHoursPhrase != null) {
                     Integer hours = getValueFromAfterTimePhrase(afterHoursPhrase);
                     if (hours != null) {
-                        reminderTime = LocalTime.now().plusMinutes(hours);
+                        reminderTime = LocalTime.now().plusHours(hours);
                         command = command.replaceFirst(afterHoursPhrase, "").trim();
                     }
                 }
