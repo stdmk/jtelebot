@@ -3,8 +3,6 @@ package org.telegram.bot.domain.commands;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -59,6 +57,7 @@ public class Boobs implements CommandParent<SendPhoto> {
         sendPhoto.setCaption(caption);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
+        sendPhoto.setHasSpoiler(true);
 
         return sendPhoto;
     }

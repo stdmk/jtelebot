@@ -11,6 +11,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -49,7 +50,8 @@ public class GreatAdvice implements CommandParent<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(fuckingGreatAdvice.getText());
+        sendMessage.enableHtml(true);
+        sendMessage.setText(TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()));
 
         return sendMessage;
     }

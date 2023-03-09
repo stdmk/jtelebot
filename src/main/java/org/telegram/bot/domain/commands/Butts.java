@@ -59,6 +59,7 @@ public class Butts implements CommandParent<SendPhoto> {
         sendPhoto.setCaption(caption);
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
+        sendPhoto.setHasSpoiler(true);
 
         return sendPhoto;
     }

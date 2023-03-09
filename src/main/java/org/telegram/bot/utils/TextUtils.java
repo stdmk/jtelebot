@@ -68,10 +68,6 @@ public class TextUtils {
         return symbolsList.stream().anyMatch(text::startsWith);
     }
 
-    public static Boolean equalsWithElementInList(String text, List<String> symbolsList) {
-        return symbolsList.stream().anyMatch(text::equals);
-    }
-
     public static Boolean isTextLengthIncludedInLimit(String text) {
         return text.length() < 4096;
     }
@@ -105,6 +101,10 @@ public class TextUtils {
             return "<a href=\"tg://user?id=" + userId + "\">" + userName + "</a>";
         }
         return "[" + userName + "](tg://user?id=" + userId + ")";
+    }
+
+    public static String wrapTextToSpoiler(String text) {
+        return "<tg-spoiler>" + text + "</tg-spoiler>";
     }
 
     public static String formatLongValue(long value) {
