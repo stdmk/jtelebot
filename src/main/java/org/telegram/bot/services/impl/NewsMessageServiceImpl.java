@@ -81,7 +81,7 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         if (publishedDate == null) {
             publishedDate = syndEntry.getUpdatedDate();
             if (publishedDate == null) {
-                publishedDate = Date.from(Instant.MIN);
+                publishedDate = Date.from(Instant.now());
             }
         }
 
