@@ -57,17 +57,13 @@ public class TimeDelta implements CommandParent<SendMessage> {
                     Matcher matcher = pattern.matcher(textMessage);
 
                     if (matcher.find()) {
-                        try {
-                            firstDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
-                        } catch (Exception e) {
-                            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                        }
+                        firstDateTime = parseLocalDateTimeFromText(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
                     } else {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
 
                     if (matcher.find()) {
-                        secondDateTime = LocalDateTime.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
+                        secondDateTime = parseLocalDateTimeFromText(textMessage.substring(matcher.start(), matcher.end()), dateFormatter);
                     } else {
                         secondDateTime = dateTimeNow;
                     }
@@ -77,23 +73,15 @@ public class TimeDelta implements CommandParent<SendMessage> {
                     Matcher matcher = pattern.matcher(textMessage);
 
                     if (matcher.find()) {
-                        try {
-                            firstDateTime = LocalTime.parse(textMessage.substring(matcher.start(), matcher.end()), timeFormatter)
-                                    .atDate(LocalDate.now());
-                        } catch (Exception e) {
-                            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                        }
+                        firstDateTime = parseLocalTimeFromText(textMessage.substring(matcher.start(), matcher.end()), timeFormatter)
+                                .atDate(LocalDate.now());
                     } else {
                         pattern = Pattern.compile("(\\d{2}):(\\d{2})");
                         matcher = pattern.matcher(textMessage);
 
                         if (matcher.find()) {
-                            try {
-                                firstDateTime = LocalTime.parse(textMessage.substring(matcher.start(), matcher.end()) + ":00", timeFormatter)
-                                        .atDate(LocalDate.now());
-                            } catch (Exception e) {
-                                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                            }
+                            firstDateTime = parseLocalTimeFromText(textMessage.substring(matcher.start(), matcher.end()) + ":00", timeFormatter)
+                                    .atDate(LocalDate.now());
                         } else {
                             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                         }
@@ -101,7 +89,8 @@ public class TimeDelta implements CommandParent<SendMessage> {
 
                     secondDateTime = dateTimeNow;
                 }
-                responseText = "До " + formatDateTime(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
+                responseText = "От " + formatDateTime(firstDateTime) + " до " + formatDateTime(secondDateTime) +
+                        ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
             } else {
                 pattern = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
                 dateFormatter = DateUtils.dateFormatter;
@@ -110,18 +99,16 @@ public class TimeDelta implements CommandParent<SendMessage> {
                 String textFirstDate;
                 if (matcher.find()) {
                     textFirstDate = textMessage.substring(matcher.start(), matcher.end());
-                    try {
-                        firstDateTime = LocalDate.parse(textFirstDate, dateFormatter).atStartOfDay();
-                    } catch (Exception e) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
+                    firstDateTime = parseLocalDateFromText(textFirstDate, dateFormatter).atStartOfDay();
                 } else {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
                 if (matcher.find()) {
-                    secondDateTime = LocalDate.parse(textMessage.substring(matcher.start(), matcher.end()), dateFormatter).atStartOfDay();
-                    responseText = "До " + formatDate(firstDateTime) + ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
+                    secondDateTime = parseLocalDateFromText(textMessage.substring(matcher.start(), matcher.end()), dateFormatter)
+                            .atStartOfDay();
+                    responseText = "От " + formatDate(firstDateTime) + " до " + formatDate(secondDateTime) +
+                            ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
                 } else {
                     if (textMessage.length() != textFirstDate.length()) {
                         int days;
@@ -152,5 +139,29 @@ public class TimeDelta implements CommandParent<SendMessage> {
         sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private LocalDateTime parseLocalDateTimeFromText(String text, DateTimeFormatter formatter) {
+        try {
+            return LocalDateTime.parse(text, formatter);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
+    private LocalTime parseLocalTimeFromText(String text, DateTimeFormatter formatter) {
+        try {
+            return LocalTime.parse(text, formatter);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
+    private LocalDate parseLocalDateFromText(String text, DateTimeFormatter formatter) {
+        try {
+            return LocalDate.parse(text, formatter);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
     }
 }

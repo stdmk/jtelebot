@@ -86,11 +86,15 @@ public class DateUtils {
     }
 
     public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
-        if (secondDateTime.isAfter(firstDateTime)) {
-            return deltaDatesToString(getDuration(firstDateTime, secondDateTime));
-        }
+        int compare = secondDateTime.compareTo(firstDateTime);
 
-        return (deltaDatesToString(secondDateTime, firstDateTime));
+        if (compare > 0) {
+            return deltaDatesToString(getDuration(firstDateTime, secondDateTime));
+        } else if (compare < 0) {
+            return (deltaDatesToString(secondDateTime, firstDateTime));
+        } else {
+            return deltaDatesToString(0);
+        }
     }
 
     public static LocalDateTime unixTimeToLocalDateTime(Integer time) {
@@ -163,6 +167,10 @@ public class DateUtils {
         long seconds = milliseconds % 31536000000L % 86400000 % 3600000 % 60000 / 1000;
         if (seconds > 0) {
             responseText.append(seconds).append(" с. ");
+        }
+
+        if (responseText.length() == 0) {
+            return "0 с.";
         }
 
         return responseText.toString();
