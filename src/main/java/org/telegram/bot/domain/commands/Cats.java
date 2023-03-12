@@ -77,7 +77,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Cat {
+    protected static class Cat {
         private String url;
     }
 }

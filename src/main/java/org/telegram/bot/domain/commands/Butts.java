@@ -63,7 +63,7 @@ public class Butts implements CommandParent<SendPhoto> {
     }
 
     @Data
-    public static class ButtsCount implements Serializable {
+    protected static class ButtsCount implements Serializable {
         private Integer count;
     }
 }

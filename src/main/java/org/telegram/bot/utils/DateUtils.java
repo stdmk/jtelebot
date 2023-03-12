@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import static java.lang.Math.abs;
+
 public class DateUtils {
 
     private static final String DATE_TIME_FORMAT_STRING = "dd.MM.yyyy HH:mm:ss";
@@ -86,23 +88,14 @@ public class DateUtils {
         return dateTime.format(timeFormatter);
     }
 
-
-
     public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
-        Period period;
-        Duration duration;
-        if (secondDateTime.isBefore(firstDateTime)) {
-            period = Period.between(secondDateTime.toLocalDate(), firstDateTime.toLocalDate());
-            duration = Duration.between(secondDateTime.toLocalTime(), firstDateTime.toLocalTime());
-        } else {
-            period = Period.between(firstDateTime.toLocalDate(), secondDateTime.toLocalDate());
-            duration = Duration.between(firstDateTime.toLocalTime(), secondDateTime.toLocalTime());
-        }
+        Period period = Period.between(firstDateTime.toLocalDate(), secondDateTime.toLocalDate());
+        Duration duration = Duration.between(firstDateTime.toLocalTime(), secondDateTime.toLocalTime());
 
         StringBuilder buf = new StringBuilder();
 
-        long years = period.getYears();
-        if (years > 0) {
+        long years = abs(period.getYears());
+        if (years != 0) {
             String postfix;
             String yearsCount = String.valueOf(years);
 
@@ -117,8 +110,8 @@ public class DateUtils {
             buf.append(years).append(postfix);
         }
 
-        long days =  period.getDays();
-        if (days > 0) {
+        long days = abs(period.getDays());
+        if (days != 0) {
             buf.append(days).append(" д. ");
         }
 
@@ -135,24 +128,24 @@ public class DateUtils {
         StringBuilder buf = new StringBuilder();
 
         if (withoutPeriod) {
-            long days = duration.toDaysPart();
-            if (days > 0) {
+            long days = abs(duration.toDaysPart());
+            if (days != 0) {
                 buf.append(days).append(" д. ");
             }
         }
 
-        int hours = duration.toHoursPart();
-        if (hours > 0) {
+        int hours = abs(duration.toHoursPart());
+        if (hours != 0) {
             buf.append(hours).append(" ч. ");
         }
 
-        long minutes = duration.toMinutesPart();
-        if (minutes > 0) {
+        long minutes = abs(duration.toMinutesPart());
+        if (minutes != 0) {
             buf.append(minutes).append(" м. ");
         }
 
-        long seconds = duration.toSecondsPart();
-        if (seconds > 0) {
+        long seconds = abs(duration.toSecondsPart());
+        if (seconds != 0) {
             buf.append(seconds).append(" с. ");
         }
 
