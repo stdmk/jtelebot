@@ -131,10 +131,10 @@ public class DateUtils {
         return durationToString(Duration.of(milliseconds, ChronoUnit.MILLIS), true);
     }
 
-    public static String durationToString(Duration duration, boolean withDays) {
+    public static String durationToString(Duration duration, boolean withoutPeriod) {
         StringBuilder buf = new StringBuilder();
 
-        if (withDays) {
+        if (withoutPeriod) {
             long days = duration.toDaysPart();
             if (days > 0) {
                 buf.append(days).append(" д. ");
@@ -156,7 +156,7 @@ public class DateUtils {
             buf.append(seconds).append(" с. ");
         }
 
-        if (buf.length() == 0) {
+        if (withoutPeriod && buf.length() == 0) {
             return "0 с.";
         }
 
