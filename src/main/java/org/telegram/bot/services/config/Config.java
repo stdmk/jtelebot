@@ -26,4 +26,9 @@ public class Config {
 
         return restTemplate;
     }
+
+    @Bean
+    public RestTemplate defaultRestTemplate() {
+        return new RestTemplate();
+    }
 }

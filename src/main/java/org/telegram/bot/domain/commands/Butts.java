@@ -2,8 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -23,9 +22,8 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Butts implements CommandParent<SendPhoto> {
-
-    private final Logger log = LoggerFactory.getLogger(Butts.class);
 
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -65,7 +63,7 @@ public class Butts implements CommandParent<SendPhoto> {
     }
 
     @Data
-    private static class ButtsCount implements Serializable {
+    public static class ButtsCount implements Serializable {
         private Integer count;
     }
 }

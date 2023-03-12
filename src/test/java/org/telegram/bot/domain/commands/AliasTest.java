@@ -1,80 +1,97 @@
 package org.telegram.bot.domain.commands;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.PageImpl;
+import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {TestConfig.class})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
 class AliasTest {
 
-    @MockBean
+    @Mock
     ApplicationContext context;
-    @MockBean
+    @Mock
     BotStats botStats;
-    @MockBean
+    @Mock
     AliasService aliasService;
-    @MockBean
-    ChatService chatService;
-    @MockBean
+    @Mock
     UserService userService;
-    @MockBean
+    @Mock
     UserStatsService userStatsService;
-    @MockBean
+    @Mock
     CommandPropertiesService commandPropertiesService;
+    @Mock
+    Bot bot;
+    @Mock
+    Echo echo;
 
-    @Autowired
-    User user;
-    @Autowired
-    Chat chat;
-    @Autowired
-    Update update;
-
-    org.telegram.bot.domain.commands.Alias aliasCommand;
-
-    @BeforeAll
-    void init() {
-        aliasCommand = new org.telegram.bot.domain.commands.Alias(context, botStats, aliasService, userService, userStatsService, commandPropertiesService);
-
-        Alias savedAlias = new Alias();
-        savedAlias.setId(1L);
-        savedAlias.setChat(chat);
-        savedAlias.setUser(user);
-        savedAlias.setName("Test");
-        savedAlias.setValue("echo");
-
-        Mockito.when(chatService.get(any(Long.class))).thenReturn(chat);
-        Mockito.when(userService.get(any(Long.class))).thenReturn(user);
-        Mockito.when(aliasService.getByChatAndUser(any(Chat.class), any(User.class), anyInt()))
-                .thenReturn(new PageImpl<>(Collections.singletonList(savedAlias)));
-    }
+    @InjectMocks
+    Alias alias;
 
     @Test
     void parseTest() {
-        SendMessage sendMessage = aliasCommand.parse(update);
-        assertEquals("*Список твоих алиасов:*\n1. Test - `echo`\n", sendMessage.getText());
+        org.telegram.bot.domain.entities.Alias aliasEntity = new org.telegram.bot.domain.entities.Alias()
+                .setId(1L)
+                .setChat(new Chat().setChatId(-1L))
+                .setUser(new User().setUserId(1L))
+                .setName("test")
+                .setValue("echo");
+        final String expectedResponseText = "*Список твоих алиасов:*\n1. test - `echo`\n";
+
+        when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
+                .thenReturn(List.of(aliasEntity));
+
+        SendMessage sendMessage = alias.parse(TestUtils.getUpdate());
+        assertNotNull(sendMessage);
+
+        String actualResponseText = sendMessage.getText();
+        assertEquals(expectedResponseText, actualResponseText);
+
     }
 
     @Test
     void analyzeTest() {
+        org.telegram.bot.domain.entities.Alias aliasEntity = new org.telegram.bot.domain.entities.Alias()
+                .setId(1L)
+                .setChat(new Chat().setChatId(-1L))
+                .setUser(new User().setUserId(1L))
+                .setName("test")
+                .setValue("echo");
+        CommandProperties commandProperties = new CommandProperties().setClassName("Echo").setAccessLevel(0);
 
+        when(aliasService.get(
+                        any(org.telegram.bot.domain.entities.Chat.class),
+                        any(org.telegram.bot.domain.entities.User.class),
+                        anyString()))
+                .thenReturn(aliasEntity);
+        when(commandPropertiesService.findCommandInText(anyString(), anyString()))
+                .thenReturn(commandProperties);
+        when(userService.isUserHaveAccessForCommand(anyInt(), anyInt())).thenReturn(true);
+        when(context.getBean(anyString())).thenReturn(echo);
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
+
+        assertDoesNotThrow(() -> alias.analyze(bot, echo, TestUtils.getUpdate()));
+
+        verify(context).getBean(anyString());
     }
+
 }

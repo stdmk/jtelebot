@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -79,8 +77,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class Cat {
-        private String id;
+    public static class Cat {
         private String url;
     }
 }

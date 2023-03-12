@@ -1,14 +1,14 @@
 package org.telegram.bot.domain.commands;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,124 +16,98 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {TestConfig.class})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
 class BashTest {
 
-    @MockBean
+    @Mock
     SpeechService speechService;
-    @MockBean
+    @Mock
     NetworkUtils networkUtils;
 
-    @Autowired
-    Update update;
-    @Autowired
-    Update emptyTextMessageUpdate;
+    @InjectMocks
+    Bash bash;
 
-    String randomQuot;
-    String defineQuot;
-    Bash bashCommand;
+    @Test
+    void parseRandomQuotTest() throws IOException {
+        final String expectedText = "[Цитата #75286](http://bashorg.org/quote/75286)\n" +
+                "*27 июня 2019 *\n" +
+                "xxx: Я немного побаиваюсь людей, которые пишут мне в мессенджер\n" +
+                "yyy: страшнее те, кто пишут на массажер или в утюг например\n" +
+                "xxx: мне проще, я утюг от вай-фая отключил\n" +
+                "yyy: А они по VPN ";
+        Update update = TestUtils.getUpdate(null);
+        String rawRandomQuot = IOUtils.toString(
+                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_random_quot.txt"), StandardCharsets.UTF_8);
 
-    @BeforeAll
-    void init() {
-        try {
-            randomQuot = IOUtils.toString( new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_random_quot.txt"), StandardCharsets.UTF_8);
-            defineQuot = IOUtils.toString( new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            fail("cannot read bash quot files");
-        }
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
 
-        bashCommand = new Bash(speechService, networkUtils);
-        update.getMessage().setText("bash 123");
-    }
+        SendMessage sendMessage = bash.parse(update);
+        assertNotNull(sendMessage);
 
-    @AfterAll
-    void exit() {
-        update = TestConfig.getCommonUpdate();
+        String actualText = sendMessage.getText();
+        assertEquals(expectedText, actualText);
     }
 
     @Test
-    void parseRandomBashQuotTest() {
-        final String expectedQuot = "[Цитата #402288](http://bash.im/quote/402288)\n" +
-                "_25.01.2009_\n" +
-                "Ната: вчера подруга пропалила меня моей маме, рассказала, что я танцую с огнём, показала видюху, где я спьяну плюю керосином, а потом вешаюсь на какого то олуха\n" +
-                "Ню: и что было, апокалипсис?!\n" +
-                "Ната: почти. Я припёрлась домой и напоролась на озверевшую мать, которая прямо с порога начала на меня орать... я стою в полном шоке\n" +
-                "Ню: а ты чего ожидала? единственная дочь, пьет, занимается экстремальными видами спорта и домогается до олухов. за это тебя по головке не погладят!\n" +
-                "Ната: нет, я знала, что она промоет мне мозги... но не думала, что единственным поводом для скандала станет то, что на мне нет шапки...";
+    void parseWithWrongInputTest() {
+        Update update = TestUtils.getUpdate("bash test");
 
-        try {
-            Mockito.when(networkUtils.readStringFromURL(any(String.class))).thenReturn(randomQuot);
-        } catch (IOException e) {
-            fail("cannot get bash random quot");
-        }
-
-        SendMessage sendMessage = null;
-        try {
-            sendMessage = bashCommand.parse(emptyTextMessageUpdate);
-        } catch (Exception e) {
-            fail("cannot parse bash random quot");
-        }
-
-        assertEquals(expectedQuot.length(), sendMessage.getText().length());
+        assertThrows(BotException.class, () -> bash.parse(update));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
-    void parseDefineBashQuot() {
-        try {
-            Mockito.when(networkUtils.readStringFromURL(any(String.class))).thenReturn(defineQuot);
-        } catch (IOException e) {
-            fail("cannot get bash define quot");
-        }
+    void parseDefineQuotTest() throws IOException {
+        final String expectedText = "[Цитата #1](http://bashorg.org/quote/1)\n" +
+                "*25 ноября 2007*\n" +
+                "Annette:\n" +
+                "Недавно поставила новый антивирус - Avast. Оказалось, у него имеется одна интересная особенность: любит, понимаешь, \"поговорить\"  Так вот. Решила я пересмотреть Бриджит Джонс, мозги расслабить после трудного дня. И есть там сцена, где Хью Грант присаживается на край кровати и успокаивающе гладит Бриджит по макушке, попутно оправдываясь за то, что должен уехать. \n" +
+                "Картина маслом: садится Хью Грант на кровать, проводит рукой Бриджит по голове, и одновременно с этим действием слышится характерный звук металлофона: \"Бррррррыньк!\"  Далее Хью Грант открывает рот и произносит с успокаивающим лицом: \"Вирусная база обновлена\". ";
+        Update update = TestUtils.getUpdate();
+        update.getMessage().setText("bash 1");
+        String rawDefinedQuot = IOUtils.toString(
+                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8);
 
-        SendMessage sendMessage = null;
-        try {
-            sendMessage = bashCommand.parse(update);
-        } catch (Exception e) {
-            fail("cannot parse bash random quot");
-        }
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
-        String quot = "[Цитата #123](http://bash.im/quote/123)\n" +
-                "_ 02.05.2007 в  0:37\n" +
-                "_\n" +
-                " ximaera: свич они поместили в трансформаторную будку\n" +
-                "ximaera: будки эти по весне заливает, я рассказывал\n" +
-                "ximaera: смотришь в щель, там провода гудят, а в полуметре внизу от них вода\n" +
-                "ximaera: ну проводам, очевидно, от воды похуй\n" +
-                "ximaera: а свичу не совсем\n" +
-                "ximaera: эти умники поместили его в пустое ведро\n" +
-                "ximaera: чтоб он всплывал вместе с водой\n" +
-                "ximaera: но трансформатор облюбовали птицы\n" +
-                "ximaera: свили там себе гнездо\n" +
-                "ximaera: и периодически усаживались передохнуть на это ведро\n" +
-                "ximaera: вот блин, представь\n" +
-                "ximaera: сидят люди в Интернете по сверхсовременным ноутбукам по вайфаю, наслаждаются вебдваноль\n" +
-                "ximaera: 10 мбит, высокие технологии\n" +
-                "ximaera: а между ними и Инетом в трансформаторной будке плавает в ржавом ведре засранный свич, вершина прогресса\n" +
-                "          ";
+        SendMessage sendMessage = bash.parse(update);
+        assertNotNull(sendMessage);
 
-        assertEquals("[Цитата #123](http://bash.im/quote/123)\n" +
-                "_ 02.05.2007 в  0:37\r" +
-                "_\n" +
-                " ximaera: свич они поместили в трансформаторную будку\n" +
-                "ximaera: будки эти по весне заливает, я рассказывал\n" +
-                "ximaera: смотришь в щель, там провода гудят, а в полуметре внизу от них вода\n" +
-                "ximaera: ну проводам, очевидно, от воды похуй\n" +
-                "ximaera: а свичу не совсем\n" +
-                "ximaera: эти умники поместили его в пустое ведро\n" +
-                "ximaera: чтоб он всплывал вместе с водой\n" +
-                "ximaera: но трансформатор облюбовали птицы\n" +
-                "ximaera: свили там себе гнездо\n" +
-                "ximaera: и периодически усаживались передохнуть на это ведро\n" +
-                "ximaera: вот блин, представь\n" +
-                "ximaera: сидят люди в Интернете по сверхсовременным ноутбукам по вайфаю, наслаждаются вебдваноль\n" +
-                "ximaera: 10 мбит, высокие технологии\n" +
-                "ximaera: а между ними и Инетом в трансформаторной будке плавает в ржавом ведре засранный свич, вершина прогресса\r\n" +
-                "          ", sendMessage.getText());
+        String actualText = sendMessage.getText();
+        assertEquals(expectedText, actualText);
+    }
+
+    @Test
+    void parseWithNoResponseTest() throws IOException {
+        Update update = TestUtils.getUpdate(null);
+
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(new IOException());
+
+        assertThrows(BotException.class, () -> bash.parse(update));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
+    void parseWithErrorsInResponseTest() throws IOException {
+        final String errorText = "не имеют доступа для просмотра статей из данного раздела";
+        Update update = TestUtils.getUpdate();
+        update.getMessage().setText("bash 1");
+        String rawDefinedQuot = IOUtils.toString(
+                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8) +
+                errorText;
+
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
+
+        assertThrows(BotException.class, () -> bash.parse(update));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
     }
 }

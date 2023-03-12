@@ -28,6 +28,7 @@ public class Calculator implements CommandParent<SendMessage> {
 
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
+    private final RestTemplate defaultRestTemplate;
 
     @Override
     public SendMessage parse(Update update) {
@@ -48,7 +49,6 @@ public class Calculator implements CommandParent<SendMessage> {
             log.debug("Request to calculate {}", textMessage);
             final String MATH_JS_URL = "http://api.mathjs.org/v4/?expr=";
 
-            RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             JSONObject jsonObject;
 
@@ -59,7 +59,7 @@ public class Calculator implements CommandParent<SendMessage> {
             HttpEntity<String> request = new HttpEntity<>(expressionData.toString(), headers);
 
             try {
-                ResponseEntity<String> response = restTemplate.postForEntity(MATH_JS_URL, request, String.class);
+                ResponseEntity<String> response = defaultRestTemplate.postForEntity(MATH_JS_URL, request, String.class);
                 if (response.getBody() == null) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
                 }
