@@ -160,7 +160,7 @@ public class BotStats {
 
     public Long getTotalRunningTime() {
         LocalDateTime dateTimeNow = LocalDateTime.now();
-        this.totalRunningTime = this.totalRunningTime + getDuration(this.lastTotalRunningCheck, dateTimeNow);
+        this.totalRunningTime = this.totalRunningTime + getDuration(this.lastTotalRunningCheck, dateTimeNow).toMillis();
         this.lastTotalRunningCheck = dateTimeNow;
         return this.totalRunningTime;
     }
@@ -220,7 +220,7 @@ public class BotStats {
         this.lastTotalRunningCheck = LocalDateTime.now();
         WorkParam workParam = getWorkParamByName(workParamList, TOTAL_RUNNING_TIME);
         if (workParam == null) {
-            this.totalRunningTime = getDuration(this.botStartDateTime, this.lastTotalRunningCheck);
+            this.totalRunningTime = getDuration(this.botStartDateTime, this.lastTotalRunningCheck).toMillis();
         } else {
             this.totalRunningTime = Long.parseLong(workParam.getValue());
         }

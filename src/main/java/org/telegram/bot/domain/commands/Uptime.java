@@ -39,7 +39,7 @@ public class Uptime implements CommandParent<SendMessage> {
 
         buf.append("<b>Запуск:</b>\n").append(formatDateTime(botDateTimeStart)).append("\n");
         buf.append("<b>Работаю без перерыва:</b>\n").append(deltaDatesToString(botDateTimeStart, dateTimeNow)).append("\n");
-        buf.append("<b>Общее время наработки:</b>\n").append(deltaDatesToString(botStats.getTotalRunningTime())).append("\n");
+        buf.append("<b>Общее время наработки:</b>\n").append(durationToString(botStats.getTotalRunningTime())).append("\n");
 
         long heapMaxSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
         long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;

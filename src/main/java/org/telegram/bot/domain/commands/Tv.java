@@ -22,17 +22,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.DateUtils.formatTvDateTime;
-import static org.telegram.bot.utils.DateUtils.formatTvTime;
-import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
-import static org.telegram.bot.utils.DateUtils.getDuration;
+import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.isTextLengthIncludedInLimit;
 
 @Component
@@ -197,14 +191,14 @@ public class Tv implements CommandParent<SendMessage> {
         }
 
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
-        long programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
+        Duration programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
 
         return "<u>" + tvProgram.getChannel().getName() + "</u> /" + commandName + "_ch" + tvProgram.getChannel().getId() + "\n" +
                 "<b>" + tvProgram.getTitle() + "</b> " +
-                getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration, zoneOffSet) + "\n" + category +
+                getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration.toMillis(), zoneOffSet) + "\n" + category +
                 "Начало: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +
                 "Конец: " + formatTvTime(tvProgram.getStop(), zoneId) + "\n" +
-                "(" + deltaDatesToString(programDuration) + ")\n" +
+                "(" + durationToString(programDuration, true) + ")\n" +
                 desc;
     }
 
@@ -266,8 +260,8 @@ public class Tv implements CommandParent<SendMessage> {
      * @return tv-program progress.
      */
     private String getProgramProgress(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneOffset zoneOffset) {
-        long programDuration = getDuration(dateTimeStart, dateTimeEnd, zoneOffset);
-        return getProgramProgress(dateTimeStart, dateTimeEnd, programDuration, zoneOffset);
+        Duration programDuration = getDuration(dateTimeStart, dateTimeEnd, zoneOffset);
+        return getProgramProgress(dateTimeStart, dateTimeEnd, programDuration.toMillis(), zoneOffset);
     }
 
     /**

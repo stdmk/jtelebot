@@ -89,7 +89,7 @@ public class TimeDownloading implements CommandParent<SendMessage> {
             if (milliseconds < 1000) {
                 responseText = "Файл *" + TextUtils.formatFileSize(weighInBytes) + "* скачается *мгновенно*";
             } else {
-                responseText = "Файл *" + TextUtils.formatFileSize(weighInBytes) + "* скачается за *" + DateUtils.deltaDatesToString(milliseconds) + "*";
+                responseText = "Файл *" + TextUtils.formatFileSize(weighInBytes) + "* скачается за *" + DateUtils.durationToString(milliseconds) + "*";
             }
 
         }

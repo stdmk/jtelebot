@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -85,16 +86,81 @@ public class DateUtils {
         return dateTime.format(timeFormatter);
     }
 
-    public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
-        int compare = secondDateTime.compareTo(firstDateTime);
 
-        if (compare > 0) {
-            return deltaDatesToString(getDuration(firstDateTime, secondDateTime));
-        } else if (compare < 0) {
-            return (deltaDatesToString(secondDateTime, firstDateTime));
+
+    public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
+        Period period;
+        Duration duration;
+        if (secondDateTime.isBefore(firstDateTime)) {
+            period = Period.between(secondDateTime.toLocalDate(), firstDateTime.toLocalDate());
+            duration = Duration.between(secondDateTime.toLocalTime(), firstDateTime.toLocalTime());
         } else {
-            return deltaDatesToString(0);
+            period = Period.between(firstDateTime.toLocalDate(), secondDateTime.toLocalDate());
+            duration = Duration.between(firstDateTime.toLocalTime(), secondDateTime.toLocalTime());
         }
+
+        StringBuilder buf = new StringBuilder();
+
+        long years = period.getYears();
+        if (years > 0) {
+            String postfix;
+            String yearsCount = String.valueOf(years);
+
+            if (Arrays.asList("11", "12", "13", "14", "15", "16", "17", "18", "19").contains(yearsCount)) {
+                postfix = " л. ";
+            } else if (yearsCount.endsWith("1") || yearsCount.endsWith("2") || yearsCount.endsWith("3") || yearsCount.endsWith("4")) {
+                postfix = " г. ";
+            } else {
+                postfix = " л. ";
+            }
+
+            buf.append(years).append(postfix);
+        }
+
+        long days =  period.getDays();
+        if (days > 0) {
+            buf.append(days).append(" д. ");
+        }
+
+        buf.append(durationToString(duration, false));
+
+        return buf.toString();
+    }
+
+    public static String durationToString(long milliseconds) {
+        return durationToString(Duration.of(milliseconds, ChronoUnit.MILLIS), true);
+    }
+
+    public static String durationToString(Duration duration, boolean withDays) {
+        StringBuilder buf = new StringBuilder();
+
+        if (withDays) {
+            long days = duration.toDaysPart();
+            if (days > 0) {
+                buf.append(days).append(" д. ");
+            }
+        }
+
+        int hours = duration.toHoursPart();
+        if (hours > 0) {
+            buf.append(hours).append(" ч. ");
+        }
+
+        long minutes = duration.toMinutesPart();
+        if (minutes > 0) {
+            buf.append(minutes).append(" м. ");
+        }
+
+        long seconds = duration.toSecondsPart();
+        if (seconds > 0) {
+            buf.append(seconds).append(" с. ");
+        }
+
+        if (buf.length() == 0) {
+            return "0 с.";
+        }
+
+        return buf.toString();
     }
 
     public static LocalDateTime unixTimeToLocalDateTime(Integer time) {
@@ -113,67 +179,21 @@ public class DateUtils {
         return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
     }
 
-    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
+    public static Duration getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
         ZoneId zoneId = ZoneId.systemDefault();
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
 
         return getDuration(dateTimeStart, dateTimeEnd, zoneOffSet);
     }
 
-    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneId zoneId) {
+    public static Duration getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneId zoneId) {
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
 
         return getDuration(dateTimeStart, dateTimeEnd, zoneOffSet);
     }
 
-    public static Long getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneOffset zoneOffset) {
-        return dateTimeEnd.toInstant(zoneOffset).toEpochMilli() - dateTimeStart.toInstant(zoneOffset).toEpochMilli();
-    }
-
-    public static String deltaDatesToString(long milliseconds) {
-        StringBuilder responseText = new StringBuilder();
-
-        long years = milliseconds / 31536000000L;
-        if (years > 0) {
-            String postfix;
-            String yearsCount = String.valueOf(years);
-
-            if (Arrays.asList("11", "12", "13", "14", "15", "16", "17", "18", "19").contains(yearsCount)) {
-                postfix = " л. ";
-            } else if (yearsCount.endsWith("1") || yearsCount.endsWith("2") || yearsCount.endsWith("3") || yearsCount.endsWith("4")) {
-                postfix = " г. ";
-            } else {
-                postfix = " л. ";
-            }
-
-            responseText.append(years).append(postfix);
-        }
-
-        long days =  milliseconds % 31536000000L / 86400000;
-        if (days > 0) {
-            responseText.append(days).append(" д. ");
-        }
-
-        long hours = milliseconds % 31536000000L % 86400000 / 3600000;
-        if (hours > 0) {
-            responseText.append(hours).append(" ч. ");
-        }
-
-        long minutes = milliseconds % 31536000000L % 86400000 % 3600000 / 60000;
-        if (minutes > 0) {
-            responseText.append(minutes).append(" м. ");
-        }
-
-        long seconds = milliseconds % 31536000000L % 86400000 % 3600000 % 60000 / 1000;
-        if (seconds > 0) {
-            responseText.append(seconds).append(" с. ");
-        }
-
-        if (responseText.length() == 0) {
-            return "0 с.";
-        }
-
-        return responseText.toString();
+    public static Duration getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, ZoneOffset zoneOffset) {
+        return Duration.between(dateTimeStart.atOffset(zoneOffset), dateTimeEnd.atOffset(zoneOffset));
     }
 
     public static LocalDateTime atStartOfDay(LocalDateTime localDateTime) {

@@ -216,7 +216,7 @@ public class Weather implements CommandParent<SendMessage> {
         buf.append("Давление:     ").append(main.getPressure().intValue() * 0.75).append(" мм рт.ст. \n");
         buf.append("Восход:       ").append(formatTime(sys.getSunrise() + weatherCurrent.getTimezone())).append("\n");
         buf.append("Закат:        ").append(formatTime(sys.getSunset() + weatherCurrent.getTimezone())).append("\n");
-        buf.append("Долгота дня:  ").append(deltaDatesToString((sys.getSunset() - sys.getSunrise()) * 1000L)).append("\n");
+        buf.append("Долгота дня:  ").append(durationToString((sys.getSunset() - sys.getSunrise()) * 1000L)).append("\n");
         buf.append("По состоянию: ").append(formatTime(weatherCurrent.getDt() + weatherCurrent.getTimezone())).append("\n");
         buf.append("```");
 
