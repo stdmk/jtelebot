@@ -375,7 +375,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 } else {
                     matcher = TIME_PATTERN.matcher(command);
                     if (matcher.find()) {
-                        reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())));
+                        reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())))
+                                .setNotified(false);
                         keyboard = prepareKeyboardWithReminderInfo(reminder.getId());
                     } else {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -388,7 +389,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        reminderService.save(reminder.setNotified(false));
+        reminderService.save(reminder);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
@@ -436,7 +437,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             reminder.setDate(getDateFromText(command.substring(matcher.start() + 1, matcher.end())));
             matcher = TIME_PATTERN.matcher(command);
             if (matcher.find()) {
-                reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())));
+                reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())))
+                        .setNotified(false);
             } else {
                 caption = "Выберите или введите вручную ЧЧ:ММ\n";
                 rowsWithButtons = prepareButtonRowsWithTimeSettings(reminder);
@@ -458,7 +460,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime()).plus(temporalAmount);
 
                 reminder.setDate(reminderDateTime.toLocalDate());
-                reminder.setTime(reminderDateTime.toLocalTime());
+                reminder.setTime(reminderDateTime.toLocalTime())
+                        .setNotified(false);
             } else {
                 caption = "Выберите или введите вручную ДД.ММ или ДД.ММ.ГГГГ\n";
                 rowsWithButtons = prepareButtonRowsWithDateSetting(reminder);
@@ -467,7 +470,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
-        reminderService.save(reminder.setNotified(false));
+        reminderService.save(reminder);
 
         InlineKeyboardMarkup keyboard = prepareKeyboardWithReminderInfo(rowsWithButtons, reminder.getId());
 
