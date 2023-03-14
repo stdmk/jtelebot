@@ -198,7 +198,7 @@ public class Tv implements CommandParent<SendMessage> {
                 getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration.toMillis(), zoneOffSet) + "\n" + category +
                 "Начало: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +
                 "Конец: " + formatTvTime(tvProgram.getStop(), zoneId) + "\n" +
-                "(" + durationToString(programDuration, true) + ")\n" +
+                "(" + durationToString(programDuration) + ")\n" +
                 desc;
     }
 

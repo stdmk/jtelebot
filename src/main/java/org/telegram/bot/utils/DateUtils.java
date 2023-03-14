@@ -90,7 +90,7 @@ public class DateUtils {
 
     public static String deltaDatesToString(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
         Period period = Period.between(firstDateTime.toLocalDate(), secondDateTime.toLocalDate());
-        Duration duration = Duration.between(firstDateTime.toLocalTime(), secondDateTime.toLocalTime());
+        Duration duration = Duration.between(firstDateTime, secondDateTime);
 
         StringBuilder buf = new StringBuilder();
 
@@ -110,28 +110,20 @@ public class DateUtils {
             buf.append(years).append(postfix);
         }
 
-        long days = abs(period.getDays());
-        if (days != 0) {
-            buf.append(days).append(" д. ");
-        }
-
-        buf.append(durationToString(duration, false));
+        buf.append(durationToString(duration));
 
         return buf.toString();
     }
 
     public static String durationToString(long milliseconds) {
-        return durationToString(Duration.of(milliseconds, ChronoUnit.MILLIS), true);
+        return durationToString(Duration.of(milliseconds, ChronoUnit.MILLIS));
     }
 
-    public static String durationToString(Duration duration, boolean withoutPeriod) {
+    public static String durationToString(Duration duration) {
         StringBuilder buf = new StringBuilder();
-
-        if (withoutPeriod) {
-            long days = abs(duration.toDaysPart());
-            if (days != 0) {
-                buf.append(days).append(" д. ");
-            }
+        long days = abs(duration.toDaysPart());
+        if (days != 0) {
+            buf.append(days).append(" д. ");
         }
 
         int hours = abs(duration.toHoursPart());
@@ -149,7 +141,7 @@ public class DateUtils {
             buf.append(seconds).append(" с. ");
         }
 
-        if (withoutPeriod && buf.length() == 0) {
+        if (buf.length() == 0) {
             return "0 с.";
         }
 
