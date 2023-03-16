@@ -424,7 +424,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                             .findFirst()
                             .map(TrackCodeEvent::getEventDateTime)
                             .orElse(LocalDateTime.now());
-                    String durationTime = DateUtils.deltaDatesToString(firstDateTime, lastDateTime);
+                    String durationTime = DateUtils.durationToString(firstDateTime, lastDateTime);
 
                     buf.append("Дней в пути: <b>").append(durationTime).append("</b>\n");
                 });

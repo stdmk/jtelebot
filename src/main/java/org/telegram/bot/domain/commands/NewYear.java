@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
+import static org.telegram.bot.utils.DateUtils.durationToString;
 
 @Component
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class NewYear implements CommandParent<SendMessage> {
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText("До нового года осталось: *" + deltaDatesToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
+        sendMessage.setText("До нового года осталось: *" + durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
                             "* (" + userTimeZone + ")");
 
         return sendMessage;
