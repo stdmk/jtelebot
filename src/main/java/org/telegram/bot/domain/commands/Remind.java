@@ -836,10 +836,12 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                         Duration.between(dateTimeNow, dateTimeNow.toLocalDate().with(TemporalAdjusters.next(dayOfWeek)).atStartOfDay())))
                 .collect(Collectors.toList()));
 
-        rows.add(List.of(generatePostponeButton(reminderId, "След. день", Period.ofDays(1))));
-        rows.add(List.of(generatePostponeButton(reminderId, "След. неделя", Period.ofWeeks(1))));
-        rows.add(List.of(generatePostponeButton(reminderId, "След. месяц", Period.ofMonths(1))));
-        rows.add(List.of(generatePostponeButton(reminderId, "След. год", Period.ofYears(1))));
+        rows.add(
+                List.of(
+                        generatePostponeButton(reminderId, "День", Period.ofDays(1)),
+                        generatePostponeButton(reminderId, "Неделю", Period.ofWeeks(1)),
+                        generatePostponeButton(reminderId, "Месяц", Period.ofMonths(1)),
+                        generatePostponeButton(reminderId, "Год", Period.ofYears(1))));
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
         setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Настроить");
