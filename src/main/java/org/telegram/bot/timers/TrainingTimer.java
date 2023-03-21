@@ -40,7 +40,8 @@ public class TrainingTimer extends TimerParent {
         Map<User, TrainSubscription> userTrainSubscriptionMap = new HashMap<>();
         List<Long> pastTrainingIdList = trainingEventService.getAll(dateTimeNow.toLocalDate())
                 .stream()
-                .map(TrainingEvent::getId)
+                .map(TrainingEvent::getTraining)
+                .map(Training::getId)
                 .collect(Collectors.toList());
 
         trainingScheduledService.getAll(currentDayOfWeek)
