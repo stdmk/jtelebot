@@ -48,7 +48,7 @@ public class TrainingTimer extends TimerParent {
                 .stream()
                 .map(TrainingScheduled::getTraining)
                 .filter(training -> !pastTrainingIdList.contains(training.getId()))
-                .filter(training -> dateTimeNow.toLocalTime().isAfter(training.getTime()))
+                .filter(training -> dateTimeNow.toLocalTime().isAfter(training.getTimeEnd()))
                 .forEach(training -> {
                     User user = training.getUser();
                     TrainSubscription subscription = getUserSubscription(userTrainSubscriptionMap, user);
@@ -60,7 +60,7 @@ public class TrainingTimer extends TimerParent {
                             .setDateTime(dateTimeNow));
 
                     String responseText = "<b>Прошла тренировка: </b>\n" +
-                            DateUtils.formatShortTime(training.getTime()) + " — " + training.getName() + "\n" +
+                            DateUtils.formatShortTime(training.getTimeStart()) + " — " + training.getName() + "\n" +
                             "/training_c" + trainingEvent.getId() + " — отменить \n" +
                             TextUtils.BORDER +
                             "/training  — общая информация";

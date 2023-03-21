@@ -10,5 +10,5 @@ import java.util.List;
 public interface TrainingRepository extends JpaRepository<Training, Long> {
     List<Training> findByUserAndDeleted(User user, boolean deleted);
     Training findByUserAndIdAndDeleted(User user, Long id, boolean deleted);
-    Training findByUserAndTimeAndNameIgnoreCaseAndDeleted(User user, LocalTime time, String name, boolean deleted);
+    Training findByUserAndTimeStartAndNameIgnoreCaseAndDeleted(User user, LocalTime time, String name, boolean deleted);
 }

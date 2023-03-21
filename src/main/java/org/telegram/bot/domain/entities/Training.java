@@ -25,8 +25,11 @@ public class Training {
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @Column(name = "time")
-    private LocalTime time;
+    @Column(name = "time_start")
+    private LocalTime timeStart;
+
+    @Column(name = "time_end")
+    private LocalTime timeEnd;
 
     @Column(name = "name")
     private String name;

@@ -30,7 +30,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public Training get(User user, LocalTime time, String name) {
-        return trainingRepository.findByUserAndTimeAndNameIgnoreCaseAndDeleted(user, time, name, false);
+        return trainingRepository.findByUserAndTimeStartAndNameIgnoreCaseAndDeleted(user, time, name, false);
     }
 
     @Override

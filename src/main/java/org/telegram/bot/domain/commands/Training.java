@@ -123,8 +123,8 @@ public class Training implements CommandParent<SendMessage> {
                 .stream()
                 .map(TrainingScheduled::getTraining)
                 .filter(training -> !training.getDeleted())
-                .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTime))
-                .forEach(training -> buf.append(DateUtils.formatShortTime(training.getTime())).append(" — ")
+                .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
+                .forEach(training -> buf.append(DateUtils.formatShortTime(training.getTimeStart())).append(" — ")
                         .append(training.getName()).append("\n"));
 
         return buf.toString();

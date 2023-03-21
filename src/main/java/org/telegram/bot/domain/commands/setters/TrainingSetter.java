@@ -269,18 +269,22 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         command = command.replaceAll(",", ".");
 
         final String timeAbbr = "t";
+        final String timeEndAbbr = "te";
         final String nameAbbr = "n";
         final String costAbbr = "c";
 
         final String setTimeCommand = timeAbbr + " " + "(\\d{2}):(\\d{2})";
+        final String setTimeEndCommand = timeEndAbbr + " " + "(\\d{2}):(\\d{2})";
         final String setCostCommand = costAbbr + " " + "(\\d*\\.?\\d*)";
 
         final String setTrainingTimeCommand = ADD_TRAINING_COMMAND + setTimeCommand;
-        final String setTrainingTimeCostCommand = setTrainingTimeCommand + setCostCommand;
+        final String setTrainingTimeEndCommand = setTrainingTimeCommand + setTimeEndCommand;
+        final String setTrainingTimeCostCommand = setTrainingTimeEndCommand + setCostCommand;
         final String setTrainingTimeCostNameCommand = setTrainingTimeCostCommand + nameAbbr + " "  + "\\w*";
 
         Matcher setTrainingMatcher = Pattern.compile(ADD_TRAINING_COMMAND).matcher(command);
         Matcher setTrainingAddMatcher = Pattern.compile(setTrainingTimeCommand).matcher(command);
+        Matcher setTrainingAddTimeEndMatcher = Pattern.compile(setTrainingTimeEndCommand).matcher(command);
         Matcher setTrainingAddTimeCostMatcher = Pattern.compile(setTrainingTimeCostCommand).matcher(command);
         Matcher setTrainingAddTimeCostNameMatcher = Pattern.compile(setTrainingTimeCostNameCommand).matcher(command);
         Matcher setTrainingDeleteMatcher = Pattern.compile(DELETE_TRAINING_COMMAND + "\\d+").matcher(command);
@@ -288,8 +292,13 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         String responseText;
         if (setTrainingAddTimeCostNameMatcher.find()) {
             LocalTime time = parseTime(Pattern.compile(setTimeCommand), command, timeAbbr);
+            LocalTime timeEnd = parseTime(Pattern.compile(setTimeEndCommand), command, timeEndAbbr);
             Float cost = parseCost(Pattern.compile(setCostCommand), command, costAbbr);
             String name = command.substring(setTrainingAddTimeCostNameMatcher.end());
+
+            if (timeEnd.isBefore(time)) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
 
             Training training = trainingService.get(user, time, name);
             if (training != null) {
@@ -297,7 +306,8 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             }
 
             trainingService.save(new Training()
-                    .setTime(time)
+                    .setTimeStart(time)
+                    .setTimeEnd(timeEnd)
                     .setName(name)
                     .setCost(cost)
                     .setUser(user));
@@ -305,22 +315,34 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             return getManageTrainingMenu(message, user, true);
         } else if (setTrainingAddTimeCostMatcher.find()) {
             LocalTime time = parseTime(Pattern.compile(setTimeCommand), command, timeAbbr);
+            LocalTime timeEnd = parseTime(Pattern.compile(setTimeEndCommand), command, timeEndAbbr);
             Float cost = parseCost(Pattern.compile(setCostCommand), command, costAbbr);
 
             responseText = "Напиши мне наименование тренировки";
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr + " " + formatShortTime(time)
+                    + timeEndAbbr + " " + formatShortTime(timeEnd)
                     + costAbbr + " " + cost
                     + nameAbbr);
-        } else if (setTrainingAddMatcher.find()) {
+        } else if (setTrainingAddTimeEndMatcher.find()) {
             LocalTime time = parseTime(Pattern.compile(setTimeCommand), command, timeAbbr);
+            LocalTime timeEnd = parseTime(Pattern.compile(setTimeEndCommand), command, timeEndAbbr);
 
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr + " " + formatShortTime(time)
+                    + timeEndAbbr + " " + formatShortTime(timeEnd)
                     + costAbbr);
             responseText = "Напиши мне стоимость тренировки (1 — одно занятие, 0,5 — половина занятия, 2 и т.п.)";
+        } else if (setTrainingAddMatcher.find()) {
+            LocalTime time = parseTime(Pattern.compile(setTimeCommand), command, timeAbbr);
+
+            responseText = "Напиши мне время окончания тренировки в формате ЧЧ:ММ. " +
+                    "Например: " + formatShortTime(LocalTime.now());
+            commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
+                    + timeAbbr + " " + formatShortTime(time)
+                    + timeEndAbbr);
         } else if (setTrainingMatcher.find()) {
-            responseText = "Напиши мне время проведения тренировки в формате ЧЧ:ММ. " +
+            responseText = "Напиши мне время начала тренировки в формате ЧЧ:ММ. " +
                     "Например: " + formatShortTime(LocalTime.now());
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr);
@@ -364,11 +386,11 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             buf.append("отсутствуют");
         } else {
             trainingList.forEach(training -> {
-                buf.append(training.getName()).append(" — ").append(formatShortTime(training.getTime())).append(" (").append(training.getCost()).append(")\n");
+                buf.append(training.getName()).append(" — ").append(formatShortTime(training.getTimeStart())).append(" (").append(training.getCost()).append(")\n");
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                trainingButton.setText(Emoji.DELETE.getEmoji() + training.getName() + " " + formatShortTime(training.getTime()));
+                trainingButton.setText(Emoji.DELETE.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()));
                 trainingButton.setCallbackData(CALLBACK_DELETE_TRAINING_COMMAND + training.getId());
                 buttonRow.add(trainingButton);
 
@@ -437,7 +459,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             trainingScheduledService.get(user, dayOfWeek)
                     .stream()
-                    .filter(trainingScheduled -> training.getTime().equals(trainingScheduled.getTraining().getTime()))
+                    .filter(trainingScheduled -> training.getTimeStart().equals(trainingScheduled.getTraining().getTimeStart()))
                     .findFirst()
                     .ifPresent(trainingScheduled -> {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -484,7 +506,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
                 trainingScheduledList
                         .stream()
                         .filter(trainingScheduled -> dayOfWeek.equals(trainingScheduled.getDayOfWeek()))
-                        .forEach(trainingScheduled -> buf.append(trainingScheduled.getTraining().getTime()).append(" — ")
+                        .forEach(trainingScheduled -> buf.append(trainingScheduled.getTraining().getTimeStart()).append(" — ")
                                 .append(trainingScheduled.getTraining().getName()).append("\n"));
                 buf.append(BORDER);
             });
@@ -525,7 +547,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         } else {
             trainingScheduledList.forEach(trainingScheduled -> {
                 Training training = trainingScheduled.getTraining();
-                String caption = training.getTime() + " — " + training.getName();
+                String caption = training.getTimeStart() + " — " + training.getName();
 
                 buf.append(caption).append("\n");
 
@@ -548,7 +570,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             List<InlineKeyboardButton> buttonRow = new ArrayList<>();
             InlineKeyboardButton addButton = new InlineKeyboardButton();
-            addButton.setText(Emoji.NEW.getEmoji() + training.getTime() + " — " + training.getName());
+            addButton.setText(Emoji.NEW.getEmoji() + training.getTimeStart() + " — " + training.getName());
             addButton.setCallbackData(selectDayOfWeekCallback + ADD_SCHEDULE_COMMAND + training.getId());
             buttonRow.add(addButton);
             rows.add(buttonRow);

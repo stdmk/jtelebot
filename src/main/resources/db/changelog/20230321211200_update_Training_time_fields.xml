@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20230321211200-1" author="stdmk">
+        <delete schemaName="bot" tableName="training"/>
+        <delete schemaName="bot" tableName="trainingscheduled"/>
+        <delete schemaName="bot" tableName="trainingevent"/>
+        <delete schemaName="bot" tableName="trainsubscription"/>
+    </changeSet>
+
+    <changeSet id="20230321211200-2" author="stdmk">
+        <renameColumn newColumnName="time_start" oldColumnName="time" schemaName="bot" tableName="training"/>
+    </changeSet>
+
+    <changeSet id="20230321211200-3" author="stdmk">
+        <addColumn schemaName= "bot" tableName="training" >
+            <column name="time_end" type="time"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
