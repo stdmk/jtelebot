@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
 import static org.telegram.bot.utils.DateUtils.formatShortDateTime;
+import static org.telegram.bot.utils.TextUtils.BORDER;
 
 @Component
 @RequiredArgsConstructor
@@ -52,7 +53,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
     private final String ADD_PARCEL_COMMAND = "добавить";
     private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
-    private final String BORDER = "-----------------------------\n";
     private final static String DELIVERED_OPERATION_TYPE = "Вручение";
     private final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 

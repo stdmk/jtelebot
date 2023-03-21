@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230321091000-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="56"/>
+            <column name="name" value="Тренировки"/>
+            <column name="description" value="Расписание тренировок"/>
+            <column name="examples" value="тренировки, training"/>
+            <column name="comment" value="установка тренировок, абонементов, расписания производится с помощью команды /set"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230304115900-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="56"/>
+            <column name="commandname" value="training"/>
+            <column name="russifiedname" value="тренировки"/>
+            <column name="enruname" value="nhtybhjdrb"/>
+            <column name="classname" value="training"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="56"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

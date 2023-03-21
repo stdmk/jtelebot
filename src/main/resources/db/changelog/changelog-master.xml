@@ -129,4 +129,9 @@
     <include file="db/changelog/20230305102700_update_help_Parcel.xml"/>
     <include file="db/changelog/20230305103100_update_help_Top.xml"/>
     <include file="db/changelog/20230308085000_added_column_create_date_time_into_TrackCode.xml"/>
+    <include file="db/changelog/20230318123500_added_entity_TrainSubscription.xml"/>
+    <include file="db/changelog/20230318124100_added_entity_Training.xml"/>
+    <include file="db/changelog/20230318124300_added_entity_TrainingSheduled.xml"/>
+    <include file="db/changelog/20230318124700_added_entity_TrainingEvent.xml"/>
+    <include file="db/changelog/20230321091000_added_command_Training.xml"/>
 </databaseChangeLog>
