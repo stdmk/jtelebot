@@ -41,6 +41,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final DisableCommandSetter disableCommandSetter;
     private final TalkerSetter talkerSetter;
     private final ZodiacSetter zodiacSetter;
+    private final TrainingSetter trainingSetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
@@ -50,6 +51,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String COMMAND = "команда";
     private final String TALKER = "болтун";
     private final String ZODIAC = "зодиак";
+    private final String TRAININGS = "тренировки";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -110,6 +112,10 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.toLowerCase().startsWith(ZODIAC)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return zodiacSetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(TRAININGS)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return trainingSetter.set(update, textMessage);
                 }
             }
             if (callback) {
@@ -201,6 +207,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> zodiacRow = new ArrayList<>();
         zodiacRow.add(zodiacButton);
 
+        InlineKeyboardButton trainingButton = new InlineKeyboardButton();
+        trainingButton.setText(SET + TRAININGS);
+        trainingButton.setCallbackData(SET + TRAININGS);
+
+        List<InlineKeyboardButton> trainingRow = new ArrayList<>();
+        trainingRow.add(trainingButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
@@ -210,6 +223,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(commandRow);
         rows.add(talkerRow);
         rows.add(zodiacRow);
+        rows.add(trainingRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);

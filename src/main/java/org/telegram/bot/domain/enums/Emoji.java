@@ -60,7 +60,10 @@ public enum Emoji {
     HOURGLASS_NOT_DONE("⏳"),
     BELL("\uD83D\uDD14"),
     NO_BELL("\uD83D\uDD15"),
-    STOP_BUTTON("⏹")
+    STOP_BUTTON("⏹"),
+    TICKET("\uD83C\uDFAB"),
+    GREEN_BOOK("\uD83D\uDCD7"),
+    DATE("\uD83D\uDCC5"),
     ;
 
     private final String emoji;

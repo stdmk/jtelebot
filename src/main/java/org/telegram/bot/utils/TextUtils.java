@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 
 public class TextUtils {
 
+    public static final String BORDER = "-----------------------------\n";
+
     /**
      * Gets a potential command from text.
      *
