@@ -64,6 +64,9 @@ public enum Emoji {
     TICKET("\uD83C\uDFAB"),
     GREEN_BOOK("\uD83D\uDCD7"),
     DATE("\uD83D\uDCC5"),
+    GEAR("⚙️"),
+    CANCELLATION("\uD83D\uDDD9"),
+    WEIGHT_LIFTER("🏋"),
     ;
 
     private final String emoji;

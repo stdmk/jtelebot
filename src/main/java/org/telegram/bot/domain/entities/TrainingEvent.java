@@ -36,4 +36,7 @@ public class TrainingEvent {
 
     @Column(name = "canceled")
     private Boolean canceled;
+
+    @Column(name = "unplanned")
+    private Boolean unplanned;
 }

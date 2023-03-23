@@ -135,4 +135,5 @@
     <include file="db/changelog/20230318124700_added_entity_TrainingEvent.xml"/>
     <include file="db/changelog/20230321091000_added_command_Training.xml"/>
     <include file="db/changelog/20230321211200_update_Training_time_fields.xml"/>
+    <include file="db/changelog/20230323123200_update_TrainingEvent_add_field_unplanned.xml"/>
 </databaseChangeLog>

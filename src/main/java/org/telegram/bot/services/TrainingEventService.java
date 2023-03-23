@@ -9,5 +9,6 @@ import java.util.List;
 public interface TrainingEventService {
     TrainingEvent get(User user, Long eventId);
     List<TrainingEvent> getAll(LocalDate localDate);
+    List<TrainingEvent> getAllUnplanned(User user, LocalDate localDate);
     TrainingEvent save(TrainingEvent trainingEvent);
 }

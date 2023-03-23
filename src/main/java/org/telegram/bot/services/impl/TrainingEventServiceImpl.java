@@ -32,6 +32,15 @@ public class TrainingEventServiceImpl implements TrainingEventService {
     }
 
     @Override
+    public List<TrainingEvent> getAllUnplanned(User user, LocalDate date) {
+        return trainingEventRepository.findByUserAndUnplannedAndDateTimeBetween(
+                user,
+                true,
+                date.atStartOfDay(),
+                date.atTime(LocalTime.MAX));
+    }
+
+    @Override
     public TrainingEvent save(TrainingEvent trainingEvent) {
         return trainingEventRepository.save(trainingEvent);
     }

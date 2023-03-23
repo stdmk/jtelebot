@@ -636,6 +636,12 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         scheduleButton.setCallbackData(CALLBACK_SET_COMMAND + SET_SCHEDULE_COMMAND);
         scheduleButtonRow.add(scheduleButton);
 
+        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
+        InlineKeyboardButton infoButton = new InlineKeyboardButton();
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "Тренировки");
+        infoButton.setCallbackData("training");
+        infoButtonRow.add(infoButton);
+
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
         backButton.setText(Emoji.BACK.getEmoji() + "Установки");
@@ -645,6 +651,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         rows.add(subscriptionButtonRow);
         rows.add(trainingButtonRow);
         rows.add(scheduleButtonRow);
+        rows.add(infoButtonRow);
         rows.add(backButtonRow);
 
         return rows;
