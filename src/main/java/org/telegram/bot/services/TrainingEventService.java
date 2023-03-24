@@ -10,5 +10,6 @@ public interface TrainingEventService {
     TrainingEvent get(User user, Long eventId);
     List<TrainingEvent> getAll(LocalDate localDate);
     List<TrainingEvent> getAllUnplanned(User user, LocalDate localDate);
+    List<TrainingEvent> getAllCanceled(User user, LocalDate localDate);
     TrainingEvent save(TrainingEvent trainingEvent);
 }

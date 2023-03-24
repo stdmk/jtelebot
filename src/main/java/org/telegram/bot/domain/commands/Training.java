@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.DateUtils.formatShortTime;
@@ -166,20 +167,23 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         LocalDate dateNow = LocalDate.now();
 
         DayOfWeek dayOfWeekToday = DayOfWeek.from(dateNow);
-        DayOfWeek dayOfWeekTomorrow = DayOfWeek.from(dateNow.plusDays(1));
 
         List<TrainingScheduled> trainingScheduledList = trainingScheduledService.get(user);
         List<org.telegram.bot.domain.entities.Training> unplannedTodayTrainings = trainingEventService.getAllUnplanned(user, dateNow)
                 .stream()
                 .map(TrainingEvent::getTraining)
                 .collect(Collectors.toList());
+        List<org.telegram.bot.domain.entities.Training> canceledTodayTrainings = trainingEventService.getAllCanceled(user, dateNow)
+                .stream()
+                .map(TrainingEvent::getTraining)
+                .collect(Collectors.toList());
 
         StringBuilder buf = new StringBuilder();
         buf.append("<b>Тренировки сегодня:</b>\n");
-        buf.append(buildFormattedTrainingList(trainingScheduledList, dayOfWeekToday));
-        buf.append(buildFormattedTrainingList(unplannedTodayTrainings));
+        buf.append(buildFormattedTrainingList(
+                getTrainingsByDayOfWeek(trainingScheduledList, unplannedTodayTrainings, canceledTodayTrainings, dayOfWeekToday)));
         buf.append("<b>Тренировки завтра:</b>\n");
-        buf.append(buildFormattedTrainingList(trainingScheduledList, dayOfWeekTomorrow));
+        buf.append(buildFormattedTrainingList(getTrainingsByDayOfWeek(trainingScheduledList, dayOfWeekToday.plus(1))));
 
         buf.append(BORDER);
 
@@ -204,13 +208,22 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
-    private String buildFormattedTrainingList(List<TrainingScheduled> trainingScheduledList, DayOfWeek dayOfWeek) {
-        List<org.telegram.bot.domain.entities.Training> trainingList = filterScheduledListByDayOfWeek(trainingScheduledList, dayOfWeek)
-                .stream()
-                .map(TrainingScheduled::getTraining)
-                .collect(Collectors.toList());
+    private List<org.telegram.bot.domain.entities.Training> getTrainingsByDayOfWeek(List<TrainingScheduled> trainingScheduledList, DayOfWeek dayOfWeek) {
+        return getTrainingsByDayOfWeek(trainingScheduledList, new ArrayList<>(), new ArrayList<>(), dayOfWeek);
+    }
 
-        return buildFormattedTrainingList(trainingList);
+    private List<org.telegram.bot.domain.entities.Training> getTrainingsByDayOfWeek(List<TrainingScheduled> trainingScheduledList,
+                                                                                    List<org.telegram.bot.domain.entities.Training> unplannedTrainingList,
+                                                                                    List<org.telegram.bot.domain.entities.Training> canceledTrainingList,
+                                                                                    DayOfWeek dayOfWeek) {
+        List<Long> canceledTrainingIdList = canceledTrainingList.stream().map(org.telegram.bot.domain.entities.Training::getId).collect(Collectors.toList());
+        Stream<org.telegram.bot.domain.entities.Training> plannedTrainingsTodayStream =
+                getScheduledTrainingsByWeekDay(trainingScheduledList, dayOfWeek);
+
+        return Stream.concat(plannedTrainingsTodayStream, unplannedTrainingList.stream())
+                .filter(training -> !canceledTrainingIdList.contains(training.getId()))
+                .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
+                .collect(Collectors.toList());
     }
 
     private String buildFormattedTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {
@@ -236,9 +249,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
         while (countLeft >= 0) {
             DayOfWeek dayOfWeek = expirationDate.getDayOfWeek();
-            float sumCostOfDay = filterScheduledListByDayOfWeek(scheduledList, dayOfWeek)
-                    .stream()
-                    .map(TrainingScheduled::getTraining)
+            float sumCostOfDay = getScheduledTrainingsByWeekDay(scheduledList, dayOfWeek)
                     .map(org.telegram.bot.domain.entities.Training::getCost)
                     .reduce(Float::sum)
                     .orElse(0F);
@@ -255,11 +266,11 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         return expirationDate;
     }
 
-    private List<TrainingScheduled> filterScheduledListByDayOfWeek(List<TrainingScheduled> trainingScheduledList, DayOfWeek dayOfWeek) {
+    private Stream<org.telegram.bot.domain.entities.Training> getScheduledTrainingsByWeekDay(List<TrainingScheduled> trainingScheduledList, DayOfWeek dayOfWeek) {
         return trainingScheduledList
                 .stream()
                 .filter(trainingScheduled -> dayOfWeek.equals(trainingScheduled.getDayOfWeek()))
-                .collect(Collectors.toList());
+                .map(TrainingScheduled::getTraining);
     }
 
     private InlineKeyboardMarkup getKeyboardWithTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {
@@ -268,6 +279,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         trainingList
                 .stream()
                 .filter(training -> training.getTimeStart().isBefore(timeNow))
+                .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
                 .forEach(training -> {
                     List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                     InlineKeyboardButton trainingButton = new InlineKeyboardButton();
@@ -277,6 +289,14 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
                     rows.add(buttonRow);
         });
+
+        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
+        InlineKeyboardButton infoButton = new InlineKeyboardButton();
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "Тренировки");
+        infoButton.setCallbackData("training");
+        infoButtonRow.add(infoButton);
+
+        rows.add(infoButtonRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);

@@ -8,7 +8,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 public interface TrainingRepository extends JpaRepository<Training, Long> {
-    List<Training> findByUserAndDeleted(User user, boolean deleted);
-    Training findByUserAndIdAndDeleted(User user, Long id, boolean deleted);
-    Training findByUserAndTimeStartAndNameIgnoreCaseAndDeleted(User user, LocalTime time, String name, boolean deleted);
+    List<Training> findByUserAndDeletedOrderByTimeStart(User user, boolean deleted);
+    Training findByUserAndIdAndDeletedOrderByTimeStart(User user, Long id, boolean deleted);
+    Training findByUserAndTimeStartAndNameIgnoreCaseAndDeletedOrderByTimeStart(User user, LocalTime time, String name, boolean deleted);
 }

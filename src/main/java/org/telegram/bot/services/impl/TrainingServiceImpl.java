@@ -20,17 +20,17 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     public List<Training> get(User user) {
-        return trainingRepository.findByUserAndDeleted(user, false);
+        return trainingRepository.findByUserAndDeletedOrderByTimeStart(user, false);
     }
 
     @Override
     public Training get(User user, Long trainingId) {
-        return trainingRepository.findByUserAndIdAndDeleted(user, trainingId, false);
+        return trainingRepository.findByUserAndIdAndDeletedOrderByTimeStart(user, trainingId, false);
     }
 
     @Override
     public Training get(User user, LocalTime time, String name) {
-        return trainingRepository.findByUserAndTimeStartAndNameIgnoreCaseAndDeleted(user, time, name, false);
+        return trainingRepository.findByUserAndTimeStartAndNameIgnoreCaseAndDeletedOrderByTimeStart(user, time, name, false);
     }
 
     @Override

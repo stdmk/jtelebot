@@ -21,19 +21,28 @@ public class TrainingEventServiceImpl implements TrainingEventService {
 
     @Override
     public TrainingEvent get(User user, Long eventId) {
-        return trainingEventRepository.findByUserAndId(user, eventId);
+        return trainingEventRepository.findByUserAndIdOrderByTrainingTimeStart(user, eventId);
     }
 
     @Override
     public List<TrainingEvent> getAll(LocalDate date) {
-        return trainingEventRepository.findByDateTimeBetween(
+        return trainingEventRepository.findByDateTimeBetweenOrderByTrainingTimeStart(
                 date.atStartOfDay(),
                 date.atTime(LocalTime.MAX));
     }
 
     @Override
     public List<TrainingEvent> getAllUnplanned(User user, LocalDate date) {
-        return trainingEventRepository.findByUserAndUnplannedAndDateTimeBetween(
+        return trainingEventRepository.findByUserAndUnplannedAndDateTimeBetweenOrderByTrainingTimeStart(
+                user,
+                true,
+                date.atStartOfDay(),
+                date.atTime(LocalTime.MAX));
+    }
+
+    @Override
+    public List<TrainingEvent> getAllCanceled(User user, LocalDate date) {
+        return trainingEventRepository.findByUserAndCanceledAndDateTimeBetweenOrderByTrainingTimeStart(
                 user,
                 true,
                 date.atStartOfDay(),

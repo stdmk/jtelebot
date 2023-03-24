@@ -9,9 +9,9 @@ import java.time.DayOfWeek;
 import java.util.List;
 
 public interface TrainingScheduledRepository extends JpaRepository<TrainingScheduled, Long> {
-    TrainingScheduled findByUserAndDayOfWeekAndTraining(User user, DayOfWeek dayOfWeek, Training training);
-    List<TrainingScheduled> findByUserAndDayOfWeek(User user, DayOfWeek dayOfWeek);
-    List<TrainingScheduled> findByUser(User user);
-    List<TrainingScheduled> findAllByDayOfWeek(DayOfWeek dayOfWeek);
+    TrainingScheduled findByUserAndDayOfWeekAndTrainingOrderByTrainingTimeStart(User user, DayOfWeek dayOfWeek, Training training);
+    List<TrainingScheduled> findByUserAndDayOfWeekOrderByTrainingTimeStart(User user, DayOfWeek dayOfWeek);
+    List<TrainingScheduled> findByUserOrderByTrainingTimeStart(User user);
+    List<TrainingScheduled> findAllByDayOfWeekOrderByTrainingTimeStart(DayOfWeek dayOfWeek);
     void deleteByTraining(Training training);
 }

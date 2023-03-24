@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TrainingEventRepository extends JpaRepository<TrainingEvent, Long> {
-    TrainingEvent findByUserAndId(User user, Long id);
-    List<TrainingEvent> findByDateTimeBetween(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd);
-    List<TrainingEvent> findByUserAndUnplannedAndDateTimeBetween(User user, boolean unplanned, LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd);
+    TrainingEvent findByUserAndIdOrderByTrainingTimeStart(User user, Long id);
+    List<TrainingEvent> findByDateTimeBetweenOrderByTrainingTimeStart(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd);
+    List<TrainingEvent> findByUserAndUnplannedAndDateTimeBetweenOrderByTrainingTimeStart(User user, boolean unplanned, LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd);
+    List<TrainingEvent> findByUserAndCanceledAndDateTimeBetweenOrderByTrainingTimeStart(User user, boolean canceled, LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd);
 }

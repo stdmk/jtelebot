@@ -23,22 +23,22 @@ public class TrainingScheduledServiceImpl implements TrainingScheduledService {
 
     @Override
     public TrainingScheduled get(User user, DayOfWeek dayOfWeek, Training training) {
-        return trainingScheduledRepository.findByUserAndDayOfWeekAndTraining(user, dayOfWeek, training);
+        return trainingScheduledRepository.findByUserAndDayOfWeekAndTrainingOrderByTrainingTimeStart(user, dayOfWeek, training);
     }
 
     @Override
     public List<TrainingScheduled> get(User user, DayOfWeek dayOfWeek) {
-        return trainingScheduledRepository.findByUserAndDayOfWeek(user, dayOfWeek);
+        return trainingScheduledRepository.findByUserAndDayOfWeekOrderByTrainingTimeStart(user, dayOfWeek);
     }
 
     @Override
     public List<TrainingScheduled> get(User user) {
-        return trainingScheduledRepository.findByUser(user);
+        return trainingScheduledRepository.findByUserOrderByTrainingTimeStart(user);
     }
 
     @Override
     public List<TrainingScheduled> getAll(DayOfWeek dayOfWeek) {
-        return trainingScheduledRepository.findAllByDayOfWeek(dayOfWeek);
+        return trainingScheduledRepository.findAllByDayOfWeekOrderByTrainingTimeStart(dayOfWeek);
     }
 
     @Override

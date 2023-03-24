@@ -21,10 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.time.*;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -337,13 +334,14 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             LocalTime time = parseTime(Pattern.compile(setTimeCommand), command, timeAbbr);
 
             responseText = "Напиши мне время окончания тренировки в формате ЧЧ:ММ. " +
-                    "Например: " + formatShortTime(LocalTime.now());
+                    "Например: <code>" + formatShortTime(time.plusHours(1)) + "</code>";
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr + " " + formatShortTime(time)
                     + timeEndAbbr);
         } else if (setTrainingMatcher.find()) {
+            LocalTime localTimeNow = LocalTime.now();
             responseText = "Напиши мне время начала тренировки в формате ЧЧ:ММ. " +
-                    "Например: " + formatShortTime(LocalTime.now());
+                    "Например: <code>" + formatShortTime(localTimeNow.minusMinutes(localTimeNow.getMinute())) + "</code>";
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr);
         } else if (setTrainingDeleteMatcher.find()) {
