@@ -198,6 +198,10 @@ public class DateUtils {
         return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
     }
 
+    public static Duration getDuration(LocalTime timeStart, LocalTime timeEnd) {
+        return Duration.between(timeStart, timeEnd);
+    }
+
     public static Duration getDuration(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd) {
         ZoneId zoneId = ZoneId.systemDefault();
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());

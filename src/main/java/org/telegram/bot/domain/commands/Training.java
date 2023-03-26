@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.TrainSubscription;
@@ -21,18 +22,14 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.telegram.bot.utils.DateUtils.formatDate;
-import static org.telegram.bot.utils.DateUtils.formatShortTime;
+import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.BORDER;
 
 @Component
@@ -46,12 +43,20 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private final SpeechService speechService;
 
     private static final String COMMAND_NAME = "training";
+    private static final String ADD_COMMAND = "_add";
+    private static final String CANCEL_COMMAND = "_c";
+    private static final String REPORT_COMMAND = "_r";
+    private static final String REPORT_SUBSCRIPTION_COMMAND = REPORT_COMMAND + "_sub";
+    private static final String CALLBACK_REPORT_SUBSCRIPTION_COMMAND = COMMAND_NAME + REPORT_SUBSCRIPTION_COMMAND;
+    private static final String REPORT_MONTH_COMMAND = REPORT_COMMAND + "m";
+    private static final String CALLBACK_REPORT_MONTH_COMMAND = COMMAND_NAME + REPORT_MONTH_COMMAND;
+    private static final String REPORT_YEAR_COMMAND = REPORT_COMMAND + "y";
+    private static final String CALLBACK_REPORT_YEAR_COMMAND = COMMAND_NAME + REPORT_YEAR_COMMAND;
+    private static final String REPORT_ALL_TIME_COMMAND = REPORT_COMMAND + "all";
+    private static final String CALLBACK_REPORT_ALL_COMMAND = COMMAND_NAME + REPORT_ALL_TIME_COMMAND;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
-        final String addCommand = "_add";
-        final String cancelCommand = "_c";
-
         Message message = getMessageFromUpdate(update);
         Long userId;
         Integer editMessageId = null;
@@ -71,10 +76,10 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         InlineKeyboardMarkup inlineKeyboardMarkup = null;
         String responseText;
         if (textMessage != null) {
-            if (textMessage.startsWith(addCommand)) {
+            if (textMessage.startsWith(ADD_COMMAND)) {
                 Long trainingId = null;
                 try {
-                    trainingId = Long.parseLong(textMessage.substring(addCommand.length()));
+                    trainingId = Long.parseLong(textMessage.substring(ADD_COMMAND.length()));
                 } catch (NumberFormatException ignored) {
                 }
 
@@ -111,10 +116,10 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                         inlineKeyboardMarkup = getKeyboardWithTrainingList(trainingList);
                     }
                 }
-            } else if (textMessage.startsWith(cancelCommand)) {
+            } else if (textMessage.startsWith(CANCEL_COMMAND)) {
                 long eventId;
                 try {
-                    eventId = Long.parseLong(textMessage.substring(cancelCommand.length()));
+                    eventId = Long.parseLong(textMessage.substring(CANCEL_COMMAND.length()));
                 } catch (NumberFormatException e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
@@ -133,6 +138,40 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                 trainingEventService.save(trainingEvent.setCanceled(true));
 
                 responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
+            } else if (textMessage.startsWith(REPORT_COMMAND)) {
+                int page = 0;
+                LocalDate dateNow = LocalDate.now();
+
+                if (textMessage.startsWith(REPORT_ALL_TIME_COMMAND)) {
+                    responseText = getReportStatistic(trainingEventService.getAll(user));
+                } else if (textMessage.startsWith(REPORT_YEAR_COMMAND)) {
+                    responseText = getReportStatistic(trainingEventService.getAllOfYear(user, dateNow.getYear()));
+                } else if (textMessage.startsWith(REPORT_MONTH_COMMAND)) {
+                    responseText = getReportStatistic(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()));
+                } else if (textMessage.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
+                    long subscriptionId;
+                    try {
+                        subscriptionId = Long.parseLong(textMessage.substring(REPORT_SUBSCRIPTION_COMMAND.length()));
+                    } catch (NumberFormatException e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                    }
+
+                    TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
+                    if (subscription == null) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                    }
+
+                    responseText = getReportStatistic(trainingEventService.getAll(user, subscription));
+                } else {
+                    try {
+                        page = Integer.parseInt(textMessage.substring(REPORT_COMMAND.length()));
+                    } catch (NumberFormatException ignored) {
+                    }
+
+                    responseText = "<b>Выбери отчёт:</b>\n";
+                }
+
+                inlineKeyboardMarkup = getReportKeyboard(user, page);
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -161,6 +200,65 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private String getReportStatistic(List<TrainingEvent> trainingEventList) {
+        if (trainingEventList.isEmpty()) {
+            return "Статистика отсутствует";
+        }
+
+        StringBuilder buf = new StringBuilder();
+
+        LocalDateTime firstEventDateTime = trainingEventList.stream().min(Comparator.comparing(TrainingEvent::getDateTime))
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)))
+                .getDateTime();
+        buf.append("Начиная с <b>").append(formatDate(firstEventDateTime)).append("</b>\n");
+
+        long allCount = trainingEventList
+                .stream()
+                .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
+                .count();
+        buf.append("Тренировок: ").append(" <b>").append(allCount).append("</b>\n");
+
+        long canceledCount = trainingEventList
+                .stream()
+                .filter(trainingEvent -> Boolean.TRUE.equals(trainingEvent.getCanceled()))
+                .count();
+        buf.append("Отменённых: <b>").append(canceledCount).append("</b>\n");
+
+        long unplannedCount = trainingEventList
+                .stream()
+                .filter(trainingEvent -> Boolean.TRUE.equals(trainingEvent.getUnplanned()))
+                .count();
+        buf.append("Незапланированных: <b>").append(unplannedCount).append("</b>\n");
+
+        buf.append(BORDER);
+
+        trainingEventList
+                .stream()
+                .map(trainingEvent -> trainingEvent.getTraining().getName())
+                .distinct()
+                .forEach(name -> {
+                    long trainingByNameCount = trainingEventList
+                            .stream()
+                            .filter(trainingEvent -> name.equals(trainingEvent.getTraining().getName()))
+                            .count();
+                    buf.append(name).append(": <b>").append(trainingByNameCount).append("</b>\n");
+                });
+
+        buf.append(BORDER);
+
+        Duration allTrainingsDuration = trainingEventList
+                .stream()
+                .map(trainingEvent -> getDuration(trainingEvent.getTraining().getTimeStart(), trainingEvent.getTraining().getTimeEnd()))
+                .reduce(Duration::plus)
+                .orElse(Duration.ZERO);
+        buf.append("Всего время: <b>").append(DateUtils.durationToString(allTrainingsDuration)).append("</b>\n");
+
+        Float sumOfCost = trainingEventList.stream().map(trainingEvent -> trainingEvent.getTraining().getCost()).reduce(Float::sum).orElse(0F);
+        buf.append("Всего стоимость: <b>").append(sumOfCost).append("</b>\n");
+
+        return buf.toString();
     }
 
     private String getMainMenuText(User user) {
@@ -284,24 +382,94 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                     InlineKeyboardButton trainingButton = new InlineKeyboardButton();
                     trainingButton.setText(Emoji.NEW.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()));
-                    trainingButton.setCallbackData(COMMAND_NAME + "_add" + training.getId());
+                    trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND + training.getId());
                     buttonRow.add(trainingButton);
 
                     rows.add(buttonRow);
         });
 
-        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
-        InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "Тренировки");
-        infoButton.setCallbackData("training");
-        infoButtonRow.add(infoButton);
-
-        rows.add(infoButtonRow);
+        rows.add(getTrainingMainInfoButtonRow());
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
 
         return inlineKeyboardMarkup;
+    }
+
+    private InlineKeyboardMarkup getReportKeyboard(User user, int page) {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        Page<TrainSubscription> trainSubscriptionPage = trainSubscriptionService.get(user, page);
+
+        trainSubscriptionPage.forEach(subscription -> {
+            String buttonCaption = formatDate(subscription.getStartDate()) + " — " +
+                    formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
+                    " (" + subscription.getCount() + ")\n";
+
+            List<InlineKeyboardButton> reportForSubscriptionRow = new ArrayList<>();
+            InlineKeyboardButton subscriptionReportButton = new InlineKeyboardButton();
+            subscriptionReportButton.setText(buttonCaption);
+            subscriptionReportButton.setCallbackData(CALLBACK_REPORT_SUBSCRIPTION_COMMAND + subscription.getId());
+            reportForSubscriptionRow.add(subscriptionReportButton);
+
+            rows.add(reportForSubscriptionRow);
+        });
+
+        List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        if (page > 0) {
+            InlineKeyboardButton backButton = new InlineKeyboardButton();
+            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
+            backButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page - 1));
+
+            pagesRow.add(backButton);
+        }
+
+        if (page + 1 < trainSubscriptionPage.getTotalPages()) {
+            InlineKeyboardButton forwardButton = new InlineKeyboardButton();
+            forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page + 1));
+
+            pagesRow.add(forwardButton);
+        }
+
+        rows.add(pagesRow);
+
+        List<InlineKeyboardButton> reportForMonthRow = new ArrayList<>();
+        InlineKeyboardButton monthReportButton = new InlineKeyboardButton();
+        monthReportButton.setText("За текущий месяц");
+        monthReportButton.setCallbackData(CALLBACK_REPORT_MONTH_COMMAND);
+        reportForMonthRow.add(monthReportButton);
+
+        List<InlineKeyboardButton> reportForYearRow = new ArrayList<>();
+        InlineKeyboardButton yearReportButton = new InlineKeyboardButton();
+        yearReportButton.setText("За текущий год");
+        yearReportButton.setCallbackData(CALLBACK_REPORT_YEAR_COMMAND);
+        reportForYearRow.add(yearReportButton);
+
+        List<InlineKeyboardButton> reportForAllTimeRow = new ArrayList<>();
+        InlineKeyboardButton allTimeReportButton = new InlineKeyboardButton();
+        allTimeReportButton.setText("За всё время");
+        allTimeReportButton.setCallbackData(CALLBACK_REPORT_ALL_COMMAND);
+        reportForAllTimeRow.add(allTimeReportButton);
+
+        rows.add(reportForMonthRow);
+        rows.add(reportForYearRow);
+        rows.add(reportForAllTimeRow);
+        rows.add(getTrainingMainInfoButtonRow());
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(rows);
+
+        return inlineKeyboardMarkup;
+    }
+    
+    private List<InlineKeyboardButton> getTrainingMainInfoButtonRow() {
+        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
+        InlineKeyboardButton infoButton = new InlineKeyboardButton();
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "Тренировки");
+        infoButton.setCallbackData(COMMAND_NAME);
+        infoButtonRow.add(infoButton);
+        
+        return infoButtonRow;
     }
 
     private InlineKeyboardMarkup getMainKeyboard() {
@@ -310,8 +478,14 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> addTrainingRow = new ArrayList<>();
         InlineKeyboardButton trainingButton = new InlineKeyboardButton();
         trainingButton.setText(Emoji.NEW.getEmoji() + "Незапл. тренировка");
-        trainingButton.setCallbackData(COMMAND_NAME + "_add");
+        trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND);
         addTrainingRow.add(trainingButton);
+
+        List<InlineKeyboardButton> reportTrainingRow = new ArrayList<>();
+        InlineKeyboardButton reportButton = new InlineKeyboardButton();
+        reportButton.setText(Emoji.MEMO.getEmoji() + "Отчёты");
+        reportButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND);
+        reportTrainingRow.add(reportButton);
 
         List<InlineKeyboardButton> settingsRow = new ArrayList<>();
         InlineKeyboardButton settingsButton = new InlineKeyboardButton();
@@ -320,6 +494,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         settingsRow.add(settingsButton);
 
         rows.add(addTrainingRow);
+        rows.add(reportTrainingRow);
         rows.add(settingsRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();

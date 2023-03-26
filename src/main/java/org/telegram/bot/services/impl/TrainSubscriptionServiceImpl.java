@@ -2,6 +2,8 @@ package org.telegram.bot.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.TrainSubscription;
 import org.telegram.bot.domain.entities.User;
@@ -21,6 +23,11 @@ public class TrainSubscriptionServiceImpl implements TrainSubscriptionService {
     @Override
     public TrainSubscription get(Long trainSubscriptionId, User user) {
         return trainSubscriptionRepository.findByIdAndUser(trainSubscriptionId, user);
+    }
+
+    @Override
+    public Page<TrainSubscription> get(User user, int page) {
+        return trainSubscriptionRepository.findByUserOrderByStartDateDesc(user, PageRequest.of(page, 5));
     }
 
     @Override
