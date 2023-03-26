@@ -207,18 +207,21 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
             return "Статистика отсутствует";
         }
 
+        List<TrainingEvent> nonCaceledTrainingEventList = trainingEventList
+                .stream()
+                .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
+                .collect(Collectors.toList());
+
         StringBuilder buf = new StringBuilder();
 
-        LocalDateTime firstEventDateTime = trainingEventList.stream().min(Comparator.comparing(TrainingEvent::getDateTime))
+        LocalDateTime firstEventDateTime = nonCaceledTrainingEventList
+                .stream()
+                .min(Comparator.comparing(TrainingEvent::getDateTime))
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)))
                 .getDateTime();
         buf.append("Начиная с <b>").append(formatDate(firstEventDateTime)).append("</b>\n");
 
-        long allCount = trainingEventList
-                .stream()
-                .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
-                .count();
-        buf.append("Тренировок: ").append(" <b>").append(allCount).append("</b>\n");
+        buf.append("Тренировок: ").append(" <b>").append(nonCaceledTrainingEventList.size()).append("</b>\n");
 
         long canceledCount = trainingEventList
                 .stream()
@@ -226,7 +229,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                 .count();
         buf.append("Отменённых: <b>").append(canceledCount).append("</b>\n");
 
-        long unplannedCount = trainingEventList
+        long unplannedCount = nonCaceledTrainingEventList
                 .stream()
                 .filter(trainingEvent -> Boolean.TRUE.equals(trainingEvent.getUnplanned()))
                 .count();
@@ -234,12 +237,12 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
         buf.append(BORDER);
 
-        trainingEventList
+        nonCaceledTrainingEventList
                 .stream()
                 .map(trainingEvent -> trainingEvent.getTraining().getName())
                 .distinct()
                 .forEach(name -> {
-                    long trainingByNameCount = trainingEventList
+                    long trainingByNameCount = nonCaceledTrainingEventList
                             .stream()
                             .filter(trainingEvent -> name.equals(trainingEvent.getTraining().getName()))
                             .count();
@@ -248,14 +251,18 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
         buf.append(BORDER);
 
-        Duration allTrainingsDuration = trainingEventList
+        Duration allTrainingsDuration = nonCaceledTrainingEventList
                 .stream()
                 .map(trainingEvent -> getDuration(trainingEvent.getTraining().getTimeStart(), trainingEvent.getTraining().getTimeEnd()))
                 .reduce(Duration::plus)
                 .orElse(Duration.ZERO);
         buf.append("Всего время: <b>").append(DateUtils.durationToString(allTrainingsDuration)).append("</b>\n");
 
-        Float sumOfCost = trainingEventList.stream().map(trainingEvent -> trainingEvent.getTraining().getCost()).reduce(Float::sum).orElse(0F);
+        Float sumOfCost = nonCaceledTrainingEventList
+                .stream()
+                .map(trainingEvent -> trainingEvent.getTraining().getCost())
+                .reduce(Float::sum)
+                .orElse(0F);
         buf.append("Всего стоимость: <b>").append(sumOfCost).append("</b>\n");
 
         return buf.toString();
