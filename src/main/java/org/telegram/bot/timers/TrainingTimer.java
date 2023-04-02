@@ -10,14 +10,14 @@ import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.services.TrainSubscriptionService;
 import org.telegram.bot.services.TrainingEventService;
 import org.telegram.bot.services.TrainingScheduledService;
+import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +33,7 @@ public class TrainingTimer extends TimerParent {
     private final TrainingEventService trainingEventService;
     private final TrainingScheduledService trainingScheduledService;
     private final TrainSubscriptionService trainSubscriptionService;
+    private final UserCityService userCityService;
 
     private final String COMMAND_NAME = "training";
 
@@ -43,6 +44,7 @@ public class TrainingTimer extends TimerParent {
         DayOfWeek currentDayOfWeek = DayOfWeek.from(dateTimeNow);
 
         Map<User, TrainSubscription> userTrainSubscriptionMap = new HashMap<>();
+        Map<User, ZoneId> userZoneIdMap = new HashMap<>();
         List<Long> pastTrainingIdList = trainingEventService.getAll(dateTimeNow.toLocalDate())
                 .stream()
                 .map(TrainingEvent::getTraining)
@@ -53,6 +55,7 @@ public class TrainingTimer extends TimerParent {
                 .stream()
                 .map(TrainingScheduled::getTraining)
                 .filter(training -> !pastTrainingIdList.contains(training.getId()))
+                .filter(training -> getUserTime(userZoneIdMap, training.getUser()).isAfter(training.getTimeEnd()))
                 .filter(training -> dateTimeNow.toLocalTime().isAfter(training.getTimeEnd()))
                 .forEach(training -> {
                     User user = training.getUser();
@@ -108,6 +111,21 @@ public class TrainingTimer extends TimerParent {
         }
 
         return trainSubscription;
+    }
+
+    private LocalTime getUserTime(Map<User, ZoneId> userZoneIdMap, User user) {
+        ZoneId zoneId = userZoneIdMap.get(user);
+
+        if (zoneId == null) {
+            zoneId = userCityService.getZoneIdOfUser(new Chat().setChatId(user.getUserId()), user);
+            if (zoneId == null) {
+                zoneId = ZoneId.systemDefault();
+            }
+
+            userZoneIdMap.put(user, zoneId);
+        }
+
+        return ZonedDateTime.now(zoneId).toLocalTime();
     }
 
     private void reduceSubscriptionCountLeft(TrainSubscription trainSubscription) {
