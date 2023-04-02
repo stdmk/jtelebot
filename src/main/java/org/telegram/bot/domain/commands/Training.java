@@ -209,7 +209,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     inputFile = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year));
                     caption = "Отчёт за год " + year;
                 } else if (textMessage.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
-                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL, LOCALE);
+                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, LOCALE);
                     inputFile = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName);
                     caption = "Отчёт за месяц " + monthName;
                 } else if (textMessage.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
@@ -389,6 +389,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         buf.append("<b>Тренировки сегодня:</b>\n");
         buf.append(buildFormattedTrainingList(
                 getTrainingsByDayOfWeek(trainingScheduledList, unplannedTodayTrainings, canceledTodayTrainings, dayOfWeekToday)));
+        buf.append("\n");
         buf.append("<b>Тренировки завтра:</b>\n");
         buf.append(buildFormattedTrainingList(getTrainingsByDayOfWeek(trainingScheduledList, dayOfWeekToday.plus(1))));
 
