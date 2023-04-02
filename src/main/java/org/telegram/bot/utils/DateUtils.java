@@ -149,6 +149,17 @@ public class DateUtils {
         return durationToString(duration);
     }
 
+    public static String durationToString(LocalTime firstTime, LocalTime secondTime) {
+        Duration duration;
+        if (firstTime.isAfter(secondTime)) {
+            duration = Duration.between(secondTime, firstTime);
+        } else {
+            duration = Duration.between(firstTime, secondTime);
+        }
+
+        return durationToString(duration);
+    }
+
     public static String durationToString(long milliseconds) {
         return durationToString(Duration.of(milliseconds, ChronoUnit.MILLIS));
     }

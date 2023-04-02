@@ -14,23 +14,30 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.*;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.BORDER;
+import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
 @Component
 @RequiredArgsConstructor
@@ -42,10 +49,14 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private final TrainingService trainingService;
     private final SpeechService speechService;
 
+    private final Locale LOCALE = new Locale("ru");
+
     private static final String COMMAND_NAME = "training";
     private static final String ADD_COMMAND = "_add";
     private static final String CANCEL_COMMAND = "_c";
     private static final String REPORT_COMMAND = "_r";
+    private static final String DOWNLOAD_COMMAND = "_d";
+
     private static final String REPORT_SUBSCRIPTION_COMMAND = REPORT_COMMAND + "_sub";
     private static final String CALLBACK_REPORT_SUBSCRIPTION_COMMAND = COMMAND_NAME + REPORT_SUBSCRIPTION_COMMAND;
     private static final String REPORT_MONTH_COMMAND = REPORT_COMMAND + "m";
@@ -54,6 +65,14 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private static final String CALLBACK_REPORT_YEAR_COMMAND = COMMAND_NAME + REPORT_YEAR_COMMAND;
     private static final String REPORT_ALL_TIME_COMMAND = REPORT_COMMAND + "all";
     private static final String CALLBACK_REPORT_ALL_COMMAND = COMMAND_NAME + REPORT_ALL_TIME_COMMAND;
+    private static final String DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND = DOWNLOAD_COMMAND + "_sub";
+    private static final String CALLBACK_DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND;
+    private static final String DOWNLOAD_REPORT_MONTH_COMMAND = DOWNLOAD_COMMAND + "m";
+    private static final String CALLBACK_DOWNLOAD_REPORT_MONTH_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_MONTH_COMMAND;
+    private static final String DOWNLOAD_REPORT_YEAR_COMMAND = DOWNLOAD_COMMAND + "y";
+    private static final String CALLBACK_DOWNLOAD_REPORT_YEAR_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_YEAR_COMMAND;
+    private static final String DOWNLOAD_REPORT_ALL_TIME_COMMAND = DOWNLOAD_COMMAND + "all";
+    private static final String CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_ALL_TIME_COMMAND;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -141,13 +160,17 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.startsWith(REPORT_COMMAND)) {
                 int page = 0;
                 LocalDate dateNow = LocalDate.now();
+                String reportDownloadCommand = null;
 
                 if (textMessage.startsWith(REPORT_ALL_TIME_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAll(user));
+                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND;
                 } else if (textMessage.startsWith(REPORT_YEAR_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAllOfYear(user, dateNow.getYear()));
+                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_YEAR_COMMAND;
                 } else if (textMessage.startsWith(REPORT_MONTH_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()));
+                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_MONTH_COMMAND;
                 } else if (textMessage.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
                     long subscriptionId;
                     try {
@@ -162,6 +185,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     }
 
                     responseText = getReportStatistic(trainingEventService.getAll(user, subscription));
+                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND + subscriptionId;
                 } else {
                     try {
                         page = Integer.parseInt(textMessage.substring(REPORT_COMMAND.length()));
@@ -171,7 +195,52 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     responseText = "<b>Выбери отчёт:</b>\n";
                 }
 
-                inlineKeyboardMarkup = getReportKeyboard(user, page);
+                inlineKeyboardMarkup = getReportKeyboard(user, page, reportDownloadCommand);
+            } else if (textMessage.startsWith(DOWNLOAD_COMMAND)) {
+                LocalDate dateNow = LocalDate.now();
+                InputFile inputFile;
+                String caption;
+
+                if (textMessage.startsWith(DOWNLOAD_REPORT_ALL_TIME_COMMAND)) {
+                    inputFile = getReportFile(trainingEventService.getAll(user), "all");
+                    caption = "Отчёт за всё время";
+                } else if (textMessage.startsWith(DOWNLOAD_REPORT_YEAR_COMMAND)) {
+                    int year = dateNow.getYear();
+                    inputFile = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year));
+                    caption = "Отчёт за год " + year;
+                } else if (textMessage.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
+                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL, LOCALE);
+                    inputFile = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName);
+                    caption = "Отчёт за месяц " + monthName;
+                } else if (textMessage.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
+                    long subscriptionId;
+                    try {
+                        subscriptionId = Long.parseLong(textMessage.substring(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND.length()));
+                    } catch (NumberFormatException e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                    }
+
+                    TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
+                    if (subscription == null) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                    }
+
+                    String subscriptionName = formatDate(subscription.getStartDate()) + " — " +
+                            formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
+                            " (" + subscription.getCount() + ")";
+                    inputFile = getReportFile(trainingEventService.getAll(user, subscription), subscriptionName);
+                    caption = "Отчёт по абонементу " + subscriptionName;
+                } else {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                }
+
+                SendDocument sendDocument = new SendDocument();
+                sendDocument.setChatId(message.getChatId().toString());
+                sendDocument.setReplyToMessageId(message.getMessageId());
+                sendDocument.setCaption(caption);
+                sendDocument.setDocument(inputFile);
+
+                return sendDocument;
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -200,6 +269,39 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private InputFile getReportFile(List<TrainingEvent> trainingEventList, String fileName) {
+        StringBuilder buf = new StringBuilder("Отчёт " + fileName + "\n\n");
+
+        buf.append(cutHtmlTags(getReportStatistic(trainingEventList))).append(BORDER).append("\n");
+
+        trainingEventList.forEach(trainingEvent -> {
+            org.telegram.bot.domain.entities.Training training = trainingEvent.getTraining();
+            TrainSubscription subscription = trainingEvent.getTrainSubscription();
+
+            String subscriptionName;
+            if (subscription == null) {
+                subscriptionName = "";
+            } else {
+                subscriptionName = "Абонемент :" + formatDate(subscription.getStartDate()) + " — " +
+                        formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
+                        " (" + subscription.getCount() + ")\n";
+            }
+            String canceled = Boolean.TRUE.equals(trainingEvent.getCanceled()) ? "ОТМЕНЕНО\n" : "";
+            String unplanned = Boolean.TRUE.equals(trainingEvent.getUnplanned()) ? "НЕЗАПЛАНИРОВАНО\n" : "";
+
+            buf.append(formatDate(trainingEvent.getDateTime())).append(" ").append(DateUtils.getDayOfWeek(trainingEvent.getDateTime())).append("\n")
+                    .append(training.getName()).append(" (").append(training.getCost()).append(")").append("\n")
+                    .append(canceled)
+                    .append(unplanned)
+                    .append(formatShortTime(training.getTimeStart())).append(" — ").append(formatShortTime(training.getTimeEnd()))
+                        .append(" (").append(durationToString(training.getTimeEnd(), training.getTimeStart())).append(")\n")
+                    .append(subscriptionName).append(subscriptionName)
+                    .append("\n");
+        });
+
+        return new InputFile(new ByteArrayInputStream(buf.toString().getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
     }
 
     private String getReportStatistic(List<TrainingEvent> trainingEventList) {
@@ -403,7 +505,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         return inlineKeyboardMarkup;
     }
 
-    private InlineKeyboardMarkup getReportKeyboard(User user, int page) {
+    private InlineKeyboardMarkup getReportKeyboard(User user, int page, String reportDownloadCommand) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         Page<TrainSubscription> trainSubscriptionPage = trainSubscriptionService.get(user, page);
 
@@ -439,6 +541,16 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         rows.add(pagesRow);
+
+        if (reportDownloadCommand != null) {
+            List<InlineKeyboardButton> downloadReportTrainingRow = new ArrayList<>();
+            InlineKeyboardButton downloadReportButton = new InlineKeyboardButton();
+            downloadReportButton.setText(Emoji.DOWN_ARROW.getEmoji() + "Скачать");
+            downloadReportButton.setCallbackData(reportDownloadCommand);
+            downloadReportTrainingRow.add(downloadReportButton);
+
+            rows.add(downloadReportTrainingRow);
+        }
 
         List<InlineKeyboardButton> reportForMonthRow = new ArrayList<>();
         InlineKeyboardButton monthReportButton = new InlineKeyboardButton();
