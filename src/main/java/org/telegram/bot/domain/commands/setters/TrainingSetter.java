@@ -50,6 +50,8 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_DELETE_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + DELETE_SUBSCRIPTION_COMMAND;
     private final String ADD_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND + "a";
     private final String CALLBACK_ADD_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + ADD_SUBSCRIPTION_COMMAND;
+    private final String UPDATE_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND + "u";
+    private final String CALLBACK_UPDATE_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + UPDATE_SUBSCRIPTION_COMMAND;
     private final String SET_TRAINING_COMMAND = "train";
     private final String DELETE_TRAINING_COMMAND = EMPTY_SET_COMMAND + SET_TRAINING_COMMAND + "d";
     private final String CALLBACK_DELETE_TRAINING_COMMAND = CALLBACK_COMMAND + DELETE_TRAINING_COMMAND;
@@ -114,6 +116,9 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         Matcher setSubCountMatcher = Pattern.compile(setSubCountCommand).matcher(command);
         Matcher setSubMatcher = Pattern.compile(ADD_SUBSCRIPTION_COMMAND).matcher(command);
         Matcher setDeleteMatcher = Pattern.compile(DELETE_SUBSCRIPTION_COMMAND + "\\d+").matcher(command);
+        Matcher updateMatcher = Pattern.compile(UPDATE_SUBSCRIPTION_COMMAND + "\\d+").matcher(command);
+        Matcher updateDateEndMatcher = Pattern.compile(UPDATE_SUBSCRIPTION_COMMAND + "\\d+" +
+                dateAbbr + " (\\d{2})\\.(\\d{2})\\.(\\d{4})").matcher(command);
 
         String responseText;
         if (setSubCountDateDurationMatcher.find()) {
@@ -153,7 +158,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             trainSubscriptionService.save(newTrainSubscription);
 
-            return getManageSubscriptionMenu(message, user, true);
+            return getManageSubscriptionsMenu(message, user, true);
         } else if (setSubCountDateMatcher.find()) {
             Integer count = parseCount(Pattern.compile(setCountCommand), command, countAbbr);
             LocalDate date = parseDate(Pattern.compile(setDateCommand), command, dateAbbr);
@@ -176,13 +181,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
                     + countAbbr);
             responseText = "Напиши мне число тренировок в абонементе";
         } else if (setDeleteMatcher.find()) {
-            long subscriptionId;
-            try {
-                subscriptionId = Integer.parseInt(command.substring(DELETE_SUBSCRIPTION_COMMAND.length()));
-            } catch (NumberFormatException e) {
-                botStats.incrementErrors();
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-            }
+            long subscriptionId = parseId(command, DELETE_SUBSCRIPTION_COMMAND.length());
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
@@ -191,9 +190,40 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             trainSubscription.setActive(false);
             trainSubscriptionService.save(trainSubscription);
-            return getManageSubscriptionMenu(message, user, false);
+            return getManageSubscriptionsMenu(message, user, false);
+        } else if (updateDateEndMatcher.find()) {
+            long subscriptionId = parseLong(Pattern.compile(UPDATE_SUBSCRIPTION_COMMAND + "\\d"), command, UPDATE_SUBSCRIPTION_COMMAND);
+
+            TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
+            if (trainSubscription == null) {
+                botStats.incrementErrors();
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            LocalDate newEndDate = parseDate(Pattern.compile(setDateCommand), command, dateAbbr);
+            if (newEndDate.isBefore(trainSubscription.getStartDate())) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            trainSubscription.setPeriod(Period.between(trainSubscription.getStartDate(), newEndDate));
+            trainSubscriptionService.save(trainSubscription);
+
+            return getManageSubscriptionsMenu(message, user, true);
+        } else if (updateMatcher.find()) {
+            long subscriptionId = parseId(command, DELETE_SUBSCRIPTION_COMMAND.length());
+
+            TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
+            if (trainSubscription == null) {
+                botStats.incrementErrors();
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            commandWaitingService.add(chat, user, Set.class, CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscriptionId
+                    + dateAbbr);
+            responseText = "Напиши мне дату начала действия абонемента в формате ДД.ММ.ГГГГ, " +
+                    "например: <code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
         } else {
-            return getManageSubscriptionMenu(message, user, false);
+            return getManageSubscriptionsMenu(message, user, false);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -204,7 +234,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private PartialBotApiMethod<?> getManageSubscriptionMenu(Message message, User user, boolean newMessage) {
+    private PartialBotApiMethod<?> getManageSubscriptionsMenu(Message message, User user, boolean newMessage) {
         StringBuilder buf = new StringBuilder("<b>Текущие абонементы:</b>\n");
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
@@ -219,10 +249,15 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
                         .append(" (до ").append(DateUtils.formatDate(subscription.getStartDate().plus(subscription.getPeriod()))).append(")\n\n");
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-                InlineKeyboardButton subscriptionButton = new InlineKeyboardButton();
-                subscriptionButton.setText(Emoji.DELETE.getEmoji() + subscription.getStartDate() + " " + subscription.getCount());
-                subscriptionButton.setCallbackData(CALLBACK_DELETE_SUBSCRIPTION_COMMAND + subscription.getId());
-                buttonRow.add(subscriptionButton);
+                InlineKeyboardButton subscriptionDeleteButton = new InlineKeyboardButton();
+                subscriptionDeleteButton.setText(Emoji.DELETE.getEmoji() + subscription.getStartDate() + " " + subscription.getCount());
+                subscriptionDeleteButton.setCallbackData(CALLBACK_DELETE_SUBSCRIPTION_COMMAND + subscription.getId());
+                buttonRow.add(subscriptionDeleteButton);
+
+                InlineKeyboardButton subscriptionUpdateButton = new InlineKeyboardButton();
+                subscriptionUpdateButton.setText(Emoji.GEAR.getEmoji() + formatDate(subscription.getStartDate().plus(subscription.getPeriod())));
+                subscriptionUpdateButton.setCallbackData(CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscription.getId());
+                buttonRow.add(subscriptionUpdateButton);
 
                 rows.add(buttonRow);
             });
@@ -345,13 +380,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + timeAbbr);
         } else if (setTrainingDeleteMatcher.find()) {
-            long trainingId;
-            try {
-                trainingId = Integer.parseInt(command.substring(DELETE_TRAINING_COMMAND.length()));
-            } catch (NumberFormatException e) {
-                botStats.incrementErrors();
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-            }
+            long trainingId = parseId(command, DELETE_TRAINING_COMMAND.length());
 
             Training training = trainingService.get(user, trainingId);
             if (training == null) {
@@ -653,6 +682,15 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         rows.add(backButtonRow);
 
         return rows;
+    }
+
+    private Long parseId(String text, int beginIndex) {
+        try {
+            return Long.parseLong(text.substring(beginIndex));
+        } catch (NumberFormatException e) {
+            botStats.incrementErrors();
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
     }
 
     private Integer parseCount(Pattern pattern, String text, String abbr) {
