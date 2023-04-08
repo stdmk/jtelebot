@@ -24,10 +24,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -113,38 +111,47 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
             return null;
         }
 
-        Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
-        talkerWordService.get(getWordsFromText(text), chatId)
+        List<TalkerPhrase> talkerPhrases = talkerWordService.get(getWordsFromText(text), chatId)
                 .stream()
                 .map(TalkerWord::getPhrases)
                 .flatMap(Collection::stream)
                 .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
-                .forEach(talkerPhrase -> {
-                    if (phrasesRating.containsKey(talkerPhrase)) {
-                        phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
-                    } else {
-                        phrasesRating.put(talkerPhrase, 1);
-                    }
-                });
+                .collect(Collectors.toList());
 
-        String selectedPhrase = null;
-        Integer maxValue = phrasesRating.values().stream().max(Integer::compareTo).orElse(null);
-        if (maxValue != null) {
-            List<TalkerPhrase> talkerPhraseWithMaxRatingList = phrasesRating.entrySet()
-                    .stream()
-                    .filter(entry -> maxValue.equals(entry.getValue()))
-                    .map(Map.Entry::getKey).collect(Collectors.toList());
+        return talkerPhrases.get(MathUtils.getRandomInRange(0, talkerPhrases.size() - 1)).getPhrase();
 
-            int talkerPhrasesWithMaxRatingCount = talkerPhraseWithMaxRatingList.size();
-            if (talkerPhrasesWithMaxRatingCount > 1) {
-                selectedPhrase = talkerPhraseWithMaxRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithMaxRatingCount))
-                        .getPhrase();
-            } else {
-                selectedPhrase = talkerPhraseWithMaxRatingList.get(0).getPhrase();
-            }
-        }
-
-        return selectedPhrase;
+//        Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
+//        talkerWordService.get(getWordsFromText(text), chatId)
+//                .stream()
+//                .map(TalkerWord::getPhrases)
+//                .flatMap(Collection::stream)
+//                .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
+//                .forEach(talkerPhrase -> {
+//                    if (phrasesRating.containsKey(talkerPhrase)) {
+//                        phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
+//                    } else {
+//                        phrasesRating.put(talkerPhrase, 1);
+//                    }
+//                });
+//
+//        String selectedPhrase = null;
+//        Integer maxValue = phrasesRating.values().stream().max(Integer::compareTo).orElse(null);
+//        if (maxValue != null) {
+//            List<TalkerPhrase> talkerPhraseWithMaxRatingList = phrasesRating.entrySet()
+//                    .stream()
+//                    .filter(entry -> maxValue.equals(entry.getValue()))
+//                    .map(Map.Entry::getKey).collect(Collectors.toList());
+//
+//            int talkerPhrasesWithMaxRatingCount = talkerPhraseWithMaxRatingList.size();
+//            if (talkerPhrasesWithMaxRatingCount > 1) {
+//                selectedPhrase = talkerPhraseWithMaxRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithMaxRatingCount))
+//                        .getPhrase();
+//            } else {
+//                selectedPhrase = talkerPhraseWithMaxRatingList.get(0).getPhrase();
+//            }
+//        }
+//
+//        return selectedPhrase;
     }
 
     private void parseTalkerData(Message message) {
