@@ -33,8 +33,11 @@ public class Butts implements CommandParent<SendPhoto> {
 
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
-        ResponseEntity<Butts.ButtsCount[]> response;
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
 
+        ResponseEntity<Butts.ButtsCount[]> response;
         try {
             response = botRestTemplate.getForEntity(BUTTS_API_URL + "count", Butts.ButtsCount[].class);
         } catch (RestClientException e) {

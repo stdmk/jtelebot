@@ -40,7 +40,7 @@ public class Sql implements CommandParent<SendMessage> {
         String responseText;
         String textMessage = cutCommandInText(message.getText());
         if (StringUtils.isEmpty(textMessage)) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            return null;
         }
 
         log.debug("Request to execute sql request: {}", textMessage);

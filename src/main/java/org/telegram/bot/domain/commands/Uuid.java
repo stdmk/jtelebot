@@ -17,6 +17,9 @@ public class Uuid implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {
+        if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
+            return null;
+        }
 
         SendMessage sendMessage = new SendMessage();
 

@@ -21,6 +21,10 @@ public class Shutdown implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {
+        if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
+            return null;
+        }
+
         log.debug("From {} received command to shutdown", update.getMessage().getFrom());
 
         try {

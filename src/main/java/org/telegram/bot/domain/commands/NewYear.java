@@ -27,6 +27,10 @@ public class NewYear implements CommandParent<SendMessage> {
         final String defaultTimeZone = "GMT+03:00";
 
         Message message = getMessageFromUpdate(update);
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
+
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
         ZoneId userTimeZone;

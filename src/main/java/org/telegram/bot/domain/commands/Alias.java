@@ -38,6 +38,11 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
+
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
+
         log.debug("Request to get list of user {} and chat {}", user, chat);
         StringBuilder buf = new StringBuilder("*Список твоих алиасов:*\n");
 

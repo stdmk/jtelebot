@@ -25,6 +25,9 @@ public class Backup implements CommandParent<SendDocument> {
     @Override
     @Transactional
     public SendDocument parse(Update update) {
+        if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
+            return null;
+        }
         return getDbBackup(update.getMessage().getFrom().getId().toString());
     }
 

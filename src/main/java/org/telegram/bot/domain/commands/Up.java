@@ -11,6 +11,9 @@ public class Up implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

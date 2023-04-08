@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -20,6 +19,10 @@ public class Logs implements CommandParent<SendDocument> {
     @Override
     public SendDocument parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
+
         Long chatId = message.getChatId();
         if (chatId < 0) {
             chatId = message.getFrom().getId();

@@ -16,6 +16,10 @@ public class Ping implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
+
         ZoneId zoneId = ZoneId.of("UTC");
 
         LocalDateTime dateTimeNow = LocalDateTime.now(zoneId);

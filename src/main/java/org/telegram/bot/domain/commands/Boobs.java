@@ -33,8 +33,11 @@ public class Boobs implements CommandParent<SendPhoto> {
 
     public SendPhoto parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
-        ResponseEntity<BoobsCount[]> response;
+        if (cutCommandInText(message.getText()) != null) {
+            return null;
+        }
 
+        ResponseEntity<BoobsCount[]> response;
         try {
             response = botRestTemplate.getForEntity(BOOBS_API_URL + "count", BoobsCount[].class);
         } catch (RestClientException e) {
