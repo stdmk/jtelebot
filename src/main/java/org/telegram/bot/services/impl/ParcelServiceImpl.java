@@ -30,9 +30,9 @@ public class ParcelServiceImpl implements ParcelService {
     }
 
     @Override
-    public Parcel get(Long parcelId) {
-        log.debug("Request to get Parcel by id {}", parcelId);
-        return parcelRepository.findById(parcelId).orElse(null);
+    public Parcel get(User user, Long parcelId) {
+        log.debug("Request to get Parcel by User {} and id {}", user, parcelId);
+        return parcelRepository.findByUserAndId(user, parcelId);
     }
 
     @Override

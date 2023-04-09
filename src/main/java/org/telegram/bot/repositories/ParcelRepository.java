@@ -13,6 +13,7 @@ import java.util.List;
  * Spring Data repository for the Parcel entity.
  */
 public interface ParcelRepository extends JpaRepository<Parcel, Long> {
+    Parcel findByUserAndId(User user, Long id);
     Parcel findByUserAndNameIgnoreCase(User user, String name);
 
     Parcel findByUserAndTrackCodeBarcodeIgnoreCase(User user, String barcode);

@@ -19,12 +19,13 @@ public interface ParcelService {
     void save(Parcel parcel);
 
     /**
-     * Get Parcel by its id
+     * Get Parcel by User and parcel id.
      *
+     * @param user User entity.
      * @param parcelId id of Parcel.
      * @return the persisted entity.
      */
-    Parcel get(Long parcelId);
+    Parcel get(User user, Long parcelId);
 
     /**
      * Get Parcel by User and name.

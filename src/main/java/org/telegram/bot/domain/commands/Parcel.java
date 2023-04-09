@@ -50,6 +50,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final static String EMPTY_COMMAND = "parcel";
     private final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
     private final String DELETE_PARCEL_COMMAND = "удалить";
+    private final String SHORT_DELETE_PARCEL_COMMAND = "_d";
     private final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
     private final String ADD_PARCEL_COMMAND = "добавить";
     private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
@@ -99,7 +100,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
             return getMainMenu(message,  user, true);
         } else if (textMessage.startsWith(ADD_PARCEL_COMMAND)) {
             return addParcel(message, user, textMessage, commandWaiting);
-        } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND)) {
+        } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND) || (textMessage.startsWith(SHORT_DELETE_PARCEL_COMMAND))) {
             return deleteParcel(message, user, textMessage);
         } else {
             return getTrackCodeData(message, user, textMessage);
@@ -187,7 +188,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        org.telegram.bot.domain.entities.Parcel parcel = parcelService.get(parcelId);
+        org.telegram.bot.domain.entities.Parcel parcel = parcelService.get(user, parcelId);
         if (parcel == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
@@ -266,18 +267,34 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage deleteParcel(Message message, User user, String command) throws BotException {
-        String params;
-        try {
-            params = command.substring(DELETE_PARCEL_COMMAND.length() + 1);
-        } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+        org.telegram.bot.domain.entities.Parcel parcel;
 
-        org.telegram.bot.domain.entities.Parcel parcel = parcelService.getByName(user, params);
-        if (parcel == null) {
-            parcel = parcelService.getByBarcode(user, params);
+        if (command.startsWith(SHORT_DELETE_PARCEL_COMMAND)) {
+            long parcelId;
+            try {
+                parcelId = Long.parseLong(command.substring(SHORT_DELETE_PARCEL_COMMAND.length()));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            parcel = parcelService.get(user, parcelId);
             if (parcel == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+        } else {
+            String params;
+            try {
+                params = command.substring(DELETE_PARCEL_COMMAND.length() + 1);
+            } catch (Exception e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            parcel = parcelService.getByName(user, params);
+            if (parcel == null) {
+                parcel = parcelService.getByBarcode(user, params);
+                if (parcel == null) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
             }
         }
 
@@ -292,10 +309,9 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage getTrackCodeData(Message message, User user, String command) {
-
         org.telegram.bot.domain.entities.Parcel parcel = null;
         try {
-            parcel = parcelService.get(Long.parseLong(command.substring(1)));
+            parcel = parcelService.get(user, Long.parseLong(command.substring(1)));
         } catch (NumberFormatException ignored) {}
         if (parcel == null) {
             parcel = parcelService.getByBarcodeOrName(user, command);
@@ -399,7 +415,8 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         if (event.getIndex() != null) buf.append(" (").append(event.getIndex()).append(")\n"); else buf.append("\n");
 
         if (parcelId != null) buf.append("/" + EMPTY_COMMAND + "_").append(parcelId).append("\n");
-        if (isTheDeliveryEvent(event)) buf.append("\nПохоже, что посылка доставлена.\n" + "<b>Не забудьте удалить.</b> Это важно.\n");
+        if (isTheDeliveryEvent(event)) buf.append("\nПохоже, что посылка доставлена.\n" + "<b>Не забудьте удалить.</b> Это важно.\n")
+                .append("/parcel_d").append(parcelId).append("\n");
 
         return buf.toString();
     }
