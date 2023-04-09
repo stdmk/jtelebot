@@ -54,7 +54,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
     private final String ADD_PARCEL_COMMAND = "добавить";
     private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
-    private final static String DELIVERED_OPERATION_TYPE = "Вручение";
+    public final static String DELIVERED_OPERATION_TYPE = "Вручение";
     private final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 
     @Override
@@ -309,26 +309,25 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private SendMessage getTrackCodeData(Message message, User user, String command) {
-        org.telegram.bot.domain.entities.Parcel parcel = null;
+        Long parcelId = null;
         try {
-            parcel = parcelService.get(user, Long.parseLong(command.substring(1)));
+            parcelId = Long.parseLong(command.substring(1));
         } catch (NumberFormatException ignored) {}
-        if (parcel == null) {
+
+        org.telegram.bot.domain.entities.Parcel parcel;
+        if (parcelId != null) {
+            parcel = parcelService.get(user, parcelId);
+        } else {
             parcel = parcelService.getByBarcodeOrName(user, command);
         }
 
-        TrackCode trackCode;
         if (parcel == null) {
-            trackCode = trackCodeService.get(command);
-            if (trackCode == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-            }
-        } else {
-            trackCode = parcel.getTrackCode();
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
 
         final boolean economyMode = isEconomyMode(propertiesConfig.getRussianPostRequestsLimit());
         String lastUpdatesTimeInfo;
+        TrackCode trackCode = parcel.getTrackCode();
         if (!economyMode || AccessLevel.ADMIN.getValue().equals(userService.getUserAccessLevel(user.getUserId()))) {
             LocalDateTime lastEventUpdateDateTime = trackCode.getEvents()
                     .stream()
@@ -350,7 +349,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                 .collect(Collectors.toList());
 
         StringBuilder buf = new StringBuilder();
-        trackCodeEventList.forEach(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent)).append(BORDER));
+        trackCodeEventList.forEach(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent, parcel.getId())).append(BORDER));
 
         buf.append(buildGeneralInformation(trackCode.getBarcode(), trackCodeEventList));
         buf.append(lastUpdatesTimeInfo);
@@ -397,10 +396,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         return "<b>" + parcel.getName() + "</b>\n" +
                 "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
                 buildStringEventMessage(trackCodeEvent, parcel.getId());
-    }
-
-    public static String buildStringEventMessage(TrackCodeEvent event) {
-        return buildStringEventMessage(event, null);
     }
 
     public static String buildStringEventMessage(TrackCodeEvent event, Long parcelId) {

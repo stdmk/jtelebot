@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.telegram.bot.domain.commands.Parcel.DELIVERED_OPERATION_TYPE;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -69,6 +71,11 @@ public class TrackCodeServiceImpl implements TrackCodeService {
         List<TrackCode> trackCodeList = trackCodeRepository.findAll()
                 .stream()
                 .filter(trackCode -> !Boolean.TRUE.equals(trackCode.getInvalid()))
+                .filter(trackCode -> trackCode.getEvents()
+                        .stream()
+                        .filter(event -> DELIVERED_OPERATION_TYPE.equalsIgnoreCase(event.getOperationType()))
+                        .findFirst()
+                        .isEmpty())
                 .collect(Collectors.toList());
 
         Set<TrackCodeEvent> trackCodeEventSet = new HashSet<>();
