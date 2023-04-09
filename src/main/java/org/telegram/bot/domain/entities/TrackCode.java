@@ -34,4 +34,7 @@ public class TrackCode {
     @CreationTimestamp
     @Column(name = "create_date_time")
     private LocalDateTime createDateTime;
+
+    @Column(name = "invalid")
+    private Boolean invalid;
 }

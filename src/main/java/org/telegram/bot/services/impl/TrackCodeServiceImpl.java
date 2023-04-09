@@ -15,6 +15,7 @@ import org.telegram.bot.services.TrackCodeService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,30 +64,37 @@ public class TrackCodeServiceImpl implements TrackCodeService {
 
     @Override
     @Transactional
-    public boolean updateFromApi() {
+    public void updateFromApi() {
         log.debug("Request to update track events data");
+        List<TrackCode> trackCodeList = trackCodeRepository.findAll()
+                .stream()
+                .filter(trackCode -> !Boolean.TRUE.equals(trackCode.getInvalid()))
+                .collect(Collectors.toList());
 
-        List<TrackCode> trackCodeList = trackCodeRepository.findAll();
         Set<TrackCodeEvent> trackCodeEventSet = new HashSet<>();
-        try {
-            trackCodeList.forEach(trackCode -> {
-                List<TrackCodeEvent> trackCodeEventList = postTrackingService.getData(trackCode.getBarcode());
+        trackCodeList.forEach(trackCode -> {
+            List<TrackCodeEvent> trackCodeEventList;
+            try {
+                trackCodeEventList = postTrackingService.getData(trackCode.getBarcode());
+            } catch (Exception e) {
+                log.error("Failed to update track {} events data: ", trackCode, e);
 
-                trackCodeEventRepository.deleteAllByTrackCode(trackCode);
-                trackCodeEventList.forEach(event -> event.setTrackCode(trackCode));
-                trackCode.setEvents(new HashSet<>(trackCodeEventList));
+                if (trackCode.getEvents().isEmpty()) {
+                    trackCode.setInvalid(true);
+                }
 
-                trackCodeEventSet.addAll(trackCodeEventList);
-            });
-        } catch (BotException e) {
-            log.error("Failed to update track events data: ", e);
-            return false;
-        }
+                return;
+            }
+
+            trackCodeEventRepository.deleteAllByTrackCode(trackCode);
+            trackCodeEventList.forEach(event -> event.setTrackCode(trackCode));
+            trackCode.setEvents(new HashSet<>(trackCodeEventList));
+
+            trackCodeEventSet.addAll(trackCodeEventList);
+        });
 
         trackCodeEventRepository.saveAll(trackCodeEventSet);
         trackCodeRepository.saveAll(trackCodeList);
-
-        return true;
     }
 
     @Override

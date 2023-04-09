@@ -58,9 +58,8 @@ public interface TrackCodeService {
     /**
      * Update all tracks data.
      *
-     * @return true if updated.
      */
-    boolean updateFromApi();
+    void updateFromApi();
 
     /**
      * Update the track data.

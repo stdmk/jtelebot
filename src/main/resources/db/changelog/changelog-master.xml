@@ -137,4 +137,5 @@
     <include file="db/changelog/20230321211200_update_Training_time_fields.xml"/>
     <include file="db/changelog/20230323123200_update_TrainingEvent_add_field_unplanned.xml"/>
     <include file="db/changelog/20230408110200_added_index_for_talkerwordphrase.xml"/>
+    <include file="db/changelog/20230409102100_update_TrackCode_add_column_invalid.xml"/>
 </databaseChangeLog>

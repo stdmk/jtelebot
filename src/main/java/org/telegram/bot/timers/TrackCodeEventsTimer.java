@@ -64,11 +64,29 @@ public class TrackCodeEventsTimer extends TimerParent {
                                     .max(LocalDateTime::compareTo)
                                     .orElse(trackCode.getCreateDateTime())));
 
-            if (!trackCodeService.updateFromApi()) {
-                log.error("Failed to update some TrackCodeEvents");
-            }
+            trackCodeService.updateFromApi();
 
             trackCodeService.getAll().forEach(trackCodeAfter -> {
+                if (trackCodeAfter.getInvalid()) {
+                    getParcelListByTrackCode(parcelList, trackCodeAfter)
+                            .forEach(parcel -> {
+                                String messageText = "<b>" + parcel.getName() + "</b>\n" +
+                                        "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
+                                        "Нет ответа от сервиса удали /parcel_d" + parcel.getId() + " и добавь снова подходящий";
+
+                                try {
+                                    SendMessage sendMessage = new SendMessage();
+                                    sendMessage.setChatId(parcel.getUser().getUserId());
+                                    sendMessage.enableHtml(true);
+                                    sendMessage.setText(messageText);
+
+                                    bot.execute(sendMessage);
+                                } catch (TelegramApiException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                }
+
                 LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
 
                 trackCodeAfter.getEvents()
