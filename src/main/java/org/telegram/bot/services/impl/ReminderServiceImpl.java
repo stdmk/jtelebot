@@ -39,7 +39,7 @@ public class ReminderServiceImpl implements ReminderService {
     @Override
     public Page<Reminder> getByChatAndUser(Chat chat, User user, int page) {
         log.debug("Request to get reminders by Chat: {}, User: {}, page: {}", chat, user, page);
-        return reminderRepository.findAllByChatAndUser(chat, user, PageRequest.of(page, 5));
+        return reminderRepository.findAllByChatAndUserOrderByDateAscTimeAsc(chat, user, PageRequest.of(page, 5));
     }
 
     @Override
