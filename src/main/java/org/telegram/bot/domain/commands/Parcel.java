@@ -314,12 +314,15 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         final boolean economyMode = isEconomyMode(propertiesConfig.getRussianPostRequestsLimit());
         String lastUpdatesTimeInfo;
         if (!economyMode || AccessLevel.ADMIN.getValue().equals(userService.getUserAccessLevel(user.getUserId()))) {
+            LocalDateTime lastEventUpdateDateTime = trackCode.getEvents()
+                    .stream()
+                    .map(TrackCodeEvent::getEventDateTime)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(LocalDateTime.now());
+
             trackCodeService.updateFromApi(trackCode);
-            TrackCode trackCodeAfterUpdate = trackCodeService.get(trackCode.getId());
 
-            notifyOtherUsers(trackCode, trackCodeAfterUpdate, user);
-
-            trackCode = trackCodeAfterUpdate;
+            notifyOtherUsers(trackCode, user, lastEventUpdateDateTime);
             lastUpdatesTimeInfo = buildStringUpdateTimesInformation(Instant.now());
         } else {
             lastUpdatesTimeInfo = buildStringUpdateTimesInformation();
@@ -345,8 +348,8 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private void notifyOtherUsers(TrackCode trackCodeBefore, TrackCode trackCodeAfter, User user) {
-        List<org.telegram.bot.domain.entities.Parcel> parcelsOfTrackCode = parcelService.getAll(trackCodeBefore)
+    private void notifyOtherUsers(TrackCode trackCode, User user, LocalDateTime lastEventUpdateDateTime) {
+        List<org.telegram.bot.domain.entities.Parcel> parcelsOfTrackCode = parcelService.getAll(trackCode)
                 .stream()
                 .filter(parcel -> !user.getUserId().equals(parcel.getUser().getUserId()))
                 .collect(Collectors.toList());
@@ -355,13 +358,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
             return;
         }
 
-        LocalDateTime lastEventUpdateDateTime = trackCodeBefore.getEvents()
-                .stream()
-                .map(TrackCodeEvent::getEventDateTime)
-                .max(LocalDateTime::compareTo)
-                .orElse(LocalDateTime.now());
-
-        trackCodeAfter.getEvents()
+        trackCode.getEvents()
                 .stream()
                 .filter(event -> event.getEventDateTime().isAfter(lastEventUpdateDateTime))
                 .forEach(newEvent -> parcelsOfTrackCode.forEach(parcel -> {
