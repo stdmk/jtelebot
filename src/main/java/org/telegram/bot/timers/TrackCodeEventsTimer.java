@@ -67,7 +67,7 @@ public class TrackCodeEventsTimer extends TimerParent {
             trackCodeService.updateFromApi();
 
             trackCodeService.getAll().forEach(trackCodeAfter -> {
-                if (trackCodeAfter.getInvalid()) {
+                if (Boolean.TRUE.equals(trackCodeAfter.getInvalid())) {
                     getParcelListByTrackCode(parcelList, trackCodeAfter)
                             .forEach(parcel -> {
                                 String messageText = "<b>" + parcel.getName() + "</b>\n" +
@@ -85,28 +85,29 @@ public class TrackCodeEventsTimer extends TimerParent {
                                     e.printStackTrace();
                                 }
                             });
+                } else {
+
+                    LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
+
+                    trackCodeAfter.getEvents()
+                            .stream()
+                            .filter(event -> event.getEventDateTime().isAfter(lastEventDateTime))
+                            .forEach(newEvent -> getParcelListByTrackCode(parcelList, trackCodeAfter)
+                                    .forEach(parcel -> {
+                                        String messageText = org.telegram.bot.domain.commands.Parcel.buildStringEventMessage(parcel, newEvent);
+
+                                        try {
+                                            SendMessage sendMessage = new SendMessage();
+                                            sendMessage.setChatId(parcel.getUser().getUserId());
+                                            sendMessage.enableHtml(true);
+                                            sendMessage.setText(messageText);
+
+                                            bot.execute(sendMessage);
+                                        } catch (TelegramApiException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }));
                 }
-
-                LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
-
-                trackCodeAfter.getEvents()
-                        .stream()
-                        .filter(event -> event.getEventDateTime().isAfter(lastEventDateTime))
-                        .forEach(newEvent -> getParcelListByTrackCode(parcelList, trackCodeAfter)
-                                .forEach(parcel -> {
-                                    String messageText = org.telegram.bot.domain.commands.Parcel.buildStringEventMessage(parcel, newEvent);
-
-                                    try {
-                                        SendMessage sendMessage = new SendMessage();
-                                        sendMessage.setChatId(parcel.getUser().getUserId());
-                                        sendMessage.enableHtml(true);
-                                        sendMessage.setText(messageText);
-
-                                        bot.execute(sendMessage);
-                                    } catch (TelegramApiException e) {
-                                        e.printStackTrace();
-                                    }
-                                }));
             });
 
             timer.setLastAlarmDt(dateTimeNow);
