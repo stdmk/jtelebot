@@ -116,7 +116,10 @@ public class NewsMessageServiceImpl implements NewsMessageService {
                 if (b < 0) {
                     b = buf.indexOf("/img>");
                     if (b < 0) {
-                        return null;
+                        b = buf.indexOf(">");
+                        if (b < 0) {
+                            return null;
+                        }
                     }
                 }
                 String imageTag = buf.substring(4, b);
