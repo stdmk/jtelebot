@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,6 +70,12 @@ public class UserStatsServiceImpl implements UserStatsService {
         if (!editedMessage) {
             updateUserStats(chat, user, message);
         }
+    }
+
+    @Override
+    public List<UserStats> getActiveUserStatsListForChat(Chat chat) {
+        log.debug("Request to get user stats of chat {}", chat);
+        return userStatsRepository.findByChatAndLastMessageDateGreaterThan(chat, LocalDate.now().atStartOfDay());
     }
 
     @Override

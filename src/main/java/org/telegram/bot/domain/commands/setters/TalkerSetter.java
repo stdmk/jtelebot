@@ -3,11 +3,14 @@ package org.telegram.bot.domain.commands.setters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.commands.Set;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerDegree;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TalkerDegreeService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -28,11 +31,14 @@ import java.util.stream.Stream;
 public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private final TalkerDegreeService talkerDegreeService;
+    private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     private final String CALLBACK_COMMAND = "установить ";
     private final String EMPTY_TALKER_COMMAND = "болтун";
     private final String CALLBACK_SET_TALKER_COMMAND = CALLBACK_COMMAND + EMPTY_TALKER_COMMAND;
+    private final String SET_IDLE_MINUTES_COMMAND = EMPTY_TALKER_COMMAND + "m";
+    private final String CALLBACK_SET_IDLE_MINUTES_COMMAND = CALLBACK_COMMAND + SET_IDLE_MINUTES_COMMAND;
 
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
@@ -41,15 +47,22 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
         String lowerCaseCommandText = commandText.toLowerCase();
 
         if (update.hasCallbackQuery()) {
+            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
+
             if (lowerCaseCommandText.equals(EMPTY_TALKER_COMMAND)) {
                 return getTalkerSetterWithKeyboard(message, chat, false);
-                } else if (lowerCaseCommandText.startsWith(EMPTY_TALKER_COMMAND)) {
+            } else if (lowerCaseCommandText.startsWith(SET_IDLE_MINUTES_COMMAND)) {
+                return setIdleMinutes(message, chat, user, commandText);
+            } else if (lowerCaseCommandText.startsWith(EMPTY_TALKER_COMMAND)) {
                 return selectTalkerDegreeByCallback(message, chat, commandText);
             }
         }
 
+        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(EMPTY_TALKER_COMMAND)) {
             return getTalkerSetterWithKeyboard(message, chat, true);
+        } else if (lowerCaseCommandText.startsWith(SET_IDLE_MINUTES_COMMAND)) {
+            return setIdleMinutes(message, chat, user, commandText);
         } else if (lowerCaseCommandText.startsWith(EMPTY_TALKER_COMMAND)) {
             return selectTalkerDegree(message, chat, commandText);
         } else {
@@ -57,16 +70,51 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
         }
     }
 
+    private PartialBotApiMethod<?> setIdleMinutes(Message message, Chat chat, User user, String command) {
+        commandWaitingService.remove(chat, user);
+
+        String responseText;
+
+        if (SET_IDLE_MINUTES_COMMAND.equals(command)) {
+            commandWaitingService.add(chat, user, Set.class, CALLBACK_SET_IDLE_MINUTES_COMMAND);
+            responseText = "напиши мне продолжительность молчания в чате в минутах";
+        } else {
+            int minutes;
+            try {
+                minutes = Integer.parseInt(command.substring(SET_IDLE_MINUTES_COMMAND.length() + 1));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
+            talkerDegree.setChatIdleMinutes(minutes);
+            talkerDegreeService.save(talkerDegree);
+
+            responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
+        }
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.enableHtml(true);
+        sendMessage.setText(responseText);
+
+        return sendMessage;
+    }
+
     private PartialBotApiMethod<?> getTalkerSetterWithKeyboard(Message message, Chat chat, Boolean newMessage) {
         log.debug("Request to get talker setter for chat {}", chat.getChatId());
-        Integer currentDegreeValue = talkerDegreeService.get(chat.getChatId()).getDegree();
-        String currentDegreeText = "Текущее значение: <b>" + currentDegreeValue + "%</b>";
+
+        TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
+
+        Integer currentDegreeValue = talkerDegree.getDegree();
+        String responseText = "Вероятность: <b>" + currentDegreeValue + "%</b>\n" +
+                "Простой: <b>" + talkerDegree.getChatIdleMinutes() + " м.</b>";
 
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableHtml(true);
-            sendMessage.setText(currentDegreeText);
+            sendMessage.setText(responseText);
             sendMessage.setReplyMarkup(prepareKeyboardWithDegreeButtons());
 
             return sendMessage;
@@ -76,7 +124,7 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
-        editMessageText.setText(currentDegreeText);
+        editMessageText.setText(responseText);
         editMessageText.setReplyMarkup(prepareKeyboardWithDegreeButtons());
 
         return editMessageText;
@@ -165,6 +213,12 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
                     degreeButton.setCallbackData(CALLBACK_SET_TALKER_COMMAND + " " + value);
                     degreeRow3.add(degreeButton);});
 
+        List<InlineKeyboardButton> setIdleRow = new ArrayList<>();
+        InlineKeyboardButton setIdleButton = new InlineKeyboardButton();
+        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getEmoji() + "Простой чата");
+        setIdleButton.setCallbackData(CALLBACK_SET_IDLE_MINUTES_COMMAND);
+        setIdleRow.add(setIdleButton);
+
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
         backButton.setText(Emoji.BACK.getEmoji() + "Установки");
@@ -174,6 +228,7 @@ public class TalkerSetter implements SetterParent<PartialBotApiMethod<?>> {
         rows.add(degreeRow1);
         rows.add(degreeRow2);
         rows.add(degreeRow3);
+        rows.add(setIdleRow);
         rows.add(backButtonRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();

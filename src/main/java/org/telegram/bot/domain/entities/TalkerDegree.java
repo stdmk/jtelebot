@@ -35,4 +35,7 @@ public class TalkerDegree {
 
     @Column(name = "degree")
     private Integer degree;
+
+    @Column(name = "chat_idle_minutes")
+    private Integer chatIdleMinutes;
 }

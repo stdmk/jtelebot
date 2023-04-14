@@ -67,6 +67,7 @@ public enum Emoji {
     GEAR("⚙️"),
     CANCELLATION("\uD83D\uDDD9"),
     WEIGHT_LIFTER("🏋"),
+    GAME_DIE("\uD83C\uDFB2")
     ;
 
     private final String emoji;

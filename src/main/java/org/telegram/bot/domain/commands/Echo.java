@@ -23,6 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.*;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -103,24 +104,42 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
     }
 
+    public String getQuestionForText(String text, Long chatId) {
+        if (text == null) {
+            return null;
+        }
+
+        return getReply(talkerWordService.get(getWordsFromText(text), chatId)
+                .stream()
+                .map(TalkerWord::getPhrases)
+                .flatMap(Collection::stream)
+                .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
+                .filter(talkerPhrase -> talkerPhrase.getPhrase().contains("?"))
+                .collect(Collectors.toSet()));
+    }
+
     private String getReplyForText(String text, Long chatId) {
         if (text == null) {
             return null;
         }
 
-        Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
-        talkerWordService.get(getWordsFromText(text), chatId)
+        return getReply(talkerWordService.get(getWordsFromText(text), chatId)
                 .stream()
                 .map(TalkerWord::getPhrases)
                 .flatMap(Collection::stream)
                 .filter(talkerPhrase -> chatId.equals(talkerPhrase.getChat().getChatId()))
-                .forEach(talkerPhrase -> {
-                    if (phrasesRating.containsKey(talkerPhrase)) {
-                        phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
-                    } else {
-                        phrasesRating.put(talkerPhrase, 1);
-                    }
-                });
+                .collect(Collectors.toSet()));
+    }
+
+    private String getReply(Set<TalkerPhrase> talkerPhraseSet) {
+        Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
+        talkerPhraseSet.forEach(talkerPhrase -> {
+            if (phrasesRating.containsKey(talkerPhrase)) {
+                phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
+            } else {
+                phrasesRating.put(talkerPhrase, 1);
+            }
+        });
 
         String selectedPhrase = null;
         Integer maxValue = phrasesRating.values().stream().max(Integer::compareTo).orElse(null);

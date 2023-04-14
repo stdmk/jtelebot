@@ -1,6 +1,5 @@
 package org.telegram.bot.services;
 
-import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerDegree;
 
 import java.util.List;
@@ -16,6 +15,13 @@ public interface TalkerDegreeService {
      * @return the persisted entity.
      */
     TalkerDegree get(Long chatId);
+
+    /**
+     * Get a TalkerDegree with chat idle param.
+     *
+     * @return the persisted entities.
+     */
+    List<TalkerDegree> getAllWithChatIdleParam();
 
     /**
      * Save a TalkerDegree.

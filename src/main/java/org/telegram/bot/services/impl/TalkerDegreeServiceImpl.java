@@ -8,6 +8,8 @@ import org.telegram.bot.domain.entities.TalkerDegree;
 import org.telegram.bot.repositories.TalkerDegreeRepository;
 import org.telegram.bot.services.TalkerDegreeService;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,10 +25,17 @@ public class TalkerDegreeServiceImpl implements TalkerDegreeService {
         if (talkerDegree == null) {
             talkerDegree = talkerDegreeRepository.save(new TalkerDegree()
                     .setDegree(0)
+                    .setChatIdleMinutes(0)
                     .setChat(new Chat().setChatId(chatId)));
         }
 
         return talkerDegree;
+    }
+
+    @Override
+    public List<TalkerDegree> getAllWithChatIdleParam() {
+        log.debug("Request to get TalkerDegree entities with chat idle param");
+        return talkerDegreeRepository.findAllByChatIdleMinutesGreaterThan(0);
     }
 
     @Override

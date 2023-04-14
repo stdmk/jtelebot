@@ -54,6 +54,14 @@ public interface UserStatsService {
      * Get list of users of chat.
      *
      * @param chat - Chat entity.
+     * @return list of users of chat
+     */
+    List<UserStats> getActiveUserStatsListForChat(Chat chat);
+
+    /**
+     * Get list of users of chat.
+     *
+     * @param chat - Chat entity.
      * @param sortBy - parameter to sort records.
      * @param limit - limit of returing records.
      * @return list of users of chat
