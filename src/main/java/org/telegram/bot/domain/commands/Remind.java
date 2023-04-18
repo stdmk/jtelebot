@@ -828,12 +828,12 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 .collect(Collectors.toList()));
 
         Locale ruLocale = new Locale("ru");
-        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDate dateNow = LocalDate.now();
         rows.add(Arrays.stream(DayOfWeek.values())
                 .map(dayOfWeek -> generatePostponeButton(
                         reminderId,
                         dayOfWeek.getDisplayName(TextStyle.SHORT, ruLocale),
-                        Duration.between(dateTimeNow, dateTimeNow.toLocalDate().with(TemporalAdjusters.next(dayOfWeek)).atStartOfDay())))
+                        Period.between(dateNow, dateNow.with(TemporalAdjusters.next(dayOfWeek)))))
                 .collect(Collectors.toList()));
 
         rows.add(
