@@ -39,6 +39,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final TrainSubscriptionService trainSubscriptionService;
     private final TrainingService trainingService;
     private final TrainingScheduledService trainingScheduledService;
+    private final TrainingStoppedService trainingStoppedService;
     private final BotStats botStats;
 
     private final Locale locale = new Locale("ru");
@@ -60,6 +61,8 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String SET_SCHEDULE_COMMAND = "sch";
     private final String DELETE_SCHEDULE_COMMAND = "d";
     private final String ADD_SCHEDULE_COMMAND = "a";
+    private final String STOP_SCHEDULE_COMMAND = EMPTY_SET_COMMAND + SET_SCHEDULE_COMMAND + "s";
+    private final String CALLBACK_STOP_SCHEDULE_COMMAND = CALLBACK_COMMAND + STOP_SCHEDULE_COMMAND;
     private final String SELECT_DAY_SCHEDULE_COMMAND = EMPTY_SET_COMMAND + SET_SCHEDULE_COMMAND + "w";
     private final String CALLBACK_SELECT_DAY_SCHEDULE_COMMAND = CALLBACK_COMMAND + SELECT_DAY_SCHEDULE_COMMAND;
 
@@ -475,7 +478,14 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         Matcher setScheduleSelectWeekDayAddTrainingMatcher = Pattern.compile(selectWeekDayAddTrainingCommand).matcher(command);
         Matcher setScheduleSelectWeekDayRemoveTrainingMatcher = Pattern.compile(selectWeekDayRemoveTrainingCommand).matcher(command);
 
-        if (setScheduleSelectWeekDayAddTrainingMatcher.find()) {
+        if (STOP_SCHEDULE_COMMAND.equals(command)) {
+            if (trainingStoppedService.isStopped(user)) {
+                trainingStoppedService.start(user);
+            } else {
+                trainingStoppedService.stop(user);
+            }
+            return getManageScheduleMenu(message, user);
+        } else if (setScheduleSelectWeekDayAddTrainingMatcher.find()) {
             DayOfWeek dayOfWeek = parseDayOfWeek(Pattern.compile(selectDayOfWeekCommand), command, dayWeekAbbr);
             Long trainingId = parseLong(Pattern.compile(addTrainingCommand), command, addTrainingAbbr);
             Training training = trainingService.get(user, trainingId);
@@ -521,6 +531,12 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
     private EditMessageText getManageScheduleMenu(Message message, User user) {
         StringBuilder buf = new StringBuilder("<b>Текущие тренировки:</b>\n");
+
+        boolean scheduleStopped = trainingStoppedService.isStopped(user);
+        if (scheduleStopped) {
+            buf.append("<u>РАСПИСАНИЕ ОСТАНОВЛЕНО</u>\n\n");
+        }
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
 
@@ -546,7 +562,20 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
             daysOfWeekRow.add(dayOfWeekButton);
         });
 
+        String caption;
+        if (scheduleStopped) {
+            caption = Emoji.CHECK_MARK_BUTTON.getEmoji() + "Запустить расписание";
+        } else {
+            caption = Emoji.NO_ENTRY_SIGN.getEmoji() + "Остановить расписание";
+        }
+        List<InlineKeyboardButton> stopRow = new ArrayList<>();
+        InlineKeyboardButton stopButton = new InlineKeyboardButton();
+        stopButton.setText(caption);
+        stopButton.setCallbackData(CALLBACK_STOP_SCHEDULE_COMMAND);
+        stopRow.add(stopButton);
+
         rows.add(daysOfWeekRow);
+        rows.add(stopRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));

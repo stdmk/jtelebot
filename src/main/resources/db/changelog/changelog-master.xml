@@ -139,4 +139,5 @@
     <include file="db/changelog/20230408110200_added_index_for_talkerwordphrase.xml"/>
     <include file="db/changelog/20230409102100_update_TrackCode_add_column_invalid.xml"/>
     <include file="db/changelog/20230414122600_update_TalkerDegree_add_column_chat_idle_minutes.xml"/>
+    <include file="db/changelog/20230418212300_added_entity_TrainingStopped.xml"/>
 </databaseChangeLog>

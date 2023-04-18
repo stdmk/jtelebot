@@ -7,10 +7,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.Emoji;
-import org.telegram.bot.services.TrainSubscriptionService;
-import org.telegram.bot.services.TrainingEventService;
-import org.telegram.bot.services.TrainingScheduledService;
-import org.telegram.bot.services.UserCityService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -33,6 +30,7 @@ public class TrainingTimer extends TimerParent {
     private final TrainingEventService trainingEventService;
     private final TrainingScheduledService trainingScheduledService;
     private final TrainSubscriptionService trainSubscriptionService;
+    private final TrainingStoppedService trainingStoppedService;
     private final UserCityService userCityService;
 
     private final String COMMAND_NAME = "training";
@@ -51,8 +49,15 @@ public class TrainingTimer extends TimerParent {
                 .map(Training::getId)
                 .collect(Collectors.toList());
 
+        List<Long> userIdListWithStoppedTraining = trainingStoppedService.getAll()
+                .stream()
+                .map(TrainingStopped::getUser)
+                .map(User::getUserId)
+                .collect(Collectors.toList());
+
         trainingScheduledService.getAll(currentDayOfWeek)
                 .stream()
+                .filter(trainingScheduled -> !userIdListWithStoppedTraining.contains(trainingScheduled.getUser().getUserId()))
                 .map(TrainingScheduled::getTraining)
                 .filter(training -> !pastTrainingIdList.contains(training.getId()))
                 .filter(training -> getUserTime(userZoneIdMap, training.getUser()).isAfter(training.getTimeEnd()))

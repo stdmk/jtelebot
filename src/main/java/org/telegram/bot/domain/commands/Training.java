@@ -47,6 +47,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private final TrainSubscriptionService trainSubscriptionService;
     private final TrainingEventService trainingEventService;
     private final TrainingService trainingService;
+    private final TrainingStoppedService trainingStoppedService;
     private final SpeechService speechService;
 
     private final Locale LOCALE = new Locale("ru");
@@ -386,6 +387,11 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                 .collect(Collectors.toList());
 
         StringBuilder buf = new StringBuilder();
+
+        if (trainingStoppedService.isStopped(user)) {
+            buf.append("<u>РАСПИСАНИЕ ОСТАНОВЛЕНО</u>\n\n");
+        }
+
         buf.append("<b>Тренировки сегодня:</b>\n");
         buf.append(buildFormattedTrainingList(
                 getTrainingsByDayOfWeek(trainingScheduledList, unplannedTodayTrainings, canceledTodayTrainings, dayOfWeekToday)));
