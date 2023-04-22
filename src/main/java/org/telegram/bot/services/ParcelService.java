@@ -55,6 +55,16 @@ public interface ParcelService {
     Parcel getByBarcodeOrName(User user, String text);
 
     /**
+     * Get Parcel by User and barcode or name.
+     *
+     * @param user User entity.
+     * @param barcode barcode of Parcel.
+     * @param name name of Parcel.
+     * @return the persisted entity.
+     */
+    Parcel getByBarcodeOrName(User user, String barcode, String name);
+
+    /**
      * Get Parcel by User, TrackCode and name.
      *
      * @param user User entity.

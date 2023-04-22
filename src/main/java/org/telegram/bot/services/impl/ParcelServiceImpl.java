@@ -54,6 +54,12 @@ public class ParcelServiceImpl implements ParcelService {
     }
 
     @Override
+    public Parcel getByBarcodeOrName(User user, String barcode, String name) {
+        log.debug("Request to get Parcel by barcode {} or name {}", barcode, name);
+        return parcelRepository.findByUserAndTrackCodeBarcodeIgnoreCaseOrNameIgnoreCase(user, barcode, name);
+    }
+
+    @Override
     public Parcel get(User user, TrackCode trackCode, String parcelName) {
         log.debug("Request to get Parcel by User {}, TrackCode {} and name {}", user, trackCode, parcelName);
         return parcelRepository.findByUserAndTrackCodeAndNameIgnoreCase(user, trackCode, parcelName);

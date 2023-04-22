@@ -18,7 +18,11 @@ public interface ParcelRepository extends JpaRepository<Parcel, Long> {
 
     Parcel findByUserAndTrackCodeBarcodeIgnoreCase(User user, String barcode);
 
-    @Query("select p from Parcel p where (p.user = :user) and (lower(p.trackCode.barcode) = lower(:barcode) or lower(p.name) = lower(:name)) ")
+    @Query("select p from Parcel p " +
+            "where (p.user = :user) " +
+            "and ( " +
+            "     (lower(p.trackCode.barcode) = lower(:barcode) or lower(p.name) = lower(:name)) " +
+            "     or (lower(p.trackCode.barcode) = lower(:name) or lower(p.name) = lower(:barcode))) ")
     Parcel findByUserAndTrackCodeBarcodeIgnoreCaseOrNameIgnoreCase(@Param("user") User user,
                                                                    @Param("barcode") String barcode,
                                                                    @Param("name") String name);

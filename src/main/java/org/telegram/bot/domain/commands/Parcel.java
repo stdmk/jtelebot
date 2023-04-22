@@ -119,8 +119,13 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                     .max(Comparator.comparing(TrackCodeEvent::getEventDateTime));
             buf.append("<code>").append(barcode).append("</code> — <b>")
                     .append("<a href='").append(TRACKING_ON_SITE_URL).append(barcode).append("'>").append(parcel.getName()).append("</a></b>\n");
-            optionalLastTrackCodeEvent.ifPresent(trackCodeEvent ->
-                    buf.append(buildStringEventMessage(trackCodeEvent, parcel.getId())).append(BORDER));
+
+            if (optionalLastTrackCodeEvent.isPresent()) {
+                buf.append(buildStringEventMessage(optionalLastTrackCodeEvent.get(), parcel.getId())).append(BORDER);
+            } else {
+                buf.append("Информация о посылке в данный момент отсутствует\n").append(BORDER);
+            }
+
         });
 
         buf.append(buildStringUpdateTimesInformation());
@@ -220,33 +225,34 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
 
         textCommand = textCommand.substring(ADD_PARCEL_COMMAND.length() + 1);
 
+        org.telegram.bot.domain.entities.Parcel parcel;
+        String barcode;
+        String parcelName;
+
         int spaceIndex = textCommand.indexOf(" ");
         if (spaceIndex < 0) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        String parcelName = textCommand.substring(0, spaceIndex);
-        String barcode = textCommand.substring(spaceIndex + 1);
-
-        org.telegram.bot.domain.entities.Parcel parcel;
-        TrackCode trackCode = trackCodeService.get(barcode);
-        if (trackCode == null) {
-            trackCode = trackCodeService.save(new TrackCode().setBarcode(barcode));
-            parcel = parcelService.getByName(user, parcelName);
+            barcode = textCommand;
+            parcelName = textCommand;
+            parcel = parcelService.getByBarcode(user, textCommand);
         } else {
-            parcel = parcelService.getByBarcode(user, barcode);
+            parcelName = textCommand.substring(0, spaceIndex);
+            barcode = textCommand.substring(spaceIndex + 1);
+            parcel = parcelService.getByBarcodeOrName(user, parcelName, barcode);
         }
 
         if (parcel != null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY));
         }
 
-        parcel = new org.telegram.bot.domain.entities.Parcel()
+        TrackCode trackCode = trackCodeService.get(barcode);
+        if (trackCode == null) {
+            trackCode = trackCodeService.save(new TrackCode().setBarcode(barcode));
+        }
+
+        parcelService.save(new org.telegram.bot.domain.entities.Parcel()
                 .setUser(user)
                 .setName(parcelName)
-                .setTrackCode(trackCode);
-
-        parcelService.save(parcel);
+                .setTrackCode(trackCode));
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
