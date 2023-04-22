@@ -11,13 +11,8 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.DisableCommandService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.services.config.PropertiesConfig;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -44,6 +39,7 @@ public class Bot extends TelegramLongPollingBot {
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
     private final DisableCommandService disableCommandService;
+    private final SpyModeService spyModeService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -77,7 +73,7 @@ public class Bot extends TelegramLongPollingBot {
         Long userId = user.getId();
         log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
         if (chatId > 0 && spyMode != null && spyMode) {
-            reportToAdmin(message, user);
+            reportToAdmin(user, textOfMessage);
         }
 
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
@@ -149,17 +145,13 @@ public class Bot extends TelegramLongPollingBot {
         return telegramBotApiToken;
     }
 
-    private void reportToAdmin(Message message, User user) {
+    private void reportToAdmin(User user, String textMessage) {
         Long adminId = propertiesConfig.getAdminId();
-        if (adminId.equals(message.getFrom().getId()) || this.getBotUsername().equals(message.getFrom().getUserName())) {
+        if (adminId.equals(user.getId()) || this.getBotUsername().equals(user.getUserName())) {
             return;
         }
 
-        SendMessage sendMessage = new SendMessage();
-
-        sendMessage.setChatId(propertiesConfig.getAdminId().toString());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText("Received a message from " + TextUtils.getLinkToUser(user, false) + ": " + message.getText());
+        SendMessage sendMessage = spyModeService.generateMessage(user, textMessage);
 
         try {
             execute(sendMessage);
