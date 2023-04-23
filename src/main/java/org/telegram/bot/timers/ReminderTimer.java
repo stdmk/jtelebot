@@ -7,12 +7,14 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.commands.Remind;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.enums.ReminderRepeatability;
 import org.telegram.bot.services.ReminderService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.*;
+import java.time.temporal.TemporalAmount;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,7 +54,18 @@ public class ReminderTimer extends TimerParent {
                     continue;
                 }
 
-                reminderService.save(reminder.setNotified(true));
+                ReminderRepeatability repeatability = reminder.getRepeatability();
+                if (repeatability != null) {
+                    TemporalAmount temporalAmount = repeatability.getTemporalAmountSupplier().get();
+                    LocalDateTime newReminderDateTime = reminder.getDate().atTime(reminder.getTime()).plus(temporalAmount);
+
+                    reminder.setDate(newReminderDateTime.toLocalDate());
+                    reminder.setTime(newReminderDateTime.toLocalTime());
+                } else {
+                    reminder.setNotified(true);
+                }
+
+                reminderService.save(reminder);
             }
         }
     }

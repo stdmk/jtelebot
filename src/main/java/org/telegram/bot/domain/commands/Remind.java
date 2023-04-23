@@ -11,6 +11,7 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
+import org.telegram.bot.domain.enums.ReminderRepeatability;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
@@ -28,6 +29,7 @@ import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.TemporalAmount;
 import java.util.*;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,12 +65,13 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     private static final String CALLBACK_INFO_REMINDER = CALLBACK_COMMAND + INFO_REMINDER;
     private static final String SET_DATE = "d";
     private static final String SET_TIME = "t";
+    private static final String SET_REPEATABLE ="r";
     private static final String SET_NOTIFIED = "n";
     private static final int FIRST_PAGE = 0;
 
-    private static final Pattern FULL_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})\\.(\\d{4})");
-    private static final Pattern SHORT_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})");
-    private static final Pattern TIME_PATTERN = Pattern.compile(SET_TIME + "(\\d{2}):(\\d{2})");
+    private static final Pattern SET_FULL_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+    private static final Pattern SET_SHORT_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})");
+    private static final Pattern SET_TIME_PATTERN = Pattern.compile(SET_TIME + "(\\d{2}):(\\d{2})");
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -211,7 +214,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 TimeKeyword timeKeyword = TimeKeyword.getKeyWordFromText(command);
                 if (timeKeyword != null) {
                     reminderTime = timeKeyword.getDateSupplier().get();
-                    command = command.replaceFirst(timeKeyword.getKeyword(), "").trim();
+                    command = cutKeyWordInText(command, timeKeyword.getKeywords());
                 }
             }
 
@@ -353,11 +356,11 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
 
             if (reminder != null) {
-                matcher = FULL_DATE_PATTERN.matcher(command);
+                matcher = SET_FULL_DATE_PATTERN.matcher(command);
                 if (matcher.find()) {
                     reminder.setDate(getDateFromText(command.substring(matcher.start() + 1, matcher.end())));
                 } else {
-                    matcher = SHORT_DATE_PATTERN.matcher(command);
+                    matcher = SET_SHORT_DATE_PATTERN.matcher(command);
                     if (matcher.find()) {
                         reminder.setDate(getDateFromText(command.substring(matcher.start() + 1, matcher.end()), LocalDate.now().getYear()));
                     } else {
@@ -373,7 +376,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
                     reminder.setTime(LocalTime.MIN);
                 } else {
-                    matcher = TIME_PATTERN.matcher(command);
+                    matcher = SET_TIME_PATTERN.matcher(command);
                     if (matcher.find()) {
                         reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())))
                                 .setNotified(false);
@@ -405,11 +408,11 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         Reminder reminder;
 
         Pattern idPattern = Pattern.compile(SET_REMINDER + "\\d+");
-        Matcher matcher = idPattern.matcher(command);
-        if (matcher.find()) {
+        Matcher reminderIdMatcher = idPattern.matcher(command);
+        if (reminderIdMatcher.find()) {
             long reminderId;
             try {
-                reminderId = Long.parseLong(command.substring(matcher.start() + SET_REMINDER.length(), matcher.end()));
+                reminderId = Long.parseLong(command.substring(reminderIdMatcher.start() + SET_REMINDER.length(), reminderIdMatcher.end()));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
@@ -424,20 +427,34 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         List<List<InlineKeyboardButton>> rowsWithButtons = new ArrayList<>();
         String caption = "";
+        Matcher setNotifiedMatcher = Pattern.compile(SET_REMINDER + "\\d+" + SET_NOTIFIED).matcher(command);
+        Matcher setRepeatableMatcher = Pattern.compile(SET_REMINDER + "\\d+" + SET_REPEATABLE).matcher(command);
+        Matcher setFullDateMatcher = SET_FULL_DATE_PATTERN.matcher(command);
+        Matcher setTimeMatcher = SET_TIME_PATTERN.matcher(command);
 
-        matcher = Pattern.compile(SET_REMINDER + "\\d+" + SET_NOTIFIED).matcher(command);
-        if (matcher.find()) {
+        if (setNotifiedMatcher.find()) {
             reminder.setNotified(true);
             reminderService.save(reminder);
             return getReminderInfo(message, chat, user, INFO_REMINDER + reminder.getId());
-        }
+        } else if (setRepeatableMatcher.find()) {
+            ReminderRepeatability reminderRepeatability = null;
+            try {
+                reminderRepeatability =
+                        ReminderRepeatability.valueOf(command.substring(command.indexOf(SET_REPEATABLE) + 1));
+            } catch (IllegalArgumentException ignored) {}
 
-        matcher = FULL_DATE_PATTERN.matcher(command);
-        if (matcher.find()) {
-            reminder.setDate(getDateFromText(command.substring(matcher.start() + 1, matcher.end())));
-            matcher = TIME_PATTERN.matcher(command);
-            if (matcher.find()) {
-                reminder.setTime(getTimeFromText(command.substring(matcher.start() + 1, matcher.end())))
+            if (reminderRepeatability == null) {
+                caption = "Повторять каждые: ";
+                rowsWithButtons = prepareRepeatKeyboard(reminder);
+            } else {
+                reminder.setRepeatability(reminderRepeatability);
+                reminderService.save(reminder);
+                return getReminderInfo(message, chat, user, INFO_REMINDER + reminder.getId());
+            }
+        } else if (setFullDateMatcher.find()) {
+            reminder.setDate(getDateFromText(command.substring(setFullDateMatcher.start() + 1, setFullDateMatcher.end())));
+            if (setTimeMatcher.find()) {
+                reminder.setTime(getTimeFromText(command.substring(setTimeMatcher.start() + 1, setTimeMatcher.end())))
                         .setNotified(false);
             } else {
                 caption = "Выберите или введите вручную ЧЧ:ММ\n";
@@ -447,17 +464,17 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
         } else {
             Pattern postponePattern = Pattern.compile("P(?!$)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?");
-            matcher = postponePattern.matcher(command);
-            if (matcher.find()) {
+            Matcher setPostponeMatcher = postponePattern.matcher(command);
+            if (setPostponeMatcher.find()) {
                 TemporalAmount temporalAmount;
-                String rawValue = command.substring(matcher.start(), matcher.end());
+                String rawValue = command.substring(setPostponeMatcher.start(), setPostponeMatcher.end());
                 try {
                     temporalAmount = Duration.parse(rawValue);
                 } catch (Exception e) {
                     temporalAmount = Period.parse(rawValue);
                 }
 
-                LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime()).plus(temporalAmount);
+                LocalDateTime reminderDateTime = LocalDate.now().atTime(reminder.getTime()).plus(temporalAmount);
 
                 reminder.setDate(reminderDateTime.toLocalDate());
                 reminder.setTime(reminderDateTime.toLocalTime())
@@ -511,23 +528,28 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         LocalDateTime dateTimeNow = ZonedDateTime.now(zoneId).toLocalDateTime();
-        LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime());
+        LocalDate reminderDate = reminder.getDate();
+        LocalTime reminderTime = reminder.getTime();
+        LocalDateTime reminderDateTime = reminderDate.atTime(reminderTime);
+
+        String repeatability = reminder.getRepeatability() != null ? "Повтор: " + reminder.getRepeatability().getCaption() + "\n" : "";
 
         String deltaDates = deltaDatesToString(reminderDateTime, dateTimeNow);
         String leftToRun;
         if (dateTimeNow.isAfter(reminderDateTime) && reminder.getNotified()) {
-            leftToRun = "Сработало: <b>" + deltaDates + "</b>назад";
+            leftToRun = "Сработало: <b>" + deltaDates + "</b>назад\n";
         } else if (dateTimeNow.isAfter(reminderDateTime) && !reminder.getNotified()) {
-            leftToRun = "До срабатывания: <b> ща всё будет </b>";
+            leftToRun = "До срабатывания: <b> ща всё будет </b>\n";
         } else if (dateTimeNow.isBefore(reminderDateTime) && reminder.getNotified()) {
-            leftToRun = "Отключено";
+            leftToRun = "Отключено\n";
         } else {
-            leftToRun = "До срабатывания: <b>" + deltaDates + "</b>";
+            leftToRun = "До срабатывания: <b>" + deltaDates + "</b>\n";
         }
 
         return "<b>Напоминание</b>\n" +
                 reminder.getText() + "\n<i>" +
-                formatDate(reminder.getDate()) + " " + formatTime(reminder.getTime()) + "</i>\n" +
+                formatDate(reminderDate) + " " + formatTime(reminderTime) + " (" + getDayOfWeek(reminderDate) + " )</i>\n" +
+                repeatability +
                 leftToRun;
     }
 
@@ -623,35 +645,68 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         return rows;
     }
 
+    private static List<List<InlineKeyboardButton>> prepareRepeatKeyboard(Reminder reminder) {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        Long reminderId = reminder.getId();
+
+        rows.add(
+                Stream.of(
+                        ReminderRepeatability.MINUTES1,
+                        ReminderRepeatability.MINUTES5,
+                        ReminderRepeatability.MINUTES10,
+                        ReminderRepeatability.MINUTES15,
+                        ReminderRepeatability.MINUTES30)
+                    .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminderId))
+                    .collect(Collectors.toList()));
+
+        rows.add(
+                Stream.of(
+                        ReminderRepeatability.HOURS1,
+                        ReminderRepeatability.HOURS2,
+                        ReminderRepeatability.HOURS3,
+                        ReminderRepeatability.HOURS6,
+                        ReminderRepeatability.HOURS12)
+                .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminderId))
+                .collect(Collectors.toList()));
+
+        rows.add(
+                Stream.of(
+                        ReminderRepeatability.MONDAY,
+                        ReminderRepeatability.TUESDAY,
+                        ReminderRepeatability.WEDNESDAY,
+                        ReminderRepeatability.THURSDAY,
+                        ReminderRepeatability.FRIDAY,
+                        ReminderRepeatability.SATURDAY,
+                        ReminderRepeatability.SUNDAY)
+                .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminderId))
+                .collect(Collectors.toList()));
+
+        rows.add(
+                Stream.of(
+                        ReminderRepeatability.DAY,
+                        ReminderRepeatability.WEEK,
+                        ReminderRepeatability.MONTH,
+                        ReminderRepeatability.YEAR)
+                .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminderId))
+                .collect(Collectors.toList()));
+
+        return rows;
+    }
+
+    private static InlineKeyboardButton generateRepeatButton(ReminderRepeatability reminderRepeatability, Long reminderId) {
+        InlineKeyboardButton setRepeatButton = new InlineKeyboardButton();
+        setRepeatButton.setText(reminderRepeatability.getCaption());
+        setRepeatButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_REPEATABLE + reminderRepeatability.name());
+
+        return setRepeatButton;
+    }
+
     private InlineKeyboardMarkup prepareKeyboardWithReminderInfo(Long reminderId) {
         return prepareKeyboardWithReminderInfo(new ArrayList<>(), reminderId);
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithReminderInfo(List<List<InlineKeyboardButton>> rows, Long reminderId) {
-        InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
-        setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Настроить");
-        setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
-        rows.add(List.of(setReminderButton));
-
-        InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
-        deleteReminderButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
-        deleteReminderButton.setCallbackData(CALLBACK_DELETE_COMMAND + reminderId);
-        rows.add(List.of(deleteReminderButton));
-
-        InlineKeyboardButton disableReminderButton = new InlineKeyboardButton();
-        disableReminderButton.setText(Emoji.STOP_BUTTON.getEmoji() + "Отключить");
-        disableReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_NOTIFIED);
-        rows.add(List.of(disableReminderButton));
-
-        InlineKeyboardButton updateReminderButton = new InlineKeyboardButton();
-        updateReminderButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
-        updateReminderButton.setCallbackData(CALLBACK_INFO_REMINDER + reminderId);
-        rows.add(List.of(updateReminderButton));
-
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
-        backButton.setCallbackData(CALLBACK_COMMAND);
-        rows.add(List.of(backButton));
+        addMainRows(rows, reminderId);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
@@ -843,15 +898,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                         generatePostponeButton(reminderId, "Месяц", Period.ofMonths(1)),
                         generatePostponeButton(reminderId, "Год", Period.ofYears(1))));
 
-        InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
-        setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Настроить");
-        setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
-        rows.add(List.of(setReminderButton));
-
-        InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
-        deleteReminderButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
-        deleteReminderButton.setCallbackData(CALLBACK_DELETE_COMMAND + reminderId);
-        rows.add(List.of(deleteReminderButton));
+        addMainRows(rows, reminderId);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
@@ -867,6 +914,48 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         postponeButton.setCallbackData(startOfCallbackCommand + amount);
 
         return postponeButton;
+    }
+
+    private String cutKeyWordInText(String text, Set<String> keywords) {
+        String foundKeyword = keywords
+                .stream()
+                .filter(text::contains)
+                .findFirst()
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)));
+
+        return text.replaceFirst(foundKeyword, "");
+    }
+
+    private static void addMainRows(List<List<InlineKeyboardButton>> rows, Long reminderId) {
+        InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
+        setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Дата/время");
+        setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
+        rows.add(List.of(setReminderButton));
+
+        InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
+        deleteReminderButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+        deleteReminderButton.setCallbackData(CALLBACK_DELETE_COMMAND + reminderId);
+        rows.add(List.of(deleteReminderButton));
+
+        InlineKeyboardButton disableReminderButton = new InlineKeyboardButton();
+        disableReminderButton.setText(Emoji.STOP_BUTTON.getEmoji() + "Отключить");
+        disableReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_NOTIFIED);
+        rows.add(List.of(disableReminderButton));
+
+        InlineKeyboardButton repeatReminderButton = new InlineKeyboardButton();
+        repeatReminderButton.setText(Emoji.CALENDAR.getEmoji() + "Повторять");
+        repeatReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_REPEATABLE);
+        rows.add(List.of(repeatReminderButton));
+
+        InlineKeyboardButton updateReminderButton = new InlineKeyboardButton();
+        updateReminderButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateReminderButton.setCallbackData(CALLBACK_INFO_REMINDER + reminderId);
+        rows.add(List.of(updateReminderButton));
+
+        InlineKeyboardButton backButton = new InlineKeyboardButton();
+        backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
+        backButton.setCallbackData(CALLBACK_COMMAND);
+        rows.add(List.of(backButton));
     }
 
     @RequiredArgsConstructor
@@ -898,21 +987,20 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     @RequiredArgsConstructor
     @Getter
     private enum TimeKeyword {
-        MORNING("утром", () -> LocalTime.of(7, 0)),
-        LUNCH("в обед", () -> LocalTime.of(12, 0)),
-        AFTERNOON("днём", () -> LocalTime.of(15, 0)),
-        AFTERNOOON("днем", () -> LocalTime.of(15, 0)),
-        EVENING("поздним вечером", () -> LocalTime.of(22, 0)),
-        DINNER("вечером", () -> LocalTime.of(19, 0)),
-        NIGHT("ночью", () -> LocalTime.of(3, 0)),
+        MORNING(Set.of("утром"), () -> LocalTime.of(7, 0)),
+        LUNCH(Set.of("в обед", "к обеду"), () -> LocalTime.of(12, 0)),
+        AFTERNOON(Set.of("днём", "днем"), () -> LocalTime.of(15, 0)),
+        EVENING(Set.of("поздним вечером", "поздно вечером"), () -> LocalTime.of(22, 0)),
+        DINNER(Set.of("вечером"), () -> LocalTime.of(19, 0)),
+        NIGHT(Set.of("ночью"), () -> LocalTime.of(3, 0)),
         ;
 
-        private final String keyword;
+        private final java.util.Set<String> keywords;
         private final Supplier<LocalTime> dateSupplier;
 
         public static TimeKeyword getKeyWordFromText(String text) {
             return Arrays.stream(TimeKeyword.values())
-                    .filter(dateKeyword -> text.contains(dateKeyword.getKeyword()))
+                    .filter(timeKeyword -> timeKeyword.getKeywords().stream().anyMatch(text::contains))
                     .findFirst()
                     .orElse(null);
         }
