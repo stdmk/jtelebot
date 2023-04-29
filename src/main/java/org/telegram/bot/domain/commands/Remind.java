@@ -475,7 +475,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                     temporalAmount = Period.parse(rawValue);
                 }
 
-                LocalDateTime reminderDateTime = LocalDate.now().atTime(reminder.getTime()).plus(temporalAmount);
+                LocalDateTime reminderDateTime = LocalDateTime.now().plus(temporalAmount);
 
                 if (StringUtils.isEmpty(reminder.getRepeatability())) {
                     reminder.setDate(reminderDateTime.toLocalDate())
