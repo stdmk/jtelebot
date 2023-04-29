@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.telegram.bot.domain.enums.ReminderRepeatability;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -46,6 +45,5 @@ public class Reminder {
     private Boolean notified;
 
     @Column(name = "repeatability")
-    @Enumerated(EnumType.STRING)
-    private ReminderRepeatability repeatability;
+    private String repeatability;
 }

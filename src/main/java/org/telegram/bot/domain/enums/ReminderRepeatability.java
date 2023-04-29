@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 @Getter
 public enum ReminderRepeatability {
+    //do not change the order!
     MINUTES1("1 м.", () -> Duration.between(LocalDateTime.now(), LocalDateTime.now().plusMinutes(1))),
     MINUTES5("5 м.", () -> Duration.between(LocalDateTime.now(), LocalDateTime.now().plusMinutes(5))),
     MINUTES10("10 м.", () -> Duration.between(LocalDateTime.now(), LocalDateTime.now().plusMinutes(10))),

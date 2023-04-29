@@ -6,6 +6,7 @@ import org.telegram.bot.domain.entities.Reminder;
 import org.telegram.bot.domain.entities.User;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -52,4 +53,12 @@ public interface ReminderService {
      * @param reminder the entity to delete.
      */
     void remove(Reminder reminder);
+
+    /**
+     * Get next alarm date time for Reminder.
+     *
+     * @param reminder the Reminder entity.
+     * @return date time of next planned alarm.
+     */
+    LocalDateTime getNextAlarmDateTime(Reminder reminder);
 }

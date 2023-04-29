@@ -5,14 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Reminder;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.enums.ReminderRepeatability;
 import org.telegram.bot.repositories.ReminderRepository;
 import org.telegram.bot.services.ReminderService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -52,5 +57,21 @@ public class ReminderServiceImpl implements ReminderService {
     public void remove(Reminder reminder) {
         log.debug("Request to remove Reminder: {}", reminder);
         reminderRepository.delete(reminder);
+    }
+
+    @Override
+    public LocalDateTime getNextAlarmDateTime(Reminder reminder) {
+        if (StringUtils.isEmpty(reminder.getRepeatability())) {
+            return null;
+        }
+
+        return Arrays.stream(reminder.getRepeatability().split("\\s*,\\s*"))
+                .map(Integer::valueOf)
+                .map(ordinal -> ReminderRepeatability.values()[ordinal])
+                .map(ReminderRepeatability::getTemporalAmountSupplier)
+                .map(Supplier::get)
+                .map(reminder.getDate().atTime(reminder.getTime())::plus)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
     }
 }
