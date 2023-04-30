@@ -53,6 +53,7 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Гуглозапросов: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("Почтозапросов: <b>").append(botStats.getRussianPostRequests()).append("</b>\n");
         buf.append("Вольфрамозапросов: <b>").append(botStats.getWolframRequests()).append("</b>\n");
+        buf.append("Кинозапросов: <b>").append(botStats.getKinopoiskRequests()).append("</b>\n");
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
         buf.append("Обновление ТВ: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
         buf.append("Обновление треков: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");

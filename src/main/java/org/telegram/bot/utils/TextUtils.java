@@ -74,6 +74,14 @@ public class TextUtils {
         return text.length() < 4096;
     }
 
+    public static String cutIfLongerThan(String text, int limit) {
+        if (text.length() > limit) {
+            return text.substring(0, limit-3) + "...";
+        }
+
+        return text;
+    }
+
     public static String deleteWordsInText(String wordStartsWith, String text) {
         int i = text.indexOf(wordStartsWith);
         while (i >= 0) {

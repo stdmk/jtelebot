@@ -141,4 +141,5 @@
     <include file="db/changelog/20230414122600_update_TalkerDegree_add_column_chat_idle_minutes.xml"/>
     <include file="db/changelog/20230418212300_added_entity_TrainingStopped.xml"/>
     <include file="db/changelog/20230423103500_update_Reminder_add_repeatability.xml"/>
+    <include file="db/changelog/20230430093500_added_command_Kino.xml"/>
 </databaseChangeLog>

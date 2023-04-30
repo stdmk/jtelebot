@@ -69,6 +69,7 @@ public enum Emoji {
     WEIGHT_LIFTER("🏋"),
     GAME_DIE("\uD83C\uDFB2"),
     CALENDAR("\uD83D\uDCC6"),
+    TROPHY("🏆"),
     ;
 
     private final String emoji;
