@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230430093500-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="57"/>
+            <column name="name" value="Кино"/>
+            <column name="description" value="Информация о фильмах и сериалах"/>
+            <column name="examples" value="Кино, Кино Побег из, movie_326"/>
+            <column name="comment" value="На команду без параметров бот пришлёт случайный фильм. Информация берётся с сервиса api.kinopoisk.dev"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230430093500-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="57"/>
+            <column name="commandname" value="movie"/>
+            <column name="russifiedname" value="кино"/>
+            <column name="enruname" value="rbyj"/>
+            <column name="classname" value="kinopoisk"/>
+            <column name="accesslevel" value="5"/>
+            <column name="help" value="57"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

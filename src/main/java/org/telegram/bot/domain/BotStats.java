@@ -50,6 +50,8 @@ public class BotStats {
 
     private Integer googleRequests;
 
+    private Integer kinopoiskRequests;
+
     private Integer wolframRequests;
 
     private Integer russianPostRequests;
@@ -62,6 +64,7 @@ public class BotStats {
     private static final String TOTAL_RUNNING_TIME = "totalRunningTime";
     private static final String TOTAL_COMMANDS_PROCESSED = "totalCommandsProcessed";
     private static final String GOOGLE_REQUESTS = "googleRequests";
+    private static final String KINOPOISK_REQUESTS = "kinopoiskRequests";
     private static final String WOLFRAM_REQUESTS = "wolframRequests";
     private static final String RUSSIAN_POST_REQUESTS = "russianPostRequests";
     private static final String LAST_TV_UPDATE = "lastTvUpdate";
@@ -91,6 +94,7 @@ public class BotStats {
                 .forEach(field -> setTotalBaseField(workParamList, field));
         setTotalRunningTime(workParamList);
         setGoogleRequests(workParamList);
+        setKinopoiskRequests(workParamList);
         setWolframRequests(workParamList);
         setRussianPostRequests(workParamList);
     }
@@ -117,6 +121,10 @@ public class BotStats {
         this.googleRequests = this.googleRequests - 1;
     }
 
+    public void incrementKinopoiskRequests() {
+        this.kinopoiskRequests = this.kinopoiskRequests - 1;
+    }
+
     public void incrementWorlframRequests() {
         this.wolframRequests = this.wolframRequests - 1;
     }
@@ -127,6 +135,10 @@ public class BotStats {
 
     public void resetGoogleRequests() {
         this.googleRequests = 100;
+    }
+
+    public void resetKinopoiskRequests() {
+        this.kinopoiskRequests = 200;
     }
 
     public void resetWolframRequests() {
@@ -195,6 +207,15 @@ public class BotStats {
             this.googleRequests = 100;
         } else {
             this.googleRequests = Integer.parseInt(workParam.getValue());
+        }
+    }
+
+    private void setKinopoiskRequests(List<WorkParam> workParamList) {
+        WorkParam workParam = getWorkParamByName(workParamList, GOOGLE_REQUESTS);
+        if (workParam == null) {
+            this.kinopoiskRequests = 200;
+        } else {
+            this.kinopoiskRequests = Integer.parseInt(workParam.getValue());
         }
     }
 
