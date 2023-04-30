@@ -32,7 +32,6 @@ public class HolidaysTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("holidaysTimer");
         if (timer == null) {
-            log.error("Unable to read timer holidaysTimer. Creating new...");
             timer = new Timer()
                     .setName("holidaysTimer")
                     .setLastAlarmDt(LocalDateTime.now());

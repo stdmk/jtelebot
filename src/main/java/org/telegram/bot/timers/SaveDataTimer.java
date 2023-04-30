@@ -23,7 +23,6 @@ public class SaveDataTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("saveDataTimer");
         if (timer == null) {
-            log.error("Unable to read timer saveDataTimer. Creating new...");
             timer = new Timer()
                     .setName("saveDataTimer")
                     .setLastAlarmDt(LocalDateTime.now());

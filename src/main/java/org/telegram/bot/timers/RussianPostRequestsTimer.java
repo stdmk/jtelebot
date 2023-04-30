@@ -25,7 +25,6 @@ public class RussianPostRequestsTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("russianPostRequestsTimer");
         if (timer == null) {
-            log.error("Unable to read timer russianPostRequestsTimer. Creating new...");
             timer = new Timer()
                     .setName("russianPostRequestsTimer")
                     .setLastAlarmDt(LocalDateTime.now());

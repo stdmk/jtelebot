@@ -52,7 +52,6 @@ public class TvProgramDownloaderTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("tvProgramDownloader");
         if (timer == null) {
-            log.error("Unable to read timer tvProgramDownloader. Creating new...");
             timer = new Timer()
                     .setName("tvProgramDownloader")
                     .setLastAlarmDt(LocalDateTime.now().minusDays(1));

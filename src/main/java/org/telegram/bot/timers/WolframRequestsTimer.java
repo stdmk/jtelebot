@@ -25,7 +25,6 @@ public class WolframRequestsTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("wolframRequestsTimer");
         if (timer == null) {
-            log.error("Unable to read timer wolframRequestsTimer. Creating new...");
             timer = new Timer()
                     .setName("wolframRequestsTimer")
                     .setLastAlarmDt(LocalDateTime.now());

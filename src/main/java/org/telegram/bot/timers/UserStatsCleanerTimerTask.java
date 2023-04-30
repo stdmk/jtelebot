@@ -33,7 +33,6 @@ public class UserStatsCleanerTimerTask extends TimerParent {
     private void checkDailyStats() {
         Timer timer = timerService.get("statsDailyCleanTimer");
         if (timer == null) {
-            log.error("Unable to read timer statsDailyCleanTimer. Creating new...");
             timer = new Timer()
                     .setName("statsDailyCleanTimer")
                     .setLastAlarmDt(LocalDateTime.now());

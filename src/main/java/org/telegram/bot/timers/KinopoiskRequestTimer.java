@@ -23,7 +23,6 @@ public class KinopoiskRequestTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("kinopoiskRequestsTimer");
         if (timer == null) {
-            log.error("Unable to read timer kinopoiskRequestsTimer. Creating new...");
             timer = new Timer()
                     .setName("kinopoiskRequestsTimer")
                     .setLastAlarmDt(LocalDateTime.now());

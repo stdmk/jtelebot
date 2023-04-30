@@ -25,7 +25,6 @@ public class GoogleRequestsTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("googleRequestsTimer");
         if (timer == null) {
-            log.error("Unable to read timer googleRequestsTimer. Creating new...");
             timer = new Timer()
                     .setName("googleRequestsTimer")
                     .setLastAlarmDt(LocalDateTime.now());

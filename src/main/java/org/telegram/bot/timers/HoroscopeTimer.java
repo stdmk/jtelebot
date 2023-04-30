@@ -30,7 +30,6 @@ public class HoroscopeTimer extends TimerParent  {
     public void execute() {
         Timer timer = timerService.get("horoscopeDownloader");
         if (timer == null) {
-            log.error("Unable to read timer horoscopeDownloader. Creating new...");
             timer = new Timer()
                     .setName("horoscopeDownloader")
                     .setLastAlarmDt(LocalDateTime.now().minusDays(1));

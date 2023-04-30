@@ -30,7 +30,6 @@ public class BackupTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("backupTimer");
         if (timer == null) {
-            log.error("Unable to read timer backupTimer. Creating new...");
             timer = new Timer()
                     .setName("backupTimer")
                     .setLastAlarmDt(LocalDateTime.now());

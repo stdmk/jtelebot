@@ -39,7 +39,6 @@ public class TrackCodeEventsTimer extends TimerParent {
     public void execute() {
         Timer timer = timerService.get("trackCodeEventsTimer");
         if (timer == null) {
-            log.error("Unable to read timer trackCodeEventsTimer. Creating new...");
             timer = new Timer()
                     .setName("trackCodeEventsTimer")
                     .setLastAlarmDt(LocalDateTime.now());
