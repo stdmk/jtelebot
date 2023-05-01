@@ -143,4 +143,5 @@
     <include file="db/changelog/20230423103500_update_Reminder_add_repeatability.xml"/>
     <include file="db/changelog/20230430093500_added_command_Kino.xml"/>
     <include file="db/changelog/20230501080600_tvprogram_correction.xml"/>
+    <include file="db/changelog/20230501085100_added_command_Calendar.xml"/>
 </databaseChangeLog>

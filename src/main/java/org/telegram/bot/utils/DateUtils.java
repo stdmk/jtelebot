@@ -241,6 +241,35 @@ public class DateUtils {
 
     @Getter
     @RequiredArgsConstructor
+    public enum MonthName {
+        JANUARY("январь", "января", 1),
+        FEBRUARY("февраль", "февраля", 2),
+        MARCH("март", "марта", 3),
+        APRIL("апрель", "апреля", 4),
+        MAY("май", "мая", 5),
+        JUNE("июнь", "июня", 6),
+        JULY("июль", "июля", 7),
+        AUGUST("август", "августа", 8),
+        SEPTEMBER("сентябрь", "сентября", 9),
+        OCTOBER("октябрь", "октября", 10),
+        NOVEMBER("ноябрь", "ноября", 11),
+        DECEMBER("декабрь", "декабря", 12);
+
+        private final String name;
+        private final String genitive;
+        private final int MonthValue;
+
+        public static MonthName getByName(String name) {
+            String lowerName = name.toLowerCase();
+            return Arrays.stream(MonthName.values())
+                    .filter(monthName -> monthName.getName().equals(lowerName) || monthName.getGenitive().equals(lowerName))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    @Getter
+    @RequiredArgsConstructor
     public enum TimeZones {
         MINUS_ONE("GMT-01:00"),
         MINUS_TWO("GMT-02:00"),
