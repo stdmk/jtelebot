@@ -211,7 +211,7 @@ public class BotStats {
     }
 
     private void setKinopoiskRequests(List<WorkParam> workParamList) {
-        WorkParam workParam = getWorkParamByName(workParamList, GOOGLE_REQUESTS);
+        WorkParam workParam = getWorkParamByName(workParamList, KINOPOISK_REQUESTS);
         if (workParam == null) {
             this.kinopoiskRequests = 200;
         } else {
