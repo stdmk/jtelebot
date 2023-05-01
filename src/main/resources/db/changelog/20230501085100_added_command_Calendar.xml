@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230501085100-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="58"/>
+            <column name="name" value="Календарь"/>
+            <column name="description" value="Календарь с указанием праздничных дней"/>
+            <column name="examples" value="Календарь, Календарь май, calendar 05.2007, calendar 5, календарь май 2007"/>
+            <column name="comment" value="Информация о праздничных днях берётся с сервиса date.nager.at"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230501085100-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="58"/>
+            <column name="commandname" value="calendar"/>
+            <column name="russifiedname" value="календарь"/>
+            <column name="enruname" value="rfktylfhm"/>
+            <column name="classname" value="calendar"/>
+            <column name="accesslevel" value="1"/>
+            <column name="help" value="58"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
