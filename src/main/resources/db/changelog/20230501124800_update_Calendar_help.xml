@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230501124800-1" author="stdmk">
+        <update schemaName="bot" tableName="help">
+            <column name="params" value="[месяц] [год]"/>
+            <where>id = 58</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>
