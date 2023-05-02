@@ -83,9 +83,9 @@ public class Truth implements CommandParent<PartialBotApiMethod<?>> {
         InputFile inputFile = null;
 
         Answer answer;
-        if (prob > 50) {
+        if (prob > 60) {
             answer = Answer.YES;
-        } else if (prob < 50) {
+        } else if (prob < 41) {
             answer = Answer.NO;
         } else {
             answer = Answer.MAYBE;
