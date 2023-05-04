@@ -47,6 +47,7 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
     private final BotStats botStats;
 
     private static final String API_URL = "https://api.kinopoisk.dev/v1.3/movie";
+    private static final String KINOPOISK_URL = "https://www.kinopoisk.ru";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -190,6 +191,8 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
             similarMovies.stream().limit(5).forEach(similarMovie ->
                     buf.append("/movie_").append(similarMovie.getId()).append(" — ").append(similarMovie.getName()).append("\n"));
         });
+
+        buf.append("<a href='" + KINOPOISK_URL + "/film/").append(movie.getId()).append("'>На сайт</a>");
 
         return buf.toString();
     }
