@@ -14,9 +14,11 @@ import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.domain.enums.ReminderRepeatability;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -63,6 +65,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     private static final String CALLBACK_SET_REMINDER = CALLBACK_COMMAND + SET_REMINDER;
     private static final String INFO_REMINDER = "i";
     private static final String CALLBACK_INFO_REMINDER = CALLBACK_COMMAND + INFO_REMINDER;
+    private static final String CLOSE_REMINDER_MENU = "c";
+    private static final String CALLBACK_CLOSE_REMINDER_MENU = CALLBACK_COMMAND + CLOSE_REMINDER_MENU;
     private static final String SET_DATE = "d";
     private static final String SET_TIME = "t";
     private static final String SET_REPEATABLE ="r";
@@ -119,6 +123,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                 return deleteReminderByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(SELECT_PAGE)) {
                 return getReminderListWithKeyboard(message, chat, user, getPageNumberFromCommand(textMessage), false);
+            } else if (textMessage.startsWith(CLOSE_REMINDER_MENU)) {
+                return closeReminderMenu(message, chat, user, textMessage);
             }
         }
 
@@ -802,12 +808,14 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         log.debug("Request to list all reminders for chat {} and user {}, page: {}", chat.getChatId(), user.getUserId(), page);
         Page<Reminder> reminderList = reminderService.getByChatAndUser(chat, user, page);
 
+        String caption = TextUtils.getLinkToUser(user, true) + "<b> твои напоминания:</b>\n" + buildTextReminderList(reminderList.toList());
+
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.enableHtml(true);
-            sendMessage.setText(TextUtils.getLinkToUser(user, true) + "<b> твои напоминания:</b>\n");
+            sendMessage.setText(caption);
             sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
             return sendMessage;
@@ -817,10 +825,40 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
-        editMessageText.setText(TextUtils.getLinkToUser(user, true) + "<b> твои напоминания:</b>\n");
+        editMessageText.setText(caption);
         editMessageText.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
         return editMessageText;
+    }
+
+    private String buildTextReminderList(List<Reminder> reminderList) {
+        return reminderList
+                .stream()
+                .map(reminder -> {
+                    LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime());
+                    String additionally = StringUtils.isEmpty(reminder.getRepeatability()) ? "" : Emoji.CALENDAR.getEmoji();
+                    additionally = " " + getConditionalEmoji(reminder) + additionally;
+
+                    return DateUtils.formatShortDateTime(reminderDateTime) + " (" + getDayOfWeek(reminderDateTime) + " )" +
+                            " — " + reminder.getText() + additionally;
+                })
+                .collect(Collectors.joining("\n"));
+    }
+
+    private DeleteMessage closeReminderMenu(Message message, Chat chat, User user, String command) {
+        Integer messageId = message.getMessageId();
+        log.debug("Request to close reminder menu by messageId {}", messageId);
+
+        String userId = command.substring(CLOSE_REMINDER_MENU.length());
+        if (user.getUserId().toString().equals(userId)) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(chat.getChatId());
+            deleteMessage.setMessageId(messageId);
+
+            return deleteMessage;
+        }
+
+        return null;
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithRemindersForSetting(Page<Reminder> reminderList, int page) {
@@ -973,36 +1011,55 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         Long reminderId = reminder.getId();
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
-        setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Дата/время");
+        setReminderButton.setText(Emoji.SETTINGS.getEmoji());
+//        setReminderButton.setText(Emoji.SETTINGS.getEmoji() + "Дата/время");
         setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
-        rows.add(List.of(setReminderButton));
+//        rows.add(List.of(setReminderButton));
 
         InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
-        deleteReminderButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+//        deleteReminderButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+        deleteReminderButton.setText(Emoji.DELETE.getEmoji());
         deleteReminderButton.setCallbackData(CALLBACK_DELETE_COMMAND + reminderId);
-        rows.add(List.of(deleteReminderButton));
+//        rows.add(List.of(deleteReminderButton));
 
         String notifiedCaption;
         if (reminder.getNotified()) {
-            notifiedCaption = Emoji.PLAY_BUTTON.getEmoji() + "Включить";
+//            notifiedCaption = Emoji.PLAY_BUTTON.getEmoji() + "Включить";
+            notifiedCaption = Emoji.PLAY_BUTTON.getEmoji();
         } else {
-            notifiedCaption = Emoji.STOP_BUTTON.getEmoji() + "Отключить";
+//            notifiedCaption = Emoji.STOP_BUTTON.getEmoji() + "Отключить";
+            notifiedCaption = Emoji.STOP_BUTTON.getEmoji();
         }
         InlineKeyboardButton disableReminderButton = new InlineKeyboardButton();
         disableReminderButton.setText(notifiedCaption);
         disableReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_NOTIFIED);
-        rows.add(List.of(disableReminderButton));
+//        rows.add(List.of(disableReminderButton));
 
         String repeatability = reminder.getRepeatability() == null ? "" : reminder.getRepeatability();
         InlineKeyboardButton repeatReminderButton = new InlineKeyboardButton();
-        repeatReminderButton.setText(Emoji.CALENDAR.getEmoji() + "Повторять");
+        repeatReminderButton.setText(Emoji.CALENDAR.getEmoji());
+//        repeatReminderButton.setText(Emoji.CALENDAR.getEmoji() + "Повторять");
         repeatReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_REPEATABLE + repeatability);
-        rows.add(List.of(repeatReminderButton));
+//        rows.add(List.of(repeatReminderButton));
 
         InlineKeyboardButton updateReminderButton = new InlineKeyboardButton();
-        updateReminderButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+//        updateReminderButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateReminderButton.setText(Emoji.UPDATE.getEmoji());
         updateReminderButton.setCallbackData(CALLBACK_INFO_REMINDER + reminderId);
-        rows.add(List.of(updateReminderButton));
+//        rows.add(List.of(updateReminderButton));
+
+        InlineKeyboardButton okButton = new InlineKeyboardButton();
+        okButton.setText(Emoji.CHECK_MARK_BUTTON.getEmoji());
+        okButton.setCallbackData(CALLBACK_CLOSE_REMINDER_MENU + reminder.getUser().getUserId());
+
+        rows.add(
+                List.of(
+                        setReminderButton,
+                        deleteReminderButton,
+                        disableReminderButton,
+                        repeatReminderButton,
+                        updateReminderButton,
+                        okButton));
 
         InlineKeyboardButton backButton = new InlineKeyboardButton();
         backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");

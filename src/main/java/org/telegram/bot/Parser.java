@@ -8,6 +8,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.*;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -86,6 +87,10 @@ public class Parser extends Thread {
                 SendDocument sendDocument = (SendDocument) method;
                 log.info("To " + message.getChatId() + ": sending document " + sendDocument.getCaption());
                 bot.execute(sendDocument);
+            } else if (method instanceof DeleteMessage) {
+                DeleteMessage deleteMessage = (DeleteMessage) method;
+                log.info("Deleting message {}", deleteMessage.getMessageId());
+                bot.execute(deleteMessage);
             }
         } catch (TelegramApiRequestException e) {
             botStats.incrementErrors();

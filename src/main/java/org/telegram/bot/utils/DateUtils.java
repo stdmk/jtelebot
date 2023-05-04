@@ -79,6 +79,10 @@ public class DateUtils {
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeFormatter);
     }
 
+    public static String formatShortDateTime(LocalDateTime dateTime) {
+        return dateTime.format(dateTimeShortFormatter);
+    }
+
     public static String formatShortDateTime(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(dateTimeShortFormatter);
     }
