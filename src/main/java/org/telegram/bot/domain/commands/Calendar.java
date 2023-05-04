@@ -58,7 +58,7 @@ public class Calendar implements CommandParent<SendMessage> {
         LocalDate date;
         String responseText;
         if (textMessage == null) {
-           date = LocalDate.now();
+           date = LocalDate.now().withDayOfMonth(1);
            responseText = printCalendarByDate(date, message.getChatId(), message.getFrom().getId(), true);
         } else {
             date = getDateFromText(textMessage);
