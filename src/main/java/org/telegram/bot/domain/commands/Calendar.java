@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -12,14 +13,19 @@ import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.DateUtils.MonthName;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,10 +33,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,11 +43,12 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Calendar implements CommandParent<SendMessage> {
+public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
 
     private final UserCityService userCityService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
+    private final Map<Integer, Pair<LocalDate, List<PublicHoliday>>> holidaysData = new ConcurrentHashMap<>(new ConcurrentHashMap<>());
 
     private static final Locale LOCALE = new Locale("ru");
     private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
@@ -51,24 +56,51 @@ public class Calendar implements CommandParent<SendMessage> {
     private static final Pattern MONTH_NAME_YEAR_PATTERN = Pattern.compile("([а-яА-Я]+)\\s(\\d{4})", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public SendMessage parse(Update update) {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        String textMessage = cutCommandInText(message.getText());
+
+        String textMessage;
+        Long userId;
+        boolean callback;
+        if (update.hasCallbackQuery()) {
+            textMessage = cutCommandInText(update.getCallbackQuery().getData());
+            userId = update.getCallbackQuery().getFrom().getId();
+            callback = true;
+        } else {
+            textMessage = cutCommandInText(message.getText());
+            userId = message.getFrom().getId();
+            callback = false;
+        }
+
+        User user = new User().setUserId(userId);
+        Chat chat = new Chat().setChatId(message.getChatId());
 
         LocalDate date;
         String responseText;
         if (textMessage == null) {
            date = LocalDate.now().withDayOfMonth(1);
-           responseText = printCalendarByDate(date, message.getChatId(), message.getFrom().getId(), true);
+           responseText = printCalendarByDate(date, chat, user, true);
         } else {
             date = getDateFromText(textMessage);
-            responseText = printCalendarByDate(date, message.getChatId(), message.getFrom().getId(), false);
+            responseText = printCalendarByDate(date, chat, user, false);
+        }
+
+        if (callback) {
+            EditMessageText editMessage = new EditMessageText();
+            editMessage.setChatId(message.getChatId().toString());
+            editMessage.setMessageId(message.getMessageId());
+            editMessage.enableHtml(true);
+            editMessage.setText(responseText);
+            editMessage.setReplyMarkup(getKeyboard(date));
+
+            return editMessage;
         }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableHtml(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setReplyMarkup(getKeyboard(date));
         sendMessage.setText(responseText);
 
         return sendMessage;
@@ -121,8 +153,8 @@ public class Calendar implements CommandParent<SendMessage> {
         return date;
     }
 
-    private String printCalendarByDate(LocalDate date, Long chatId, Long userId, boolean currentMonth) {
-        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUser(new Chat().setChatId(chatId), new User().setUserId(userId));
+    private String printCalendarByDate(LocalDate date, Chat chat, User user, boolean currentMonth) {
+        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUser(chat, user);
         if (zoneIdOfUser == null) {
             zoneIdOfUser = ZoneId.systemDefault();
         }
@@ -195,6 +227,21 @@ public class Calendar implements CommandParent<SendMessage> {
     }
 
     private List<PublicHoliday> getPublicHolidays(int year) {
+        List<PublicHoliday> holidayList;
+
+        LocalDate dateNow = LocalDate.now();
+        Pair<LocalDate, List<PublicHoliday>> holidays = holidaysData.get(year);
+        if (holidays == null || holidays.getFirst().isAfter(dateNow.plusMonths(1))) {
+            holidayList = getPublicHolidaysFromApi(year);
+            holidaysData.put(year, Pair.of(dateNow, holidayList));
+        } else {
+            holidayList = holidays.getSecond();
+        }
+
+        return holidayList;
+    }
+
+    private List<PublicHoliday> getPublicHolidaysFromApi(int year) {
         ResponseEntity<PublicHoliday[]> responseEntity;
         try {
             responseEntity = botRestTemplate.getForEntity(API_URL + year + "/" + LOCALE.getLanguage(), PublicHoliday[].class);
@@ -208,6 +255,20 @@ public class Calendar implements CommandParent<SendMessage> {
         }
 
         return Arrays.asList(publicHolidays);
+    }
+
+    private InlineKeyboardMarkup getKeyboard(LocalDate date) {
+        final String command = "/calendar_";
+
+        InlineKeyboardButton backButton = new InlineKeyboardButton();
+        backButton.setText("Назад" + Emoji.LEFT_ARROW.getEmoji());
+        backButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.minusMonths(1)));
+
+        InlineKeyboardButton forwardButton = new InlineKeyboardButton();
+        forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getEmoji());
+        forwardButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.plusMonths(1)));
+
+        return new InlineKeyboardMarkup(List.of(List.of(backButton, forwardButton)));
     }
 
     @Data
