@@ -37,6 +37,9 @@ public class TrainingEvent {
     @Column(name = "canceled")
     private Boolean canceled;
 
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
     @Column(name = "unplanned")
     private Boolean unplanned;
 }

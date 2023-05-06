@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.CommandParent;
-import org.telegram.bot.domain.entities.TrainSubscription;
-import org.telegram.bot.domain.entities.TrainingEvent;
-import org.telegram.bot.domain.entities.TrainingScheduled;
-import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
@@ -17,7 +14,6 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -48,6 +44,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private final TrainingEventService trainingEventService;
     private final TrainingService trainingService;
     private final TrainingStoppedService trainingStoppedService;
+    private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     private final Locale LOCALE = new Locale("ru");
@@ -55,6 +52,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     private static final String COMMAND_NAME = "training";
     private static final String ADD_COMMAND = "_add";
     private static final String CANCEL_COMMAND = "_c";
+    private static final String CANCEL_REASON_COMMAND = "_cr";
     private static final String REPORT_COMMAND = "_r";
     private static final String DOWNLOAD_COMMAND = "_d";
 
@@ -80,18 +78,26 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
         Message message = getMessageFromUpdate(update);
         Long userId;
         Integer editMessageId = null;
-        String textMessage;
-        if (update.hasCallbackQuery()) {
-            CallbackQuery callbackQuery = update.getCallbackQuery();
 
-            textMessage = cutCommandInText(callbackQuery.getData());
-            userId = callbackQuery.getFrom().getId();
+        if (update.hasCallbackQuery()) {
+            userId = update.getCallbackQuery().getFrom().getId();
             editMessageId = message.getMessageId();
         } else {
-            textMessage = cutCommandInText(message.getText());
             userId = message.getFrom().getId();
         }
+
         User user = new User().setUserId(userId);
+        Chat chat = new Chat().setChatId(message.getChatId());
+
+        String textMessage;
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
+        if (update.hasCallbackQuery()) {
+            textMessage = cutCommandInText(update.getCallbackQuery().getData());
+        } else if (commandWaiting != null) {
+            textMessage = cutCommandInText(commandWaiting.getTextMessage() + message.getText());
+        } else {
+            textMessage = cutCommandInText(message.getText());
+        }
 
         InlineKeyboardMarkup inlineKeyboardMarkup = null;
         String responseText;
@@ -137,27 +143,47 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     }
                 }
             } else if (textMessage.startsWith(CANCEL_COMMAND)) {
+                commandWaitingService.remove(chat, user);
+
+                String cancellationReason = null;
+                String eventIdString;
+                if (textMessage.contains(CANCEL_REASON_COMMAND)) {
+                    int cancellationReasonCommandIndex = textMessage.indexOf(CANCEL_REASON_COMMAND);
+                    eventIdString = textMessage.substring(CANCEL_COMMAND.length(), cancellationReasonCommandIndex);
+                    cancellationReason = textMessage.substring(cancellationReasonCommandIndex + 4);
+                } else {
+                    eventIdString = textMessage.substring(CANCEL_COMMAND.length());
+                }
+
                 long eventId;
                 try {
-                    eventId = Long.parseLong(textMessage.substring(CANCEL_COMMAND.length()));
+                    eventId = Long.parseLong(eventIdString);
                 } catch (NumberFormatException e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
-                TrainingEvent trainingEvent = trainingEventService.get(user, eventId);
-                if (trainingEvent == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                if (cancellationReason != null) {
+                    TrainingEvent trainingEvent = trainingEventService.get(user, eventId);
+                    if (trainingEvent == null) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+
+                    TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
+                    if (subscription != null) {
+                        subscription.setCountLeft(subscription.getCountLeft() + trainingEvent.getTraining().getCost());
+                        trainSubscriptionService.save(subscription);
+                    }
+
+                    trainingEvent.setCanceled(true);
+                    trainingEvent.setCancellationReason(cancellationReason);
+
+                    trainingEventService.save(trainingEvent);
+
+                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
+                } else {
+                    commandWaitingService.add(chat, user, Training.class, COMMAND_NAME + CANCEL_COMMAND + eventId + CANCEL_REASON_COMMAND);
+                    responseText = "для подтверждения отмены занятия напиши мне (кратко) причину";
                 }
-
-                TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
-                if (subscription != null) {
-                    subscription.setCountLeft(subscription.getCountLeft() + trainingEvent.getTraining().getCost());
-                    trainSubscriptionService.save(subscription);
-                }
-
-                trainingEventService.save(trainingEvent.setCanceled(true));
-
-                responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             } else if (textMessage.startsWith(REPORT_COMMAND)) {
                 int page = 0;
                 LocalDate dateNow = LocalDate.now();
@@ -289,7 +315,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                         formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
                         " (" + subscription.getCount() + ")\n";
             }
-            String canceled = Boolean.TRUE.equals(trainingEvent.getCanceled()) ? "ОТМЕНЕНО\n" : "";
+            String canceled = Boolean.TRUE.equals(trainingEvent.getCanceled()) ? "ОТМЕНЕНО (" + trainingEvent.getCancellationReason() + ")\n" : "";
             String unplanned = Boolean.TRUE.equals(trainingEvent.getUnplanned()) ? "НЕЗАПЛАНИРОВАНО\n" : "";
 
             buf.append(formatDate(trainingEvent.getDateTime())).append(" ").append(DateUtils.getDayOfWeek(trainingEvent.getDateTime())).append("\n")
@@ -307,13 +333,17 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
     private String getReportStatistic(List<TrainingEvent> trainingEventList) {
         if (trainingEventList.isEmpty()) {
-            return "Статистика отсутствует";
+            return "Статистика отсутствует\n";
         }
 
         List<TrainingEvent> nonCaceledTrainingEventList = trainingEventList
                 .stream()
                 .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
                 .collect(Collectors.toList());
+
+        if (nonCaceledTrainingEventList.isEmpty())  {
+            return "Нет тренировок за указанный период\n";
+        }
 
         StringBuilder buf = new StringBuilder();
 

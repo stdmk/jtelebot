@@ -145,4 +145,5 @@
     <include file="db/changelog/20230501080600_tvprogram_correction.xml"/>
     <include file="db/changelog/20230501085100_added_command_Calendar.xml"/>
     <include file="db/changelog/20230501124800_update_Calendar_help.xml"/>
+    <include file="db/changelog/20230506103800_update_TrainingEvent_add_cancelation_reason.xml"/>
 </databaseChangeLog>
