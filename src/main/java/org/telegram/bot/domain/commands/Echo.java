@@ -40,6 +40,9 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     private final BotStats botStats;
     private final TalkerDegreeService talkerDegreeService;
 
+    private static final Pattern WORDS_PATTERN = Pattern.compile("[а-яА-Я]{3,}", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern PHRASES_PATTERN = Pattern.compile("([^.!?),]+[.!?]?)", Pattern.UNICODE_CHARACTER_CLASS);
+
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
@@ -205,18 +208,17 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private List<String> getWordsFromText(String text) {
-        return parseText("[а-яА-Я]{3,}", text);
+        return parseText(WORDS_PATTERN, text);
     }
 
     private List<String> getPhrasesFromText(String text) {
-        return parseText("([^.!?),]+[.!?]?)", text);
+        return parseText(PHRASES_PATTERN, text);
     }
 
-    private List<String> parseText(String regex, String text) {
+    private List<String> parseText(Pattern pattern, String text) {
         List<String> result = new ArrayList<>();
 
         if (text != null) {
-            Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CHARACTER_CLASS);
             Matcher matcher = pattern.matcher(text);
             while (matcher.find()) {
                 result.add(text.substring(matcher.start(), matcher.end()));

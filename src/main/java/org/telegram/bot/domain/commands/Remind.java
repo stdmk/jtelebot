@@ -76,6 +76,18 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     private static final Pattern SET_FULL_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})\\.(\\d{4})");
     private static final Pattern SET_SHORT_DATE_PATTERN = Pattern.compile(SET_DATE + "(\\d{2})\\.(\\d{2})");
     private static final Pattern SET_TIME_PATTERN = Pattern.compile(SET_TIME + "(\\d{2}):(\\d{2})");
+    private static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+    private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2})");
+    private static final Pattern AFTER_HOURS_TIME_PATTERN = Pattern.compile("\\d+");
+    private static final Pattern AFTER_MINUTES_PATTERN = Pattern.compile("через\\s+(\\d+)\\s+((\\bминуту\\b)|(\\bминуты\\b)|(\\bминут\\b))");
+    private static final Pattern AFTER_HOURS_PATTERN = Pattern.compile("через\\s+(\\d+)\\s+((\\bчас\\b)|(\\bчаса\\b)|(\\bчасов\\b))");
+    private static final Pattern AFTER_DAYS_PATTERN = Pattern.compile("через\\s+(\\d+)\\s+((\\bдень\\b)|(\\bдня\\b)|(\\bдней\\b))");
+    private static final Pattern ID_PATTERN = Pattern.compile("s\\d+");
+    private static final Pattern SET_ID_PATTERN = Pattern.compile(SET_REMINDER + "\\d+");
+    private static final Pattern SET_NOTIFIED_PATTERN = Pattern.compile(SET_REMINDER + "\\d+" + SET_NOTIFIED);
+    private static final Pattern SET_REPEATABLE_PATTERN = Pattern.compile(SET_REMINDER + "\\d+" + SET_REPEATABLE);
+    private static final Pattern POSTPONE_PATTERN = Pattern.compile("P(?!$)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?");
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -169,15 +181,13 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         LocalDate reminderDate = null;
         LocalTime reminderTime = null;
 
-        String datePatternString = "(\\d{2})\\.(\\d{2})\\.(\\d{4})";
-        Pattern fullDatePattern = Pattern.compile(datePatternString);
-        Matcher matcher = fullDatePattern.matcher(command);
+        Pattern datePattern = FULL_DATE_PATTERN;
+        Matcher matcher = datePattern.matcher(command);
         if (matcher.find()) {
             reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()));
         } else {
-            datePatternString = "(\\d{2})\\.(\\d{2})";
-            Pattern shortDatePattern = Pattern.compile(datePatternString);
-            matcher = shortDatePattern.matcher(command);
+            datePattern = SHORT_DATE_PATTERN;
+            matcher = datePattern.matcher(command);
             if (matcher.find()) {
                 try {
                     reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()), LocalDate.now().getYear());
@@ -186,15 +196,13 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             }
         }
 
-        String timePatternString = "(\\d{2}):(\\d{2})";
-        Pattern timePattern = Pattern.compile(timePatternString);
-        matcher = timePattern.matcher(command);
+        matcher = TIME_PATTERN.matcher(command);
         if (matcher.find()) {
             reminderTime = getTimeFromText(command.substring(matcher.start(), matcher.end()));
         }
 
         if (reminderTime != null) {
-            command = command.replaceFirst(timePatternString, "").trim();
+            command = command.replaceFirst(TIME_PATTERN.pattern(), "").trim();
         } else {
             String afterMinutesPhrase = getAfterMinutesPhrase(command);
             if (afterMinutesPhrase != null) {
@@ -230,7 +238,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (reminderDate != null) {
-            command = command.replaceFirst(datePatternString, "").trim();
+            command = command.replaceFirst(datePattern.pattern(), "").trim();
         } else {
             String afterDaysPhrase = getAfterDaysPhrase(command);
             if (afterDaysPhrase != null) {
@@ -288,8 +296,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Pattern afterMinutesPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bминуту\\b)|(\\bминуты\\b)|(\\bминут\\b))");
-        Matcher matcher = afterMinutesPattern.matcher(text);
+        Matcher matcher = AFTER_MINUTES_PATTERN.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -303,8 +310,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Pattern afterHoursPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bчас\\b)|(\\bчаса\\b)|(\\bчасов\\b))");
-        Matcher matcher = afterHoursPattern.matcher(text);
+        Matcher matcher = AFTER_HOURS_PATTERN.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -318,8 +324,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Pattern afterDaysPattern = Pattern.compile("через\\s+(\\d+)\\s+((\\bдень\\b)|(\\bдня\\b)|(\\bдней\\b))");
-        Matcher matcher = afterDaysPattern.matcher(text);
+        Matcher matcher = AFTER_DAYS_PATTERN.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -329,9 +334,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private Integer getValueFromAfterTimePhrase(String text) {
-        String afterHoursTimePattern = "\\d+";
-        Pattern fullDatePattern = Pattern.compile(afterHoursTimePattern);
-        Matcher matcher = fullDatePattern.matcher(text);
+        Matcher matcher = AFTER_HOURS_TIME_PATTERN.matcher(text);
 
         if (matcher.find()) {
             int value = Integer.parseInt(text.substring(matcher.start(), matcher.end()));
@@ -350,8 +353,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         Reminder reminder = null;
         String caption = "";
-        Pattern idPattern = Pattern.compile("s\\d+");
-        Matcher matcher = idPattern.matcher(command);
+        Matcher matcher = ID_PATTERN.matcher(command);
         if (matcher.find()) {
             try {
                 reminder = reminderService.get(
@@ -413,8 +415,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     private EditMessageText setReminderByCallback(Message message, Chat chat, User user, String command) {
         Reminder reminder;
 
-        Pattern idPattern = Pattern.compile(SET_REMINDER + "\\d+");
-        Matcher reminderIdMatcher = idPattern.matcher(command);
+        Matcher reminderIdMatcher = SET_ID_PATTERN.matcher(command);
         if (reminderIdMatcher.find()) {
             long reminderId;
             try {
@@ -433,8 +434,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         List<List<InlineKeyboardButton>> rowsWithButtons = new ArrayList<>();
         String caption = "";
-        Matcher setNotifiedMatcher = Pattern.compile(SET_REMINDER + "\\d+" + SET_NOTIFIED).matcher(command);
-        Matcher setRepeatableMatcher = Pattern.compile(SET_REMINDER + "\\d+" + SET_REPEATABLE).matcher(command);
+        Matcher setNotifiedMatcher = SET_NOTIFIED_PATTERN.matcher(command);
+        Matcher setRepeatableMatcher = SET_REPEATABLE_PATTERN.matcher(command);
         Matcher setFullDateMatcher = SET_FULL_DATE_PATTERN.matcher(command);
         Matcher setTimeMatcher = SET_TIME_PATTERN.matcher(command);
 
@@ -470,8 +471,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                         SET_DATE + dateFormatter.format(reminder.getDate()) + SET_TIME);
             }
         } else {
-            Pattern postponePattern = Pattern.compile("P(?!$)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?");
-            Matcher setPostponeMatcher = postponePattern.matcher(command);
+            Matcher setPostponeMatcher = POSTPONE_PATTERN.matcher(command);
             if (setPostponeMatcher.find()) {
                 TemporalAmount temporalAmount;
                 String rawValue = command.substring(setPostponeMatcher.start(), setPostponeMatcher.end());

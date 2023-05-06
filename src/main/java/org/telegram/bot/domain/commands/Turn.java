@@ -30,6 +30,9 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     private final CommandPropertiesService commandPropertiesService;
     private final BotStats botStats;
 
+    private static final Pattern RU_SYMBOLS_PATTERN = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern UNTURNED_WORD_SYMPTOM =  Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
+
     @Override
     public SendMessage parse(Update update) {
         final String ruLayout = " 1234567890-=йцукенгшщзхъфывапролджэячсмитьбю.\\!\"№;%:?*()_+ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,/";
@@ -78,11 +81,9 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         textMessage = deleteWordsInText("@", textMessage);
         textMessage = deleteWordsInText("http", textMessage);
 
-        Pattern pattern = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher matcher = pattern.matcher(textMessage);
+        Matcher matcher = RU_SYMBOLS_PATTERN.matcher(textMessage);
         if (!matcher.find()) {
-            pattern = Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
-            matcher = pattern.matcher(textMessage);
+            matcher = UNTURNED_WORD_SYMPTOM.matcher(textMessage);
             if (matcher.find()) {
                 String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
                 Update newUpdate = copyUpdate(update);

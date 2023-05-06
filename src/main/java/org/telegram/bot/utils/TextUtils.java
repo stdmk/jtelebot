@@ -13,6 +13,10 @@ public class TextUtils {
 
     public static final String BORDER = "-----------------------------\n";
 
+    private static final Pattern COMMAND_PATTERN = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern WORD_PATTERN = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
+
     /**
      * Gets a potential command from text.
      *
@@ -23,12 +27,10 @@ public class TextUtils {
         if (text.charAt(0) == '/') {
             text = text.substring(1);
         }
-        Pattern pattern = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = COMMAND_PATTERN.matcher(text);
         if (matcher.find()) {
             String buf = matcher.group(0).trim();
-            pattern = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
-            matcher = pattern.matcher(buf);
+            matcher = WORD_PATTERN.matcher(buf);
             if (matcher.find()) {
                 return buf.substring(0, buf.length() - 1).toLowerCase();
             }
@@ -198,8 +200,7 @@ public class TextUtils {
 
     @Nullable
     public static String getFileNameFromUrl(String url) {
-        Pattern fileNamePattern = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
-        Matcher matcher = fileNamePattern.matcher(url);
+        Matcher matcher = FILE_NAME_PATTERN.matcher(url);
 
         if (matcher.find()) {
             return url.substring(matcher.start() + 1, matcher.end());
