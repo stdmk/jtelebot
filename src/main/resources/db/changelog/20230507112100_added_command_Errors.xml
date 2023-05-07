@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230507112100-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="59"/>
+            <column name="name" value="Ошибки"/>
+            <column name="description" value="Список возникших в боте ошибок"/>
+            <column name="params" value="[идентификатор]"/>
+            <column name="examples" value="Ошибки, errors_1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230507112100-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="59"/>
+            <column name="commandname" value="errors"/>
+            <column name="russifiedname" value="ошибки"/>
+            <column name="enruname" value="jib,rb"/>
+            <column name="classname" value="errors"/>
+            <column name="accesslevel" value="10"/>
+            <column name="help" value="59"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

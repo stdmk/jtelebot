@@ -155,7 +155,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         try {
             reminderId = Long.parseLong(command.substring(INFO_REMINDER.length()));
         } catch (NumberFormatException e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(message, e, "ошибка при попытке парсинга идентификатора Напоминания");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 

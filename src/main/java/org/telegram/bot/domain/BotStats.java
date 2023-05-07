@@ -6,8 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.WorkParam;
+import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.WorkParamService;
 import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -23,41 +25,26 @@ import static org.telegram.bot.utils.DateUtils.getDuration;
 @Slf4j
 public class BotStats {
     private final WorkParamService workParamService;
-
+    private final ErrorService errorService;
     private final PropertiesConfig propertiesConfig;
 
     private final String botToken;
-
     private final LocalDateTime botStartDateTime;
-
     private Integer receivedMessages;
-
     private Long totalReceivedMessages;
-
     @Getter(value = AccessLevel.NONE)
     private Long totalRunningTime;
-
     @Getter(value = AccessLevel.NONE)
     private LocalDateTime lastTotalRunningCheck;
-
     private Integer commandsProcessed;
-
     private Long totalCommandsProcessed;
-
     private Integer errors;
-
     private Integer screenshots;
-
     private Integer googleRequests;
-
     private Integer kinopoiskRequests;
-
     private Integer wolframRequests;
-
     private Integer russianPostRequests;
-
     private Long lastTvUpdate;
-
     private Long lastTracksUpdate;
 
     private static final String TOTAL_RECEIVED_MESSAGES = "totalReceivedMessages";
@@ -79,8 +66,9 @@ public class BotStats {
                                                             LAST_TV_UPDATE,
                                                             LAST_TRACKS_UPDATE);
 
-    public BotStats(WorkParamService workParamService, PropertiesConfig propertiesConfig) {
+    public BotStats(WorkParamService workParamService, ErrorService errorService, PropertiesConfig propertiesConfig) {
         this.workParamService = workParamService;
+        this.errorService = errorService;
         this.propertiesConfig = propertiesConfig;
         this.botToken = propertiesConfig.getTelegramBotApiToken();
 
@@ -109,8 +97,24 @@ public class BotStats {
         this.totalCommandsProcessed = this.totalCommandsProcessed + 1;
     }
 
-    public void incrementErrors() {
+    public void incrementErrors(PartialBotApiMethod<?> response, Throwable throwable, String comment) {
         this.errors = this.errors + 1;
+        errorService.save(response, throwable, comment);
+    }
+
+    public void incrementErrors(Object request, String comment) {
+        this.errors = this.errors + 1;
+        errorService.save(request, comment);
+    }
+
+    public void incrementErrors(Object request, Throwable throwable, String comment) {
+        this.errors = this.errors + 1;
+        errorService.save(request, throwable, comment);
+    }
+
+    public void incrementErrors(Object request, PartialBotApiMethod<?> response, Throwable throwable, String comment) {
+        this.errors = this.errors + 1;
+        errorService.save(request, response, throwable, comment);
     }
 
     public void incrementScreenshots() {

@@ -242,7 +242,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
-                botStats.incrementErrors();
+                botStats.incrementErrors(message, "Запрошен несуществующий абонемент при обновлении даты окончания");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 
@@ -260,7 +260,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
-                botStats.incrementErrors();
+                botStats.incrementErrors(message, "Запрошен несуществующий абонемент при удалении абонемента");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 
@@ -734,7 +734,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         try {
             return Long.parseLong(text.substring(beginIndex));
         } catch (NumberFormatException e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(text, e, "Не удалось распарсить идентификатор");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
     }
@@ -794,7 +794,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
-            botStats.incrementErrors();
+            botStats.incrementErrors(matcher, "Не удалось распарсить" + parse.toString());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
     }

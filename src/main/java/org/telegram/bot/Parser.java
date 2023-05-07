@@ -46,12 +46,20 @@ public class Parser extends Thread {
         try {
             bot.execute(sendChatAction);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(update, sendChatAction, e, "ошибка при отправке Action печатает...");
             log.error("Error: cannot send chat action: {}", e.getMessage());
         }
 
+        PartialBotApiMethod<?> method;
         try {
-            PartialBotApiMethod<?> method = command.parse(update);
+            method = command.parse(update);
+        } catch (Exception e) {
+            botStats.incrementErrors(update, e, "неожиданная ошибка при обработке команды ботом");
+            log.error("Unexpected error: ", e);
+            return;
+        }
+
+        try {
             if (method == null) {
                 return;
             }
@@ -93,10 +101,10 @@ public class Parser extends Thread {
                 bot.execute(deleteMessage);
             }
         } catch (TelegramApiRequestException e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(update, method, e, "ошибка при отправке ответа");
             log.error("Error: cannot send response: {}", e.getApiResponse());
         } catch (TelegramApiException e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(update, method, e, "ошибка при отправке ответа");
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (BotException botException) {
             try {
@@ -110,7 +118,7 @@ public class Parser extends Thread {
                 log.error("Error: cannot send response: {}", e.getMessage());
             }
         } catch (Exception e) {
-            botStats.incrementErrors();
+            botStats.incrementErrors(update, method, e, "неожиданная верхнеуровневая ошибка");
             log.error("Unexpected error: ", e);
         }
 

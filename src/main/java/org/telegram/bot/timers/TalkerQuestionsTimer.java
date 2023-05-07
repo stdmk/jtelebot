@@ -80,7 +80,7 @@ public class TalkerQuestionsTimer extends TimerParent {
                     lastAlertBotMessageMap.put(chatId, dateTimeNow);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
-                    botStats.incrementErrors();
+                    botStats.incrementErrors(sendMessage, e, "ошибка отправки сообщения с вопросом от бота");
                 }
             }
         });
