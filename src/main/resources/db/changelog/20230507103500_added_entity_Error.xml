@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20230507103500-1" author="stdmk">
+        <createTable tableName="error" schemaName="bot">
+            <column name="id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="date_time" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="request" type="text"/>
+            <column name="response" type="text"/>
+            <column name="comment" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="stacktrace" type="text"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

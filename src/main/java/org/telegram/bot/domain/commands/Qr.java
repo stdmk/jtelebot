@@ -141,7 +141,7 @@ public class Qr implements CommandParent<PartialBotApiMethod<?>>, TextAnalyzer {
                 bot.execute(sendMessage);
             } catch (TelegramApiException e) {
                 log.error("Cannot send response: {}", e.getMessage());
-                botStats.incrementErrors();
+                botStats.incrementErrors(update, sendMessage, e, "Ошибка при отправке расшифровки qr-кода");
             }
         }
     }
