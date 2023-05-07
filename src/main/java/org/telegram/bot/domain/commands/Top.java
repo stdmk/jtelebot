@@ -14,6 +14,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -210,7 +211,7 @@ public class Top implements CommandParent<SendMessage> {
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
         int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(method, userStatsList);
 
-        StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n<code>");
+        StringBuilder responseText = new StringBuilder("<b>Топ ").append(sortParam.getParamNames().get(0)).append(":</b>\n");
         AtomicInteger counter = new AtomicInteger(1);
         AtomicLong total = new AtomicLong(0L);
 
@@ -224,13 +225,19 @@ public class Top implements CommandParent<SendMessage> {
 
             if (value != 0) {
                 total.set(total.get() + value);
+                User user = userStats.getUser();
+                String username = user.getUsername();
+
                 responseText
+                        .append(TextUtils.getLinkToUser(user, true, "@")).append(" ")
+                        .append("<code>")
                         .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
                         .append(String.format("%-" + spacesAfterNumberOfMessageCount + "s", value))
-                        .append(userStats.getUser().getUsername()).append("\n");
+                        .append(username)
+                        .append("</code>\n");
             }
         });
-        responseText.append("</code>").append("Итого: <b>").append(total.get()).append("</b>");
+        responseText.append("Итого: <b>").append(total.get()).append("</b>");
 
         return responseText.toString();
     }

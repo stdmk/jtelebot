@@ -100,19 +100,23 @@ public class TextUtils {
         return text;
     }
 
-    public static String getLinkToUser(User user, Boolean htmlMode) {
-        return getLinkToUser(user.getUserId(), user.getUsername(), htmlMode);
+    public static String getLinkToUser(User user, boolean htmlMode) {
+        return getLinkToUser(user.getUserId(), htmlMode, user.getUsername());
     }
 
-    public static String getLinkToUser(org.telegram.telegrambots.meta.api.objects.User user, Boolean htmlMode) {
-        return getLinkToUser(user.getId(), user.getUserName(), htmlMode);
+    public static String getLinkToUser(org.telegram.telegrambots.meta.api.objects.User user, boolean htmlMode) {
+        return getLinkToUser(user.getId(), htmlMode, user.getUserName());
     }
 
-    public static String getLinkToUser(Long userId, String userName, Boolean htmlMode) {
+    public static String getLinkToUser(User user, boolean htmlMode, String caption) {
+        return getLinkToUser(user.getUserId(), htmlMode, caption);
+    }
+
+    public static String getLinkToUser(Long userId, boolean htmlMode, String caption) {
         if (htmlMode) {
-            return "<a href=\"tg://user?id=" + userId + "\">" + userName + "</a>";
+            return "<a href=\"tg://user?id=" + userId + "\">" + caption + "</a>";
         }
-        return "[" + userName + "](tg://user?id=" + userId + ")";
+        return "[" + caption + "](tg://user?id=" + userId + ")";
     }
 
     public static String wrapTextToSpoiler(String text) {
