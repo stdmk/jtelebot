@@ -162,10 +162,17 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
                 buf.append("\n").append("<i>").append(TextUtils.cutIfLongerThan(description, descriptionSymbolsLimit)).append("</i>\n\n"));
         ifPresentAndNotEmpty(movie.getPersons(), persons -> {
             buf.append("В ролях: ");
-            persons.stream().limit(9).forEach(person -> buf.append(person.getName()).append(", "));
+
+            persons
+                    .stream()
+                    .limit(9)
+                    .map(person -> person.getName() == null ? person.getEnName() : person.getName())
+                    .forEach(name -> buf.append(name).append(", "));
             if (persons.size() >= 10) {
-                buf.append(persons.get(9).getName()).append("\n\n");
+                buf.append(persons.get(9).getName());
             }
+
+            buf.append("\n\n");
         });
         ifPresentAndNotEmpty(movie.getVideos(), videos -> {
             List<Video> videosList = new ArrayList<>();
