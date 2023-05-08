@@ -143,7 +143,7 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         ifPresentAndNotEmpty(movie.getAgeRating(), age -> buf.append(" ").append(age).append("+\n"));
         buf.append("\n");
         ifPresentAndNotEmpty(movie.getMovieLength(), movieLength ->
-                buf.append("Время: <b>").append(movieLength).append(" м.</b> (")
+                buf.append("Продолжительность: <b>").append(movieLength).append(" м.</b> (")
                         .append(DateUtils.durationToString(movieLength * 60 * 1000)).append(")\n"));
         ifPresentAndNotEmpty(movie.getTop10(), top10 ->
                 buf.append(Emoji.TROPHY.getEmoji()).append(" топ10 (").append(top10).append(")\n"));
