@@ -122,7 +122,8 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         StringBuilder buf = new StringBuilder();
 
         movieSearchResult.getDocs().forEach(movie -> {
-            buf.append("/movie_").append(movie.getId()).append(" — <b>").append(movie.getName()).append("</b>\n");
+            buf.append("/movie_").append(movie.getId()).append(" — <b>").append(movie.getName()).append("</b>")
+                    .append(" (").append(movie.getYear()).append(")\n");
             ifPresentAndNotEmpty(movie.getShortDescription(), shortDescription ->
                     buf.append(shortDescription).append("\n"));
             buf.append("\n");
