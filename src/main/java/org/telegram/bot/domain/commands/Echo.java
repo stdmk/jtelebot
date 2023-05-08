@@ -135,12 +135,13 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     private String getReply(Set<TalkerPhrase> talkerPhraseSet) {
-        Map<TalkerPhrase, Integer> phrasesRating = new HashMap<>();
+        Map<String, Integer> phrasesRating = new HashMap<>();
         talkerPhraseSet.forEach(talkerPhrase -> {
-            if (phrasesRating.containsKey(talkerPhrase)) {
-                phrasesRating.put(talkerPhrase, phrasesRating.get(talkerPhrase) + 1);
+            String phrase = talkerPhrase.getPhrase();
+            if (phrasesRating.containsKey(phrase)) {
+                phrasesRating.put(phrase, phrasesRating.get(phrase) + 1);
             } else {
-                phrasesRating.put(talkerPhrase, 1);
+                phrasesRating.put(phrase, 1);
             }
         });
 
@@ -148,17 +149,16 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         Integer maxValue = phrasesRating.values().stream().max(Integer::compareTo).orElse(null);
         if (maxValue != null) {
             int premaxValue = maxValue - 2;
-            List<TalkerPhrase> talkerPhraseWithHighRatingList = phrasesRating.entrySet()
+            List<String> talkerPhraseWithHighRatingList = phrasesRating.entrySet()
                     .stream()
                     .filter(entry -> entry.getValue() >= premaxValue)
                     .map(Map.Entry::getKey).collect(Collectors.toList());
 
             int talkerPhrasesWithHighRatingCount = talkerPhraseWithHighRatingList.size();
             if (talkerPhrasesWithHighRatingCount > 1) {
-                selectedPhrase = talkerPhraseWithHighRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithHighRatingCount - 1))
-                        .getPhrase();
+                selectedPhrase = talkerPhraseWithHighRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithHighRatingCount - 1));
             } else {
-                selectedPhrase = talkerPhraseWithHighRatingList.get(0).getPhrase();
+                selectedPhrase = talkerPhraseWithHighRatingList.get(0);
             }
         }
 
@@ -167,11 +167,6 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
     private void parseTalkerData(Message message) {
         log.debug("Start parsing message {} for Talker data", message.getMessageId());
-
-        if (message.getText() == null) {
-            log.debug("Empty message. Nothing to parse");
-            return;
-        }
 
         Message messagesWithWords = message.getReplyToMessage();
         if (messagesWithWords == null) {

@@ -1,0 +1,201 @@
+package org.telegram.bot.domain.commands;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
+import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.services.*;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.*;
+
+@ExtendWith(MockitoExtension.class)
+class EchoTest {
+    @Mock
+    SpeechService speechService;
+    @Mock
+    TalkerWordService talkerWordService;
+    @Mock
+    TalkerPhraseService talkerPhraseService;
+    @Mock
+    CommandPropertiesService commandPropertiesService;
+    @Mock
+    BotStats botStats;
+    @Mock
+    TalkerDegreeService talkerDegreeService;
+    @Mock
+    Bot bot;
+
+    @InjectMocks
+    Echo echo;
+
+    @Test
+    void parseWithEmptyText() {
+        final String expectedResponseText = "чо?";
+        Update update = getUpdate("bot");
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
+
+        SendMessage sendMessage = echo.parse(update);
+
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.ECHO);
+        assertNotNull(sendMessage);
+        assertEquals(expectedResponseText, sendMessage.getText());
+    }
+
+    @Test
+    void parseWithText() {
+        final String expectedResponseText1 = "пока не родила";
+        final String expectedResponseText2 = "нормально";
+        Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
+        Update update = getUpdate("как дела?");
+
+        TalkerPhrase firstPhrase = new TalkerPhrase()
+                .setId(1L)
+                .setChat(chat)
+                .setPhrase(expectedResponseText1);
+        TalkerPhrase secondPhrase = new TalkerPhrase()
+                .setId(2L)
+                .setChat(chat)
+                .setPhrase(expectedResponseText2);
+        TalkerPhrase thirdPhrase = new TalkerPhrase()
+                .setId(2L)
+                .setChat(chat)
+                .setPhrase(expectedResponseText2);
+        java.util.Set<TalkerWord> talkerWords = new HashSet<>(
+                List.of(
+                        new TalkerWord()
+                                .setId(1L)
+                                .setWord("как")
+                                .setPhrases(new HashSet<>(List.of(firstPhrase))),
+                        new TalkerWord()
+                                .setId(2L)
+                                .setWord("дела")
+                                .setPhrases(new HashSet<>(List.of(firstPhrase, secondPhrase))),
+                        new TalkerWord()
+                                .setId(2L)
+                                .setWord("дела")
+                                .setPhrases(new HashSet<>(List.of(thirdPhrase)))
+                        ));
+
+        when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
+
+        SendMessage sendMessage = echo.parse(update);
+        assertNotNull(sendMessage);
+
+        String actualResponseText = sendMessage.getText();
+        assertTrue(expectedResponseText1.equals(actualResponseText) || expectedResponseText2.equals(actualResponseText));
+    }
+
+    @Test
+    void parseWithTextAndOnePhrase() {
+        final String expectedResponseText = "пока не родила";
+        Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
+        Update update = getUpdate("как дела?");
+
+        TalkerPhrase firstPhrase = new TalkerPhrase()
+                .setId(1L)
+                .setChat(chat)
+                .setPhrase(expectedResponseText);
+        java.util.Set<TalkerWord> talkerWords = new HashSet<>(
+                List.of(
+                        new TalkerWord()
+                                .setId(1L)
+                                .setWord("как")
+                                .setPhrases(new HashSet<>(List.of(firstPhrase)))));
+
+        when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
+
+        SendMessage sendMessage = echo.parse(update);
+        assertNotNull(sendMessage);
+
+        String actualResponseText = sendMessage.getText();
+        assertEquals(expectedResponseText, actualResponseText);
+    }
+
+    @Test
+    void analyzeCallbackQueryTest() {
+        CallbackQuery callbackQuery = new CallbackQuery();
+        callbackQuery.setId("id");
+        Update update = new Update();
+        update.setCallbackQuery(callbackQuery);
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+
+    @Test
+    void analyzeWithoutTextMessageTest() {
+        Update update = getUpdate(null);
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+
+    @Test
+    void analyzeWithoutReplyToMessageTest() {
+        Update update = getUpdate();
+        update.getMessage().setReplyToMessage(null);
+
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(talkerDegreeService.get(anyLong())).thenReturn(new TalkerDegree().setDegree(1));
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+
+    @Test
+    void analyzeWithAppealToBot() {
+        Update update = getUpdate("@" + BOT_USERNAME + " как дела?");
+        update.getMessage().setReplyToMessage(null);
+        CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
+
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+
+    @Test
+    void analyzeWithReplyToMessage() {
+        Update update = getUpdate("нормально");
+        org.telegram.telegrambots.meta.api.objects.User user = new org.telegram.telegrambots.meta.api.objects.User();
+        user.setUserName(BOT_USERNAME);
+        Message replyToMessage = new Message();
+        replyToMessage.setFrom(user);
+        replyToMessage.setText("как дела?");
+        update.getMessage().setReplyToMessage(replyToMessage);
+        CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
+
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+
+    @Test
+    void analyzeWithTalkerDegreeWorks() {
+        Update update = getUpdate("как дела?");
+        update.getMessage().setReplyToMessage(null);
+        CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
+        TalkerDegree talkerDegree = new TalkerDegree().setChat(new Chat().setChatId(DEFAULT_CHAT_ID)).setDegree(100);
+
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(talkerDegreeService.get(anyLong())).thenReturn(talkerDegree);
+
+        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+    }
+}
