@@ -1,8 +1,6 @@
 package org.telegram.bot.domain.commands;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +38,7 @@ public class Exchange implements CommandParent<SendMessage> {
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
     private final NetworkUtils networkUtils;
+    private final XmlMapper xmlMapper;
 
     @Override
     public SendMessage parse(Update update) {
@@ -230,10 +229,7 @@ public class Exchange implements CommandParent<SendMessage> {
             xmlUrl = xmlUrl + "?date_req=" + DateTimeFormatter.ofPattern("dd/MM/yyyy").format(date);
         }
 
-        XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
         ValCurs valCurs;
-
         try {
             valCurs = xmlMapper.readValue(networkUtils.readStringFromURL(xmlUrl, Charset.forName("windows-1251")), ValCurs.class);
         } catch (IOException e) {
@@ -256,7 +252,7 @@ public class Exchange implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class ValCurs {
+    public static class ValCurs {
         @XmlAttribute
         private String name;
 
@@ -268,7 +264,7 @@ public class Exchange implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class Valute {
+    public static class Valute {
         @XmlElement(name = "CharCode")
         private String charCode;
 
