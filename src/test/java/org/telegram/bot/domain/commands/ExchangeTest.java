@@ -1,6 +1,7 @@
 package org.telegram.bot.domain.commands;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,8 +17,10 @@ import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,10 +61,7 @@ class ExchangeTest {
 
     @Test
     void parseWithEmptyTextMessage() throws IOException {
-        final String expectedResponseText = "<b>Курс валют ЦБ РФ:</b>\n" +
-                "$ USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
-                "€ EUR = 84,9073 RUB ⬇️ (-4,0650)\n" +
-                "(02.01.2007)";
+        final String expectedResponseText = IOUtils.toString(new FileInputStream("src/test/java/org/telegram/bot/domain/commands/parse_with_empty_text_message_expected_response.txt"), StandardCharsets.UTF_8);
         Update update = TestUtils.getUpdate();
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
@@ -91,9 +91,8 @@ class ExchangeTest {
     @Test
     void getRublesForCurrencyValueWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
-                "Список доступных: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n";
+        final String expectedResponseText = IOUtils.toString(new FileInputStream("src/test/java/org/telegram/bot/domain/commands/get_rubles_for_currency_value_with_unknown_valute_expected_response.txt"), StandardCharsets.UTF_8);
+
         Update update = TestUtils.getUpdate("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -108,8 +107,7 @@ class ExchangeTest {
 
     @Test
     void getRublesForCurrencyValueTest() throws IOException {
-        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n" +
-                "5,0 USD = 384,1035 ₽";
+        final String expectedResponseText = IOUtils.toString(new FileInputStream("src/test/java/org/telegram/bot/domain/commands/get_rubles_for_currency_value_expected_response.txt"), StandardCharsets.UTF_8);
         Update update = TestUtils.getUpdate("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
@@ -124,9 +122,8 @@ class ExchangeTest {
     @Test
     void getExchangeRatesForUnknownCodeTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode.toUpperCase() + "</b>\n" +
-                "Список доступных: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n";
+        final String expectedResponseText = IOUtils.toString(new FileInputStream("src/test/java/org/telegram/bot/domain/commands/get_exchange_rates_for_unknown_code_expected_response.txt"), StandardCharsets.UTF_8);
+
         Update update = TestUtils.getUpdate("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -141,10 +138,7 @@ class ExchangeTest {
 
     @Test
     void getExchangeRatesForCodeTest() throws IOException {
-        final String expectedResponseText = "<b>Доллар США</b>\n" +
-                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
-                "1 RUB = 0,0130 USD\n" +
-                "(02.01.2007)";
+        final String expectedResponseText = IOUtils.toString(new FileInputStream("src/test/java/org/telegram/bot/domain/commands/get_exchange_rates_for_code_expected_response.txt"), StandardCharsets.UTF_8);
         Update update = TestUtils.getUpdate("exchange usd");
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();

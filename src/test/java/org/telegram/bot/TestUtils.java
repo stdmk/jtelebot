@@ -46,6 +46,7 @@ public class TestUtils {
         user.setId(1L);
 
         Message message = new Message();
+        message.setMessageId(1);
         message.setChat(chat);
         message.setFrom(user);
         message.setText(textMessage);
