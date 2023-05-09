@@ -1,9 +1,6 @@
 package org.telegram.bot;
 
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.*;
 
 public class TestUtils {
 
@@ -13,6 +10,28 @@ public class TestUtils {
 
     public static Update getUpdate() {
         return getUpdate(DEFAULT_CHAT_ID, DEFAULT_MESSAGE_TEXT);
+    }
+
+    public static Update getUpdateWithCallback(String callback) {
+        Chat chat = new Chat();
+        chat.setId(DEFAULT_CHAT_ID);
+
+        User user = new User();
+        user.setId(1L);
+
+        Message message = new Message();
+        message.setChat(chat);
+        message.setFrom(user);
+
+        CallbackQuery callbackQuery = new CallbackQuery();
+        callbackQuery.setFrom(user);
+        callbackQuery.setMessage(message);
+        callbackQuery.setData(callback);
+
+        Update update = new Update();
+        update.setCallbackQuery(callbackQuery);
+
+        return update;
     }
 
     public static Update getUpdate(String textMessage) {

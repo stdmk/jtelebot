@@ -27,6 +27,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -49,6 +50,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
     private final Map<Integer, Pair<LocalDate, List<PublicHoliday>>> holidaysData = new ConcurrentHashMap<>(new ConcurrentHashMap<>());
+    private final Clock clock;
 
     private static final Locale LOCALE = new Locale("ru");
     private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
@@ -78,7 +80,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
         LocalDate date;
         String responseText;
         if (textMessage == null) {
-           date = LocalDate.now().withDayOfMonth(1);
+           date = LocalDate.now(clock).withDayOfMonth(1);
            responseText = printCalendarByDate(date, chat, user, true);
         } else {
             date = getDateFromText(textMessage);
@@ -124,17 +126,12 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            int year;
-            try {
-                year = Integer.parseInt(monthNameYearMatcher.group(2));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
+            int year = Integer.parseInt(monthNameYearMatcher.group(2));
 
             date = LocalDate.of(year, monthName.getMonthValue(), 1);
         } else {
             MonthName monthName = MonthName.getByName(text);
-            LocalDate dateNow = LocalDate.now();
+            LocalDate dateNow = LocalDate.now(clock);
 
             if (monthName != null) {
                 date = LocalDate.of(dateNow.getYear(), monthName.getMonthValue(), 1);
@@ -229,7 +226,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
     private List<PublicHoliday> getPublicHolidays(int year) {
         List<PublicHoliday> holidayList;
 
-        LocalDate dateNow = LocalDate.now();
+        LocalDate dateNow = LocalDate.now(clock);
         Pair<LocalDate, List<PublicHoliday>> holidays = holidaysData.get(year);
         if (holidays == null || holidays.getFirst().isAfter(dateNow.plusMonths(1))) {
             holidayList = getPublicHolidaysFromApi(year);
@@ -273,7 +270,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class PublicHoliday {
+    public static class PublicHoliday {
         private LocalDate date;
         private String localName;
     }
