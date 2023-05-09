@@ -54,7 +54,6 @@ public class UserStatsCleanerTimerTask extends TimerParent {
     private void checkMonthlyStats() {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
-            log.error("Unable to read timer statsCleanTimer. Creating new...");
             timer = new Timer()
                     .setName("statsCleanTimer")
                     .setLastAlarmDt(atStartOfDay(LocalDateTime.now().plusMonths(1).withDayOfMonth(1)));
