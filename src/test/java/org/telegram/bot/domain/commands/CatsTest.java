@@ -25,14 +25,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CatsTest {
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    RestTemplate botRestTemplate;
+    private RestTemplate botRestTemplate;
     @Mock
-    ResponseEntity<Object> response;
+    private ResponseEntity<Object> response;
 
     @InjectMocks
-    Cats cats;
+    private Cats cats;
 
     @Test
     void parseWithArgumentsTest() {

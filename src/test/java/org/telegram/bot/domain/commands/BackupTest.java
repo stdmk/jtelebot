@@ -19,12 +19,12 @@ import static org.mockito.Mockito.when;
 class BackupTest {
 
     @Mock
-    EntityManager entityManager;
+    private EntityManager entityManager;
     @Mock
-    Query query;
+    private Query query;
 
     @InjectMocks
-    Backup backup;
+    private Backup backup;
 
     @Test
     void parseTest() {

@@ -32,16 +32,16 @@ import static org.mockito.Mockito.when;
 class DownloadTest {
 
     @Mock
-    NetworkUtils networkUtils;
+    private NetworkUtils networkUtils;
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    CommandWaitingService commandWaitingService;
+    private CommandWaitingService commandWaitingService;
     @Mock
-    InputStream fileFromUrl;
+    private InputStream fileFromUrl;
 
     @InjectMocks
-    Download download;
+    private Download download;
 
     private final static String DEFAULT_FILE_NAME = "file";
     private final static String FILE_NAME = "favicon.ico";

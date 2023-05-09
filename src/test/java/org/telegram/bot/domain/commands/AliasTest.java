@@ -27,24 +27,24 @@ import static org.mockito.Mockito.when;
 class AliasTest {
 
     @Mock
-    ApplicationContext context;
+    private ApplicationContext context;
     @Mock
-    BotStats botStats;
+    private BotStats botStats;
     @Mock
-    AliasService aliasService;
+    private AliasService aliasService;
     @Mock
-    UserService userService;
+    private UserService userService;
     @Mock
-    UserStatsService userStatsService;
+    private UserStatsService userStatsService;
     @Mock
-    CommandPropertiesService commandPropertiesService;
+    private CommandPropertiesService commandPropertiesService;
     @Mock
-    Bot bot;
+    private Bot bot;
     @Mock
-    Echo echo;
+    private Echo echo;
 
     @InjectMocks
-    Alias alias;
+    private Alias alias;
 
     @Test
     void parseTest() {

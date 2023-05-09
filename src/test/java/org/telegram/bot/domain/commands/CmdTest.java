@@ -17,10 +17,10 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class CmdTest {
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
 
     @InjectMocks
-    Cmd cmd;
+    private Cmd cmd;
 
     @Test
     void parseEmptyParamsTest() {

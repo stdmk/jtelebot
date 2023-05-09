@@ -27,16 +27,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CalculatorTest {
     @Mock
-    CommandWaitingService commandWaitingService;
+    private CommandWaitingService commandWaitingService;
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    RestTemplate defaultRestTemplate;
+    private RestTemplate defaultRestTemplate;
     @Mock
-    ResponseEntity<Object> response;
+    private ResponseEntity<Object> response;
 
     @InjectMocks
-    Calculator calculator;
+    private Calculator calculator;
 
     @Test
     void parseWithEmptyTextTest() {

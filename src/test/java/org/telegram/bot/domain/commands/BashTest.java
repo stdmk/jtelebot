@@ -29,12 +29,12 @@ import static org.mockito.Mockito.when;
 class BashTest {
 
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    NetworkUtils networkUtils;
+    private NetworkUtils networkUtils;
 
     @InjectMocks
-    Bash bash;
+    private Bash bash;
 
     @Test
     void parseRandomQuotTest() throws IOException {

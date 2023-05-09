@@ -27,22 +27,22 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class EchoTest {
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    TalkerWordService talkerWordService;
+    private TalkerWordService talkerWordService;
     @Mock
-    TalkerPhraseService talkerPhraseService;
+    private TalkerPhraseService talkerPhraseService;
     @Mock
-    CommandPropertiesService commandPropertiesService;
+    private CommandPropertiesService commandPropertiesService;
     @Mock
-    BotStats botStats;
+    private BotStats botStats;
     @Mock
-    TalkerDegreeService talkerDegreeService;
+    private TalkerDegreeService talkerDegreeService;
     @Mock
-    Bot bot;
+    private Bot bot;
 
     @InjectMocks
-    Echo echo;
+    private Echo echo;
 
     @Test
     void parseWithEmptyText() {

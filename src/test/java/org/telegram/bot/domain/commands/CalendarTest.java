@@ -29,18 +29,18 @@ import static org.mockito.Mockito.when;
 class CalendarTest {
 
     @Mock
-    UserCityService userCityService;
+    private UserCityService userCityService;
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    RestTemplate botRestTemplate;
+    private RestTemplate botRestTemplate;
     @Mock
-    Clock clock;
+    private Clock clock;
     @Mock
-    ResponseEntity<Object> responseEntity;
+    private ResponseEntity<Object> responseEntity;
 
     @InjectMocks
-    Calendar calendar;
+    private Calendar calendar;
 
     @Test
     void printCurrentCalendarTest() {
