@@ -1084,8 +1084,8 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     @Getter
     private enum DateKeyword {
         TODAY("сегодня", LocalDate::now),
-        TOMORROW("завтра", () -> LocalDate.now().plusDays(1)),
         AFTER_TOMORROW("послезавтра", () -> LocalDate.now().plusDays(2)),
+        TOMORROW("завтра", () -> LocalDate.now().plusDays(1)),
         MONDAY("в понедельник", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))),
         TUESDAY("во вторник", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY))),
         WEDNESDAY("в среду", () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))),
