@@ -2,6 +2,8 @@ package org.telegram.bot.domain.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -79,9 +81,9 @@ class CalculatorTest {
         assertEquals(expectedErrorText, actualErrorText);
     }
 
-    @Test
-    void parseTest() {
-        final int expressionResult = 6;
+    @ParameterizedTest
+    @ValueSource(strings = {"6", "Infinite"})
+    void parseTest(String expressionResult) {
         final String expectedResponseText = "`" + expressionResult + "`";
 
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
