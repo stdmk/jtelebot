@@ -759,7 +759,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithReminderInfo(List<List<InlineKeyboardButton>> rows, Reminder reminder) {
-        addMainRows(rows, reminder);
+        addMainRows(rows, reminder, false);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
@@ -790,6 +790,12 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false);
         }
 
+        boolean deleteReminderMessage = false;
+        if (command.endsWith(CLOSE_REMINDER_MENU)) {
+            command = command.substring(0, command.length() - 1);
+            deleteReminderMessage = true;
+        }
+
         long reminderId;
         try {
             reminderId = Long.parseLong(command.substring(DELETE_COMMAND.length()));
@@ -806,11 +812,14 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             reminderService.remove(reminder);
         } catch (Exception ignored) {}
 
-        DeleteMessage deleteMessage = new DeleteMessage();
-        deleteMessage.setChatId(chat.getChatId());
-        deleteMessage.setMessageId(message.getMessageId());
+        if (deleteReminderMessage) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(chat.getChatId());
+            deleteMessage.setMessageId(message.getMessageId());
+            return deleteMessage;
+        }
 
-        return deleteMessage;
+        return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false);
     }
 
     private PartialBotApiMethod<?> getReminderListWithKeyboard(Message message, Chat chat, User user, int page, boolean newMessage) {
@@ -990,7 +999,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
                         generatePostponeButton(reminderId, "Месяц", Period.ofMonths(1)),
                         generatePostponeButton(reminderId, "Год", Period.ofYears(1))));
 
-        addMainRows(rows, reminder);
+        addMainRows(rows, reminder, true);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
@@ -1018,16 +1027,20 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         return text.replaceFirst(foundKeyword, "");
     }
 
-    private static void addMainRows(List<List<InlineKeyboardButton>> rows, Reminder reminder) {
+    private static void addMainRows(List<List<InlineKeyboardButton>> rows, Reminder reminder, boolean fromPostponeMenu) {
         Long reminderId = reminder.getId();
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
         setReminderButton.setText(Emoji.SETTINGS.getEmoji());
         setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
 
+        String deleteCommand = CALLBACK_DELETE_COMMAND + reminderId;
+        if (fromPostponeMenu) {
+            deleteCommand = deleteCommand + CLOSE_REMINDER_MENU;
+        }
         InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
         deleteReminderButton.setText(Emoji.DELETE.getEmoji());
-        deleteReminderButton.setCallbackData(CALLBACK_DELETE_COMMAND + reminderId);
+        deleteReminderButton.setCallbackData(deleteCommand);
 
         String notifiedCaption;
         if (reminder.getNotified()) {
