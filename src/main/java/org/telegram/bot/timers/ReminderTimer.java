@@ -44,6 +44,7 @@ public class ReminderTimer extends TimerParent {
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setChatId(chat.getChatId());
                 sendMessage.enableHtml(true);
+                sendMessage.disableWebPagePreview();
                 sendMessage.setText(Remind.prepareTextOfReminder(reminder));
                 sendMessage.setReplyMarkup(Remind.preparePostponeKeyboard(reminder));
 

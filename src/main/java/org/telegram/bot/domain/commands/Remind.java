@@ -168,6 +168,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessage.setChatId(message.getChatId().toString());
         editMessage.setMessageId(message.getMessageId());
         editMessage.enableHtml(true);
+        editMessage.disableWebPagePreview();
         editMessage.setText(prepareReminderInfoText(reminder));
         editMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder));
 
@@ -285,6 +286,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
+        sendMessage.disableWebPagePreview();
         sendMessage.setText(prepareReminderInfoText(reminder));
         sendMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder));
 
@@ -406,6 +408,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
+        sendMessage.disableWebPagePreview();
         sendMessage.setText(prepareReminderInfoText(reminder) + "<b>" + caption + "</b>");
         sendMessage.setReplyMarkup(keyboard);
 
@@ -512,6 +515,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
+        editMessageText.disableWebPagePreview();
         editMessageText.setText(prepareReminderInfoText(reminder) + "<b>" + caption + "</b>");
         editMessageText.setReplyMarkup(keyboard);
 
@@ -773,6 +777,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
+        editMessageText.disableWebPagePreview();
         editMessageText.setText(addingHelpText);
 
         return editMessageText;
@@ -819,6 +824,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.enableHtml(true);
+            sendMessage.disableWebPagePreview();
             sendMessage.setText(caption);
             sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
@@ -829,6 +835,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
+        editMessageText.disableWebPagePreview();
         editMessageText.setText(caption);
         editMessageText.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
 
