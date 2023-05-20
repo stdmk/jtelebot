@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -16,7 +15,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -27,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class DownloadTest {
@@ -49,18 +48,16 @@ class DownloadTest {
 
     @Test
     void parseWithEmptyArgumentTest() {
-        Update update = TestUtils.getUpdate("download");
+        Update update = getUpdate("download");
 
         PartialBotApiMethod<?> method = download.parse(update);
-
-        assertNotNull(method);
-        assertTrue(method instanceof SendMessage);
+        checkDefaultSendMessageParams(method);
         Mockito.verify(commandWaitingService).add(update.getMessage(), Download.class);
     }
 
     @Test
     void parseWithTwoWrongArgumentsTest() {
-        Update update = TestUtils.getUpdate("download test test");
+        Update update = getUpdate("download test test");
 
         assertThrows(BotException.class, () -> download.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -69,22 +66,20 @@ class DownloadTest {
     @ParameterizedTest
     @ValueSource(strings = {"download " + URL + " " + FILE_NAME, "download " + FILE_NAME + " " + URL})
     void parseWithTwoArgumentsTest(String command) throws Exception {
-        Update update = TestUtils.getUpdate(command);
+        Update update = getUpdate(command);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
-        assertNotNull(method);
-        assertTrue(method instanceof SendDocument);
+        SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 
-        SendDocument sendDocument = (SendDocument) method;
         InputFile inputFile = sendDocument.getDocument();
         assertEquals(FILE_NAME, inputFile.getMediaName());
     }
 
     @Test
     void parseWithOneWrongArgument() {
-        Update update = TestUtils.getUpdate("download test");
+        Update update = getUpdate("download test");
 
         assertThrows(BotException.class, () -> download.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -92,7 +87,7 @@ class DownloadTest {
 
     @Test
     void parseWithoutFilenameInUrlTest() throws Exception {
-        Update update = TestUtils.getUpdate("download " + URL);
+        Update update = getUpdate("download " + URL);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
@@ -107,22 +102,20 @@ class DownloadTest {
 
     @Test
     void parseWithOneArgumentTest() throws Exception {
-        Update update = TestUtils.getUpdate("download " + URL + FILE_NAME);
+        Update update = getUpdate("download " + URL + FILE_NAME);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
-        assertNotNull(method);
-        assertTrue(method instanceof SendDocument);
+        SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 
-        SendDocument sendDocument = (SendDocument) method;
         InputFile inputFile = sendDocument.getDocument();
         assertEquals(FILE_NAME, inputFile.getMediaName());
     }
 
     @Test
     void parseWithLargeFileTest() throws Exception {
-        Update update = TestUtils.getUpdate("download " + URL);
+        Update update = getUpdate("download " + URL);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenThrow(new Exception());
 

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -13,7 +12,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -22,6 +20,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class ErrorsTest {
@@ -38,37 +37,32 @@ class ErrorsTest {
 
     @Test
     void getErrorListTest() {
-        Update update = TestUtils.getUpdate("errors");
+        Update update = getUpdate("errors");
         List<Error> errorList = List.of(new Error().setId(1L).setDateTime(LocalDateTime.now()).setComment("comment"));
 
         when(errorService.getAll()).thenReturn(errorList);
 
         PartialBotApiMethod<?> method = errors.parse(update);
-        assertTrue(method instanceof SendMessage);
-
-        SendMessage sendMessage = (SendMessage) method;
-        assertNotNull(sendMessage.getText());
+        checkDefaultSendMessageParams(method);
     }
 
     @Test
     void clearErrorListTest() {
         final String expectedResponseMessage = "saved";
-        Update update = TestUtils.getUpdate("errors_clear");
+        Update update = getUpdate("errors_clear");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
         PartialBotApiMethod<?> method = errors.parse(update);
         verify(errorService).clear();
-        assertTrue(method instanceof SendMessage);
-
-        SendMessage sendMessage = (SendMessage) method;
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseMessage, sendMessage.getText());
     }
 
     @Test
     void getErrorDataWithWrongIdTest() {
         final String expectedExceptionMessage = "wrong id";
-        Update update = TestUtils.getUpdate("errors_a");
+        Update update = getUpdate("errors_a");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
@@ -80,7 +74,7 @@ class ErrorsTest {
     void getErrorDataOfNotExistenceErrorEntityTest() {
         final long errorId = 1;
         final String expectedExceptionMessage = "not existence Error";
-        Update update = TestUtils.getUpdate("errors_" + errorId);
+        Update update = getUpdate("errors_" + errorId);
 
         when(errorService.get(errorId)).thenReturn(null);
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
@@ -91,7 +85,7 @@ class ErrorsTest {
 
     @Test
     void getErrorDataWithUnexpectedArgument() {
-        Update update = TestUtils.getUpdate("errors abv");
+        Update update = getUpdate("errors abv");
 
         PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update));
         assertNull(method);
@@ -100,7 +94,7 @@ class ErrorsTest {
     @Test
     void getErrorDataTest() {
         final long errorId = 1;
-        Update update = TestUtils.getUpdate("errors_" + errorId);
+        Update update = getUpdate("errors_" + errorId);
         Error error = new Error()
                 .setId(errorId)
                 .setDateTime(LocalDateTime.now())
@@ -112,9 +106,6 @@ class ErrorsTest {
         when(errorService.get(errorId)).thenReturn(error);
 
         PartialBotApiMethod<?> method = errors.parse(update);
-        assertTrue(method instanceof SendDocument);
-
-        SendDocument sendDocument = (SendDocument) method;
-        assertNotNull(sendDocument.getDocument());
+        checkDefaultSendDocumentParams(method);
     }
 }

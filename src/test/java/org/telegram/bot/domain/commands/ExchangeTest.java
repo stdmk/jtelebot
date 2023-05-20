@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -24,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
+import static org.telegram.bot.TestUtils.getUpdate;
 
 @ExtendWith(MockitoExtension.class)
 class ExchangeTest {
@@ -47,7 +48,7 @@ class ExchangeTest {
     @Test
     void parseWithIOExceptionTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = TestUtils.getUpdate();
+        Update update = getUpdate();
 
         when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenThrow(new IOException());
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
@@ -63,7 +64,7 @@ class ExchangeTest {
 //                "$ USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
 //                "€ EUR = 84,9073 RUB ⬇️ (-4,0650)\n" +
 //                "(02.01.2007)";
-        Update update = TestUtils.getUpdate();
+        Update update = getUpdate();
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
@@ -74,15 +75,14 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
         SendMessage sendMessage = exchange.parse(update);
-        assertNotNull(sendMessage);
-        assertNotNull(sendMessage.getText());
+        checkDefaultSendMessageParams(sendMessage);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
     void getRublesForCurrencyValueWithWrongArgumentTest() {
         final String expectedErrorMessage = "wrong input";
-        Update update = TestUtils.getUpdate("exchange 5");
+        Update update = getUpdate("exchange 5");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorMessage);
 
@@ -96,7 +96,7 @@ class ExchangeTest {
         final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n";
-        Update update = TestUtils.getUpdate("exchange 5 " + unknownValuteCode);
+        Update update = getUpdate("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -105,6 +105,7 @@ class ExchangeTest {
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
         SendMessage sendMessage = exchange.parse(update);
+        checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -112,15 +113,14 @@ class ExchangeTest {
     void getRublesForCurrencyValueTest() throws IOException {
         //does not work. Possibly because of the ₽ symbol
 //        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
-        Update update = TestUtils.getUpdate("exchange 5 usd");
+        Update update = getUpdate("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
         SendMessage sendMessage = exchange.parse(update);
-        assertNotNull(sendMessage);
-        assertNotNull(sendMessage.getText());
+        checkDefaultSendMessageParams(sendMessage);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -130,7 +130,7 @@ class ExchangeTest {
         final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode.toUpperCase() + "</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n";
-        Update update = TestUtils.getUpdate("exchange_" + unknownValuteCode);
+        Update update = getUpdate("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -139,6 +139,7 @@ class ExchangeTest {
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
         SendMessage sendMessage = exchange.parse(update);
+        checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -149,7 +150,7 @@ class ExchangeTest {
 //                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
 //                "1 RUB = 0,0130 USD\n" +
 //                "(02.01.2007)";
-        Update update = TestUtils.getUpdate("exchange usd");
+        Update update = getUpdate("exchange usd");
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
@@ -160,8 +161,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
         SendMessage sendMessage = exchange.parse(update);
-        assertNotNull(sendMessage);
-        assertNotNull(sendMessage.getText());
+        checkDefaultSendMessageParams(sendMessage);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 

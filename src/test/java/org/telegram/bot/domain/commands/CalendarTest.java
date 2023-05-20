@@ -8,11 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class CalendarTest {
@@ -59,7 +60,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = TestUtils.getUpdate();
+        Update update = getUpdate();
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -68,8 +69,7 @@ class CalendarTest {
 
         calendar.parse(update);
         PartialBotApiMethod<?> method = calendar.parse(update);
-        assertTrue(method instanceof SendMessage);
-        SendMessage sendMessage = (SendMessage) method;
+        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -91,7 +91,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = TestUtils.getUpdate("calendar 01.2007");
+        Update update = getUpdate("calendar 01.2007");
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -99,8 +99,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
-        assertTrue(method instanceof SendMessage);
-        SendMessage sendMessage = (SendMessage) method;
+        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -118,15 +117,14 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>Праздники: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = TestUtils.getUpdate("calendar 01.2007");
+        Update update = getUpdate("calendar 01.2007");
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("test"));
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
-        assertTrue(method instanceof SendMessage);
-        SendMessage sendMessage = (SendMessage) method;
+        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -144,7 +142,7 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>Праздники: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = TestUtils.getUpdate("календарь январь 2007");
+        Update update = getUpdate("календарь январь 2007");
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -152,8 +150,7 @@ class CalendarTest {
         when(responseEntity.getBody()).thenReturn(null);
 
         PartialBotApiMethod<?> method = calendar.parse(update);
-        assertTrue(method instanceof SendMessage);
-        SendMessage sendMessage = (SendMessage) method;
+        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -162,7 +159,7 @@ class CalendarTest {
     @Test
     void calendarWithWrongDateArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = TestUtils.getUpdate("calendar 32.3033");
+        Update update = getUpdate("calendar 32.3033");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
@@ -173,7 +170,7 @@ class CalendarTest {
     @Test
     void calendarWithWrongMonthArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = TestUtils.getUpdate("calendar инварь 2007");
+        Update update = getUpdate("calendar инварь 2007");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
@@ -184,7 +181,7 @@ class CalendarTest {
     @Test
     void calendarWithUnexpectedArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = TestUtils.getUpdate("calendar абв");
+        Update update = getUpdate("calendar абв");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -198,7 +195,7 @@ class CalendarTest {
 
     @Test
     void calendarWithExpectedMonthNameArgumentTest() {
-        Update update = TestUtils.getUpdate("календарь январь");
+        Update update = getUpdate("календарь январь");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -206,12 +203,13 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        assertDoesNotThrow(() -> calendar.parse(update));
+        PartialBotApiMethod<?> method = calendar.parse(update);
+        checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
     }
 
     @Test
     void calendarWithExpectedMonthNumberArgumentTest() {
-        Update update = TestUtils.getUpdateWithCallback("calendar 1");
+        Update update = getUpdateWithCallback("calendar 1");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -219,6 +217,7 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        assertDoesNotThrow(() -> calendar.parse(update));
+        PartialBotApiMethod<?> method = calendar.parse(update);
+        checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
     }
 }

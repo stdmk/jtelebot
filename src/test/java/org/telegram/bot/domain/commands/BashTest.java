@@ -6,11 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -24,6 +24,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
+import static org.telegram.bot.TestUtils.getUpdate;
 
 @ExtendWith(MockitoExtension.class)
 class BashTest {
@@ -44,22 +46,21 @@ class BashTest {
                 "yyy: страшнее те, кто пишут на массажер или в утюг например\n" +
                 "xxx: мне проще, я утюг от вай-фая отключил\n" +
                 "yyy: А они по VPN ";
-        Update update = TestUtils.getUpdate(null);
+        Update update = getUpdate(null);
         String rawRandomQuot = IOUtils.toString(
                 new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_random_quot.txt"), StandardCharsets.UTF_8);
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
 
         SendMessage sendMessage = bash.parse(update);
-        assertNotNull(sendMessage);
-
+        checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
         String actualText = sendMessage.getText();
         assertEquals(expectedText, actualText);
     }
 
     @Test
     void parseWithWrongInputTest() {
-        Update update = TestUtils.getUpdate("bash test");
+        Update update = getUpdate("bash test");
 
         assertThrows(BotException.class, () -> bash.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -72,7 +73,7 @@ class BashTest {
                 "Annette:\n" +
                 "Недавно поставила новый антивирус - Avast. Оказалось, у него имеется одна интересная особенность: любит, понимаешь, \"поговорить\"  Так вот. Решила я пересмотреть Бриджит Джонс, мозги расслабить после трудного дня. И есть там сцена, где Хью Грант присаживается на край кровати и успокаивающе гладит Бриджит по макушке, попутно оправдываясь за то, что должен уехать. \n" +
                 "Картина маслом: садится Хью Грант на кровать, проводит рукой Бриджит по голове, и одновременно с этим действием слышится характерный звук металлофона: \"Бррррррыньк!\"  Далее Хью Грант открывает рот и произносит с успокаивающим лицом: \"Вирусная база обновлена\". ";
-        Update update = TestUtils.getUpdate();
+        Update update = getUpdate();
         update.getMessage().setText("bash 1");
         String rawDefinedQuot = IOUtils.toString(
                 new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8);
@@ -80,7 +81,7 @@ class BashTest {
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
         SendMessage sendMessage = bash.parse(update);
-        assertNotNull(sendMessage);
+        checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualText = sendMessage.getText();
         assertEquals(expectedText, actualText);
@@ -88,7 +89,7 @@ class BashTest {
 
     @Test
     void parseWithNoResponseTest() throws IOException {
-        Update update = TestUtils.getUpdate(null);
+        Update update = getUpdate(null);
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(new IOException());
 
@@ -99,7 +100,7 @@ class BashTest {
     @Test
     void parseWithErrorsInResponseTest() throws IOException {
         final String errorText = "не имеют доступа для просмотра статей из данного раздела";
-        Update update = TestUtils.getUpdate();
+        Update update = getUpdate();
         update.getMessage().setText("bash 1");
         String rawDefinedQuot = IOUtils.toString(
                 new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8) +

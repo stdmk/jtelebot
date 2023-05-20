@@ -8,19 +8,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class CatsTest {
@@ -36,7 +34,7 @@ class CatsTest {
 
     @Test
     void parseWithArgumentsTest() {
-        PartialBotApiMethod<?> method = cats.parse(TestUtils.getUpdate("cats test"));
+        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats test"));
         assertNull(method);
     }
 
@@ -44,7 +42,7 @@ class CatsTest {
     void parseWithNoResponseTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> cats.parse(TestUtils.getUpdate("cats")));
+        assertThrows(BotException.class, () -> cats.parse(getUpdate("cats")));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -52,7 +50,7 @@ class CatsTest {
     void parseWithEmptyResponseTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> cats.parse(TestUtils.getUpdate("cats")));
+        assertThrows(BotException.class, () -> cats.parse(getUpdate("cats")));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -65,8 +63,8 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> sendDocument = cats.parse(TestUtils.getUpdate("cats"));
-        assertTrue(sendDocument instanceof SendDocument);
+        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats"));
+        checkDefaultSendDocumentParams(method);
     }
 
     @Test
@@ -78,8 +76,8 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> sendDocument = cats.parse(TestUtils.getUpdate("cats"));
-        assertTrue(sendDocument instanceof SendPhoto);
+        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats"));
+        checkDefaultSendPhotoParams(method);
     }
 
 }

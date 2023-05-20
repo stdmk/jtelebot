@@ -52,10 +52,9 @@ class EchoTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
         SendMessage sendMessage = echo.parse(update);
+        checkDefaultSendMessageParams(sendMessage);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.ECHO);
-        assertNotNull(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
@@ -96,7 +95,7 @@ class EchoTest {
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
         SendMessage sendMessage = echo.parse(update);
-        assertNotNull(sendMessage);
+        checkDefaultSendMessageParams(sendMessage);
 
         String actualResponseText = sendMessage.getText();
         assertTrue(expectedResponseText1.equals(actualResponseText) || expectedResponseText2.equals(actualResponseText));
@@ -122,7 +121,7 @@ class EchoTest {
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
         SendMessage sendMessage = echo.parse(update);
-        assertNotNull(sendMessage);
+        checkDefaultSendMessageParams(sendMessage);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);

@@ -7,13 +7,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.telegram.bot.Bot;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.*;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.List;
@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
+import static org.telegram.bot.TestUtils.getUpdate;
 
 @ExtendWith(MockitoExtension.class)
 class AliasTest {
@@ -59,8 +61,8 @@ class AliasTest {
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(List.of(aliasEntity));
 
-        SendMessage sendMessage = alias.parse(TestUtils.getUpdate());
-        assertNotNull(sendMessage);
+        SendMessage sendMessage = alias.parse(getUpdate());
+        checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -89,7 +91,7 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
 
-        assertDoesNotThrow(() -> alias.analyze(bot, echo, TestUtils.getUpdate()));
+        assertDoesNotThrow(() -> alias.analyze(bot, echo, getUpdate()));
 
         verify(context).getBean(anyString());
     }
