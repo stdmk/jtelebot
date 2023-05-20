@@ -160,7 +160,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
+        editMessageText.enableHtml(true);
         editMessageText.setText("<b>Список отключенных команд</b>\n");
         editMessageText.setReplyMarkup(inlineKeyboardMarkup);
 
@@ -283,7 +283,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
+        editMessageText.enableHtml(true);
         editMessageText.setText("Выбери команду из списка");
         editMessageText.setReplyMarkup(inlineKeyboardMarkup);
 
@@ -335,7 +335,7 @@ public class DisableCommandSetter implements SetterParent<PartialBotApiMethod<?>
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
+        sendMessage.enableHtml(true);
         sendMessage.setText(text);
 
         return sendMessage;
