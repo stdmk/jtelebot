@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230520081400" author="stdmk">
+        <createIndex indexName="TVCHANNEL_NAME_IDX" tableName="TVCHANNEL" schemaName="BOT">
+            <column name="NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20230520081400-1" author="stdmk">
+        <createIndex indexName="TVPROGRAM_CHANNELID_START_STOP_IDX" tableName="TVPROGRAM" schemaName="BOT">
+            <column name="CHANNELID"/>
+            <column name="START"/>
+            <column name="STOP"/>
+        </createIndex>
+
+        <createIndex indexName="TVPROGRAM_TITLE_START_STOP_IDX" tableName="TVPROGRAM" schemaName="BOT">
+            <column name="TITLE"/>
+            <column name="START"/>
+            <column name="STOP"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
