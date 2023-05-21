@@ -50,16 +50,9 @@ public class Parser extends Thread {
             log.error("Error: cannot send chat action: {}", e.getMessage());
         }
 
-        PartialBotApiMethod<?> method;
+        PartialBotApiMethod<?> method = null;
         try {
             method = command.parse(update);
-        } catch (Exception e) {
-            botStats.incrementErrors(update, e, "неожиданная ошибка при обработке команды ботом");
-            log.error("Unexpected error: ", e);
-            return;
-        }
-
-        try {
             if (method == null) {
                 return;
             }
