@@ -61,6 +61,7 @@ public class BotStats {
                                                             TOTAL_RUNNING_TIME,
                                                             TOTAL_COMMANDS_PROCESSED,
                                                             GOOGLE_REQUESTS,
+                                                            KINOPOISK_REQUESTS,
                                                             WOLFRAM_REQUESTS,
                                                             RUSSIAN_POST_REQUESTS,
                                                             LAST_TV_UPDATE,

@@ -20,7 +20,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -122,11 +121,10 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         StringBuilder buf = new StringBuilder();
 
         movieSearchResult.getDocs().forEach(movie -> {
-            buf.append("/movie_").append(movie.getId()).append(" — <b>").append(movie.getName()).append("</b>")
-                    .append(" (").append(movie.getYear()).append(")\n");
+            buf.append("<b>").append(movie.getName()).append("</b>").append(" (").append(movie.getYear()).append(")\n");
             ifPresentAndNotEmpty(movie.getShortDescription(), shortDescription ->
                     buf.append(shortDescription).append("\n"));
-            buf.append("\n");
+            buf.append("/movie_").append(movie.getId()).append("\n\n");
         });
         buf.append("Всего найдено: <b>").append(movieSearchResult.getTotal()).append("</b>\n");
 
@@ -134,8 +132,6 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private String generateResponseTextToMovie(Movie movie) {
-        final int descriptionSymbolsLimit = 500;
-
         StringBuilder buf = new StringBuilder();
 
         buf.append("<b>").append(movie.getName()).append(" (").append(movie.getYear()).append(")</b>\n");
@@ -158,8 +154,9 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
                 buf.append("Страна: <b>").append(getNames(countries)).append("</b>\n"));
         ifPresentAndNotEmpty(movie.getGenres(), genres ->
                 buf.append("Жанр: <b>").append(getNames(genres)).append("</b>\n"));
-        ifPresentAndNotEmpty(movie.getDescription(), description ->
-                buf.append("\n").append("<i>").append(TextUtils.cutIfLongerThan(description, descriptionSymbolsLimit)).append("</i>\n\n"));
+        ifPresentAndNotEmpty(movie.getShortDescription(), description ->
+                buf.append("\n").append("<i>").append(description).append("</i>\n"));
+        buf.append("\n");
         ifPresentAndNotEmpty(movie.getPersons(), persons -> {
             buf.append("В ролях: ");
 
@@ -241,13 +238,13 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
 
         botStats.incrementKinopoiskRequests();
 
-        Object value = responseEntity.getBody();
+        T value = responseEntity.getBody();
 
         if (value == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        return (T) value;
+        return value;
     }
 
     private HttpHeaders getDefaultHeaders(String token) {
