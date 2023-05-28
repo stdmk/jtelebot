@@ -8,4 +8,8 @@ public class MathUtils {
     public static Long getRandomInRange(Long from, Long to) {
         return from + (long) (Math.random() * to);
     }
+
+    public static String getPercentValue(long value, long count) {
+        return (int) ((double) value / count * 100) + "%";
+    }
 }

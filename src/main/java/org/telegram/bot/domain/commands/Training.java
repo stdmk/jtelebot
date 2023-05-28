@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
+import static org.telegram.bot.utils.MathUtils.getPercentValue;
 import static org.telegram.bot.utils.TextUtils.BORDER;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
@@ -336,62 +337,66 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
             return "Статистика отсутствует\n";
         }
 
-        List<TrainingEvent> nonCaceledTrainingEventList = trainingEventList
+        List<TrainingEvent> nonCanceledTrainingEventList = trainingEventList
                 .stream()
                 .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
                 .collect(Collectors.toList());
 
-        if (nonCaceledTrainingEventList.isEmpty())  {
+        if (nonCanceledTrainingEventList.isEmpty())  {
             return "Нет тренировок за указанный период\n";
         }
 
         StringBuilder buf = new StringBuilder();
 
-        LocalDateTime firstEventDateTime = nonCaceledTrainingEventList
+        LocalDateTime firstEventDateTime = nonCanceledTrainingEventList
                 .stream()
                 .min(Comparator.comparing(TrainingEvent::getDateTime))
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)))
                 .getDateTime();
         buf.append("Начиная с <b>").append(formatDate(firstEventDateTime)).append("</b>\n");
 
-        buf.append("Тренировок: ").append(" <b>").append(nonCaceledTrainingEventList.size()).append("</b>\n");
+        int nonCanceledTrainingEventCount = nonCanceledTrainingEventList.size();
+        buf.append("Тренировок: ").append(" <b>").append(nonCanceledTrainingEventCount).append("</b>\n");
 
         long canceledCount = trainingEventList
                 .stream()
                 .filter(trainingEvent -> Boolean.TRUE.equals(trainingEvent.getCanceled()))
                 .count();
-        buf.append("Отменённых: <b>").append(canceledCount).append("</b>\n");
+        buf.append("Отменённых: <b>").append(canceledCount).append("</b> (")
+                .append(getPercentValue(canceledCount, nonCanceledTrainingEventCount)).append(")\n");
 
-        long unplannedCount = nonCaceledTrainingEventList
+        long unplannedCount = nonCanceledTrainingEventList
                 .stream()
                 .filter(trainingEvent -> Boolean.TRUE.equals(trainingEvent.getUnplanned()))
                 .count();
-        buf.append("Незапланированных: <b>").append(unplannedCount).append("</b>\n");
+        buf.append("Незапланированных: <b>").append(unplannedCount).append("</b> (")
+                .append(getPercentValue(unplannedCount, nonCanceledTrainingEventCount)).append(")\n");
 
         buf.append(BORDER);
 
-        nonCaceledTrainingEventList
+        nonCanceledTrainingEventList
                 .stream()
                 .map(trainingEvent -> trainingEvent.getTraining().getName())
                 .distinct()
                 .forEach(name -> {
-                    long trainingByNameCount = nonCaceledTrainingEventList
+                    long trainingByNameCount = nonCanceledTrainingEventList
                             .stream()
                             .filter(trainingEvent -> name.equals(trainingEvent.getTraining().getName()))
                             .count();
-                    buf.append(name).append(": <b>").append(trainingByNameCount).append("</b>\n");
+                    buf.append(name).append(": <b>").append(trainingByNameCount).append("</b> (")
+                            .append(getPercentValue(trainingByNameCount, nonCanceledTrainingEventCount)).append(")\n");
                 });
 
         buf.append(BORDER);
 
-        Duration allTrainingsDuration = nonCaceledTrainingEventList
+        Duration allTrainingsDuration = nonCanceledTrainingEventList
                 .stream()
                 .map(trainingEvent -> getDuration(trainingEvent.getTraining().getTimeStart(), trainingEvent.getTraining().getTimeEnd()))
                 .reduce(Duration::plus)
                 .orElse(Duration.ZERO);
         buf.append("Всего время: <b>").append(DateUtils.durationToString(allTrainingsDuration)).append("</b>\n");
 
-        Float sumOfCost = nonCaceledTrainingEventList
+        Float sumOfCost = nonCanceledTrainingEventList
                 .stream()
                 .map(trainingEvent -> trainingEvent.getTraining().getCost())
                 .reduce(Float::sum)
