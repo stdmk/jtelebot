@@ -22,10 +22,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.telegram.bot.utils.TextUtils.startsWithNumber;
 import static org.telegram.bot.utils.TextUtils.parseFloat;
@@ -39,6 +42,8 @@ public class Exchange implements CommandParent<SendMessage> {
     private final CommandPropertiesService commandPropertiesService;
     private final NetworkUtils networkUtils;
     private final XmlMapper xmlMapper;
+    private final Clock clock;
+    private final Map<LocalDate, ValCurs> valCursDataMap = new ConcurrentHashMap<>();
 
     @Override
     public SendMessage parse(Update update) {
@@ -214,16 +219,40 @@ public class Exchange implements CommandParent<SendMessage> {
      * @return list with data of exchange rates.
      */
     private ValCurs getValCursData() {
-        return getValCursData(null);
+        return getValCursData(LocalDate.now(clock));
     }
 
     /**
-     * Getting exchange rates data from service.
+     * Getting exchange rates data.
      *
      * @param date exchange date.
      * @return list with data of exchange rates.
      */
-    private ValCurs getValCursData(@Nullable LocalDate date) {
+    private ValCurs getValCursData(LocalDate date) {
+        if (valCursDataMap.containsKey(date)) {
+            return valCursDataMap.get(date);
+        }
+
+        LocalDate expiredDate = LocalDate.now(clock).minusDays(2);
+        for (LocalDate key: valCursDataMap.keySet()) {
+            if (key.isBefore(expiredDate)) {
+                valCursDataMap.remove(key);
+            }
+        }
+
+        ValCurs valCurs = getValCursDataFromApi(date);
+        valCursDataMap.put(date, valCurs);
+
+        return valCurs;
+    }
+
+    /**
+     * Getting exchange rates data from API.
+     *
+     * @param date exchange date.
+     * @return list with data of exchange rates.
+     */
+    private ValCurs getValCursDataFromApi(@Nullable LocalDate date) {
         String xmlUrl = "http://www.cbr.ru/scripts/XML_daily.asp";
         if (date != null) {
             xmlUrl = xmlUrl + "?date_req=" + DateTimeFormatter.ofPattern("dd/MM/yyyy").format(date);

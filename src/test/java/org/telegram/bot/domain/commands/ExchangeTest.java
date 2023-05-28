@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -17,11 +19,17 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
 import static org.telegram.bot.TestUtils.getUpdate;
@@ -37,20 +45,25 @@ class ExchangeTest {
     private NetworkUtils networkUtils;
     @Mock
     private XmlMapper xmlMapper;
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     private Exchange exchange;
 
-    private static final String XML_URL = "http://www.cbr.ru/scripts/XML_daily.asp";
-    private static final String CURRENT_DATE = "02.01.2007";
-    private static final String PREVIOUS_DATE = "01.01.2007";
+    private static final String XML_URL = "http://www.cbr.ru/scripts/XML_daily.asp?date_req=";
+    private static final LocalDate CURRENT_DATE = LocalDate.of(2007, 1, 2);
+    private static final String CURRENT_DATE_STRING = "02.01.2007";
+    private static final String PREVIOUS_DATE_STRING = "01.01.2007";
 
     @Test
     void parseWithIOExceptionTest() throws IOException {
         final String expectedErrorMessage = "no response";
         Update update = getUpdate();
 
-        when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenThrow(new IOException());
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenThrow(new IOException());
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
@@ -68,9 +81,10 @@ class ExchangeTest {
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
-        String urlWithDate = XML_URL + "?date_req=" + PREVIOUS_DATE.replaceAll("\\.", "/");
-        when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenReturn("1");
-        when(networkUtils.readStringFromURL(urlWithDate, Charset.forName("windows-1251"))).thenReturn("2");
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("1");
+        when(networkUtils.readStringFromURL(XML_URL + PREVIOUS_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("2");
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
@@ -100,7 +114,10 @@ class ExchangeTest {
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
-        when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenReturn("");
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
@@ -116,7 +133,10 @@ class ExchangeTest {
         Update update = getUpdate("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
-        when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenReturn("");
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
         SendMessage sendMessage = exchange.parse(update);
@@ -134,6 +154,8 @@ class ExchangeTest {
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(networkUtils.readStringFromURL(anyString(), any())).thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
@@ -154,15 +176,47 @@ class ExchangeTest {
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
-        String urlWithDate = XML_URL + "?date_req=" + PREVIOUS_DATE.replaceAll("\\.", "/");
-        when(networkUtils.readStringFromURL(XML_URL, Charset.forName("windows-1251"))).thenReturn("1");
-        when(networkUtils.readStringFromURL(urlWithDate, Charset.forName("windows-1251"))).thenReturn("2");
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("1");
+        when(networkUtils.readStringFromURL(XML_URL + PREVIOUS_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("2");
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
         SendMessage sendMessage = exchange.parse(update);
         checkDefaultSendMessageParams(sendMessage);
 //        assertEquals(expectedResponseText, sendMessage.getText());
+    }
+
+    @Test
+    void valCursDataMapWorkCheckTest() throws IOException {
+        LocalDate oldDate = CURRENT_DATE.minusDays(3);
+        ReflectionTestUtils.setField(
+                exchange,
+                "valCursDataMap",
+                new ConcurrentHashMap<>(
+                        Map.of(oldDate, new Exchange.ValCurs(), CURRENT_DATE, getCurrentValCurs())));
+
+        Update update = getUpdate();
+        Exchange.ValCurs valCurs2 = getPreviousValCurs();
+
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + PREVIOUS_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("2");
+        when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
+
+        exchange.parse(update);
+
+        verify(xmlMapper, Mockito.times(1)).readValue(anyString(), any(Class.class));
+
+        Object value = ReflectionTestUtils.getField(exchange, "valCursDataMap");
+        assertTrue(value instanceof ConcurrentHashMap);
+
+        ConcurrentHashMap<?, ?> valCursDataMap = (ConcurrentHashMap<?, ?>) value;
+        assertNotNull(valCursDataMap);
+        assertFalse(valCursDataMap.containsKey(oldDate));
+        assertTrue(valCursDataMap.containsKey(CURRENT_DATE));
+        assertTrue(valCursDataMap.containsKey(CURRENT_DATE.minusDays(1)));
     }
 
     private Exchange.ValCurs getCurrentValCurs() {
@@ -183,7 +237,7 @@ class ExchangeTest {
         eur.setValue("84,9073");
 
         Exchange.ValCurs valCurs = new Exchange.ValCurs();
-        valCurs.setDate(CURRENT_DATE);
+        valCurs.setDate(CURRENT_DATE_STRING);
         valCurs.setName("Foreign Currency Market");
         valCurs.setValute(List.of(usd, eur));
 
@@ -208,7 +262,7 @@ class ExchangeTest {
         eur.setValue("88,9723");
 
         Exchange.ValCurs valCurs = new Exchange.ValCurs();
-        valCurs.setDate(PREVIOUS_DATE);
+        valCurs.setDate(PREVIOUS_DATE_STRING);
         valCurs.setName("Foreign Currency Market");
         valCurs.setValute(List.of(usd, eur));
 
