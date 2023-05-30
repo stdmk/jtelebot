@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestUtils {
 
     public static final String BOT_USERNAME = "jtelebot";
-    public static final Long DEFAULT_CHAT_ID = 1L;
+    public static final Long DEFAULT_CHAT_ID = -1L;
     public static final String DEFAULT_MESSAGE_TEXT = "test";
 
     public static Update getUpdate() {

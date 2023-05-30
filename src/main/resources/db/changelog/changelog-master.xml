@@ -149,4 +149,6 @@
     <include file="db/changelog/20230507103500_added_entity_Error.xml"/>
     <include file="db/changelog/20230507112100_added_command_Errors.xml"/>
     <include file="db/changelog/20230520081400_added_index_for_tv_entities.xml"/>
+    <include file="db/changelog/20230530162100_added_entity_ChatGPTMessage.xml"/>
+    <include file="db/changelog/20230530162500_added_command_ChatGPT.xml"/>
 </databaseChangeLog>
