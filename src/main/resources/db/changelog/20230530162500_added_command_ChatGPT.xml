@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230530162500-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="60"/>
+            <column name="name" value="ChatGPT"/>
+            <column name="description" value="Доступ к ChatGPT"/>
+            <column name="params" value="текст"/>
+            <column name="examples" value="гпт скажи привет"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230530162500-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="60"/>
+            <column name="commandname" value="chatgpt"/>
+            <column name="russifiedname" value="гпт"/>
+            <column name="enruname" value="ugn"/>
+            <column name="classname" value="chatGPT"/>
+            <column name="accesslevel" value="5"/>
+            <column name="help" value="60"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

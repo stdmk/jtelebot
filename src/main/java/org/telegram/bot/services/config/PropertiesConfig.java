@@ -23,6 +23,7 @@ public class PropertiesConfig {
     private String screenshotMachineToken;
     private String wolframAlphaToken;
     private String kinopoiskToken;
+    private String chatGPTToken;
     private Boolean spyMode;
     private String russianPostLogin;
     private String russianPostPassword;
