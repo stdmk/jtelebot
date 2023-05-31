@@ -70,6 +70,7 @@ public enum Emoji {
     GAME_DIE("\uD83C\uDFB2"),
     CALENDAR("\uD83D\uDCC6"),
     TROPHY("🏆"),
+    WASTEBASKET("\uD83D\uDDD1️"),
     ;
 
     private final String emoji;

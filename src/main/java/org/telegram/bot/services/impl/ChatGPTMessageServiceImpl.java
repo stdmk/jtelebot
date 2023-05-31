@@ -3,11 +3,13 @@ package org.telegram.bot.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.ChatGPTMessageRepository;
 import org.telegram.bot.services.ChatGPTMessageService;
+import org.telegram.bot.services.config.PropertiesConfig;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
 public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
 
     private final ChatGPTMessageRepository chatGPTMessageRepository;
-    private static final Integer MESSAGES_LIMIT = 200;
+    private final PropertiesConfig propertiesConfig;
 
     @Override
     public List<ChatGPTMessage> getMessages(Chat chat) {
@@ -33,8 +35,9 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
 
     @Override
     public void update(List<ChatGPTMessage> messages) {
-        if (messages.size() > MESSAGES_LIMIT) {
-            int deletingCount = messages.size() - MESSAGES_LIMIT;
+        Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
+        if (messages.size() > chatGPTContextSize) {
+            int deletingCount = messages.size() - chatGPTContextSize;
             List<ChatGPTMessage> chatGPTMessagesForDelete = messages
                     .stream()
                     .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
@@ -45,5 +48,17 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
         }
 
         chatGPTMessageRepository.saveAll(messages);
+    }
+
+    @Override
+    @Transactional
+    public void reset(Chat chat) {
+        chatGPTMessageRepository.deleteAllByChat(chat);
+    }
+
+    @Override
+    @Transactional
+    public void reset(User user) {
+        chatGPTMessageRepository.deleteAllByUserAndChat(user, new Chat().setChatId(user.getUserId()));
     }
 }

@@ -10,4 +10,6 @@ import java.util.List;
 public interface ChatGPTMessageRepository extends JpaRepository<ChatGPTMessage, Long> {
     List<ChatGPTMessage> findByChat(Chat chat);
     List<ChatGPTMessage> findByUserAndChat(User user, Chat chat);
+    void deleteAllByChat(Chat chat);
+    void deleteAllByUserAndChat(User user, Chat chat);
 }
