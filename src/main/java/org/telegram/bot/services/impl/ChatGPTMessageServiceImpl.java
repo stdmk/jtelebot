@@ -40,6 +40,7 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
             int deletingCount = messages.size() - chatGPTContextSize;
             List<ChatGPTMessage> chatGPTMessagesForDelete = messages
                     .stream()
+                    .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
                     .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
                     .limit(deletingCount)
                     .collect(Collectors.toList());

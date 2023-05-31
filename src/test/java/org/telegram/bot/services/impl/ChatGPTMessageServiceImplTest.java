@@ -30,7 +30,9 @@ class ChatGPTMessageServiceImplTest {
 
     @Test
     void updateFromUserTest() {
-        List<ChatGPTMessage> chatGPTMessages = LongStream.range(1, 19).mapToObj(n -> new ChatGPTMessage().setId(n)).collect(Collectors.toList());
+        List<ChatGPTMessage> chatGPTMessages = LongStream.range(1, 17).mapToObj(n -> new ChatGPTMessage().setId(n)).collect(Collectors.toList());
+        chatGPTMessages.add(new ChatGPTMessage());
+        chatGPTMessages.add(new ChatGPTMessage());
         when(propertiesConfig.getChatGPTContextSize()).thenReturn(16);
 
         chatGPTMessageService.update(chatGPTMessages);
