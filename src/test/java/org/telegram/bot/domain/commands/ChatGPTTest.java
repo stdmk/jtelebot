@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
@@ -23,7 +22,9 @@ import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChatGPTTest {
@@ -130,7 +131,7 @@ class ChatGPTTest {
         message.setContent(expectedResponseText);
         ChatGPT.Choice choice = new ChatGPT.Choice();
         choice.setMessage(message);
-        ChatGPT.Response response = new ChatGPT.Response();
+        ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
         response.setChoices(List.of(choice));
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
@@ -140,7 +141,8 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        SendMessage sendMessage = chatGPT.parse(update);
+        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
         verify(chatGPTMessageService).update(captor.capture());
         List<ChatGPTMessage> chatGPTMessages = captor.getValue();
@@ -150,7 +152,6 @@ class ChatGPTTest {
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -167,7 +168,7 @@ class ChatGPTTest {
         message.setContent(expectedResponseText);
         ChatGPT.Choice choice = new ChatGPT.Choice();
         choice.setMessage(message);
-        ChatGPT.Response response = new ChatGPT.Response();
+        ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
         response.setChoices(List.of(choice));
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
@@ -177,7 +178,8 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        SendMessage sendMessage = chatGPT.parse(update);
+        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
         verify(chatGPTMessageService).update(captor.capture());
         List<ChatGPTMessage> actualChatGPTMessages = captor.getValue();
@@ -187,9 +189,30 @@ class ChatGPTTest {
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-
         assertEquals(expectedResponseText, sendMessage.getText());
+    }
+
+    @Test
+    void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException {
+        final String expectedUrl = "url";
+        Update update = getUpdate("chatgpt image say hello");
+
+        ChatGPT.ImageUrl imageUrl = new ChatGPT.ImageUrl();
+        imageUrl.setUrl(expectedUrl);
+        ChatGPT.CreateImageResponse response = new ChatGPT.CreateImageResponse();
+        response.setCreated(1);
+        response.setData(List.of(imageUrl));
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+
+        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
+
+        assertEquals(expectedUrl, sendPhoto.getPhoto().getAttachName());
     }
 
 }

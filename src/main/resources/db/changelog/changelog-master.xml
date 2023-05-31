@@ -151,4 +151,5 @@
     <include file="db/changelog/20230520081400_added_index_for_tv_entities.xml"/>
     <include file="db/changelog/20230530162100_added_entity_ChatGPTMessage.xml"/>
     <include file="db/changelog/20230530162500_added_command_ChatGPT.xml"/>
+    <include file="db/changelog/20230531180400_update_ChatGPT_help.xml"/>
 </databaseChangeLog>

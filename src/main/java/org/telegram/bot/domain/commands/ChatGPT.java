@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +28,11 @@ import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.utils.TextUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
@@ -36,7 +41,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ChatGPT implements CommandParent<SendMessage> {
+public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
 
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
@@ -48,9 +53,11 @@ public class ChatGPT implements CommandParent<SendMessage> {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final String IMAGE_RU_COMMAND = "картинка";
+    private static final String IMAGE_EN_COMMAND = "image";
 
     @Override
-    public SendMessage parse(Update update) {
+    public PartialBotApiMethod<?> parse(Update update) {
         String token = propertiesConfig.getChatGPTToken();
         if (StringUtils.isEmpty(token)) {
             log.error("Unable to find google token");
@@ -65,10 +72,21 @@ public class ChatGPT implements CommandParent<SendMessage> {
             textMessage = cutCommandInText(message.getText());
         }
 
+        String imageUrl = null;
         if (textMessage == null) {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что отправить в ChatGPT";
+        } else if (textMessage.startsWith(IMAGE_RU_COMMAND) || textMessage.startsWith(IMAGE_EN_COMMAND)) {
+            if (textMessage.startsWith(IMAGE_RU_COMMAND)) {
+                textMessage = textMessage.substring(IMAGE_RU_COMMAND.length() + 1);
+            } else {
+                textMessage = textMessage.substring(IMAGE_EN_COMMAND.length() + 1);
+            }
+
+            responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
+
+            imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
         } else {
             Chat chat = new Chat().setChatId(message.getChatId());
             User user = new User().setUserId(message.getFrom().getId());
@@ -91,6 +109,17 @@ public class ChatGPT implements CommandParent<SendMessage> {
             chatGPTMessageService.update(messagesHistory);
         }
 
+        if (imageUrl != null) {
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setPhoto(new InputFile(imageUrl));
+            sendPhoto.setCaption(responseText);
+            sendPhoto.setParseMode("HTML");
+            sendPhoto.setReplyToMessageId(message.getMessageId());
+            sendPhoto.setChatId(message.getChatId().toString());
+
+            return sendPhoto;
+        }
+
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
@@ -100,7 +129,7 @@ public class ChatGPT implements CommandParent<SendMessage> {
         return sendMessage;
     }
 
-    private Request buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username) {
+    private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username) {
         List<Message> requestMessages = chatGPTMessages
                 .stream()
                 .map(chatGPTMessage -> new Message()
@@ -110,10 +139,22 @@ public class ChatGPT implements CommandParent<SendMessage> {
                 .collect(Collectors.toList());
         requestMessages.add(new Message().setRole(ChatGPTRole.USER.getName()).setContent(text).setName(username));
 
-        return new Request().setModel(DEFAULT_MODEL).setMessages(requestMessages);
+        return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
     }
 
-    private String getResponse(Request request, String token) {
+    private String getResponse(CreateImageRequest request, String token) {
+        String url = OPENAI_API_URL + "images/generations";
+        CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
+        return response.getData().get(0).getUrl();
+    }
+
+    private String getResponse(ChatRequest request, String token) {
+        String url = OPENAI_API_URL + "chat/completions";
+        ChatResponse response = getResponse(request, url, token, ChatResponse.class);
+        return response.getChoices().get(0).getMessage().getContent();
+    }
+
+    private <T> T getResponse(Object request, String url, String token, Class<T> dataType) {
         String json;
         try {
             json = objectMapper.writeValueAsString(request);
@@ -126,31 +167,51 @@ public class ChatGPT implements CommandParent<SendMessage> {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
 
-        ResponseEntity<Response> responseEntity;
+        ResponseEntity<T> responseEntity;
         try {
-            responseEntity = defaultRestTemplate.postForEntity(OPENAI_API_URL + "chat/completions", new HttpEntity<>(json, headers), Response.class);
+            responseEntity = defaultRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), dataType);
         } catch (RestClientException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        Response response = responseEntity.getBody();
+        T response = responseEntity.getBody();
         if (response == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        return response.getChoices().get(0).getMessage().getContent();
+        return response;
     }
 
     @Data
     @Accessors(chain = true)
-    public static class Request {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CreateImageRequest {
+        private String prompt;
+        private Integer n;
+        private String size;
+    }
+
+    @Data
+    public static class CreateImageResponse {
+        private Integer created;
+        private List<ImageUrl> data;
+    }
+
+    @Data
+    public static class ImageUrl {
+        String url;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class ChatRequest {
         private String model;
         private List<Message> messages;
         private Float temperature;
     }
 
     @Data
-    public static class Response {
+    public static class ChatResponse {
         private String id;
         private String object;
         private Integer created;
