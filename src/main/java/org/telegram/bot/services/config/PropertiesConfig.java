@@ -29,6 +29,7 @@ public class PropertiesConfig {
     private String russianPostPassword;
     @Getter(AccessLevel.NONE)
     private Integer russianPostRequestsLimit;
+    private Integer chatGPTContextSize = 16;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {

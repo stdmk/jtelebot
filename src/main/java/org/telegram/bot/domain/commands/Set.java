@@ -42,6 +42,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final TalkerSetter talkerSetter;
     private final ZodiacSetter zodiacSetter;
     private final TrainingSetter trainingSetter;
+    private final ChatGPTSetter chatGPTSetter;
 
     private final String NEWS = "новости";
     private final String CITY = "город";
@@ -52,6 +53,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     private final String TALKER = "болтун";
     private final String ZODIAC = "зодиак";
     private final String TRAININGS = "тренировки";
+    private final String CHATGPT = "chatgpt";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -116,6 +118,10 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
             } else if (textMessage.toLowerCase().startsWith(TRAININGS)) {
                 if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
                     return trainingSetter.set(update, textMessage);
+                }
+            } else if (textMessage.toLowerCase().startsWith(CHATGPT)) {
+                if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), AccessLevel.TRUSTED.getValue())) {
+                    return chatGPTSetter.set(update, textMessage);
                 }
             }
             if (callback) {
@@ -214,6 +220,13 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> trainingRow = new ArrayList<>();
         trainingRow.add(trainingButton);
 
+        InlineKeyboardButton chatGPTButton = new InlineKeyboardButton();
+        chatGPTButton.setText(SET + CHATGPT);
+        chatGPTButton.setCallbackData(SET + CHATGPT);
+
+        List<InlineKeyboardButton> chatGPTRow = new ArrayList<>();
+        chatGPTRow.add(chatGPTButton);
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(newsRow);
         rows.add(cityRow);
@@ -224,6 +237,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
         rows.add(talkerRow);
         rows.add(zodiacRow);
         rows.add(trainingRow);
+        rows.add(chatGPTRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
