@@ -6,17 +6,21 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.repositories.ChatGPTMessageRepository;
+import org.telegram.bot.services.config.PropertiesConfig;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ChatGPTMessageServiceImplTest {
     @Mock
     private ChatGPTMessageRepository chatGPTMessageRepository;
+    @Mock
+    private PropertiesConfig propertiesConfig;
 
     @Captor
     private ArgumentCaptor<List<ChatGPTMessage>> captor;
@@ -26,7 +30,8 @@ class ChatGPTMessageServiceImplTest {
 
     @Test
     void updateFromUserTest() {
-        List<ChatGPTMessage> chatGPTMessages = LongStream.range(1, 203).mapToObj(n -> new ChatGPTMessage().setId(n)).collect(Collectors.toList());
+        List<ChatGPTMessage> chatGPTMessages = LongStream.range(1, 19).mapToObj(n -> new ChatGPTMessage().setId(n)).collect(Collectors.toList());
+        when(propertiesConfig.getChatGPTContextSize()).thenReturn(16);
 
         chatGPTMessageService.update(chatGPTMessages);
 
