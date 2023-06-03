@@ -66,6 +66,7 @@ public class PhoneNumber implements CommandParent<SendMessage> {
         } catch (FileNotFoundException fnf) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         } catch (IOException e) {
+            log.error("Error from api:", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

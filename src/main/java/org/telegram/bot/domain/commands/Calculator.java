@@ -80,6 +80,7 @@ public class Calculator implements CommandParent<SendMessage> {
 
                 responseText = "`" + responseText + "`";
             } catch (HttpClientErrorException hce) {
+                log.error("Error from api:", hce);
                 responseText = new JSONObject(hce.getResponseBodyAsString()).getString("error");
             }
         }

@@ -37,11 +37,13 @@ public class GreatAdvice implements CommandParent<SendMessage> {
         try {
             response = botRestTemplate.getForEntity(API_URL, FuckingGreatAdvice.class);
         } catch (RestClientException e) {
+            log.error("Error from api:", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         FuckingGreatAdvice fuckingGreatAdvice = response.getBody();
         if (fuckingGreatAdvice == null) {
+            log.error("Empty response from FGA api");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

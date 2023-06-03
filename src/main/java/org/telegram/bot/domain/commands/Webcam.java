@@ -85,6 +85,7 @@ public class Webcam implements CommandParent<PartialBotApiMethod<?>> {
             File videoFile = new File(fileName);
             if (!videoFile.exists()) {
                 fileManagerTimer.deleteFile(fileName);
+                log.error("File {} does not exists", fileName);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 

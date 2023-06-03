@@ -80,6 +80,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
             response = botRestTemplate.getForEntity(
                     WOLFRAM_ALPHA_API_URL + "appid=" + token + "&input=" + requestText, WolframAlphaData.class);
         } catch (RestClientException e) {
+            log.error("Error from api:", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 

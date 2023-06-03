@@ -258,10 +258,20 @@ public class Exchange implements CommandParent<SendMessage> {
             xmlUrl = xmlUrl + "?date_req=" + DateTimeFormatter.ofPattern("dd/MM/yyyy").format(date);
         }
 
+        String response;
+
+        try {
+            response = networkUtils.readStringFromURL(xmlUrl, Charset.forName("windows-1251"));
+        } catch (IOException e) {
+            log.error("Error from CBRF api:", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
         ValCurs valCurs;
         try {
-            valCurs = xmlMapper.readValue(networkUtils.readStringFromURL(xmlUrl, Charset.forName("windows-1251")), ValCurs.class);
+            valCurs = xmlMapper.readValue(response, ValCurs.class);
         } catch (IOException e) {
+            log.error("Error while mapping response:", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
