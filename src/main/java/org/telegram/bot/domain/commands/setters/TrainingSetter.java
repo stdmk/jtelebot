@@ -449,7 +449,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                trainingButton.setText(Emoji.DELETE.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()));
+                trainingButton.setText(Emoji.DELETE.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
                 trainingButton.setCallbackData(CALLBACK_DELETE_TRAINING_COMMAND + training.getId());
                 buttonRow.add(trainingButton);
 
@@ -567,7 +567,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
                         .stream()
                         .filter(trainingScheduled -> dayOfWeek.equals(trainingScheduled.getDayOfWeek()))
                         .forEach(trainingScheduled -> buf.append(trainingScheduled.getTraining().getTimeStart()).append(" — ")
-                                .append(trainingScheduled.getTraining().getName()).append("\n"));
+                                .append(trainingScheduled.getTraining().getName()).append(" (").append(trainingScheduled.getTraining().getCost()).append(")\n"));
                 buf.append(BORDER);
             });
         }
@@ -620,7 +620,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
         } else {
             trainingScheduledList.forEach(trainingScheduled -> {
                 Training training = trainingScheduled.getTraining();
-                String caption = training.getTimeStart() + " — " + training.getName();
+                String caption = training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")";
 
                 buf.append(caption).append("\n");
 
@@ -643,7 +643,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             List<InlineKeyboardButton> buttonRow = new ArrayList<>();
             InlineKeyboardButton addButton = new InlineKeyboardButton();
-            addButton.setText(Emoji.NEW.getEmoji() + training.getTimeStart() + " — " + training.getName());
+            addButton.setText(Emoji.NEW.getEmoji() + training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")");
             addButton.setCallbackData(selectDayOfWeekCallback + ADD_SCHEDULE_COMMAND + training.getId());
             buttonRow.add(addButton);
             rows.add(buttonRow);

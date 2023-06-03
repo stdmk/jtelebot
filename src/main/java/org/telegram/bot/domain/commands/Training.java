@@ -312,7 +312,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
             if (subscription == null) {
                 subscriptionName = "";
             } else {
-                subscriptionName = "Абонемент :" + formatDate(subscription.getStartDate()) + " — " +
+                subscriptionName = "Абонемент: " + formatDate(subscription.getStartDate()) + " — " +
                         formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
                         " (" + subscription.getCount() + ")\n";
             }
@@ -325,7 +325,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                     .append(unplanned)
                     .append(formatShortTime(training.getTimeStart())).append(" — ").append(formatShortTime(training.getTimeEnd()))
                         .append(" (").append(durationToString(training.getTimeEnd(), training.getTimeStart())).append(")\n")
-                    .append(subscriptionName).append(subscriptionName)
+                    .append(subscriptionName)
                     .append("\n");
         });
 
@@ -483,7 +483,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                 .filter(training -> !training.getDeleted())
                 .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
                 .forEach(training -> buf.append(DateUtils.formatShortTime(training.getTimeStart())).append(" — ")
-                        .append(training.getName()).append("\n"));
+                        .append(training.getName()).append(" (").append(training.getCost()).append(")").append("\n"));
 
         return buf.toString();
     }
@@ -532,7 +532,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
                 .forEach(training -> {
                     List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                     InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                    trainingButton.setText(Emoji.NEW.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()));
+                    trainingButton.setText(Emoji.NEW.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
                     trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND + training.getId());
                     buttonRow.add(trainingButton);
 
