@@ -32,8 +32,6 @@ public class ChatGPTSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final String EMPTY_CHATGPT_COMMAND = "chatgpt";
     private final String RESET_CACHE_COMMAND = EMPTY_CHATGPT_COMMAND + "rc";
     private final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
-    private final String SET_CACHE_COMMAND = EMPTY_CHATGPT_COMMAND + "sc";
-    private final String CALLBACK_SET_CACHE_COMMAND = CALLBACK_COMMAND + SET_CACHE_COMMAND;
 
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {
@@ -107,12 +105,6 @@ public class ChatGPTSetter implements SetterParent<PartialBotApiMethod<?>> {
         resetCacheButton.setCallbackData(CALLBACK_RESET_CACHE_COMMAND);
         resetCacheButtonRow.add(resetCacheButton);
 
-        List<InlineKeyboardButton> setCacheButtonRow = new ArrayList<>();
-        InlineKeyboardButton setCacheButton = new InlineKeyboardButton();
-        setCacheButton.setText(Emoji.GEAR.getEmoji() + "Размер контекста");
-        setCacheButton.setCallbackData(CALLBACK_SET_CACHE_COMMAND);
-        setCacheButtonRow.add(setCacheButton);
-
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
         backButton.setText(Emoji.BACK.getEmoji() + "Установки");
@@ -120,7 +112,6 @@ public class ChatGPTSetter implements SetterParent<PartialBotApiMethod<?>> {
         backButtonRow.add(backButton);
 
         rows.add(resetCacheButtonRow);
-        rows.add(setCacheButtonRow);
         rows.add(backButtonRow);
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
