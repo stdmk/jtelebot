@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.BotStats;
@@ -170,7 +171,24 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         ResponseEntity<T> responseEntity;
         try {
             responseEntity = defaultRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), dataType);
+        } catch (HttpClientErrorException hce) {
+            String jsonError = hce.getResponseBodyAsString();
+
+            Error error;
+            try {
+                error = objectMapper.readValue(jsonError, ErrorResponse.class).getError();
+            } catch (JsonProcessingException e) {
+                try {
+                    error = objectMapper.readValue(jsonError, Error[].class)[0];
+                } catch (JsonProcessingException ex) {
+                    log.error("Failed to map {} to Error", jsonError);
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+                }
+            }
+
+            throw new BotException("Ответ от ChatGPT: " + error.getMessage());
         } catch (RestClientException e) {
+            log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
@@ -180,6 +198,19 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         return response;
+    }
+
+    @Data
+    public static class ErrorResponse {
+        private Error error;
+    }
+
+    @Data
+    public static class Error {
+        private String message;
+        private String type;
+        private String param;
+        private String code;
     }
 
     @Data
