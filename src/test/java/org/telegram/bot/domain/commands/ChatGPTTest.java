@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.domain.BotStats;
@@ -28,6 +30,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,6 +104,46 @@ class ChatGPTTest {
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class))).thenThrow(new RestClientException("test"));
+
+        assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
+    void requestWithHttpClientErrorExceptionTest() throws JsonProcessingException {
+        final String errorMessage = "error";
+        final String expectedErrorText = "Ответ от ChatGPT: " + errorMessage;
+        ChatGPT.ErrorResponse errorResponse = new ChatGPT.ErrorResponse()
+                .setError(new ChatGPT.Error()
+                        .setCode("")
+                        .setType("")
+                        .setParam("")
+                        .setMessage(errorMessage));
+        Update update = getUpdate("chatgpt say hello");
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
+        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(errorResponse);
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+
+        BotException botException = assertThrows(BotException.class, () -> chatGPT.parse(update));
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void requestWithHttpClientErrorExceptionWithCorruptedErrorTest() throws JsonProcessingException {
+        Update update = getUpdate("chatgpt say hello");
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
+        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(new JsonParseException(null, ""));
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "error".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);

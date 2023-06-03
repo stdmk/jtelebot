@@ -174,19 +174,15 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         } catch (HttpClientErrorException hce) {
             String jsonError = hce.getResponseBodyAsString();
 
-            Error error;
+            ErrorResponse errorResponse;
             try {
-                error = objectMapper.readValue(jsonError, ErrorResponse.class).getError();
+                errorResponse = objectMapper.readValue(jsonError, ErrorResponse.class);
             } catch (JsonProcessingException e) {
-                try {
-                    error = objectMapper.readValue(jsonError, Error[].class)[0];
-                } catch (JsonProcessingException ex) {
-                    log.error("Failed to map {} to Error", jsonError);
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-                }
+                log.error("Failed to map {} to Error", jsonError);
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
-            throw new BotException("Ответ от ChatGPT: " + error.getMessage());
+            throw new BotException("Ответ от ChatGPT: " + errorResponse.getError().getMessage());
         } catch (RestClientException e) {
             log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -201,11 +197,13 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @Accessors(chain = true)
     public static class ErrorResponse {
         private Error error;
     }
 
     @Data
+    @Accessors(chain = true)
     public static class Error {
         private String message;
         private String type;
