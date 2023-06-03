@@ -4,17 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.services.UserStatsService;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class WolframRequestsTimer extends TimerParent {
-    private final BotStats botStats;
+public class UserDailyStatsCleanerTimerTask extends TimerParent {
+    private final UserStatsService userStatsService;
 
     @Override
-    @Scheduled(cron = "0 0 0 1 * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void execute() {
-        botStats.resetWolframRequests();
+        log.info("Timer for cleaning top by day");
+        userStatsService.clearDailyStats();
     }
+
 }

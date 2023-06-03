@@ -7,11 +7,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Parcel;
-import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TrackCode;
 import org.telegram.bot.domain.entities.TrackCodeEvent;
 import org.telegram.bot.services.ParcelService;
-import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.TrackCodeService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -25,8 +23,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class TrackCodeEventsTimer extends TimerParent {
-
-    private final TimerService timerService;
     private final Bot bot;
     private final BotStats botStats;
     private final ParcelService parcelService;
@@ -35,86 +31,69 @@ public class TrackCodeEventsTimer extends TimerParent {
     public static final int FIXED_RATE_HOURS = 3;
 
     @Override
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = FIXED_RATE_HOURS * 60 * 60 * 1000)
     public void execute() {
-        Timer timer = timerService.get("trackCodeEventsTimer");
-        if (timer == null) {
-            timer = new Timer()
-                    .setName("trackCodeEventsTimer")
-                    .setLastAlarmDt(LocalDateTime.now());
-            timerService.save(timer);
-        }
+        List<Parcel> parcelList = parcelService.getAll();
 
-        LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusHours(FIXED_RATE_HOURS);
+        Map<Long, LocalDateTime> lastEventUpdateDateTimeMap = new HashMap<>();
+        parcelList
+                .stream()
+                .map(Parcel::getTrackCode)
+                .forEach(trackCode -> lastEventUpdateDateTimeMap.put(
+                        trackCode.getId(),
+                        trackCode.getEvents()
+                                .stream()
+                                .map(TrackCodeEvent::getEventDateTime)
+                                .max(LocalDateTime::compareTo)
+                                .orElse(trackCode.getCreateDateTime())));
 
-        if (dateTimeNow.isAfter(nextAlarm)) {
-            List<Parcel> parcelList = parcelService.getAll();
+        trackCodeService.updateFromApi();
 
-            Map<Long, LocalDateTime> lastEventUpdateDateTimeMap = new HashMap<>();
-            parcelList
-                    .stream()
-                    .map(Parcel::getTrackCode)
-                    .forEach(trackCode -> lastEventUpdateDateTimeMap.put(
-                            trackCode.getId(),
-                            trackCode.getEvents()
-                                    .stream()
-                                    .map(TrackCodeEvent::getEventDateTime)
-                                    .max(LocalDateTime::compareTo)
-                                    .orElse(trackCode.getCreateDateTime())));
+        trackCodeService.getAll().forEach(trackCodeAfter -> {
+            if (Boolean.TRUE.equals(trackCodeAfter.getInvalid())) {
+                getParcelListByTrackCode(parcelList, trackCodeAfter)
+                        .forEach(parcel -> {
+                            String messageText = "<b>" + parcel.getName() + "</b>\n" +
+                                    "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
+                                    "Нет ответа от сервиса удали /parcel_d" + parcel.getId() + " и добавь снова подходящий";
 
-            trackCodeService.updateFromApi();
+                            try {
+                                SendMessage sendMessage = new SendMessage();
+                                sendMessage.setChatId(parcel.getUser().getUserId());
+                                sendMessage.enableHtml(true);
+                                sendMessage.setText(messageText);
 
-            trackCodeService.getAll().forEach(trackCodeAfter -> {
-                if (Boolean.TRUE.equals(trackCodeAfter.getInvalid())) {
-                    getParcelListByTrackCode(parcelList, trackCodeAfter)
-                            .forEach(parcel -> {
-                                String messageText = "<b>" + parcel.getName() + "</b>\n" +
-                                        "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
-                                        "Нет ответа от сервиса удали /parcel_d" + parcel.getId() + " и добавь снова подходящий";
+                                bot.execute(sendMessage);
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            } else {
+                LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
 
-                                try {
-                                    SendMessage sendMessage = new SendMessage();
-                                    sendMessage.setChatId(parcel.getUser().getUserId());
-                                    sendMessage.enableHtml(true);
-                                    sendMessage.setText(messageText);
+                trackCodeAfter.getEvents()
+                        .stream()
+                        .filter(event -> event.getEventDateTime().isAfter(lastEventDateTime))
+                        .sorted(Comparator.comparing(TrackCodeEvent::getEventDateTime))
+                        .forEach(newEvent -> getParcelListByTrackCode(parcelList, trackCodeAfter)
+                                .forEach(parcel -> {
+                                    String messageText = org.telegram.bot.domain.commands.Parcel.buildStringEventMessage(parcel, newEvent);
 
-                                    bot.execute(sendMessage);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                } else {
+                                    try {
+                                        SendMessage sendMessage = new SendMessage();
+                                        sendMessage.setChatId(parcel.getUser().getUserId());
+                                        sendMessage.enableHtml(true);
+                                        sendMessage.setText(messageText);
 
-                    LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
+                                        bot.execute(sendMessage);
+                                    } catch (TelegramApiException e) {
+                                        e.printStackTrace();
+                                    }
+                                }));
+            }
+        });
 
-                    trackCodeAfter.getEvents()
-                            .stream()
-                            .filter(event -> event.getEventDateTime().isAfter(lastEventDateTime))
-                            .sorted(Comparator.comparing(TrackCodeEvent::getEventDateTime))
-                            .forEach(newEvent -> getParcelListByTrackCode(parcelList, trackCodeAfter)
-                                    .forEach(parcel -> {
-                                        String messageText = org.telegram.bot.domain.commands.Parcel.buildStringEventMessage(parcel, newEvent);
-
-                                        try {
-                                            SendMessage sendMessage = new SendMessage();
-                                            sendMessage.setChatId(parcel.getUser().getUserId());
-                                            sendMessage.enableHtml(true);
-                                            sendMessage.setText(messageText);
-
-                                            bot.execute(sendMessage);
-                                        } catch (TelegramApiException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }));
-                }
-            });
-
-            timer.setLastAlarmDt(dateTimeNow);
-            timerService.save(timer);
-
-            botStats.setLastTracksUpdate(Instant.now());
-        }
+        botStats.setLastTracksUpdate(Instant.now());
     }
 
     private List<Parcel> getParcelListByTrackCode(List<Parcel> parcelList, TrackCode trackCode) {

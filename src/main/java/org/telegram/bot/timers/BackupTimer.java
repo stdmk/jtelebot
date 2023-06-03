@@ -6,14 +6,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.commands.Backup;
-import org.telegram.bot.domain.entities.Timer;
-import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.time.LocalDateTime;
-
-import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
 @Component
 @RequiredArgsConstructor
@@ -21,33 +15,16 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 public class BackupTimer extends TimerParent {
 
     private final Bot bot;
-    private final TimerService timerService;
     private final PropertiesConfig propertiesConfig;
     private final Backup backup;
 
     @Override
-    @Scheduled(fixedRate = 14400000)
+    @Scheduled(cron = "0 0 2 * * ?")
     public void execute() {
-        Timer timer = timerService.get("backupTimer");
-        if (timer == null) {
-            timer = new Timer()
-                    .setName("backupTimer")
-                    .setLastAlarmDt(LocalDateTime.now());
-            timerService.save(timer);
-        }
-
-        LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
-
-        if (dateTimeNow.isAfter(nextAlarm)) {
-            try {
-                bot.execute(backup.getDbBackup(propertiesConfig.getAdminId().toString()));
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
-            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
-            timerService.save(timer);
+        try {
+            bot.execute(backup.getDbBackup(propertiesConfig.getAdminId().toString()));
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 }
