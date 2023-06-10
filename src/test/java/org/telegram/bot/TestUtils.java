@@ -65,6 +65,44 @@ public class TestUtils {
         return update;
     }
 
+    public static org.telegram.bot.domain.entities.Chat getChat() {
+        return getChat(-1L);
+    }
+
+    public static org.telegram.bot.domain.entities.Chat getChat(Long chatId) {
+        return new org.telegram.bot.domain.entities.Chat().setChatId(chatId);
+    }
+
+    public static org.telegram.bot.domain.entities.User getUser() {
+        return getUser(1L);
+    }
+
+    public static org.telegram.bot.domain.entities.User getUser(Long userId) {
+        return new org.telegram.bot.domain.entities.User().setUserId(userId);
+    }
+
+    public static Document getDocument() {
+        Document document = new Document();
+
+        document.setFileId("fileId");
+        document.setFileUniqueId("fileUniqueId");
+        document.setMimeType("mimeType");
+        document.setFileSize(1000L);
+
+        return document;
+    }
+
+    public static Audio getAudio() {
+        Audio audio = new Audio();
+
+        audio.setFileId("fileId");
+        audio.setFileUniqueId("fileUniqueId");
+        audio.setMimeType("mimeType");
+        audio.setFileSize(1000L);
+
+        return audio;
+    }
+
     public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage, boolean disableWebPagePreview, String parseMode) {
         assertEquals(disableWebPagePreview, sendMessage.getDisableWebPagePreview());
         assertEquals(parseMode, sendMessage.getParseMode());

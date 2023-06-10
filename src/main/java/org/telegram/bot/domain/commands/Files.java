@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -14,27 +15,24 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.FileService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Audio;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.formatFileSize;
+import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -44,18 +42,18 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
-    private final String CALLBACK_COMMAND = "files ";
-    private final String SELECT_FILE_COMMAND = "s";
-    private final String SELECT_PAGE = "p";
-    private final String CALLBACK_SELECT_FILE_COMMAND = CALLBACK_COMMAND + SELECT_FILE_COMMAND;
-    private final String DELETE_FILE_COMMAND = "d";
-    private final String CALLBACK_DELETE_FILE_COMMAND = CALLBACK_COMMAND + DELETE_FILE_COMMAND;
-    private final String ADD_FILE_COMMAND = "a";
-    private final String CALLBACK_ADD_FILE_COMMAND = CALLBACK_COMMAND + ADD_FILE_COMMAND;
-    private final String OPEN_FILE_COMMAND = "o";
-    private final String CALLBACK_OPEN_FILE_COMMAND = CALLBACK_COMMAND + OPEN_FILE_COMMAND;
-    private final String MAKE_DIR_COMMAND = "m";
-    private final String CALLBACK_MAKE_DIR_COMMAND = CALLBACK_COMMAND + MAKE_DIR_COMMAND;
+    private final static String CALLBACK_COMMAND = "files ";
+    private final static String SELECT_FILE_COMMAND = "s";
+    private final static String SELECT_PAGE = "p";
+    private final static String CALLBACK_SELECT_FILE_COMMAND = CALLBACK_COMMAND + SELECT_FILE_COMMAND;
+    private final static String DELETE_FILE_COMMAND = "d";
+    private final static String CALLBACK_DELETE_FILE_COMMAND = CALLBACK_COMMAND + DELETE_FILE_COMMAND;
+    private final static String ADD_FILE_COMMAND = "a";
+    private final static String CALLBACK_ADD_FILE_COMMAND = CALLBACK_COMMAND + ADD_FILE_COMMAND;
+    private final static String OPEN_FILE_COMMAND = "o";
+    private final static String CALLBACK_OPEN_FILE_COMMAND = CALLBACK_COMMAND + OPEN_FILE_COMMAND;
+    private final static String MAKE_DIR_COMMAND = "m";
+    private final static String CALLBACK_MAKE_DIR_COMMAND = CALLBACK_COMMAND + MAKE_DIR_COMMAND;
 
     private final Long ROOT_DIR_ID = 0L;
 
@@ -93,13 +91,13 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
                 return selectDirectory(message, chat, false, 0, null);
             } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
                 commandWaitingService.remove(commandWaiting);
-                return selectFileByCallback(message, chat, user, textMessage);
+                return selectFileByCallback(message, chat, textMessage);
             } else if (textMessage.startsWith(DELETE_FILE_COMMAND)) {
                 return deleteFileByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
                 return addFileByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(OPEN_FILE_COMMAND)) {
-                return sendFile(message, chat, user, textMessage);
+                return sendFile(chat, textMessage);
             } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
                 return makeDirByCallback(message, chat, user, textMessage);
             }
@@ -118,7 +116,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         }
     }
 
-    private SendDocument sendFile(Message message, Chat chat, User user, String textCommand) throws BotException {
+    private SendDocument sendFile(Chat chat, String textCommand) throws BotException {
         long fileId;
         try {
             fileId = Long.parseLong(textCommand.substring(OPEN_FILE_COMMAND.length()));
@@ -263,7 +261,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         return (EditMessageText) selectDirectory(message, chat, false, 0, dir);
     }
 
-    private EditMessageText selectFileByCallback(Message message, Chat chat, User user, String textCommand) throws BotException {
+    private EditMessageText selectFileByCallback(Message message, Chat chat, String textCommand) throws BotException {
         int page = 0;
         long fileId;
         textCommand = textCommand.trim();
@@ -355,11 +353,8 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
                 InlineKeyboardButton fileButton = new InlineKeyboardButton();
 
-                String fileName = getEmojiByType(file.getType()) + file.getName();
-                if (fileName.length() > 30) {
-                    fileName = fileName.substring(0, 30) + "...";
-                }
-                fileButton.setText(fileName);
+                String fileName = EmojiMimeType.getEmojiByType(file.getType()) + file.getName();
+                fileButton.setText(TextUtils.cutIfLongerThan(fileName, 30));
                 fileButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + file.getId());
 
                 fileRow.add(fileButton);
@@ -394,6 +389,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText("Папка: <b>" + directory.getName() + "</b>\n");
             sendMessage.enableHtml(true);
             sendMessage.setReplyMarkup(inlineKeyboardMarkup);
@@ -498,19 +494,30 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
         return file;
     }
 
-    private String getEmojiByType(String mimeType) {
-        if (mimeType == null) {
-            return Emoji.FOLDER.getEmoji();
-        } else if (mimeType.startsWith("audio")) {
-            return Emoji.HEADPHONE.getEmoji();
-        } else if (mimeType.startsWith("image")) {
-            return Emoji.PICTURE.getEmoji();
-        } else if (mimeType.startsWith("text")) {
-            return Emoji.CLIPBOARD.getEmoji();
-        } else if (mimeType.startsWith("video")) {
-            return Emoji.MOVIE_CAMERA.getEmoji();
-        } else {
-            return Emoji.MEMO.getEmoji();
+    @RequiredArgsConstructor
+    @Getter
+    public enum EmojiMimeType {
+        HEADPHONE("audio", Emoji.HEADPHONE),
+        PICTURE("image", Emoji.PICTURE),
+        CLIPBOARD("text", Emoji.CLIPBOARD),
+        MOVIE_CAMERA("video", Emoji.MOVIE_CAMERA),
+        UNKNOWN("", Emoji.MEMO),
+        ;
+
+        private final String type;
+        private final Emoji emoji;
+
+        public static String getEmojiByType(String mimeType) {
+            if (mimeType == null) {
+                return Emoji.FOLDER.getEmoji();
+            }
+
+            return Arrays.stream(EmojiMimeType.values())
+                    .filter(emojiMimeType -> mimeType.equals(emojiMimeType.getType()))
+                    .findFirst()
+                    .orElse(UNKNOWN)
+                    .getEmoji()
+                    .getEmoji();
         }
     }
 }
