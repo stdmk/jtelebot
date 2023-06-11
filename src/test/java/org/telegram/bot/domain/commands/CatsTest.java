@@ -34,7 +34,7 @@ class CatsTest {
 
     @Test
     void parseWithArgumentsTest() {
-        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats test"));
+        PartialBotApiMethod<?> method = cats.parse(getUpdateFromGroup("cats test"));
         assertNull(method);
     }
 
@@ -42,7 +42,7 @@ class CatsTest {
     void parseWithNoResponseTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> cats.parse(getUpdate("cats")));
+        assertThrows(BotException.class, () -> cats.parse(getUpdateFromGroup("cats")));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -50,7 +50,7 @@ class CatsTest {
     void parseWithEmptyResponseTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> cats.parse(getUpdate("cats")));
+        assertThrows(BotException.class, () -> cats.parse(getUpdateFromGroup("cats")));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -63,7 +63,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats"));
+        PartialBotApiMethod<?> method = cats.parse(getUpdateFromGroup("cats"));
         checkDefaultSendDocumentParams(method);
     }
 
@@ -76,7 +76,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(getUpdate("cats"));
+        PartialBotApiMethod<?> method = cats.parse(getUpdateFromGroup("cats"));
         checkDefaultSendPhotoParams(method);
     }
 

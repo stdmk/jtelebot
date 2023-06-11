@@ -48,7 +48,7 @@ class DownloadTest {
 
     @Test
     void parseWithEmptyArgumentTest() {
-        Update update = getUpdate("download");
+        Update update = getUpdateFromGroup("download");
 
         PartialBotApiMethod<?> method = download.parse(update);
         checkDefaultSendMessageParams(method);
@@ -57,7 +57,7 @@ class DownloadTest {
 
     @Test
     void parseWithTwoWrongArgumentsTest() {
-        Update update = getUpdate("download test test");
+        Update update = getUpdateFromGroup("download test test");
 
         assertThrows(BotException.class, () -> download.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -66,7 +66,7 @@ class DownloadTest {
     @ParameterizedTest
     @ValueSource(strings = {"download " + URL + " " + FILE_NAME, "download " + FILE_NAME + " " + URL})
     void parseWithTwoArgumentsTest(String command) throws Exception {
-        Update update = getUpdate(command);
+        Update update = getUpdateFromGroup(command);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
@@ -79,7 +79,7 @@ class DownloadTest {
 
     @Test
     void parseWithOneWrongArgument() {
-        Update update = getUpdate("download test");
+        Update update = getUpdateFromGroup("download test");
 
         assertThrows(BotException.class, () -> download.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -87,7 +87,7 @@ class DownloadTest {
 
     @Test
     void parseWithoutFilenameInUrlTest() throws Exception {
-        Update update = getUpdate("download " + URL);
+        Update update = getUpdateFromGroup("download " + URL);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
@@ -102,7 +102,7 @@ class DownloadTest {
 
     @Test
     void parseWithOneArgumentTest() throws Exception {
-        Update update = getUpdate("download " + URL + FILE_NAME);
+        Update update = getUpdateFromGroup("download " + URL + FILE_NAME);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
 
@@ -115,7 +115,7 @@ class DownloadTest {
 
     @Test
     void parseWithLargeFileTest() throws Exception {
-        Update update = getUpdate("download " + URL);
+        Update update = getUpdateFromGroup("download " + URL);
 
         when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenThrow(new Exception());
 

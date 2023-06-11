@@ -67,7 +67,7 @@ class ChatGPTTest {
     void unavailableTokenTest() {
         when(propertiesConfig.getChatGPTToken()).thenReturn(null);
 
-        assertThrows(BotException.class, () -> chatGPT.parse(getUpdate()));
+        assertThrows(BotException.class, () -> chatGPT.parse(getUpdateFromGroup()));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
@@ -76,14 +76,14 @@ class ChatGPTTest {
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
 
-        chatGPT.parse(getUpdate());
+        chatGPT.parse(getUpdateFromGroup());
 
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 
     @Test
     void requestSerialisationError() throws JsonProcessingException {
-        Update update = getUpdate("chatgpt say hello");
+        Update update = getUpdateFromGroup("chatgpt say hello");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
@@ -97,13 +97,13 @@ class ChatGPTTest {
 
     @Test
     void requestWithRestClientExceptionError() throws JsonProcessingException {
-        Update update = getUpdate("chatgpt say hello");
+        Update update = getUpdateFromGroup("chatgpt say hello");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class))).thenThrow(new RestClientException("test"));
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any())).thenThrow(new RestClientException("test"));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
@@ -119,14 +119,14 @@ class ChatGPTTest {
                         .setType("")
                         .setParam("")
                         .setMessage(errorMessage));
-        Update update = getUpdate("chatgpt say hello");
+        Update update = getUpdateFromGroup("chatgpt say hello");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(errorResponse);
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(objectMapper.readValue("", ChatGPT.ErrorResponse.class)).thenReturn(errorResponse);
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         BotException botException = assertThrows(BotException.class, () -> chatGPT.parse(update));
@@ -135,14 +135,14 @@ class ChatGPTTest {
 
     @Test
     void requestWithHttpClientErrorExceptionWithCorruptedErrorTest() throws JsonProcessingException {
-        Update update = getUpdate("chatgpt say hello");
+        Update update = getUpdateFromGroup("chatgpt say hello");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(new JsonParseException(null, ""));
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(objectMapper.readValue(anyString(), ArgumentMatchers.<Class<?>>any())).thenThrow(new JsonParseException(null, ""));
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "error".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
@@ -151,13 +151,13 @@ class ChatGPTTest {
 
     @Test
     void requestWithEmptyResponseTest() throws JsonProcessingException {
-        Update update = getUpdate("chatgpt say hello");
+        Update update = getUpdateFromGroup("chatgpt say hello");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
@@ -168,7 +168,7 @@ class ChatGPTTest {
     void messageFromChatWithEmptyHistoryTest() throws JsonProcessingException {
         final String expectedRequestText = "say hello";
         final String expectedResponseText = "hello";
-        Update update = getUpdate("chatgpt " + expectedRequestText);
+        Update update = getUpdateFromGroup("chatgpt " + expectedRequestText);
 
         ChatGPT.Message message = new ChatGPT.Message();
         message.setContent(expectedResponseText);
@@ -181,7 +181,7 @@ class ChatGPTTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
@@ -202,7 +202,7 @@ class ChatGPTTest {
     void messageFromUserWithHistoryTest() throws JsonProcessingException {
         final String expectedRequestText = "say hello";
         final String expectedResponseText = "hello";
-        Update update = getUpdate(1L, "chatgpt " + expectedRequestText);
+        Update update = getUpdateFromPrivate("chatgpt " + expectedRequestText);
 
         List<ChatGPTMessage> chatGPTMessages = new ArrayList<>(
                 List.of(new ChatGPTMessage().setRole(ChatGPTRole.USER).setUser(new User().setUsername("username"))));
@@ -218,7 +218,7 @@ class ChatGPTTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(chatGPTMessageService.getMessages(any(User.class))).thenReturn(chatGPTMessages);
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
@@ -238,7 +238,7 @@ class ChatGPTTest {
     @Test
     void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException {
         final String expectedUrl = "url";
-        Update update = getUpdate("chatgpt image say hello");
+        Update update = getUpdateFromGroup("chatgpt image say hello");
 
         ChatGPT.ImageUrl imageUrl = new ChatGPT.ImageUrl();
         imageUrl.setUrl(expectedUrl);
@@ -249,7 +249,7 @@ class ChatGPTTest {
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any(Class.class)))
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class BackupTest {
@@ -32,7 +32,7 @@ class BackupTest {
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
 
-        SendDocument sendDocument = backup.parse(getUpdate());
+        SendDocument sendDocument = backup.parse(getUpdateFromGroup());
         verify(query).executeUpdate();
 
         assertNotNull(sendDocument);

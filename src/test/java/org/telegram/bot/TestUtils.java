@@ -13,10 +13,26 @@ public class TestUtils {
 
     public static final String BOT_USERNAME = "jtelebot";
     public static final Long DEFAULT_CHAT_ID = -1L;
+    public static final Long DEFAULT_USER_ID = 1L;
     public static final String DEFAULT_MESSAGE_TEXT = "test";
 
-    public static Update getUpdate() {
-        return getUpdate(DEFAULT_CHAT_ID, DEFAULT_MESSAGE_TEXT);
+    public static Update getUpdateWithRepliedMessage() {
+        return getUpdateWithRepliedMessage(getMessage(), null);
+    }
+
+    public static Update getUpdateWithRepliedMessage(String textMessage) {
+        return getUpdateWithRepliedMessage(getMessage(), textMessage);
+    }
+
+    public static Update getUpdateWithRepliedMessage(Message message, String textMessage) {
+        Update update = getUpdateFromGroup();
+        update.getMessage().setReplyToMessage(message);
+
+        return update;
+    }
+
+    public static Update getUpdateFromGroup() {
+        return getUpdateFromGroup(DEFAULT_MESSAGE_TEXT);
     }
 
     public static Update getUpdateWithCallback(String callback) {
@@ -24,12 +40,9 @@ public class TestUtils {
         chat.setId(DEFAULT_CHAT_ID);
 
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_USER_ID);
 
-        Message message = new Message();
-        message.setMessageId(1);
-        message.setChat(chat);
-        message.setFrom(user);
+        Message message = getMessage(chat, user);
 
         CallbackQuery callbackQuery = new CallbackQuery();
         callbackQuery.setFrom(user);
@@ -42,22 +55,14 @@ public class TestUtils {
         return update;
     }
 
-    public static Update getUpdate(String textMessage) {
-        return getUpdate(DEFAULT_CHAT_ID, textMessage);
-    }
-
-    public static Update getUpdate(Long chatId, String textMessage) {
+    public static Update getUpdateFromGroup(String textMessage) {
         Chat chat = new Chat();
-        chat.setId(chatId);
+        chat.setId(DEFAULT_CHAT_ID);
 
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_USER_ID);
 
-        Message message = new Message();
-        message.setMessageId(1);
-        message.setChat(chat);
-        message.setFrom(user);
-        message.setText(textMessage);
+        Message message = getMessage(chat, user, textMessage);
 
         Update update = new Update();
         update.setMessage(message);
@@ -65,8 +70,47 @@ public class TestUtils {
         return update;
     }
 
+    public static Update getUpdateFromPrivate(String textMessage) {
+        Chat chat = new Chat();
+        chat.setId(DEFAULT_USER_ID);
+
+        User user = new User();
+        user.setId(DEFAULT_USER_ID);
+
+        Message message = getMessage(chat, user, textMessage);
+
+        Update update = new Update();
+        update.setMessage(message);
+
+        return update;
+    }
+
+    public static Message getMessage() {
+        Chat chat = new Chat();
+        chat.setId(DEFAULT_CHAT_ID);
+
+        User user = new User();
+        user.setId(DEFAULT_USER_ID);
+
+        return getMessage(chat, user);
+    }
+
+    public static Message getMessage(Chat chat, User user) {
+        return getMessage(chat, user, null);
+    }
+
+    public static Message getMessage(Chat chat, User user, String textMessage) {
+        Message message = new Message();
+        message.setMessageId(1);
+        message.setChat(chat);
+        message.setFrom(user);
+        message.setText(textMessage);
+
+        return message;
+    }
+
     public static org.telegram.bot.domain.entities.Chat getChat() {
-        return getChat(-1L);
+        return getChat(DEFAULT_CHAT_ID);
     }
 
     public static org.telegram.bot.domain.entities.Chat getChat(Long chatId) {
@@ -74,11 +118,14 @@ public class TestUtils {
     }
 
     public static org.telegram.bot.domain.entities.User getUser() {
-        return getUser(1L);
+        return getUser(DEFAULT_USER_ID);
     }
 
     public static org.telegram.bot.domain.entities.User getUser(Long userId) {
-        return new org.telegram.bot.domain.entities.User().setUserId(userId);
+        return new org.telegram.bot.domain.entities.User()
+                .setUserId(userId)
+                .setUsername("username")
+                .setAccessLevel(1);
     }
 
     public static Document getDocument() {

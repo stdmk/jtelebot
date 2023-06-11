@@ -47,7 +47,7 @@ class EchoTest {
     @Test
     void parseWithEmptyText() {
         final String expectedResponseText = "чо?";
-        Update update = getUpdate("bot");
+        Update update = getUpdateFromGroup("bot");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
@@ -62,7 +62,7 @@ class EchoTest {
         final String expectedResponseText1 = "пока не родила";
         final String expectedResponseText2 = "нормально";
         Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
-        Update update = getUpdate("как дела?");
+        Update update = getUpdateFromGroup("как дела?");
 
         TalkerPhrase firstPhrase = new TalkerPhrase()
                 .setId(1L)
@@ -105,7 +105,7 @@ class EchoTest {
     void parseWithTextAndOnePhrase() {
         final String expectedResponseText = "пока не родила";
         Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
-        Update update = getUpdate("как дела?");
+        Update update = getUpdateFromGroup("как дела?");
 
         TalkerPhrase firstPhrase = new TalkerPhrase()
                 .setId(1L)
@@ -139,15 +139,14 @@ class EchoTest {
 
     @Test
     void analyzeWithoutTextMessageTest() {
-        Update update = getUpdate(null);
+        Update update = getUpdateFromGroup(null);
 
         assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
     }
 
     @Test
     void analyzeWithoutReplyToMessageTest() {
-        Update update = getUpdate();
-        update.getMessage().setReplyToMessage(null);
+        Update update = getUpdateFromGroup();
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(talkerDegreeService.get(anyLong())).thenReturn(new TalkerDegree().setDegree(1));
@@ -157,8 +156,7 @@ class EchoTest {
 
     @Test
     void analyzeWithAppealToBot() {
-        Update update = getUpdate("@" + BOT_USERNAME + " как дела?");
-        update.getMessage().setReplyToMessage(null);
+        Update update = getUpdateFromGroup("@" + BOT_USERNAME + " как дела?");
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
@@ -169,13 +167,15 @@ class EchoTest {
 
     @Test
     void analyzeWithReplyToMessage() {
-        Update update = getUpdate("нормально");
         org.telegram.telegrambots.meta.api.objects.User user = new org.telegram.telegrambots.meta.api.objects.User();
         user.setUserName(BOT_USERNAME);
+
         Message replyToMessage = new Message();
         replyToMessage.setFrom(user);
         replyToMessage.setText("как дела?");
-        update.getMessage().setReplyToMessage(replyToMessage);
+
+        Update update = getUpdateWithRepliedMessage(replyToMessage, "нормально");
+
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
@@ -186,8 +186,7 @@ class EchoTest {
 
     @Test
     void analyzeWithTalkerDegreeWorks() {
-        Update update = getUpdate("как дела?");
-        update.getMessage().setReplyToMessage(null);
+        Update update = getUpdateWithRepliedMessage(null, "как дела?");
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
         TalkerDegree talkerDegree = new TalkerDegree().setChat(new Chat().setChatId(DEFAULT_CHAT_ID)).setDegree(100);
 

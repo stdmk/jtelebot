@@ -60,14 +60,14 @@ class FilesTest {
 
     @Test
     void unknownCommandTest() {
-        Update update = TestUtils.getUpdate("files test");
+        Update update = TestUtils.getUpdateFromGroup("files test");
         assertThrows(BotException.class, () -> files.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void emptyCommandWithUnknownRootDirectoryTest() {
-        Update update = TestUtils.getUpdate();
+        Update update = TestUtils.getUpdateFromGroup();
 
         when(fileService.get(ROOT_DIR_ID)).thenReturn(null);
 
@@ -80,7 +80,7 @@ class FilesTest {
         final String dirName = "root";
         final String fileName = "testtesttesttesttesttesttesttest";
         final String fileType = "text";
-        Update update = TestUtils.getUpdate();
+        Update update = TestUtils.getUpdateFromGroup();
 
         when(fileService.get(anyLong())).thenReturn(new File().setId(ROOT_DIR_ID).setName(dirName));
         when(fileService.get(any(Chat.class), any(File.class), anyInt()))
@@ -116,7 +116,7 @@ class FilesTest {
     @Test
     void emptyCommandNotRootEmptyDirTest() {
         final String dirName = "вшк";
-        Update update = TestUtils.getUpdate();
+        Update update = TestUtils.getUpdateFromGroup();
 
         when(fileService.get(anyLong())).thenReturn(new File().setId(1L).setName(dirName));
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
@@ -299,7 +299,7 @@ class FilesTest {
 
     @Test
     void addFilesWithoutDocumentTest() {
-        Update update = TestUtils.getUpdate();
+        Update update = TestUtils.getUpdateFromGroup();
 
         when(commandWaitingService.get(any(Chat.class), any(User.class)))
                 .thenReturn(new CommandWaiting().setTextMessage("files a"));
@@ -310,7 +310,7 @@ class FilesTest {
 
     @Test
     void addAudioFilesWithWrongCommand() {
-        Update update = TestUtils.getUpdate();
+        Update update = TestUtils.getUpdateFromGroup();
         Message message = update.getMessage();
         message.setAudio(new Audio());
 
@@ -324,7 +324,7 @@ class FilesTest {
 
     @Test
     void addDocumentFilesWithoutParent() {
-        Update update = TestUtils.getUpdate("");
+        Update update = TestUtils.getUpdateFromGroup("");
         Message message = update.getMessage();
         message.setDocument(new Document());
 
@@ -341,7 +341,7 @@ class FilesTest {
     void addDocumentFilesTest() {
         final Document document = TestUtils.getDocument();
         File dir = getFile();
-        Update update = TestUtils.getUpdate("");
+        Update update = TestUtils.getUpdateFromGroup("");
         Message message = update.getMessage();
         message.setDocument(document);
 
@@ -372,7 +372,7 @@ class FilesTest {
     void addAudioFilesTest() {
         final Audio audio = TestUtils.getAudio();
         File dir = getFile();
-        Update update = TestUtils.getUpdate("");
+        Update update = TestUtils.getUpdateFromGroup("");
         Message message = update.getMessage();
         message.setAudio(audio);
 
@@ -401,14 +401,14 @@ class FilesTest {
 
     @Test
     void makeDirForWrongParentIdTest() {
-        Update update = TestUtils.getUpdate("files mtest test");
+        Update update = TestUtils.getUpdateFromGroup("files mtest test");
         assertThrows(BotException.class, () -> files.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void makeDirForNotExistenceParentTest() {
-        Update update = TestUtils.getUpdate("files m1 test");
+        Update update = TestUtils.getUpdateFromGroup("files m1 test");
 
         when(fileService.get(anyLong())).thenReturn(null);
 
@@ -420,7 +420,7 @@ class FilesTest {
     void makeDirTest() {
         final String dirName = "test";
         final File parentFile = getFile();
-        Update update = TestUtils.getUpdate("files m1 " + dirName);
+        Update update = TestUtils.getUpdateFromGroup("files m1 " + dirName);
         ArgumentCaptor<File> captor = ArgumentCaptor.forClass(File.class);
 
         when(fileService.get(anyLong())).thenReturn(parentFile);

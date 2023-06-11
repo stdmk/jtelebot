@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendPhotoParams;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class ButtsTest {
@@ -37,7 +37,7 @@ class ButtsTest {
     void parseWithNoResponseTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> butts.parse(getUpdate()));
+        assertThrows(BotException.class, () -> butts.parse(getUpdateFromGroup()));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -45,7 +45,7 @@ class ButtsTest {
     void parseWithNullButtsTest() {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> butts.parse(getUpdate()));
+        assertThrows(BotException.class, () -> butts.parse(getUpdateFromGroup()));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -58,7 +58,7 @@ class ButtsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(buttsCountArray);
 
-        SendPhoto sendPhoto = butts.parse(getUpdate());
+        SendPhoto sendPhoto = butts.parse(getUpdateFromGroup());
         checkDefaultSendPhotoParams(sendPhoto, true);
     }
 }

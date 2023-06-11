@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -26,7 +27,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class CalculatorTest {
@@ -45,7 +46,7 @@ class CalculatorTest {
     @Test
     void parseWithEmptyTextTest() {
         final String expectedText = "теперь напиши мне что нужно посчитать";
-        Update update = getUpdate();
+        Update update = getUpdateFromGroup();
 
         SendMessage sendMessage = calculator.parse(update);
         assertNotNull(sendMessage);
@@ -60,7 +61,7 @@ class CalculatorTest {
     void parseWithNoResponseTest() {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> calculator.parse(getUpdate("calc test")));
+        assertThrows(BotException.class, () -> calculator.parse(TestUtils.getUpdateFromGroup("calc test")));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -76,7 +77,7 @@ class CalculatorTest {
                                 ("{\"error\":\"" + expectedErrorText + "\"}").getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        SendMessage sendMessage = calculator.parse(getUpdate("calc test"));
+        SendMessage sendMessage = calculator.parse(TestUtils.getUpdateFromGroup("calc test"));
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 
         String actualErrorText = sendMessage.getText();
@@ -92,7 +93,7 @@ class CalculatorTest {
                 .thenReturn(response);
         when(response.getBody()).thenReturn("{\"result\":\"" + expressionResult + "\"}");
 
-        SendMessage sendMessage = calculator.parse(getUpdate("calc test"));
+        SendMessage sendMessage = calculator.parse(TestUtils.getUpdateFromGroup("calc test"));
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();

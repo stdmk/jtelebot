@@ -44,7 +44,7 @@ public class Getid implements CommandParent<SendMessage> {
             org.telegram.telegrambots.meta.api.objects.User repliedUser = repliedMessage.getFrom();
             log.debug("Request to getting telegram id of {}", repliedUser);
             User user = userService.get(repliedUser.getId());
-            responseText.append("Айди ").append(user.getUsername()).append(": `").append(user.getUserId()).append("`\n");
+            responseText.append("Айди ").append(getLinkToUser(user, false)).append(": `").append(user.getUserId()).append("`\n");
         }
 
         if (chatId < 0) {

@@ -37,7 +37,7 @@ class ErrorsTest {
 
     @Test
     void getErrorListTest() {
-        Update update = getUpdate("errors");
+        Update update = getUpdateFromGroup("errors");
         List<Error> errorList = List.of(new Error().setId(1L).setDateTime(LocalDateTime.now()).setComment("comment"));
 
         when(errorService.getAll()).thenReturn(errorList);
@@ -49,7 +49,7 @@ class ErrorsTest {
     @Test
     void clearErrorListTest() {
         final String expectedResponseMessage = "saved";
-        Update update = getUpdate("errors_clear");
+        Update update = getUpdateFromGroup("errors_clear");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
@@ -62,7 +62,7 @@ class ErrorsTest {
     @Test
     void getErrorDataWithWrongIdTest() {
         final String expectedExceptionMessage = "wrong id";
-        Update update = getUpdate("errors_a");
+        Update update = getUpdateFromGroup("errors_a");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
@@ -74,7 +74,7 @@ class ErrorsTest {
     void getErrorDataOfNotExistenceErrorEntityTest() {
         final long errorId = 1;
         final String expectedExceptionMessage = "not existence Error";
-        Update update = getUpdate("errors_" + errorId);
+        Update update = getUpdateFromGroup("errors_" + errorId);
 
         when(errorService.get(errorId)).thenReturn(null);
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
@@ -85,7 +85,7 @@ class ErrorsTest {
 
     @Test
     void getErrorDataWithUnexpectedArgument() {
-        Update update = getUpdate("errors abv");
+        Update update = getUpdateFromGroup("errors abv");
 
         PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update));
         assertNull(method);
@@ -94,7 +94,7 @@ class ErrorsTest {
     @Test
     void getErrorDataTest() {
         final long errorId = 1;
-        Update update = getUpdate("errors_" + errorId);
+        Update update = getUpdateFromGroup("errors_" + errorId);
         Error error = new Error()
                 .setId(errorId)
                 .setDateTime(LocalDateTime.now())

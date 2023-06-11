@@ -60,7 +60,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = getUpdate();
+        Update update = getUpdateFromGroup();
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -91,7 +91,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = getUpdate("calendar 01.2007");
+        Update update = getUpdateFromGroup("calendar 01.2007");
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -117,7 +117,7 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>Праздники: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = getUpdate("calendar 01.2007");
+        Update update = getUpdateFromGroup("calendar 01.2007");
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("test"));
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -142,7 +142,7 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>Праздники: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = getUpdate("календарь январь 2007");
+        Update update = getUpdateFromGroup("календарь январь 2007");
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -159,7 +159,7 @@ class CalendarTest {
     @Test
     void calendarWithWrongDateArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdate("calendar 32.3033");
+        Update update = getUpdateFromGroup("calendar 32.3033");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
@@ -170,7 +170,7 @@ class CalendarTest {
     @Test
     void calendarWithWrongMonthArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdate("calendar инварь 2007");
+        Update update = getUpdateFromGroup("calendar инварь 2007");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
@@ -181,7 +181,7 @@ class CalendarTest {
     @Test
     void calendarWithUnexpectedArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdate("calendar абв");
+        Update update = getUpdateFromGroup("calendar абв");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -195,7 +195,7 @@ class CalendarTest {
 
     @Test
     void calendarWithExpectedMonthNameArgumentTest() {
-        Update update = getUpdate("календарь январь");
+        Update update = getUpdateFromGroup("календарь январь");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);

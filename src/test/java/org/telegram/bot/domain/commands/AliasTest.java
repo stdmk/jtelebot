@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class AliasTest {
@@ -61,7 +61,7 @@ class AliasTest {
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(List.of(aliasEntity));
 
-        SendMessage sendMessage = alias.parse(getUpdate());
+        SendMessage sendMessage = alias.parse(getUpdateFromGroup());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();
@@ -91,7 +91,7 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
 
-        assertDoesNotThrow(() -> alias.analyze(bot, echo, getUpdate()));
+        assertDoesNotThrow(() -> alias.analyze(bot, echo, getUpdateFromGroup()));
 
         verify(context).getBean(anyString());
     }

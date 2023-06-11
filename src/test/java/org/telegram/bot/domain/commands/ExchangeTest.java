@@ -3,11 +3,13 @@ package org.telegram.bot.domain.commands;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -32,7 +34,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdate;
+import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class ExchangeTest {
@@ -59,7 +61,7 @@ class ExchangeTest {
     @Test
     void parseWithIOExceptionTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = getUpdate();
+        Update update = getUpdateFromGroup();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -77,7 +79,7 @@ class ExchangeTest {
 //                "$ USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
 //                "€ EUR = 84,9073 RUB ⬇️ (-4,0650)\n" +
 //                "(02.01.2007)";
-        Update update = getUpdate();
+        Update update = getUpdateFromGroup();
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
@@ -96,7 +98,7 @@ class ExchangeTest {
     @Test
     void getRublesForCurrencyValueWithWrongArgumentTest() {
         final String expectedErrorMessage = "wrong input";
-        Update update = getUpdate("exchange 5");
+        Update update = TestUtils.getUpdateFromGroup("exchange 5");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorMessage);
 
@@ -110,7 +112,7 @@ class ExchangeTest {
         final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n";
-        Update update = getUpdate("exchange 5 " + unknownValuteCode);
+        Update update = TestUtils.getUpdateFromGroup("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -130,7 +132,7 @@ class ExchangeTest {
     void getRublesForCurrencyValueTest() throws IOException {
         //does not work. Possibly because of the ₽ symbol
 //        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
-        Update update = getUpdate("exchange 5 usd");
+        Update update = TestUtils.getUpdateFromGroup("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -150,7 +152,7 @@ class ExchangeTest {
         final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode.toUpperCase() + "</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n";
-        Update update = getUpdate("exchange_" + unknownValuteCode);
+        Update update = TestUtils.getUpdateFromGroup("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -172,7 +174,7 @@ class ExchangeTest {
 //                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
 //                "1 RUB = 0,0130 USD\n" +
 //                "(02.01.2007)";
-        Update update = getUpdate("exchange usd");
+        Update update = TestUtils.getUpdateFromGroup("exchange usd");
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
@@ -197,7 +199,7 @@ class ExchangeTest {
                 new ConcurrentHashMap<>(
                         Map.of(oldDate, new Exchange.ValCurs(), CURRENT_DATE, getCurrentValCurs())));
 
-        Update update = getUpdate();
+        Update update = getUpdateFromGroup();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -207,7 +209,7 @@ class ExchangeTest {
 
         exchange.parse(update);
 
-        verify(xmlMapper, Mockito.times(1)).readValue(anyString(), any(Class.class));
+        verify(xmlMapper, Mockito.times(1)).readValue(anyString(), ArgumentMatchers.<Class<Exchange.ValCurs>>any());
 
         Object value = ReflectionTestUtils.getField(exchange, "valCursDataMap");
         assertTrue(value instanceof ConcurrentHashMap);
