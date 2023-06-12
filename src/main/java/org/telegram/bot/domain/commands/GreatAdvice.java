@@ -21,6 +21,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 public class GreatAdvice implements CommandParent<SendMessage> {
 
+    private static final String API_URL = "http://fucking-great-advice.ru/api/random";
+
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
 
@@ -31,7 +33,6 @@ public class GreatAdvice implements CommandParent<SendMessage> {
         }
 
         log.debug("Request to get great advice");
-        final String API_URL = "http://fucking-great-advice.ru/api/random";
 
         ResponseEntity<FuckingGreatAdvice> response;
         try {
@@ -59,7 +60,7 @@ public class GreatAdvice implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class FuckingGreatAdvice {
+    public static class FuckingGreatAdvice {
         private Integer id;
         private String text;
         private Object sound;
