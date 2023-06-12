@@ -2,6 +2,7 @@ package org.telegram.bot;
 
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -16,16 +17,12 @@ public class TestUtils {
     public static final Long DEFAULT_USER_ID = 1L;
     public static final String DEFAULT_MESSAGE_TEXT = "test";
 
-    public static Update getUpdateWithRepliedMessage() {
-        return getUpdateWithRepliedMessage(getMessage(), null);
-    }
-
     public static Update getUpdateWithRepliedMessage(String textMessage) {
         return getUpdateWithRepliedMessage(getMessage(), textMessage);
     }
 
     public static Update getUpdateWithRepliedMessage(Message message, String textMessage) {
-        Update update = getUpdateFromGroup();
+        Update update = getUpdateFromGroup(textMessage);
         update.getMessage().setReplyToMessage(message);
 
         return update;
@@ -259,4 +256,19 @@ public class TestUtils {
 
         return sendPhoto;
     }
+
+    public static SendMediaGroup checkDefaultSendMediaGroupParams(PartialBotApiMethod<?> method) {
+        assertTrue(method instanceof SendMediaGroup);
+        return checkDefaultSendMediaGroupParams((SendMediaGroup) method);
+    }
+
+    public static SendMediaGroup checkDefaultSendMediaGroupParams(SendMediaGroup sendMediaGroup) {
+        assertNotNull(sendMediaGroup);
+        assertFalse(sendMediaGroup.getMedias().isEmpty());
+        assertNotNull(sendMediaGroup.getReplyToMessageId());
+        assertNotNull(sendMediaGroup.getChatId());
+
+        return sendMediaGroup;
+    }
+
 }

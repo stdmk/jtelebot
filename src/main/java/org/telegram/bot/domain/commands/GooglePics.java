@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
+
+    private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
 
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
@@ -129,7 +132,6 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
         ResponseEntity<GooglePicsSearchData> response;
         try {
             response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + text, GooglePicsSearchData.class);
@@ -156,14 +158,16 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GooglePicsSearchData {
+    public static class GooglePicsSearchData {
         private List<GooglePicsSearchItem> items;
     }
 
     @Data
+    @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GooglePicsSearchItem {
+    public static class GooglePicsSearchItem {
         private String title;
         private String link;
     }

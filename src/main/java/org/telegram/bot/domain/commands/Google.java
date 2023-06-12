@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
+    private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
+
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final ImageUrlService imageUrlService;
@@ -157,11 +159,10 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
      * @return google search data.
      */
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
-        final String googleUrl = "https://www.googleapis.com/customsearch/v1?";
         ResponseEntity<GoogleSearchData> response;
 
         try {
-            response = botRestTemplate.getForEntity(googleUrl + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+            response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
