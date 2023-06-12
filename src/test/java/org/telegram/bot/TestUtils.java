@@ -15,14 +15,25 @@ public class TestUtils {
     public static final String BOT_USERNAME = "jtelebot";
     public static final Long DEFAULT_CHAT_ID = -1L;
     public static final Long DEFAULT_USER_ID = 1L;
+    public static final Long ANOTHER_USER_ID = 2L;
+    public static final Integer DEFAULT_MESSAGE_ID = 1;
+    public static final Integer ANOTHER_MESSAGE_ID = 2;
     public static final String DEFAULT_MESSAGE_TEXT = "test";
 
     public static Update getUpdateWithRepliedMessage(String textMessage) {
-        return getUpdateWithRepliedMessage(getMessage(), textMessage);
+        Chat chat = new Chat();
+        chat.setId(DEFAULT_CHAT_ID);
+
+        User user = new User();
+        user.setId(ANOTHER_USER_ID);
+
+        Message repliedMessage = getMessage(ANOTHER_MESSAGE_ID, chat, user, textMessage);
+
+        return getUpdateWithRepliedMessage(repliedMessage);
     }
 
-    public static Update getUpdateWithRepliedMessage(Message message, String textMessage) {
-        Update update = getUpdateFromGroup(textMessage);
+    public static Update getUpdateWithRepliedMessage(Message message) {
+        Update update = getUpdateFromGroup();
         update.getMessage().setReplyToMessage(message);
 
         return update;
@@ -97,8 +108,12 @@ public class TestUtils {
     }
 
     public static Message getMessage(Chat chat, User user, String textMessage) {
+        return getMessage(DEFAULT_MESSAGE_ID, chat, user, textMessage);
+    }
+
+    public static Message getMessage(Integer messageId, Chat chat, User user, String textMessage) {
         Message message = new Message();
-        message.setMessageId(1);
+        message.setMessageId(messageId);
         message.setChat(chat);
         message.setFrom(user);
         message.setText(textMessage);

@@ -1,6 +1,8 @@
 package org.telegram.bot.domain.commands;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -18,8 +20,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,9 +33,10 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
     private final RestTemplate botRestTemplate;
     private final PropertiesConfig propertiesConfig;
 
-    private final List<Character> ruAlphabet = "йцукенгшщзхъфывапролджэячсмитьбюё".chars().mapToObj(s -> (char) s).collect(Collectors.toList());
-    private final List<String> langCodeList = Arrays.asList("af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs",
-            "bg", "ca", "ceb", "zh", "zh", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka",
+    private static final String GOOGLE_TRANSLATE_URL = "https://script.google.com/macros/s/";
+    private static final Set<Character> RU_ALPHABET = "йцукенгшщзхъфывапролджэячсмитьбюё".chars().mapToObj(s -> (char) s).collect(Collectors.toSet());
+    private static final Set<String> LANG_CODE_LIST = Set.of("af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs",
+            "bg", "ca", "ceb", "zh", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka",
             "de", "el", "gu", "ht", "ha", "haw", "he", "hi", "hmn", "hu", "is", "ig", "id", "ga", "it", "ja", "jv", "kn",
             "kk", "km", "rw", "ko", "ku", "ky", "lo", "lv", "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn",
             "my", "ne", "no", "ny", "or", "ps", "fa", "pl", "pt", "pa", "ro", "ru", "sm", "gd", "sr", "st", "sn", "sd",
@@ -57,23 +59,21 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         if (targetLang != null) {
             textMessage = textMessage.substring(targetLang.length() + 1);
         } else {
-            if (!textMessage.equals("") && ruAlphabet.contains(textMessage.charAt(0))) {
+            if (!textMessage.isEmpty() && RU_ALPHABET.contains(textMessage.charAt(0))) {
                 targetLang = "en";
             } else {
                 targetLang = "ru";
             }
         }
 
-        if (!textMessage.equals("")) {
+        if (!textMessage.isEmpty()) {
             log.debug("Request to translate text from message: {}", textMessage);
             responseText = translateText(textMessage, targetLang);
             replyToMessage = message.getMessageId();
         } else {
             if (message.getReplyToMessage() == null) {
                 log.debug("Empty request. Turning on command waiting");
-
                 commandWaitingService.add(message, this.getClass());
-
                 replyToMessage = message.getMessageId();
                 responseText = "теперь напиши мне что нужно перевести";
             } else {
@@ -112,11 +112,11 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
             log.error("Unable to find google translate token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
-        final String GOOGLE_TRANSLATE_URL = "https://script.google.com/macros/s/" + token + "/exec?";
 
+        String url = GOOGLE_TRANSLATE_URL + token + "/exec?" + "q=" + requestText + "&target=" + targetLang;
         ResponseEntity<TranslateResult> response;
         try {
-            response = botRestTemplate.getForEntity(GOOGLE_TRANSLATE_URL + "q=" + requestText + "&target=" + targetLang, TranslateResult.class);
+            response = botRestTemplate.getForEntity(url, TranslateResult.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -139,14 +139,16 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
     private String getTargetLang(String text) {
         int i = text.indexOf(" ");
         if (i > 0 && i <= 3) {
-            return langCodeList.stream().filter(text::startsWith).findFirst().orElse(null);
+            return LANG_CODE_LIST.stream().filter(text::startsWith).findFirst().orElse(null);
         }
 
         return null;
     }
 
     @Data
-    private static class TranslateResult {
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TranslateResult {
         private String text;
     }
 }

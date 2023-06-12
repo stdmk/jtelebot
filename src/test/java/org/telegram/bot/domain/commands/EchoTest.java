@@ -174,7 +174,7 @@ class EchoTest {
         replyToMessage.setFrom(user);
         replyToMessage.setText("как дела?");
 
-        Update update = getUpdateWithRepliedMessage(replyToMessage, "нормально");
+        Update update = getUpdateWithRepliedMessage(replyToMessage);
 
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
 
@@ -186,7 +186,7 @@ class EchoTest {
 
     @Test
     void analyzeWithTalkerDegreeWorks() {
-        Update update = getUpdateWithRepliedMessage(null, "как дела?");
+        Update update = getUpdateFromGroup("как дела?");
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
         TalkerDegree talkerDegree = new TalkerDegree().setChat(new Chat().setChatId(DEFAULT_CHAT_ID)).setDegree(100);
 
