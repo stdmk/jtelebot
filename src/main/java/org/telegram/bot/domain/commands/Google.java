@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -156,11 +157,11 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
      * @return google search data.
      */
     private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
-        final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
+        final String googleUrl = "https://www.googleapis.com/customsearch/v1?";
         ResponseEntity<GoogleSearchData> response;
 
         try {
-            response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+            response = botRestTemplate.getForEntity(googleUrl + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -172,8 +173,9 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GoogleSearchData {
+    public static class GoogleSearchData {
         private SearchInformation searchInformation;
         private List<GoogleSearchItem> items;
     }
@@ -187,7 +189,8 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class GoogleSearchItem {
+    @Accessors(chain = true)
+    public static class GoogleSearchItem {
         private String kind;
         private String title;
         private String htmlTitle;
@@ -202,14 +205,16 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class Pagemap {
+    public static class Pagemap {
         @JsonProperty("cse_image")
         private List<Src> cseImage;
     }
 
     @Data
-    private static class Src {
+    @Accessors(chain = true)
+    public static class Src {
         private String src;
     }
 }
