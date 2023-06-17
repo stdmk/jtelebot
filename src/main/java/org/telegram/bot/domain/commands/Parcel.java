@@ -47,15 +47,15 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
 
-    private final static String EMPTY_COMMAND = "parcel";
-    private final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
-    private final String DELETE_PARCEL_COMMAND = "удалить";
-    private final String SHORT_DELETE_PARCEL_COMMAND = "_d";
-    private final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
-    private final String ADD_PARCEL_COMMAND = "добавить";
-    private final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
-    public final static String DELIVERED_OPERATION_TYPE = "Вручение";
-    private final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
+    private static final String EMPTY_COMMAND = "parcel";
+    private static final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
+    private static final String DELETE_PARCEL_COMMAND = "удалить";
+    private static final String SHORT_DELETE_PARCEL_COMMAND = "_d";
+    private static final String CALLBACK_DELETE_PARCEL_COMMAND = CALLBACK_COMMAND + DELETE_PARCEL_COMMAND;
+    private static final String ADD_PARCEL_COMMAND = "добавить";
+    private static final String CALLBACK_ADD_PARCEL_COMMAND = CALLBACK_COMMAND + ADD_PARCEL_COMMAND;
+    public static final String DELIVERED_OPERATION_TYPE = "Вручение";
+    private static final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -355,7 +355,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                 .collect(Collectors.toList());
 
         StringBuilder buf = new StringBuilder();
-        trackCodeEventList.forEach(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent, parcel.getId())).append(BORDER));
+        trackCodeEventList.forEach(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent)).append(BORDER));
 
         buf.append(buildGeneralInformation(trackCode.getBarcode(), trackCodeEventList));
         buf.append(lastUpdatesTimeInfo);
@@ -404,6 +404,10 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
                 buildStringEventMessage(trackCodeEvent, parcel.getId());
     }
 
+    public static String buildStringEventMessage(TrackCodeEvent event) {
+        return buildStringEventMessage(event, null);
+    }
+
     public static String buildStringEventMessage(TrackCodeEvent event, Long parcelId) {
         StringBuilder buf = new StringBuilder();
 
@@ -416,8 +420,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
         if (event.getIndex() != null) buf.append(" (").append(event.getIndex()).append(")\n"); else buf.append("\n");
 
         if (parcelId != null) buf.append("/" + EMPTY_COMMAND + "_").append(parcelId).append("\n");
-        if (isTheDeliveryEvent(event)) buf.append("\nПохоже, что посылка доставлена.\n" + "<b>Не забудьте удалить.</b> Это важно.\n")
-                .append("/parcel_d").append(parcelId).append("\n");
 
         return buf.toString();
     }
@@ -486,10 +488,6 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     private static boolean isEconomyMode(int requestsLimit) {
         final int freePostAccountRequestsLimit = 100;
         return freePostAccountRequestsLimit >= requestsLimit;
-    }
-
-    private static boolean isTheDeliveryEvent(TrackCodeEvent event) {
-        return DELIVERED_OPERATION_TYPE.equalsIgnoreCase(event.getOperationType());
     }
 
 }
