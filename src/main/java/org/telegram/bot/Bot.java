@@ -1,7 +1,7 @@
 package org.telegram.bot;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
@@ -25,9 +25,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class Bot extends TelegramLongPollingBot {
+
+    private static final Integer MESSAGE_EXPIRATION_TIME_SECONDS = 15;
 
     private final List<TextAnalyzer> textAnalyzerList;
     private final ApplicationContext context;
@@ -40,6 +41,29 @@ public class Bot extends TelegramLongPollingBot {
     private final CommandWaitingService commandWaitingService;
     private final DisableCommandService disableCommandService;
     private final SpyModeService spyModeService;
+
+    public Bot(List<TextAnalyzer> textAnalyzerList,
+               ApplicationContext context,
+               BotStats botStats,
+               PropertiesConfig propertiesConfig,
+               CommandPropertiesService commandPropertiesService,
+               UserService userService, UserStatsService userStatsService,
+               CommandWaitingService commandWaitingService,
+               DisableCommandService disableCommandService,
+               SpyModeService spyModeService,
+               @Value("${telegramBotApiToken}") String botToken) {
+        super(botToken);
+        this.textAnalyzerList = textAnalyzerList;
+        this.context = context;
+        this.botStats = botStats;
+        this.propertiesConfig = propertiesConfig;
+        this.commandPropertiesService = commandPropertiesService;
+        this.userService = userService;
+        this.userStatsService = userStatsService;
+        this.commandWaitingService = commandWaitingService;
+        this.disableCommandService = disableCommandService;
+        this.spyModeService = spyModeService;
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -59,6 +83,9 @@ public class Bot extends TelegramLongPollingBot {
                 message = update.getMessage();
             } else if (update.hasEditedMessage()) {
                 message = update.getEditedMessage();
+                if (isThatAnOldMessage(message)) {
+                    return;
+                }
                 editedMessage = true;
             } else {
                 return;
@@ -135,16 +162,6 @@ public class Bot extends TelegramLongPollingBot {
         return botUserName;
     }
 
-    @Override
-    public String getBotToken() {
-        String telegramBotApiToken = propertiesConfig.getTelegramBotApiToken();
-        if (telegramBotApiToken.equals("")) {
-            log.info("Can't find telegram bot api token. See the properties.properties file");
-        }
-
-        return telegramBotApiToken;
-    }
-
     private void reportToAdmin(User user, String textMessage) {
         Long adminId = propertiesConfig.getAdminId();
         if (adminId.equals(user.getId()) || this.getBotUsername().equals(user.getUserName())) {
@@ -158,5 +175,14 @@ public class Bot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isThatAnOldMessage(Message message) {
+        Integer editDate = message.getEditDate();
+        if (editDate != null) {
+            return editDate - message.getDate() > MESSAGE_EXPIRATION_TIME_SECONDS;
+        }
+
+        return false;
     }
 }
