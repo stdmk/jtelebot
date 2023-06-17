@@ -513,7 +513,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             }
 
             return Arrays.stream(EmojiMimeType.values())
-                    .filter(emojiMimeType -> mimeType.equals(emojiMimeType.getType()))
+                    .filter(emojiMimeType -> mimeType.startsWith(emojiMimeType.getType()))
                     .findFirst()
                     .orElse(UNKNOWN)
                     .getEmoji()
