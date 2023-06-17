@@ -238,7 +238,7 @@ class ChatGPTTest {
     @Test
     void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException {
         final String expectedUrl = "url";
-        Update update = getUpdateFromGroup("chatgpt image say hello");
+        Update update = getUpdateFromGroup("chatgpt iMaGe say hello");
 
         ChatGPT.ImageUrl imageUrl = new ChatGPT.ImageUrl();
         imageUrl.setUrl(expectedUrl);

@@ -74,40 +74,45 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         String imageUrl = null;
-        if (textMessage == null) {
+
+        if (textMessage != null) {
+            String lowerTextMessage = textMessage.toLowerCase();
+
+            if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND) || lowerTextMessage.startsWith(IMAGE_EN_COMMAND)) {
+                if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND)) {
+                    textMessage = textMessage.substring(IMAGE_RU_COMMAND.length() + 1);
+                } else {
+                    textMessage = textMessage.substring(IMAGE_EN_COMMAND.length() + 1);
+                }
+
+                responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
+
+                imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
+            } else {
+                Chat chat = new Chat().setChatId(message.getChatId());
+                User user = new User().setUserId(message.getFrom().getId());
+                List<ChatGPTMessage> messagesHistory;
+
+                if (message.getChatId() < 0) {
+                    messagesHistory = chatGPTMessageService.getMessages(chat);
+                } else {
+                    messagesHistory = chatGPTMessageService.getMessages(user);
+                }
+
+                responseText = getResponse(
+                        buildRequest(messagesHistory, textMessage, message.getFrom().getUserName()),
+                        token);
+
+                messagesHistory.addAll(
+                        List.of(
+                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(textMessage),
+                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
+                chatGPTMessageService.update(messagesHistory);
+            }
+        } else {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что отправить в ChatGPT";
-        } else if (textMessage.startsWith(IMAGE_RU_COMMAND) || textMessage.startsWith(IMAGE_EN_COMMAND)) {
-            if (textMessage.startsWith(IMAGE_RU_COMMAND)) {
-                textMessage = textMessage.substring(IMAGE_RU_COMMAND.length() + 1);
-            } else {
-                textMessage = textMessage.substring(IMAGE_EN_COMMAND.length() + 1);
-            }
-
-            responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
-
-            imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
-        } else {
-            Chat chat = new Chat().setChatId(message.getChatId());
-            User user = new User().setUserId(message.getFrom().getId());
-            List<ChatGPTMessage> messagesHistory;
-
-            if (message.getChatId() < 0) {
-                messagesHistory = chatGPTMessageService.getMessages(chat);
-            } else {
-                messagesHistory = chatGPTMessageService.getMessages(user);
-            }
-
-            responseText = getResponse(
-                    buildRequest(messagesHistory, textMessage, message.getFrom().getUserName()),
-                    token);
-
-            messagesHistory.addAll(
-                    List.of(
-                            new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(textMessage),
-                            new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
-            chatGPTMessageService.update(messagesHistory);
         }
 
         if (imageUrl != null) {
