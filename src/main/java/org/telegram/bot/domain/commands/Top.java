@@ -74,6 +74,7 @@ public class Top implements CommandParent<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
+        sendMessage.setDisableNotification(true);
 
         return sendMessage;
     }
