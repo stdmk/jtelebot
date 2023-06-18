@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -37,7 +38,7 @@ public class Help implements CommandParent<SendMessage> {
         String textMessage = cutCommandInText(message.getText());
 
         String responseText;
-        if (textMessage == null || textMessage.length() == 0) {
+        if (StringUtils.isEmpty(textMessage)) {
             log.debug("Request to get general help");
             StringBuilder buf = new StringBuilder();
 
@@ -120,12 +121,7 @@ public class Help implements CommandParent<SendMessage> {
      * @param userId user id to check.
      */
     private Boolean checkIsThatAdmin(Long userId) {
-        Long adminId;
-        try {
-            adminId = propertiesConfig.getAdminId();
-        } catch (Exception e) {
-            return false;
-        }
+        Long adminId = propertiesConfig.getAdminId();
 
         User user = userService.get(userId);
         if (user.getUserId().equals(adminId) && !user.getAccessLevel().equals(AccessLevel.ADMIN.getValue())) {
