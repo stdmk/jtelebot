@@ -152,4 +152,5 @@
     <include file="db/changelog/20230530162100_added_entity_ChatGPTMessage.xml"/>
     <include file="db/changelog/20230530162500_added_command_ChatGPT.xml"/>
     <include file="db/changelog/20230531180400_update_ChatGPT_help.xml"/>
+    <include file="db/changelog/20230730094600_update_Movie_help.xml"/>
 </databaseChangeLog>
