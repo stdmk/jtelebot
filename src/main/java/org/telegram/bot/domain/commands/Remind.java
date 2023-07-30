@@ -805,7 +805,11 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
         Reminder reminder = reminderService.get(chat, user, reminderId);
         if (reminder == null) {
-            return null;
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(chat.getChatId());
+            deleteMessage.setMessageId(message.getMessageId());
+
+            return deleteMessage;
         }
 
         try {
