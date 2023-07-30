@@ -6,8 +6,10 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
+import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
 
@@ -31,10 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import static org.telegram.bot.utils.DateUtils.atStartOfDay;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class TvProgramDownloaderTimer extends TimerParent {
+
+    private final TimerService timerService;
     private final TvChannelService tvChannelService;
     private final TvProgramService tvProgramService;
     private final BotStats botStats;
@@ -42,28 +48,46 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";
 
     @Override
-    @Scheduled(cron = "0 10 0 * * ?")
+    @Scheduled(fixedRate = 14400000)
     public void execute() {
-        log.info("Timer for downloading and transferring tv-program");
-
-        try {
-            transferTvProgramDataFile();
-        } catch (IOException e) {
-            log.error("Failed to download tv program data: {}", e.getMessage());
-            return;
+        Timer timer = timerService.get("tvProgramDownloader");
+        if (timer == null) {
+            timer = new Timer()
+                    .setName("tvProgramDownloader")
+                    .setLastAlarmDt(LocalDateTime.now().minusDays(1));
+            timerService.save(timer);
         }
 
-        clearTvTables();
+        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
 
-        try {
-            parseTvProgramData();
-        } catch (IOException | XMLStreamException e) {
-            log.error("Unable to read new TvData: " + e.getMessage());
-            return;
+        if (dateTimeNow.isAfter(nextAlarm)) {
+            log.info("Timer for downloading and transferring tv-program");
+
+
+            try {
+                transferTvProgramDataFile();
+            } catch (IOException e) {
+                log.error("Failed to download tv program data: {}", e.getMessage());
+                return;
+            }
+
+            clearTvTables();
+
+            try {
+                parseTvProgramData();
+            } catch (IOException | XMLStreamException e) {
+                log.error("Unable to read new TvData: " + e.getMessage());
+                return;
+            }
+
+            botStats.setLastTvUpdate(Instant.now());
+
+            timer.setLastAlarmDt(atStartOfDay(dateTimeNow));
+            timerService.save(timer);
+
+            log.info("Timer for downloading and transferring tv-program completed successfully");
         }
-
-        botStats.setLastTvUpdate(Instant.now());
-        log.info("Timer for downloading and transferring tv-program completed successfully");
     }
 
     /**
@@ -78,7 +102,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
         FileUtils.copyURLToFile(new URL(tvProgramDataUrl), new File(zipFileName));
 
         try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFileName));
-        OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {
+             OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {
             byte[] buffer = new byte[1024];
             int len;
             while ((len = in.read(buffer)) > 0) {
