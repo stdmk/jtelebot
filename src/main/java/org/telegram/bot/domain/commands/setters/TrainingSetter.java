@@ -266,7 +266,7 @@ public class TrainingSetter implements SetterParent<PartialBotApiMethod<?>> {
 
             commandWaitingService.add(chat, user, Set.class, CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscriptionId
                     + DATE_ABBR);
-            responseText = "Напиши мне дату начала действия абонемента в формате ДД.ММ.ГГГГ, " +
+            responseText = "Напиши мне дату окончания действия абонемента в формате ДД.ММ.ГГГГ, " +
                     "например: <code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
         } else {
             return getManageSubscriptionsMenu(message, user, false);
