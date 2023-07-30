@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
@@ -28,12 +29,14 @@ import static org.telegram.bot.utils.DateUtils.formatDate;
 @Slf4j
 public class Holidays implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final HolidayService holidayService;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 

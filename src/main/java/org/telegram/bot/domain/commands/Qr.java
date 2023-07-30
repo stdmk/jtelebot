@@ -49,6 +49,7 @@ import java.util.Map;
 @Slf4j
 public class Qr implements CommandParent<PartialBotApiMethod<?>>, TextAnalyzer {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final BotStats botStats;
@@ -64,23 +65,24 @@ public class Qr implements CommandParent<PartialBotApiMethod<?>>, TextAnalyzer {
             textMessage = cutCommandInText(message.getText());
         }
 
+        Long chatId = message.getChatId();
         if (textMessage == null) {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setChatId(chatId);
             sendMessage.setText("теперь напиши мне что нужно закодировать");
 
             return sendMessage;
         } else {
-
+            bot.sendUploadPhoto(chatId);
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(new InputFile(generateQrFromText(textMessage), "qr"));
             sendPhoto.setCaption(textMessage);
             sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId().toString());
+            sendPhoto.setChatId(chatId);
 
             return sendPhoto;
         }
@@ -110,7 +112,7 @@ public class Qr implements CommandParent<PartialBotApiMethod<?>>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
 
         if (message.hasPhoto()) {

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -20,11 +21,13 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 @RequiredArgsConstructor
 public class Truth implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final RestTemplate botRestTemplate;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
         Integer messageIdToReply = message.getMessageId();
 

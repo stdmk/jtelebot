@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -22,12 +23,14 @@ import java.util.Arrays;
 @Slf4j
 public class TimeDownloading implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.*;
@@ -46,6 +47,7 @@ import static org.telegram.bot.utils.DateUtils.*;
 @Slf4j
 public class Remind implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final ReminderService reminderService;
     private final CommandWaitingService commandWaitingService;
     private final UserService userService;
@@ -92,6 +94,7 @@ public class Remind implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;

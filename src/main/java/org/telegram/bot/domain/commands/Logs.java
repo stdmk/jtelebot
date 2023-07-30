@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -16,12 +17,15 @@ import java.io.File;
 @Slf4j
 public class Logs implements CommandParent<SendDocument> {
 
+    private final Bot bot;
+
     @Override
     public SendDocument parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
             return null;
         }
+        bot.sendUploadDocument(message.getChatId());
 
         Long chatId = message.getChatId();
         if (chatId < 0) {

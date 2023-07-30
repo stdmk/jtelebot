@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -25,6 +26,8 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class ErrorsTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private ErrorService errorService;
     @Mock

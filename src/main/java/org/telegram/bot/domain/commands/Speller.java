@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -24,6 +25,7 @@ import java.util.List;
 @Slf4j
 public class Speller implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final RestTemplate botRestTemplate;
     private final SpeechService speechService;
@@ -31,6 +33,7 @@ public class Speller implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Integer replyToMessage;
         String textMessage = commandWaitingService.getText(message);
 

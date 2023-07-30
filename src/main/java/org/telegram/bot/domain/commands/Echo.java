@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.Parser;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -33,11 +31,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final TalkerWordService talkerWordService;
     private final TalkerPhraseService talkerPhraseService;
     private final CommandPropertiesService commandPropertiesService;
-    private final BotStats botStats;
     private final TalkerDegreeService talkerDegreeService;
 
     private static final Pattern WORDS_PATTERN = Pattern.compile("[а-яА-Я]{3,}", Pattern.UNICODE_CHARACTER_CLASS);
@@ -46,6 +44,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = message.getText();
 
         String responseText = getReplyForText(cutCommandInText(textMessage), message.getChatId());
@@ -55,7 +54,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(message.getChatId());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
@@ -63,7 +62,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(CommandParent<?> command, Update update) {
         if (update.hasCallbackQuery()) {
             return;
         }
@@ -94,6 +93,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         if (sendMessage) {
+            bot.sendTyping(message.getChatId());
             String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
             Update newUpdate = copyUpdate(update);
 
@@ -101,9 +101,7 @@ public class Echo implements CommandParent<SendMessage>, TextAnalyzer {
                 return;
             }
             newUpdate.getMessage().setText(commandName + " " + textMessage);
-
-            Parser parser = new Parser(bot, command, newUpdate, botStats);
-            parser.start();
+            bot.parseAsync(newUpdate, command);
         }
     }
 

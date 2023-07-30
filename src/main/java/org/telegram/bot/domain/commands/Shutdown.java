@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.timers.FileManagerTimer;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 public class Shutdown implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final ConfigurableApplicationContext configurableApplicationContext;
     private final BotStats botStats;
     private final FileManagerTimer fileManagerTimer;
@@ -25,6 +27,7 @@ public class Shutdown implements CommandParent<SendMessage> {
             return null;
         }
 
+        bot.sendTyping(update);
         log.debug("From {} received command to shutdown", update.getMessage().getFrom());
 
         try {

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -23,6 +24,9 @@ import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class BoobsTest {
+
+    @Mock
+    private Bot bot;
     @Mock
     private SpeechService speechService;
     @Mock

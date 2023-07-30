@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -25,6 +26,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 @Slf4j
 public class Butts implements CommandParent<SendPhoto> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
 
@@ -36,6 +38,8 @@ public class Butts implements CommandParent<SendPhoto> {
         if (cutCommandInText(message.getText()) != null) {
             return null;
         }
+
+        bot.sendUploadPhoto(message.getChatId());
 
         ResponseEntity<Butts.ButtsCount[]> response;
         try {

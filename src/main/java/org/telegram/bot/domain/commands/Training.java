@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -40,6 +41,7 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 @RequiredArgsConstructor
 public class Training implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final TrainingScheduledService trainingScheduledService;
     private final TrainSubscriptionService trainSubscriptionService;
     private final TrainingEventService trainingEventService;
@@ -77,6 +79,7 @@ public class Training implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Long userId;
         Integer editMessageId = null;
 

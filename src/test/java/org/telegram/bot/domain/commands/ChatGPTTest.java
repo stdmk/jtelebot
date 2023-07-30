@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
@@ -42,6 +43,9 @@ import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChatGPTTest {
+
+    @Mock
+    private Bot bot;
     @Mock
     PropertiesConfig propertiesConfig;
     @Mock

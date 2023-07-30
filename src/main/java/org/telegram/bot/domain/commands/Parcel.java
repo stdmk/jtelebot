@@ -60,6 +60,7 @@ public class Parcel implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;

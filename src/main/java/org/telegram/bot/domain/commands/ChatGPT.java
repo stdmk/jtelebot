@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -66,6 +68,7 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         org.telegram.telegrambots.meta.api.objects.Message message = getMessageFromUpdate(update);
+        Long chatId = message.getChatId();
         String textMessage = commandWaitingService.getText(message);
         String responseText;
 
@@ -79,6 +82,7 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
             String lowerTextMessage = textMessage.toLowerCase();
 
             if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND) || lowerTextMessage.startsWith(IMAGE_EN_COMMAND)) {
+                bot.sendUploadPhoto(chatId);
                 if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND)) {
                     textMessage = textMessage.substring(IMAGE_RU_COMMAND.length() + 1);
                 } else {
@@ -89,11 +93,12 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
 
                 imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
             } else {
-                Chat chat = new Chat().setChatId(message.getChatId());
+                bot.sendTyping(chatId);
+                Chat chat = new Chat().setChatId(chatId);
                 User user = new User().setUserId(message.getFrom().getId());
                 List<ChatGPTMessage> messagesHistory;
 
-                if (message.getChatId() < 0) {
+                if (chatId < 0) {
                     messagesHistory = chatGPTMessageService.getMessages(chat);
                 } else {
                     messagesHistory = chatGPTMessageService.getMessages(user);
@@ -121,13 +126,13 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
             sendPhoto.setCaption(responseText);
             sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId().toString());
+            sendPhoto.setChatId(chatId);
 
             return sendPhoto;
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 

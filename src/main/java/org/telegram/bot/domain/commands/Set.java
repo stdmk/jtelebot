@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.commands.setters.*;
 import org.telegram.bot.domain.entities.Chat;
@@ -29,6 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Set implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final UserService userService;
     private final SpeechService speechService;
@@ -58,6 +60,7 @@ public class Set implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Long userId = message.getFrom().getId();
         String textMessage = message.getText();
         boolean callback = false;

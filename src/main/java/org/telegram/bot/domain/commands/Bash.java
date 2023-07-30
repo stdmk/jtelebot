@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -22,6 +23,7 @@ import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 @Slf4j
 public class Bash implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
 
@@ -30,6 +32,7 @@ public class Bash implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String quot;
 

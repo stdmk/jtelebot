@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -20,12 +21,14 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Slf4j
 public class Getid implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final UserService userService;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
         StringBuilder responseText = new StringBuilder();
         Long chatId = message.getChatId();

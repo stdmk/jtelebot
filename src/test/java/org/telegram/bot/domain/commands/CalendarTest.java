@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -29,6 +30,8 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class CalendarTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private UserCityService userCityService;
     @Mock

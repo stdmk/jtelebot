@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 @Slf4j
 public class Calculator implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final RestTemplate defaultRestTemplate;
@@ -36,6 +38,7 @@ public class Calculator implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
         String responseText;
 

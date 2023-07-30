@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -24,14 +25,15 @@ import java.io.*;
 @Slf4j
 public class Webcam implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final FileManagerTimer fileManagerTimer;
     private final CommandWaitingService commandWaitingService;
 
-    private final static String fileNamePrefix = "file";
-    private final static String fileNamePostfix = ".mp4";
-    private final static int defaultVideoDurationInSeconds = 5;
-    private final static int maxVideoDurationInSeconds = 20;
+    private final static String FILE_NAME_PREFIX = "file";
+    private final static String FILE_NAME_POSTFIX = ".mp4";
+    private final static int DEFAULT_VIDEO_DURATION_IN_SECONDS = 5;
+    private final static int MAX_VIDEO_DURATION_IN_SECONDS = 20;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -53,23 +55,23 @@ public class Webcam implements CommandParent<PartialBotApiMethod<?>> {
 
             return sendMessage;
         } else {
-
+            bot.sendUploadVideo(message.getChatId());
             String duration;
             String url;
             int spaceIndex = textMessage.indexOf(" ");
             if (spaceIndex < 0) {
-                duration = String.valueOf(defaultVideoDurationInSeconds);
+                duration = String.valueOf(DEFAULT_VIDEO_DURATION_IN_SECONDS);
                 url = textMessage;
             } else {
                 url = textMessage.substring(0, spaceIndex);
                 duration = textMessage.substring(spaceIndex + 1);
             }
 
-            if (!TextUtils.isThatUrl(url) || !TextUtils.isThatInteger(duration) || Integer.parseInt(duration) > maxVideoDurationInSeconds) {
+            if (!TextUtils.isThatUrl(url) || !TextUtils.isThatInteger(duration) || Integer.parseInt(duration) > MAX_VIDEO_DURATION_IN_SECONDS) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            String fileName = fileManagerTimer.addFile(fileNamePrefix, fileNamePostfix);
+            String fileName = fileManagerTimer.addFile(FILE_NAME_PREFIX, FILE_NAME_POSTFIX);
             final String command = "ffmpeg -re -t " + duration + " -i " + url + " -c:v copy -c:a copy -bsf:a aac_adtstoasc -t " + duration + " " + fileName;
 
             try {

@@ -65,7 +65,7 @@ public class UserStatsCleanerTimer extends TimerParent {
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");
-            userStatsService.clearMonthlyStats().forEach(sendMessage -> {
+            userStatsService.clearMonthlyStats(bot).forEach(sendMessage -> {
                 try {
                     bot.execute((sendMessage));
                 } catch (TelegramApiException e) {

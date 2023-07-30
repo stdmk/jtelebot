@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -26,6 +27,7 @@ import java.util.List;
 @Slf4j
 public class Help implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final ChatService chatService;
@@ -35,6 +37,7 @@ public class Help implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
 
         String responseText;

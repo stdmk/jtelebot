@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.Parser;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -26,7 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
 
     private final ApplicationContext context;
-    private final BotStats botStats;
+    private final Bot bot;
 
     private final AliasService aliasService;
     private final UserService userService;
@@ -36,7 +34,11 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Long chatId = message.getChatId();
+
+        bot.sendTyping(chatId);
+
+        Chat chat = new Chat().setChatId(chatId);
         User user = new User().setUserId(message.getFrom().getId());
 
         if (cutCommandInText(message.getText()) != null) {
@@ -53,7 +55,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
                         .append(alias.getValue()).append("`\n"));
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
         sendMessage.disableWebPagePreview();
@@ -63,7 +65,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
@@ -86,9 +88,7 @@ public class Alias implements CommandParent<SendMessage>, TextAnalyzer {
             if (commandProperties != null) {
                 if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
                     userStatsService.incrementUserStatsCommands(chat, user);
-
-                    Parser parser = new Parser(bot, (CommandParent<?>) context.getBean(commandProperties.getClassName()), newUpdate, botStats);
-                    parser.start();
+                    bot.parseAsync(newUpdate, (CommandParent<?>) context.getBean(commandProperties.getClassName()));
                 }
             }
             log.debug("The alias found is not a command");

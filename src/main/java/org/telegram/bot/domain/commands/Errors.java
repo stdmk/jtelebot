@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Error;
@@ -29,6 +30,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 public class Errors implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final ErrorService errorService;
     private final SpeechService speechService;
     private final BotStats botStats;
@@ -38,6 +40,7 @@ public class Errors implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 

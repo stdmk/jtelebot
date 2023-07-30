@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
@@ -30,6 +31,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Slf4j
 public class Where implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final UserService userService;
     private final UserStatsService userStatsService;
@@ -62,6 +64,7 @@ public class Where implements CommandParent<SendMessage> {
                 return null;
             }
 
+            bot.sendTyping(message.getChatId());
             log.debug("Request to get last message of user {} for chat {}", user, chat);
             UserStats userStats = userStatsService.get(chat, user);
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -29,6 +30,7 @@ import java.net.URL;
 @Slf4j
 public class WebScreen implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -43,6 +45,7 @@ public class WebScreen implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         Message message = getMessageFromUpdate(update);
+        bot.sendUploadPhoto(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {

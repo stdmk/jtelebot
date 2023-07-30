@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -19,12 +20,15 @@ import java.io.File;
 @Slf4j
 public class Backup implements CommandParent<SendDocument> {
 
+    private final Bot bot;
+
     @PersistenceContext
     EntityManager entityManager;
 
     @Override
     @Transactional
     public SendDocument parse(Update update) {
+        bot.sendUploadDocument(update);
         if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
             return null;
         }

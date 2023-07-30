@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -22,11 +23,13 @@ import java.nio.charset.Charset;
 @Slf4j
 public class Cmd implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         if (textMessage == null || textMessage.equals("")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -51,7 +54,7 @@ public class Cmd implements CommandParent<SendMessage> {
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(message.getChatId());
         sendMessage.enableMarkdown(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText("`" + responseText + "`");

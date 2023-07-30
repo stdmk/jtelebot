@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GoogleTranslate implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -49,6 +51,7 @@ public class GoogleTranslate implements CommandParent<SendMessage> {
         String responseText;
 
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {

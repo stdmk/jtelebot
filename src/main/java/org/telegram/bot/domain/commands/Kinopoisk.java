@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final PropertiesConfig propertiesConfig;
     private final RestTemplate botRestTemplate;
@@ -57,14 +59,17 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         Message message = getMessageFromUpdate(update);
+        Long chatId = message.getChatId();
         String textMessage = getTextMessage(update);
         InputFile photo = null;
         String responseText;
         if (textMessage == null) {
+            bot.sendUploadPhoto(chatId);
             Movie movie = getRandomMovie(token);
             responseText = generateResponseTextToMovie(movie);
             photo = getPhotoFromMovie(movie);
         } else if (textMessage.startsWith("_")) {
+            bot.sendUploadPhoto(chatId);
             String id = textMessage.substring(1);
             try {
                 Integer.parseInt(id);
@@ -76,6 +81,7 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
             responseText = generateResponseTextToMovie(movie);
             photo = getPhotoFromMovie(movie);
         } else {
+            bot.sendTyping(chatId);
             MovieSearchResult movieSearchResult = getMovieSearchResult(token, textMessage);
             Integer total = movieSearchResult.getTotal();
             if (total == 0) {
@@ -95,13 +101,13 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
             sendPhoto.setCaption(responseText);
             sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId().toString());
+            sendPhoto.setChatId(chatId.toString());
 
             return sendPhoto;
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();

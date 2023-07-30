@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.commands.Top;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.AccessLevel;
@@ -96,10 +97,10 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<SendMessage> clearMonthlyStats() {
+    public List<SendMessage> clearMonthlyStats(Bot bot) {
         log.debug("Request to clear monthly stats of users");
 
-        Top top = new Top(this, userService, speechService);
+        Top top = new Top(bot, this, userService, speechService);
         List<SendMessage> response = chatService.getAllGroups()
                 .stream()
                 .map(top::getTopByChat)

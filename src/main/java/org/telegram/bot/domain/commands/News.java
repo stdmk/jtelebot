@@ -4,9 +4,9 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class News implements CommandParent<PartialBotApiMethod<?>> {
 
-    private final Logger log = LoggerFactory.getLogger(News.class);
-
+    private final Bot bot;
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final SpeechService speechService;
@@ -43,6 +43,7 @@ public class News implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         Chat chat = new Chat().setChatId(message.getChatId());
         String responseText;

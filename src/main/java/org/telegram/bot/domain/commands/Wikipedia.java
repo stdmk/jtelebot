@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Wiki;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -33,6 +34,7 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 @Slf4j
 public class Wikipedia implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final WikiService wikiService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
@@ -41,6 +43,7 @@ public class Wikipedia implements CommandParent<SendMessage> {
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String responseText;
         String textMessage = commandWaitingService.getText(message);
 

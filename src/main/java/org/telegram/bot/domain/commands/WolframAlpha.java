@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -27,6 +28,7 @@ import java.util.List;
 @Slf4j
 public class WolframAlpha implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -35,8 +37,8 @@ public class WolframAlpha implements CommandParent<SendMessage> {
 
     @Override
     public SendMessage parse(Update update) {
-
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String responseText;
         String textMessage = commandWaitingService.getText(message);
 

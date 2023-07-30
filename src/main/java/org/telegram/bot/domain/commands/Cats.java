@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -26,12 +27,15 @@ import java.util.Locale;
 @Slf4j
 public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        Long chatId = message.getChatId();
+        bot.sendUploadPhoto(chatId);
         String textMessage = cutCommandInText(message.getText());
         if (textMessage != null) {
             return null;
@@ -58,7 +62,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
         if (url.endsWith(".gif")) {
             log.debug("The response is a gif");
             SendDocument sendDocument = new SendDocument();
-            sendDocument.setChatId(message.getChatId().toString());
+            sendDocument.setChatId(chatId.toString());
             sendDocument.setCaption(commandName);
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(new InputFile(url));
@@ -70,7 +74,7 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
         sendPhoto.setPhoto(new InputFile(url));
         sendPhoto.setCaption(commandName);
         sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(message.getChatId().toString());
+        sendPhoto.setChatId(chatId.toString());
 
         return sendPhoto;
     }

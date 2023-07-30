@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -23,6 +24,7 @@ public class GreatAdvice implements CommandParent<SendMessage> {
 
     private static final String API_URL = "http://fucking-great-advice.ru/api/random";
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
 
@@ -32,6 +34,8 @@ public class GreatAdvice implements CommandParent<SendMessage> {
             return null;
         }
 
+        Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         log.debug("Request to get great advice");
 
         ResponseEntity<FuckingGreatAdvice> response;
@@ -47,8 +51,6 @@ public class GreatAdvice implements CommandParent<SendMessage> {
             log.error("Empty response from FGA api");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
-
-        Message message = getMessageFromUpdate(update);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
@@ -39,6 +40,7 @@ import static org.telegram.bot.utils.TextUtils.withCapital;
 @Slf4j
 public class Weather implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final UserCityService userCityService;
     private final CommandWaitingService commandWaitingService;
@@ -53,6 +55,7 @@ public class Weather implements CommandParent<SendMessage> {
         }
 
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Long userId = message.getFrom().getId();
         String cityName;
         String responseText;

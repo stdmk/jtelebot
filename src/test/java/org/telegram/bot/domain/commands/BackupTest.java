@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 
 import javax.persistence.EntityManager;
@@ -20,18 +21,19 @@ import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 class BackupTest {
 
     @Mock
+    private Bot bot;
+    @Mock
     private EntityManager entityManager;
     @Mock
     private Query query;
-
-    @InjectMocks
-    private Backup backup;
 
     @Test
     void parseTest() {
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
 
+        Backup backup = new Backup(bot);
+        backup.entityManager = entityManager;
         SendDocument sendDocument = backup.parse(getUpdateFromGroup());
         verify(query).executeUpdate();
 

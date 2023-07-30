@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -27,6 +28,7 @@ import java.net.URL;
 @Slf4j
 public class Image implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final ImageUrlService imageUrlService;
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
@@ -35,6 +37,7 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
         ImageUrl imageUrl;
 

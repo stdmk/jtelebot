@@ -134,14 +134,14 @@ class EchoTest {
         Update update = new Update();
         update.setCallbackQuery(callbackQuery);
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 
     @Test
     void analyzeWithoutTextMessageTest() {
         Update update = getUpdateFromGroup(null);
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 
     @Test
@@ -151,7 +151,7 @@ class EchoTest {
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(talkerDegreeService.get(anyLong())).thenReturn(new TalkerDegree().setDegree(1));
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 
     @Test
@@ -162,7 +162,7 @@ class EchoTest {
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 
     @Test
@@ -181,7 +181,7 @@ class EchoTest {
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 
     @Test
@@ -194,6 +194,6 @@ class EchoTest {
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
         when(talkerDegreeService.get(anyLong())).thenReturn(talkerDegree);
 
-        assertDoesNotThrow(() -> echo.analyze(bot, echo, update));
+        assertDoesNotThrow(() -> echo.analyze(echo, update));
     }
 }

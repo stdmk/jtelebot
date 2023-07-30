@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.Parser;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
@@ -36,11 +34,11 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Slf4j
 public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
 
+    private final Bot bot;
     private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
     private final UserService userService;
     private final UserStatsService userStatsService;
-    private final BotStats botStats;
 
     private final List<String> increaseSymbols = Arrays.asList("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++");
     private final List<String> decreaseSymbols = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
@@ -51,6 +49,8 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
+
+        bot.sendTyping(message.getChatId());
 
         StringBuilder buf = new StringBuilder();
         String textMessage = cutCommandInText(message.getText());
@@ -146,7 +146,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command, Update update) {
+    public void analyze(CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         if (textMessage == null) {
@@ -183,9 +183,7 @@ public class Karma implements CommandParent<SendMessage>, TextAnalyzer {
                     return;
                 }
                 newUpdate.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
-
-                Parser parser = new Parser(bot, command, newUpdate, botStats);
-                parser.start();
+                bot.parseAsync(newUpdate, command);
             }
         }
     }

@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
@@ -20,6 +21,7 @@ import static org.telegram.bot.utils.DateUtils.durationToString;
 @RequiredArgsConstructor
 public class NewYear implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final UserCityService userCityService;
 
     @Override
@@ -30,6 +32,7 @@ public class NewYear implements CommandParent<SendMessage> {
         if (cutCommandInText(message.getText()) != null) {
             return null;
         }
+        bot.sendTyping(message.getChatId());
 
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());

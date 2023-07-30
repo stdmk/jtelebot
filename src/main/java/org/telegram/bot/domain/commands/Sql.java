@@ -43,6 +43,7 @@ public class Sql implements CommandParent<SendMessage> {
             return null;
         }
 
+        bot.sendTyping(message.getChatId());
         log.debug("Request to execute sql request: {}", textMessage);
         try {
             if (textMessage.toLowerCase().startsWith("select")) {

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -38,6 +39,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @RequiredArgsConstructor
 public class Files implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final FileService fileService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
@@ -60,6 +62,7 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;

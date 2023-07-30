@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -31,6 +33,8 @@ import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 @ExtendWith(MockitoExtension.class)
 class BashTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private SpeechService speechService;
     @Mock

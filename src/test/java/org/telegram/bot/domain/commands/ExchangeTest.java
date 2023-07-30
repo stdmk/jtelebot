@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -39,6 +40,8 @@ import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 @ExtendWith(MockitoExtension.class)
 class ExchangeTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private SpeechService speechService;
     @Mock

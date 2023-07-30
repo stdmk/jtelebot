@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.GoogleSearchResult;
@@ -41,6 +42,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
     private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final ImageUrlService imageUrlService;
@@ -70,6 +72,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
+            bot.sendUploadPhoto(message.getChatId());
             long googleResultSearchId;
             try {
                 googleResultSearchId = Long.parseLong(textMessage.substring(1));
@@ -99,6 +102,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                 return sendPhoto;
             }
         } else {
+            bot.sendTyping(message.getChatId());
             log.debug("Request to get google results for: {}", textMessage);
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 

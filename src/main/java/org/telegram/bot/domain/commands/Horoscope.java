@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
@@ -37,12 +38,14 @@ public class Horoscope implements CommandParent<SendMessage> {
 
     private final String HOROSCOPE_DATA_URL = "https://ignio.com/r/daily/";
 
+    private final Bot bot;
     private final UserZodiacService userZodiacService;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
         Chat chat = new Chat().setChatId(message.getChatId());

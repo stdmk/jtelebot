@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -26,6 +27,7 @@ import static org.telegram.bot.utils.TextUtils.isThatUrl;
 @Slf4j
 public class Download implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final NetworkUtils networkUtils;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -52,6 +54,7 @@ public class Download implements CommandParent<PartialBotApiMethod<?>> {
 
             return sendMessage;
         } else {
+            bot.sendUploadPhoto(message.getChatId());
             String url;
             String fileName;
 

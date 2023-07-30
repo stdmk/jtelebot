@@ -2,6 +2,7 @@ package org.telegram.bot.domain.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
@@ -21,12 +22,14 @@ import static org.telegram.bot.utils.TextUtils.formatLongValue;
 @RequiredArgsConstructor
 public class Uptime implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final BotStats botStats;
     private final TalkerPhraseRepository talkerPhraseRepository;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         StringBuilder buf = new StringBuilder();
 

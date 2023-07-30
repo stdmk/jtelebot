@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -16,10 +17,12 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 public class Password implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
+        bot.sendTyping(update);
         int symbolsCount = 8;
         String text = getTextMessage(update);
 

@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TvChannel;
@@ -34,6 +35,7 @@ import static org.telegram.bot.utils.TextUtils.isTextLengthIncludedInLimit;
 @Slf4j
 public class Tv implements CommandParent<SendMessage> {
 
+    private final Bot bot;
     private final TvChannelService tvChannelService;
     private final TvProgramService tvProgramService;
     private final UserTvService userTvService;
@@ -41,13 +43,14 @@ public class Tv implements CommandParent<SendMessage> {
     private final UserCityService userCityService;
     private final SpeechService speechService;
 
-    private final int HOURS_NUMBER_SHORT = 3;
-    private final int HOURS_NUMBER_DEFAULT = 6;
-    private final int HOURS_NUMBER_LONG = 12;
+    private static final int HOURS_NUMBER_SHORT = 3;
+    private static final int HOURS_NUMBER_DEFAULT = 6;
+    private static final int HOURS_NUMBER_LONG = 12;
 
     @Override
     public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 

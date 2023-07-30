@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -30,6 +31,8 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class DownloadTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private NetworkUtils networkUtils;
     @Mock

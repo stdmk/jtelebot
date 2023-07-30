@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -84,7 +85,7 @@ public interface UserStatsService {
      *
      * @return list of tops for send its to chats
      */
-    List<SendMessage> clearMonthlyStats();
+    List<SendMessage> clearMonthlyStats(Bot bot);
 
     /**
      * Clear user stats by last Day.

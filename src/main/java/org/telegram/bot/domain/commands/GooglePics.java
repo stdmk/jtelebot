@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.ImageUrl;
@@ -39,6 +40,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
     private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
 
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final ImageUrlService imageUrlService;
@@ -67,6 +69,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             return sendMessage;
         } else if (textMessage.startsWith("_")) {
+            bot.sendUploadPhoto(message.getChatId());
             long imageId;
             try {
                 imageId = Long.parseLong(textMessage.substring(1));
@@ -98,6 +101,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             return sendPhoto;
 
         } else {
+            bot.sendUploadPhoto(message.getChatId());
             log.debug("Request to search images for {}", textMessage);
             List<InputMedia> images = new ArrayList<>();
 

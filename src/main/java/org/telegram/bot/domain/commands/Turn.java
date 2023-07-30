@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.Parser;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -26,18 +24,19 @@ import static org.telegram.bot.utils.TextUtils.deleteWordsInText;
 @Slf4j
 public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
 
+    private final Bot bot;
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
-    private final BotStats botStats;
 
+    final String RU_LAYOUT = " 1234567890-=йцукенгшщзхъфывапролджэячсмитьбю.\\!\"№;%:?*()_+ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,/";
+    final String EN_LAYOUT = " 1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./\\!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?|";
     private static final Pattern RU_SYMBOLS_PATTERN = Pattern.compile("[а-яА-Я]+", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern UNTURNED_WORD_SYMPTOM =  Pattern.compile("[qwrtpsdfghjklzxcvbnm]{5}", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
     public SendMessage parse(Update update) {
-        final String ruLayout = " 1234567890-=йцукенгшщзхъфывапролджэячсмитьбю.\\!\"№;%:?*()_+ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,/";
-        final String enLayout = " 1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./\\!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?|";
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         Integer messageIdToReply = message.getMessageId();
 
@@ -55,7 +54,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         log.debug("Request to turn text: {}", textMessage);
         for (char textChar : textMessage.toCharArray()) {
             try {
-                buf.append(ruLayout.charAt(enLayout.indexOf(textChar)));
+                buf.append(RU_LAYOUT.charAt(EN_LAYOUT.indexOf(textChar)));
             } catch (Exception ignored) {
 
             }
@@ -70,7 +69,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Bot bot, CommandParent<?> command,  Update update) {
+    public void analyze(CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         if (textMessage == null) {
@@ -92,9 +91,7 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
                     return;
                 }
                 newUpdate.getMessage().setText(commandName + " " + textMessage);
-
-                Parser parser = new Parser(bot, command, newUpdate, botStats);
-                parser.start();
+                bot.parseAsync(newUpdate, command);
             }
         }
     }

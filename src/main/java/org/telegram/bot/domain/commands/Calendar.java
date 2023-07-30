@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
 
+    private final Bot bot;
     private final UserCityService userCityService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -60,6 +62,8 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        Long chatId = message.getChatId();
+        bot.sendTyping(chatId);
 
         String textMessage;
         Long userId;
@@ -75,7 +79,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         User user = new User().setUserId(userId);
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Chat chat = new Chat().setChatId(chatId);
 
         LocalDate date;
         String responseText;
@@ -89,7 +93,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
 
         if (callback) {
             EditMessageText editMessage = new EditMessageText();
-            editMessage.setChatId(message.getChatId().toString());
+            editMessage.setChatId(chatId.toString());
             editMessage.setMessageId(message.getMessageId());
             editMessage.enableHtml(true);
             editMessage.setText(responseText);
@@ -99,7 +103,7 @@ public class Calendar implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId.toString());
         sendMessage.enableHtml(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setReplyMarkup(getKeyboard(date));

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -30,6 +31,8 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class HelpTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private CommandPropertiesService commandPropertiesService;
     @Mock

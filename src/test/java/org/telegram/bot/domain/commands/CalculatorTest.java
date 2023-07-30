@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -31,6 +32,9 @@ import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class CalculatorTest {
+
+    @Mock
+    private Bot bot;
     @Mock
     private CommandWaitingService commandWaitingService;
     @Mock

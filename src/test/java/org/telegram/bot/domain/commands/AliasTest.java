@@ -91,7 +91,7 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
 
-        assertDoesNotThrow(() -> alias.analyze(bot, echo, getUpdateFromGroup()));
+        assertDoesNotThrow(() -> alias.analyze(echo, getUpdateFromGroup()));
 
         verify(context).getBean(anyString());
     }
