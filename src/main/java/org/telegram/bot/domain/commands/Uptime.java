@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 
 import static org.telegram.bot.utils.DateUtils.*;
+import static org.telegram.bot.utils.TextUtils.formatFileSize;
 import static org.telegram.bot.utils.TextUtils.formatLongValue;
 
 @Component
@@ -39,6 +40,7 @@ public class Uptime implements CommandParent<SendMessage> {
 
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime botDateTimeStart = botStats.getBotStartDateTime();
+        File dbFile = new File("db.mv.db");
 
         buf.append("<b>Запуск:</b>\n").append(formatDateTime(botDateTimeStart)).append("\n");
         buf.append("<b>Работаю без перерыва:</b>\n").append(durationToString(botDateTimeStart, dateTimeNow)).append("\n");
@@ -60,7 +62,8 @@ public class Uptime implements CommandParent<SendMessage> {
         buf.append("Непредвиденных ошибок: <b>").append(botStats.getErrors()).append("</b>\n");
         buf.append("Обновление ТВ: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
         buf.append("Обновление треков: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");
-        buf.append("Размер БД: <b>").append(new File("db.mv.db").length() / 1024 / 1024).append(" мб</b>\n");
+        buf.append("Размер БД: <b>").append(formatFileSize(dbFile.length())).append(" </b>\n");
+        buf.append("Свободно на диске: <b>").append(formatFileSize(dbFile.getFreeSpace())).append(" </b>\n");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
