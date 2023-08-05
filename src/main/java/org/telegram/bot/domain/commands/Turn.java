@@ -40,7 +40,6 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         String textMessage = cutCommandInText(message.getText());
         Integer messageIdToReply = message.getMessageId();
 
-        StringBuilder buf = new StringBuilder();
         if (textMessage == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
@@ -52,27 +51,49 @@ public class Turn implements CommandParent<SendMessage>, TextAnalyzer {
         }
 
         log.debug("Request to turn text: {}", textMessage);
-        for (char textChar : textMessage.toCharArray()) {
+        String responseText = convert(textMessage);
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setReplyToMessageId(messageIdToReply);
+        sendMessage.setText(responseText);
+
+        return sendMessage;
+    }
+
+    private String convert(String text) {
+        if (isEnLayout(text)) {
+            log.debug("Request to turn text: {} from EN to RU", text);
+            return convert(EN_LAYOUT, RU_LAYOUT, text);
+        } else {
+            log.debug("Request to turn text: {} from RU to EN", text);
+            return convert(RU_LAYOUT, EN_LAYOUT, text);
+        }
+    }
+
+    private boolean isEnLayout(String text) {
+        return EN_LAYOUT.contains(text.substring(0, 1));
+    }
+
+    private String convert(String fromLayout, String toLayout, String text) {
+        StringBuilder buf = new StringBuilder();
+
+        for (char textChar : text.toCharArray()) {
             try {
-                buf.append(RU_LAYOUT.charAt(EN_LAYOUT.indexOf(textChar)));
+                buf.append(toLayout.charAt(fromLayout.indexOf(textChar)));
             } catch (Exception ignored) {
 
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(messageIdToReply);
-        sendMessage.setText(buf.toString());
-
-        return sendMessage;
+        return buf.toString();
     }
 
     @Override
     public void analyze(CommandParent<?> command, Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
-        if (textMessage == null) {
+        if (textMessage == null || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase())) {
             return;
         }
         log.debug("Initialization of unturned text search in {}", textMessage);
