@@ -70,9 +70,10 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
             photo = getPhotoFromMovie(movie);
         } else if (textMessage.startsWith("_")) {
             bot.sendUploadPhoto(chatId);
-            String id = textMessage.substring(1);
+
+            long id;
             try {
-                Integer.parseInt(id);
+                id = Long.parseLong(textMessage.substring(1));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -88,6 +89,12 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             } else if (total == 1) {
                 Movie movie = movieSearchResult.getDocs().get(0);
+
+                Long id = movie.getId();
+                if (id != null) {
+                    movie = getMovieById(token, id);
+                }
+
                 responseText = generateResponseTextToMovie(movie);
                 photo = getPhotoFromMovie(movie);
             } else {
@@ -160,6 +167,11 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
                 buf.append("Страна: <b>").append(getNames(countries)).append("</b>\n"));
         ifPresentAndNotEmpty(movie.getGenres(), genres ->
                 buf.append("Жанр: <b>").append(getNames(genres)).append("</b>\n"));
+        ifPresentAndNotEmpty(movie.getPersons(), persons -> persons
+                .stream()
+                .filter(person -> "director".equals(person.getEnProfession()))
+                .findFirst()
+                .ifPresent(director -> buf.append("Режиссёр: <b>").append(director.getName()).append("</b>\n")));
         ifPresentAndNotEmpty(movie.getShortDescription(), description ->
                 buf.append("\n").append("<i>").append(description).append("</i>\n"));
         buf.append("\n");
@@ -168,6 +180,7 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
 
             persons
                     .stream()
+                    .filter(person -> "actor".equals(person.getEnProfession()))
                     .limit(9)
                     .map(person -> person.getName() == null ? person.getEnName() : person.getName())
                     .forEach(name -> buf.append(name).append(", "));
@@ -217,7 +230,7 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         return getData(API_URL + searchPath + text, token, MovieSearchResult.class);
     }
 
-    private Movie getMovieById(String token, String id) {
+    private Movie getMovieById(String token, Long id) {
         final String getByIdPath = "/";
         return getData(API_URL + getByIdPath + id, token, Movie.class);
     }
