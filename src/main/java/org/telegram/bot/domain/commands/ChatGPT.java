@@ -135,6 +135,7 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
         sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
+        sendMessage.enableMarkdown(true);
 
         return sendMessage;
     }
