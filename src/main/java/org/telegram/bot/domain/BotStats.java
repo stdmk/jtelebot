@@ -130,7 +130,7 @@ public class BotStats {
         this.kinopoiskRequests = this.kinopoiskRequests - 1;
     }
 
-    public void incrementWorlframRequests() {
+    public void incrementWolframRequests() {
         this.wolframRequests = this.wolframRequests - 1;
     }
 

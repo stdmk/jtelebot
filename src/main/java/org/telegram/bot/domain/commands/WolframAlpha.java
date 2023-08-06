@@ -86,7 +86,7 @@ public class WolframAlpha implements CommandParent<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        botStats.incrementWorlframRequests();
+        botStats.incrementWolframRequests();
 
         if (response.getBody() == null || response.getBody().getQueryresult() == null || response.getBody().getQueryresult().getPods() == null) {
             return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
