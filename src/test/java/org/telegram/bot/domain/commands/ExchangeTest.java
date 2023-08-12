@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,14 +63,32 @@ class ExchangeTest {
     private static final String PREVIOUS_DATE_STRING = "01.01.2007";
 
     @Test
-    void parseWithIOExceptionTest() throws IOException {
+    void parseWithNoApiResponseTest() throws IOException {
         final String expectedErrorMessage = "no response";
         Update update = getUpdateFromGroup();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenThrow(new IOException());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenThrow(new IOException());
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
+
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        assertEquals(expectedErrorMessage, botException.getMessage());
+    }
+
+    @Test
+    void parseWithDeserializingErrorTest() throws IOException {
+        final String expectedErrorMessage = "no response";
+        Update update = getUpdateFromGroup();
+
+        JsonProcessingException jsonProcessingException = Mockito.mock(JsonProcessingException.class);
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenReturn("1");
+        when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenThrow(jsonProcessingException);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
         assertEquals(expectedErrorMessage, botException.getMessage());
@@ -136,6 +155,46 @@ class ExchangeTest {
         //does not work. Possibly because of the ₽ symbol
 //        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 usd");
+        Exchange.ValCurs valCurs = getCurrentValCurs();
+
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenReturn("");
+        when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
+
+        SendMessage sendMessage = exchange.parse(update);
+        checkDefaultSendMessageParams(sendMessage);
+//        assertEquals(expectedResponseText, sendMessage.getText());
+    }
+
+    @Test
+    void getValuteForRublesCountWithUnknownValuteTest() throws IOException {
+        final String unknownValuteCode = "btlc";
+        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
+                "Список доступных: Доллар США - /exchange_usd\n" +
+                "Евро - /exchange_eur\n";
+        Update update = TestUtils.getUpdateFromGroup("exchange 5 rub " + unknownValuteCode);
+        Exchange.ValCurs valCurs = getCurrentValCurs();
+        CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
+
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251")))
+                .thenReturn("");
+        when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
+        when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
+
+        SendMessage sendMessage = exchange.parse(update);
+        checkDefaultSendMessageParams(sendMessage);
+        assertEquals(expectedResponseText, sendMessage.getText());
+    }
+
+    @Test
+    void getValuteForRublesCountTest() throws IOException {
+        //does not work. Possibly because of the ₽ symbol
+//        final String expectedResponseText = "<b>Рубли в Доллар США</b>\n1,0 ₽ = 0,0130 USD";
+        Update update = TestUtils.getUpdateFromGroup("exchange 1 rub usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());

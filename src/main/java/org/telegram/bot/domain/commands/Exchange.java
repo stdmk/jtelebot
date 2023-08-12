@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.telegram.bot.utils.TextUtils.startsWithNumber;
 import static org.telegram.bot.utils.TextUtils.parseFloat;
@@ -38,6 +41,9 @@ import static org.telegram.bot.utils.TextUtils.parseFloat;
 @RequiredArgsConstructor
 @Slf4j
 public class Exchange implements CommandParent<SendMessage> {
+
+    private static final Pattern VALUTE_TO_RUB_PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)$");
+    private static final Pattern RUB_TO_VALUTE_PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)\\.?\\s?([a-zA-Zа-яА-Я]+)$");
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -59,12 +65,19 @@ public class Exchange implements CommandParent<SendMessage> {
             responseText = getExchangeRatesForUsdAndEur();
         } else {
             if (startsWithNumber(textMessage)) {
-                int space = textMessage.indexOf(" ");
-                if (space > 0) {
-                    String currencyCode = textMessage.substring(space + 1);
-                    float amount = parseFloat(textMessage.substring(0, space));
+                Matcher valuteToRubMatcher = VALUTE_TO_RUB_PATTERN.matcher(textMessage);
+                Matcher ruToValuteMatcher = RUB_TO_VALUTE_PATTERN.matcher(textMessage);
+
+                if (valuteToRubMatcher.find()) {
+                    String currencyCode = valuteToRubMatcher.group(2);
+                    float amount =  Float.parseFloat(valuteToRubMatcher.group(1));
                     log.debug("Request to get rubles count for currency {} amount {}", currencyCode, amount);
                     responseText = getRublesForCurrencyValue(currencyCode, amount);
+                } else if (ruToValuteMatcher.find()) {
+                    String valuteCode = ruToValuteMatcher.group(3);
+                    float rublesAmount =  Float.parseFloat(ruToValuteMatcher.group(1));
+                    log.debug("Request to get valute {} count for rubles amount {}", valuteCode, rublesAmount);
+                    responseText = getValuteForRublesAmount(valuteCode, rublesAmount);
                 } else {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
@@ -126,6 +139,26 @@ public class Exchange implements CommandParent<SendMessage> {
             float exchangeRate = getReversExchangeRate(valute);
             return "<b>" + valute.getName() + " в Рубли</b>\n" +
                     String.valueOf(amount).replaceAll("\\.", ",") + " " + valute.getCharCode() + " = " + formatFloatValue(amount / exchangeRate) + " ₽";
+        }
+    }
+
+    /**
+     * Getting currency amont for rubles
+     *
+     * @param valuteCode code of valute.
+     * @param amount amount of rubles.
+     * @return formatted text with valute count.
+     */
+    private String getValuteForRublesAmount(String valuteCode, Float amount) {
+        List<Valute> valuteList = getValCursData().getValute();
+
+        Valute valute = getValuteByCode(valuteList, valuteCode);
+        if (valute == null) {
+            return "Не нашёл валюту <b>" + valuteCode + "</b>\nСписок доступных: " + getValuteList(valuteList);
+        } else {
+            float exchangeRate = getReversExchangeRate(valute);
+            return "<b>" + "Рубли в " + valute.getName() + "</b>\n" +
+                    String.valueOf(amount).replaceAll("\\.", ",") + " ₽ = " + formatFloatValue(amount * exchangeRate) + " " + valute.getCharCode();
         }
     }
 
@@ -273,9 +306,9 @@ public class Exchange implements CommandParent<SendMessage> {
         ValCurs valCurs;
         try {
             valCurs = xmlMapper.readValue(response, ValCurs.class);
-        } catch (IOException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error while mapping response:", e);
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
         return valCurs;

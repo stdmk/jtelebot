@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Converter implements CommandParent<SendMessage> {
 
-    private static final Pattern PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)\\.?\\s?([a-zA-Zа-яА-Я]+)");
+    private static final Pattern PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)\\.?\\s?([a-zA-Zа-яА-Я]+)$");
 
     private final List<UnitsConverter> converters;
     private final Bot bot;

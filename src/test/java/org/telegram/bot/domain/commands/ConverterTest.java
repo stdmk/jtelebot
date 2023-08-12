@@ -54,4 +54,21 @@ class ConverterTest {
         assertEquals(expectedInfo, sendMessage.getText());
     }
 
+    @Test
+    void parseWithMultipleResults() {
+        final String expectedResult1 = "result1";
+        final String expectedResult2 = "result2";
+        Update updateFromGroup = TestUtils.getUpdateFromGroup("конверт 1,23 с в");
+
+        UnitsConverter unitsConverter1 = Mockito.mock(UnitsConverter.class);
+        when(unitsConverter1.getInfo()).thenReturn(expectedResult1);
+        UnitsConverter unitsConverter2 = Mockito.mock(UnitsConverter.class);
+        when(unitsConverter2.getInfo()).thenReturn(expectedResult2);
+        Converter converter2 = new Converter(List.of(unitsConverter1, unitsConverter2), bot, speechService);
+
+        SendMessage sendMessage = converter2.parse(updateFromGroup);
+
+        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        assertEquals(expectedResult1 + "\n" + expectedResult2, sendMessage.getText());
+    }
 }
