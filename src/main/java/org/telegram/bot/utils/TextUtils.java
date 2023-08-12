@@ -175,7 +175,7 @@ public class TextUtils {
             result = value;
         }
 
-        return String.format("%.2f", result) + unit;
+        return String.format("%.2f", result) + " " + unit;
     }
 
     public static boolean startsWithNumber(String text) {

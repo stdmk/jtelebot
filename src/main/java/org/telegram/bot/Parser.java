@@ -42,21 +42,25 @@ public class Parser {
     }
 
     private PartialBotApiMethod<?> handleException(Update update, Throwable e) {
-        Throwable cause = e.getCause();
-        Message message = getMessage(update);
-
-        if (cause instanceof BotException) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setText(cause.getMessage());
-
-            return sendMessage;
+        BotException botException;
+        if (e instanceof BotException) {
+            botException = (BotException) e;
+        } else if (e.getCause() instanceof BotException) {
+            botException = (BotException) e.getCause();
+        } else {
+            botStats.incrementErrors(update, e, "неожиданная верхнеуровневая ошибка");
+            log.error("Unexpected error: ", e);
+            return null;
         }
 
-        botStats.incrementErrors(update, cause, "неожиданная верхнеуровневая ошибка");
-        log.error("Unexpected error: ", cause);
-        return null;
+        Message message = getMessage(update);
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setText(botException.getMessage());
+
+        return sendMessage;
     }
 
     private void executeMethod(Update update, PartialBotApiMethod<?> method) {
