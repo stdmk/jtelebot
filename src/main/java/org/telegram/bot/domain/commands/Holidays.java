@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -32,6 +33,7 @@ public class Holidays implements CommandParent<SendMessage> {
     private final Bot bot;
     private final HolidayService holidayService;
     private final SpeechService speechService;
+    private final Clock clock;
 
     @Override
     public SendMessage parse(Update update) {
@@ -67,7 +69,7 @@ public class Holidays implements CommandParent<SendMessage> {
                 LocalDate requestedDate;
                 try {
                     requestedDate = LocalDate.of(
-                            LocalDate.now().getYear(),
+                            LocalDate.now(clock).getYear(),
                             Integer.parseInt(textMessage.substring(i + 1)),
                             Integer.parseInt(textMessage.substring(0, i)));
                 } catch (NumberFormatException e) {
@@ -100,7 +102,7 @@ public class Holidays implements CommandParent<SendMessage> {
      */
     private String getComingHolidays(Chat chat) {
         StringBuilder buf = new StringBuilder("<u>Ближайшие праздники:</u>\n");
-        final LocalDate dateNow = LocalDate.now();
+        final LocalDate dateNow = LocalDate.now(clock);
 
         holidayService.get(chat)
                 .stream()
@@ -234,6 +236,6 @@ public class Holidays implements CommandParent<SendMessage> {
      * @return current celebration date.
      */
     private LocalDate getDateOfHoliday(LocalDate date) {
-        return LocalDate.of(LocalDate.now().getYear(), date.getMonth(), date.getDayOfMonth());
+        return LocalDate.of(LocalDate.now(clock).getYear(), date.getMonth(), date.getDayOfMonth());
     }
 }
