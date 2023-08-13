@@ -1,12 +1,10 @@
 package org.telegram.bot.domain.commands;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
@@ -17,10 +15,8 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,8 +48,7 @@ class BashTest {
                 "xxx: мне проще, я утюг от вай-фая отключил\n" +
                 "yyy: А они по VPN ";
         Update update = TestUtils.getUpdateFromGroup(null);
-        String rawRandomQuot = IOUtils.toString(
-                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_random_quot.txt"), StandardCharsets.UTF_8);
+        String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quot.txt");
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
 
@@ -80,8 +75,7 @@ class BashTest {
                 "Картина маслом: садится Хью Грант на кровать, проводит рукой Бриджит по голове, и одновременно с этим действием слышится характерный звук металлофона: \"Бррррррыньк!\"  Далее Хью Грант открывает рот и произносит с успокаивающим лицом: \"Вирусная база обновлена\". ";
         Update update = getUpdateFromGroup();
         update.getMessage().setText("bash 1");
-        String rawDefinedQuot = IOUtils.toString(
-                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8);
+        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quot.txt");
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
@@ -107,9 +101,7 @@ class BashTest {
         final String errorText = "не имеют доступа для просмотра статей из данного раздела";
         Update update = getUpdateFromGroup();
         update.getMessage().setText("bash 1");
-        String rawDefinedQuot = IOUtils.toString(
-                new FileInputStream("src/test/java/org/telegram/bot/domain/commands/bash_define_quot.txt"), StandardCharsets.UTF_8) +
-                errorText;
+        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quot.txt") + errorText;
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 

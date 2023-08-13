@@ -1,5 +1,6 @@
 package org.telegram.bot;
 
+import org.apache.commons.io.IOUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
@@ -7,6 +8,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.*;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -284,6 +289,10 @@ public class TestUtils {
         assertNotNull(sendMediaGroup.getChatId());
 
         return sendMediaGroup;
+    }
+
+    public static String getResourceAsString(String path) throws IOException {
+        return IOUtils.toString(new FileInputStream("src/test/resources/" + path), StandardCharsets.UTF_8);
     }
 
 }

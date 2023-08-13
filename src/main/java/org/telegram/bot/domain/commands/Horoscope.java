@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,7 @@ public class Horoscope implements CommandParent<SendMessage> {
     private final Bot bot;
     private final UserZodiacService userZodiacService;
     private final SpeechService speechService;
+    private final XmlMapper xmlMapper;
 
     @Override
     public SendMessage parse(Update update) {
@@ -154,7 +156,6 @@ public class Horoscope implements CommandParent<SendMessage> {
     private HoroscopeData getHoroByHoroscopeType(org.telegram.bot.domain.enums.Horoscope horoscope) {
         String horoscopeFileName = "horoscope/" + horoscope.name().toLowerCase(Locale.ROOT) + ".xml";
         File file = new File(horoscopeFileName);
-        XmlMapper xmlMapper = new XmlMapper();
 
         try {
             return xmlMapper.readValue(file, HoroscopeData.class);
@@ -165,7 +166,8 @@ public class Horoscope implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class HoroscopeData {
+    @Accessors(chain = true)
+    public static class HoroscopeData {
         @XmlElement
         private Horo horo;
 
@@ -210,10 +212,11 @@ public class Horoscope implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class Horo {}
+    public static class Horo {}
 
     @Data
-    private static class Date {
+    @Accessors(chain = true)
+    public static class Date {
         @XmlElement
         private String yesterday;
 
@@ -228,7 +231,8 @@ public class Horoscope implements CommandParent<SendMessage> {
     }
 
     @Data
-    private static class HoroscopeElement {
+    @Accessors(chain = true)
+    public static class HoroscopeElement {
         @XmlElement
         private String yesterday;
 
