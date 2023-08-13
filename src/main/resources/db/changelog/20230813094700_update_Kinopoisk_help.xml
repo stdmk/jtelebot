@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230813094700-1" author="stdmk">
+        <update schemaName="bot" tableName="help">
+            <column name="params" value="[наименование] [(год)]"/>
+            <column name="examples" value="Кино, Кино Побег из, movie_326, кино остров (2006)"/>
+            <column name="comment" value="На команду без параметров бот пришлёт случайный фильм. Для поиска по году значение необходимо указать в скобках. Информация берётся с сервиса api.kinopoisk.dev"/>
+            <where>id = 57</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

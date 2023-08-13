@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -47,8 +50,12 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
     private final BotStats botStats;
 
+    private static final Pattern YEAR_PARAM = Pattern.compile("\\((\\d{4})\\)");
     private static final String API_URL = "https://api.kinopoisk.dev/v1.3/movie";
     private static final String KINOPOISK_URL = "https://www.kinopoisk.ru";
+    private static final String SEARCH_PATH = "?";
+    private static final String GET_BY_ID_PATH = "/";
+    private static final String RANDOM_MOVIE_PATH = "/random";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -61,46 +68,21 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         String textMessage = getTextMessage(update);
-        InputFile photo = null;
-        String responseText;
+
+        Pair<String, InputFile> result;
         if (textMessage == null) {
             bot.sendUploadPhoto(chatId);
-            Movie movie = getRandomMovie(token);
-            responseText = generateResponseTextToMovie(movie);
-            photo = getPhotoFromMovie(movie);
+            result = getRandomMovie(token);
         } else if (textMessage.startsWith("_")) {
             bot.sendUploadPhoto(chatId);
-
-            long id;
-            try {
-                id = Long.parseLong(textMessage.substring(1));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            Movie movie = getMovieById(token, id);
-            responseText = generateResponseTextToMovie(movie);
-            photo = getPhotoFromMovie(movie);
+            result = getMovieById(token, textMessage);
         } else {
             bot.sendTyping(chatId);
-            MovieSearchResult movieSearchResult = getMovieSearchResult(token, textMessage);
-            Integer total = movieSearchResult.getTotal();
-            if (total == 0) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-            } else if (total == 1) {
-                Movie movie = movieSearchResult.getDocs().get(0);
-
-                Long id = movie.getId();
-                if (id != null) {
-                    movie = getMovieById(token, id);
-                }
-
-                responseText = generateResponseTextToMovie(movie);
-                photo = getPhotoFromMovie(movie);
-            } else {
-                responseText = generateResponseTextToMovies(movieSearchResult);
-            }
+            result = getMovieSearchResult(token, textMessage);
         }
+
+        String responseText = result.getLeft();
+        InputFile photo = result.getRight();
 
         if (photo != null) {
             SendPhoto sendPhoto = new SendPhoto();
@@ -123,11 +105,68 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private InputFile getPhotoFromMovie(Movie movie) {
-        return Optional.ofNullable(movie.getPoster())
-                .map(ShortImage::getUrl)
-                .map(InputFile::new)
-                .orElse(null);
+    private Pair<String, InputFile> getMovieSearchResult(String token, String textMessage) {
+        String url;
+        Matcher yearMatcher = YEAR_PARAM.matcher(textMessage);
+        if (yearMatcher.find()) {
+            int year;
+            try {
+                year = Integer.parseInt(yearMatcher.group(1));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            String movieName = textMessage.replaceAll(YEAR_PARAM.pattern(), "").trim();
+            url = API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + year;
+        } else {
+            url = API_URL + SEARCH_PATH + "name=" + textMessage;
+        }
+
+        MovieSearchResult movieSearchResult = getData(url, token, MovieSearchResult.class);
+
+        Integer total = movieSearchResult.getTotal();
+        if (total == 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+        } else if (total == 1) {
+            Movie movie = movieSearchResult.getDocs().get(0);
+
+            Long id = movie.getId();
+            if (id != null) {
+                return getMovieById(token, id);
+            } else {
+                return getResponseTextAndPhotoFromMovie(movie);
+            }
+        } else {
+            return Pair.of(generateResponseTextToMovies(movieSearchResult), null);
+        }
+    }
+
+    private Pair<String, InputFile> getMovieById(String token, String textMessage) {
+        long id;
+        try {
+            id = Long.parseLong(textMessage.substring(1));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return getMovieById(token, id);
+    }
+
+    private Pair<String, InputFile> getMovieById(String token, Long id) {
+        Movie movie = getData(API_URL + GET_BY_ID_PATH + id, token, Movie.class);
+        return getResponseTextAndPhotoFromMovie(movie);
+    }
+
+    private Pair<String, InputFile> getRandomMovie(String token) {
+        Movie movie = getData(API_URL + RANDOM_MOVIE_PATH, token, Movie.class);
+        return getResponseTextAndPhotoFromMovie(movie);
+    }
+
+    private Pair<String, InputFile> getResponseTextAndPhotoFromMovie(Movie movie) {
+        String responseText = generateResponseTextToMovie(movie);
+        InputFile photo = getPhotoFromMovie(movie);
+
+        return Pair.of(responseText, photo);
     }
 
     private String generateResponseTextToMovies(MovieSearchResult movieSearchResult) {
@@ -225,19 +264,11 @@ public class Kinopoisk implements CommandParent<PartialBotApiMethod<?>> {
         return names.stream().map(ItemName::getName).collect(Collectors.joining(", "));
     }
 
-    private MovieSearchResult getMovieSearchResult(String token, String text) {
-        final String searchPath = "?name=";
-        return getData(API_URL + searchPath + text, token, MovieSearchResult.class);
-    }
-
-    private Movie getMovieById(String token, Long id) {
-        final String getByIdPath = "/";
-        return getData(API_URL + getByIdPath + id, token, Movie.class);
-    }
-
-    private Movie getRandomMovie(String token) {
-        final String randomMoviePath = "/random";
-        return getData(API_URL + randomMoviePath, token, Movie.class);
+    private InputFile getPhotoFromMovie(Movie movie) {
+        return Optional.ofNullable(movie.getPoster())
+                .map(ShortImage::getUrl)
+                .map(InputFile::new)
+                .orElse(null);
     }
 
     private <T> T getData(String url, String token, Class<T> dataType) {
