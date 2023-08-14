@@ -35,8 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdateFromGroup;
+import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExchangeTest {
@@ -61,6 +60,7 @@ class ExchangeTest {
     private static final LocalDate CURRENT_DATE = LocalDate.of(2007, 1, 2);
     private static final String CURRENT_DATE_STRING = "02.01.2007";
     private static final String PREVIOUS_DATE_STRING = "01.01.2007";
+    private static final String NEXT_DATE_STRING = "03.01.2007";
 
     @Test
     void parseWithNoApiResponseTest() throws IOException {
@@ -96,25 +96,34 @@ class ExchangeTest {
 
     @Test
     void parseWithEmptyTextMessage() throws IOException {
-        //does not work. Possibly because of the emoji symbol
-//        final String expectedResponseText = "<b>Курс валют ЦБ РФ:</b>\n" +
-//                "$ USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
-//                "€ EUR = 84,9073 RUB ⬇️ (-4,0650)\n" +
-//                "(02.01.2007)";
+        final String expectedResponseText = "<b>Курс валют ЦБ РФ:</b>\n" +
+                "$ USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
+                "€ EUR = 84,9073 RUB ⬇️ (-4,0650)\n" +
+                "¥ CNY = 14,5445 RUB ⬆️ (+2,4210)\n" +
+                "(02.01.2007)\n" +
+                "\n" +
+                "<b>Курс валют ЦБ РФ:</b>\n" +
+                "$ USD = 74,8318 RUB ⬇️ (-1,9889)\n" +
+                "€ EUR = 88,9923 RUB ⬆️ (+4,0850)\n" +
+                "¥ CNY = 13,8741 RUB ⬇️ (-0,6704)\n" +
+                "(03.01.2007)";
         Update update = getUpdateFromGroup();
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
+        Exchange.ValCurs valCurs3 = getNextValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(networkUtils.readStringFromURL(XML_URL + CURRENT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("1");
         when(networkUtils.readStringFromURL(XML_URL + PREVIOUS_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("2");
+        when(networkUtils.readStringFromURL(XML_URL + NEXT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("3");
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
+        when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
         SendMessage sendMessage = exchange.parse(update);
         checkDefaultSendMessageParams(sendMessage);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
@@ -131,9 +140,10 @@ class ExchangeTest {
     @Test
     void getRublesForCurrencyValueWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
+        final String expectedResponseText = "Не нашёл валюту <b>btlc</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n";
+                "Евро - /exchange_eur\n" +
+                "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -152,8 +162,7 @@ class ExchangeTest {
 
     @Test
     void getRublesForCurrencyValueTest() throws IOException {
-        //does not work. Possibly because of the ₽ symbol
-//        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
+        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
@@ -165,15 +174,16 @@ class ExchangeTest {
 
         SendMessage sendMessage = exchange.parse(update);
         checkDefaultSendMessageParams(sendMessage);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
     void getValuteForRublesCountWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode + "</b>\n" +
+        final String expectedResponseText = "Не нашёл валюту <b>btlc</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n";
+                "Евро - /exchange_eur\n" +
+                "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 rub " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -192,8 +202,7 @@ class ExchangeTest {
 
     @Test
     void getValuteForRublesCountTest() throws IOException {
-        //does not work. Possibly because of the ₽ symbol
-//        final String expectedResponseText = "<b>Рубли в Доллар США</b>\n1,0 ₽ = 0,0130 USD";
+        final String expectedResponseText = "<b>Рубли в Доллар США</b>\n1,0 ₽ = 0,0130 USD";
         Update update = TestUtils.getUpdateFromGroup("exchange 1 rub usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
@@ -205,15 +214,16 @@ class ExchangeTest {
 
         SendMessage sendMessage = exchange.parse(update);
         checkDefaultSendMessageParams(sendMessage);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
     void getExchangeRatesForUnknownCodeTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>" + unknownValuteCode.toUpperCase() + "</b>\n" +
+        final String expectedResponseText = "Не нашёл валюту <b>BTLC</b>\n" +
                 "Список доступных: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n";
+                "Евро - /exchange_eur\n" +
+                "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -231,11 +241,10 @@ class ExchangeTest {
 
     @Test
     void getExchangeRatesForCodeTest() throws IOException {
-        //does not work. Possibly because of the emoji symbol
-//        final String expectedResponseText = "<b>Доллар США</b>\n" +
-//                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
-//                "1 RUB = 0,0130 USD\n" +
-//                "(02.01.2007)";
+        final String expectedResponseText = "<b>Доллар США</b>\n" +
+                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
+                "1 RUB = 0,0130 USD\n" +
+                "(02.01.2007)";
         Update update = TestUtils.getUpdateFromGroup("exchange usd");
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
@@ -249,7 +258,7 @@ class ExchangeTest {
 
         SendMessage sendMessage = exchange.parse(update);
         checkDefaultSendMessageParams(sendMessage);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
     @Test
@@ -263,15 +272,18 @@ class ExchangeTest {
 
         Update update = getUpdateFromGroup();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
+        Exchange.ValCurs valCurs3 = getNextValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(networkUtils.readStringFromURL(XML_URL + PREVIOUS_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("2");
+        when(networkUtils.readStringFromURL(XML_URL + NEXT_DATE_STRING.replaceAll("\\.", "/"), Charset.forName("windows-1251"))).thenReturn("3");
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
+        when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
         exchange.parse(update);
 
-        verify(xmlMapper, Mockito.times(1)).readValue(anyString(), ArgumentMatchers.<Class<Exchange.ValCurs>>any());
+        verify(xmlMapper, Mockito.times(2)).readValue(anyString(), ArgumentMatchers.<Class<Exchange.ValCurs>>any());
 
         Object value = ReflectionTestUtils.getField(exchange, "valCursDataMap");
         assertTrue(value instanceof ConcurrentHashMap);
@@ -281,6 +293,7 @@ class ExchangeTest {
         assertFalse(valCursDataMap.containsKey(oldDate));
         assertTrue(valCursDataMap.containsKey(CURRENT_DATE));
         assertTrue(valCursDataMap.containsKey(CURRENT_DATE.minusDays(1)));
+        assertTrue(valCursDataMap.containsKey(CURRENT_DATE.plusDays(1)));
     }
 
     private Exchange.ValCurs getCurrentValCurs() {
@@ -300,10 +313,18 @@ class ExchangeTest {
         eur.setName("Евро");
         eur.setValue("84,9073");
 
+        Exchange.Valute cny = new Exchange.Valute();
+        cny.setId("R01375");
+        cny.setNumCode("156");
+        cny.setCharCode("CNY");
+        cny.setNominal("1");
+        cny.setName("Китайский юань");
+        cny.setValue("14,5445");
+
         Exchange.ValCurs valCurs = new Exchange.ValCurs();
         valCurs.setDate(CURRENT_DATE_STRING);
         valCurs.setName("Foreign Currency Market");
-        valCurs.setValute(List.of(usd, eur));
+        valCurs.setValute(List.of(usd, eur, cny));
 
         return valCurs;
     }
@@ -325,11 +346,53 @@ class ExchangeTest {
         eur.setName("Евро");
         eur.setValue("88,9723");
 
+        Exchange.Valute cny = new Exchange.Valute();
+        cny.setId("R01375");
+        cny.setNumCode("156");
+        cny.setCharCode("CNY");
+        cny.setNominal("1");
+        cny.setName("Китайский юань");
+        cny.setValue("12,1235");
+
         Exchange.ValCurs valCurs = new Exchange.ValCurs();
         valCurs.setDate(PREVIOUS_DATE_STRING);
         valCurs.setName("Foreign Currency Market");
-        valCurs.setValute(List.of(usd, eur));
+        valCurs.setValute(List.of(usd, eur, cny));
 
         return valCurs;
     }
+
+    private Exchange.ValCurs getNextValCurs() {
+        Exchange.Valute usd = new Exchange.Valute();
+        usd.setId("R01235");
+        usd.setNumCode("840");
+        usd.setCharCode("USD");
+        usd.setNominal("1");
+        usd.setName("Доллар США");
+        usd.setValue("74,8318");
+
+        Exchange.Valute eur = new Exchange.Valute();
+        eur.setId("R01239");
+        eur.setNumCode("978");
+        eur.setCharCode("EUR");
+        eur.setNominal("1");
+        eur.setName("Евро");
+        eur.setValue("88,9923");
+
+        Exchange.Valute cny = new Exchange.Valute();
+        cny.setId("R01375");
+        cny.setNumCode("156");
+        cny.setCharCode("CNY");
+        cny.setNominal("1");
+        cny.setName("Китайский юань");
+        cny.setValue("13,8741");
+
+        Exchange.ValCurs valCurs = new Exchange.ValCurs();
+        valCurs.setDate(NEXT_DATE_STRING);
+        valCurs.setName("Foreign Currency Market");
+        valCurs.setValute(List.of(usd, eur, cny));
+
+        return valCurs;
+    }
+
 }

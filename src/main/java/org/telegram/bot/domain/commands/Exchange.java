@@ -13,7 +13,6 @@ import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -34,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.telegram.bot.utils.DateUtils.dateFormatter;
 import static org.telegram.bot.utils.TextUtils.startsWithNumber;
 import static org.telegram.bot.utils.TextUtils.parseFloat;
 
@@ -106,21 +106,35 @@ public class Exchange implements CommandParent<SendMessage> {
      * @return formatted text with exchange rates.
      */
     private String getExchangeRatesForUsdAndEur() {
+        LocalDate dateNow = LocalDate.now(clock);
         ValCurs valCursCurrent = getValCursData();
         String cursDate = valCursCurrent.getDate();
-        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, DateUtils.dateFormatter).minusDays(1));
+        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, dateFormatter).minusDays(1));
+        ValCurs valCursTomorrow = getValCursData(dateNow.plusDays(1));
+        LocalDate valCursTomorrowDate = LocalDate.parse(valCursTomorrow.getDate(), dateFormatter);
 
-        List<Valute> valuteList = valCursCurrent.getValute();
-        List<Valute> valuteListYesterday = valCursBefore.getValute();
+        String todayRates = buildExchangeRates(valCursCurrent.getValute(), valCursBefore.getValute(), cursDate);
 
+        if (valCursTomorrowDate.isAfter(dateNow)) {
+            todayRates = todayRates + "\n\n"
+                    + buildExchangeRates(valCursTomorrow.getValute(), valCursCurrent.getValute(), valCursTomorrow.getDate());
+        }
+
+        return todayRates;
+    }
+
+    private String buildExchangeRates(List<Valute> valuteList, List<Valute> valuteListYesterday, String cursDate) {
         Float usdCurrent = getValuteByCode(valuteList, "USD").getValuteValue();
         Float usdBefore = getValuteByCode(valuteListYesterday, "USD").getValuteValue();
         Float eurCurrent = getValuteByCode(valuteList, "EUR").getValuteValue();
         Float eurBefore = getValuteByCode(valuteListYesterday, "EUR").getValuteValue();
+        Float cnyCurrent = getValuteByCode(valuteList, "CNY").getValuteValue();
+        Float cnyBefore = getValuteByCode(valuteListYesterday, "CNY").getValuteValue();
 
         return "<b>Курс валют ЦБ РФ:</b>\n" +
                 "$ USD = " + formatFloatValue(usdCurrent) + " RUB " + getDynamicsForValuteValue(usdCurrent, usdBefore) + "\n" +
                 "€ EUR = " + formatFloatValue(eurCurrent) + " RUB " + getDynamicsForValuteValue(eurCurrent, eurBefore) + "\n" +
+                "¥ CNY = " + formatFloatValue(cnyCurrent) + " RUB " + getDynamicsForValuteValue(cnyCurrent, cnyBefore) + "\n" +
                 "(" + cursDate + ")";
     }
 
@@ -171,7 +185,7 @@ public class Exchange implements CommandParent<SendMessage> {
     private String getExchangeRatesForCode(String code) {
         ValCurs valCursCurrent = getValCursData();
         String cursDate = valCursCurrent.getDate();
-        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, DateUtils.dateFormatter).minusDays(1));
+        ValCurs valCursBefore = getValCursData(LocalDate.parse(cursDate, dateFormatter).minusDays(1));
 
         List<Valute> valuteList = valCursCurrent.getValute();
         List<Valute> valuteListYesterday = valCursBefore.getValute();
@@ -277,7 +291,10 @@ public class Exchange implements CommandParent<SendMessage> {
         }
 
         ValCurs valCurs = getValCursDataFromApi(date);
-        valCursDataMap.put(date, valCurs);
+
+        if (LocalDate.parse(valCurs.getDate(), dateFormatter).isEqual(date)) {
+            valCursDataMap.put(date, valCurs);
+        }
 
         return valCurs;
     }
