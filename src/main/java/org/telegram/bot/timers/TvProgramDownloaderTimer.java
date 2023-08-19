@@ -9,6 +9,7 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
@@ -97,7 +98,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
      */
     private void transferTvProgramDataFile() throws IOException {
         String zipFileName = "xmltv.xml.gz";
-        final String tvProgramDataUrl = "http://www.teleguide.info/download/new3/" + zipFileName;
+        final String tvProgramDataUrl = "https://www.teleguide.info/download/new3/" + zipFileName;
 
         FileUtils.copyURLToFile(new URL(tvProgramDataUrl), new File(zipFileName));
 
@@ -131,9 +132,22 @@ public class TvProgramDownloaderTimer extends TimerParent {
         TvProgram tvProgram = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyMMddHHmmss");
 
+        int attemptsReadNumber = 0;
         while (reader.hasNext()) {
-            XMLEvent nextEvent = reader.nextEvent();
+            if (attemptsReadNumber > 10) {
+                log.error("Unable to read tv file");
+                throw new BotException("Unable to read tv file");
+            }
 
+            XMLEvent nextEvent;
+            try {
+                nextEvent = reader.nextEvent();
+            } catch (XMLStreamException e) {
+                attemptsReadNumber = attemptsReadNumber + 1;
+                continue;
+            }
+
+            attemptsReadNumber = 0;
             if (nextEvent.isStartElement()) {
                 StartElement startElement = nextEvent.asStartElement();
                 switch (startElement.getName().getLocalPart()) {
