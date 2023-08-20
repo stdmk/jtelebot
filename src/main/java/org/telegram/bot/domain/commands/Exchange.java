@@ -5,8 +5,19 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
@@ -14,18 +25,24 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import java.awt.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.time.Clock;
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,39 +51,46 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.telegram.bot.utils.DateUtils.dateFormatter;
-import static org.telegram.bot.utils.TextUtils.startsWithNumber;
-import static org.telegram.bot.utils.TextUtils.parseFloat;
+import static org.telegram.bot.utils.TextUtils.*;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Exchange implements CommandParent<SendMessage> {
+public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
 
+    private static final String USD_ID = "R01235";
+    private static final String EUR_ID = "R01239";
+    private static final Integer DEFAULT_CHART_WIDTH = 1350;
+    private static final Integer DEFAULT_CHART_HEIGHT = 950;
     private static final Pattern VALUTE_TO_RUB_PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)$");
     private static final Pattern RUB_TO_VALUTE_PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)\\.?\\s?([a-zA-Zа-яА-Я]+)$");
+    private static final Pattern MONTHS_COUNT_PATTERN = Pattern.compile("^(\\d+)$");
 
     private final Bot bot;
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
+    private final BotStats botStats;
     private final NetworkUtils networkUtils;
     private final XmlMapper xmlMapper;
     private final Clock clock;
     private final Map<LocalDate, ValCurs> valCursDataMap = new ConcurrentHashMap<>();
 
     @Override
-    public SendMessage parse(Update update) {
+    public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
 
+        InputFile chart = null;
         if (textMessage == null) {
             log.debug("Request to get exchange rates for usd and eur");
-            responseText = getExchangeRatesForUsdAndEur();
+            responseText = getExchangeRatesForUsdEurCny();
         } else {
             if (startsWithNumber(textMessage)) {
                 Matcher valuteToRubMatcher = VALUTE_TO_RUB_PATTERN.matcher(textMessage);
                 Matcher ruToValuteMatcher = RUB_TO_VALUTE_PATTERN.matcher(textMessage);
+                Matcher monthsCountMatcher = MONTHS_COUNT_PATTERN.matcher(textMessage);
 
                 if (valuteToRubMatcher.find()) {
                     String currencyCode = valuteToRubMatcher.group(2);
@@ -78,6 +102,20 @@ public class Exchange implements CommandParent<SendMessage> {
                     float rublesAmount =  Float.parseFloat(ruToValuteMatcher.group(1));
                     log.debug("Request to get valute {} count for rubles amount {}", valuteCode, rublesAmount);
                     responseText = getValuteForRublesAmount(valuteCode, rublesAmount);
+                } else if (monthsCountMatcher.find()) {
+                    int months = Integer.parseInt(monthsCountMatcher.group(1));
+
+                    Pair<String, InputFile> result;
+                    try {
+                        result = getChartForUsdEur(months);
+                    } catch (IOException e) {
+                        log.error("failed to draw chart", e);
+                        botStats.incrementErrors(update, e, "failed to draw chart");
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                    }
+
+                    responseText = result.getFirst();
+                    chart = result.getSecond();
                 } else {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
@@ -89,6 +127,17 @@ public class Exchange implements CommandParent<SendMessage> {
                 log.debug("Request to get exchange rates for {}", textMessage);
                 responseText = getExchangeRatesForCode(textMessage.toUpperCase(Locale.ROOT));
             }
+        }
+
+        if (chart != null) {
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setPhoto(chart);
+            sendPhoto.setCaption(responseText);
+            sendPhoto.setParseMode("HTML");
+            sendPhoto.setReplyToMessageId(message.getMessageId());
+            sendPhoto.setChatId(message.getChatId());
+
+            return sendPhoto;
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -105,7 +154,7 @@ public class Exchange implements CommandParent<SendMessage> {
      *
      * @return formatted text with exchange rates.
      */
-    private String getExchangeRatesForUsdAndEur() {
+    private String getExchangeRatesForUsdEurCny() {
         LocalDate dateNow = LocalDate.now(clock);
         ValCurs valCursCurrent = getValCursData();
         String cursDate = valCursCurrent.getDate();
@@ -203,6 +252,100 @@ public class Exchange implements CommandParent<SendMessage> {
                    "1 RUB = " + reversExchangeRate + " " + valute.getCharCode() + "\n" +
                     "(" + cursDate + ")";
         }
+    }
+
+    private Pair<String, InputFile> getChartForUsdEur(int months) throws IOException {
+        if (months < 1 || months > 24) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        LocalDate dateNow = LocalDate.now(clock);
+        LocalDate previousMonth = dateNow.minusMonths(months);
+
+        DynamicValCurs usdValCurs = getValCursDataFromApi(previousMonth, dateNow, USD_ID);
+        DynamicValCurs eurValCurs = getValCursDataFromApi(previousMonth, dateNow, EUR_ID);
+
+        String title = "MIN/MAX\n"
+                + "$ USD: <b>" + getMinValueFromRecords(usdValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(usdValCurs.getRecords()) + "</b> RUB\n"
+                + "€ EUR: <b>" + getMinValueFromRecords(eurValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(eurValCurs.getRecords()) + "</b> RUB\n";
+
+        InputFile chart = getChart(usdValCurs, eurValCurs);
+
+        return Pair.of(title, chart);
+    }
+
+    private InputFile getChart(DynamicValCurs usdValCurs, DynamicValCurs eurValCurs) throws IOException {
+        XYSeriesCollection dataset = new XYSeriesCollection();
+
+        dataset.addSeries(getSeries(usdValCurs.getRecords(),"USD"));
+        dataset.addSeries(getSeries(eurValCurs.getRecords(), "EUR"));
+
+        String title = "RUB " + usdValCurs.getDateRange1() + " — " + usdValCurs.getDateRange2();
+        JFreeChart chart = ChartFactory.createTimeSeriesChart(title, "", "", dataset);
+
+        XYPlot plot = chart.getXYPlot();
+
+        var renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.RED);
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+        renderer.setSeriesPaint(1, Color.BLUE);
+        renderer.setSeriesStroke(1, new BasicStroke(2.0f));
+
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.white);
+
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.BLACK);
+
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.BLACK);
+
+        plot.getRangeAxis().setLowerBound(getMinValue(List.of(usdValCurs, eurValCurs)) - 3);
+        DateAxis axis = (DateAxis) plot.getDomainAxis();
+        axis.setDateFormatOverride(new SimpleDateFormat("dd.MM.yyyy"));
+
+        chart.getLegend().setFrame(BlockBorder.NONE);
+
+        byte[] bytes = ChartUtils.encodeAsPNG(chart.createBufferedImage(DEFAULT_CHART_WIDTH, DEFAULT_CHART_HEIGHT));
+
+        return new InputFile(new ByteArrayInputStream(bytes), "chart");
+    }
+
+    private Double getMinValue(List<DynamicValCurs> valCurses) {
+        return valCurses
+                .stream()
+                .map(DynamicValCurs::getRecords).
+                flatMap(Collection::stream)
+                .map(Record::getValuteValue)
+                .min(Double::compareTo)
+                .orElse(0.0);
+    }
+
+    private Double getMinValueFromRecords(List<Record> recordList) {
+        return recordList
+                .stream()
+                .map(Record::getValuteValue)
+                .min(Double::compareTo)
+                .orElse(0.0);
+    }
+
+    private Double getMaxValueFromRecords(List<Record> recordList) {
+        return recordList
+                .stream()
+                .map(Record::getValuteValue)
+                .max(Double::compareTo)
+                .orElse(0.0);
+    }
+
+    private XYSeries getSeries(List<Record> records, String title) {
+        XYSeries series = new XYSeries(title);
+        records.forEach(record -> {
+            LocalDate date = LocalDate.parse(record.getDate(), dateFormatter);
+            Double x = (double) date.toEpochSecond(LocalTime.MIN, OffsetDateTime.now().getOffset()) * 1000;
+            Double y = record.getValuteValue() / Integer.parseInt(record.getNominal());
+            series.add(x, y);
+        });
+        return series;
     }
 
     private float getReversExchangeRate(Valute valute) {
@@ -331,6 +474,32 @@ public class Exchange implements CommandParent<SendMessage> {
         return valCurs;
     }
 
+    private DynamicValCurs getValCursDataFromApi(LocalDate from, LocalDate to, String valuteId) {
+        String dateFrom = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(from);
+        String dateTo = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(to);
+
+        String xmlUrl = "https://www.cbr.ru/scripts/XML_dynamic.asp?date_req1="
+                + dateFrom + "&date_req2=" + dateTo + "&VAL_NM_RQ=" + valuteId;
+
+        String response;
+        try {
+            response = networkUtils.readStringFromURL(xmlUrl, Charset.forName("windows-1251"));
+        } catch (IOException e) {
+            log.error("Error from CBRF api:", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        DynamicValCurs valCurs;
+        try {
+            valCurs = xmlMapper.readValue(response, DynamicValCurs.class);
+        } catch (JsonProcessingException e) {
+            log.error("Error while mapping response:", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return valCurs;
+    }
+
     private String formatFloatValue(float value) {
         return formatFloat("%.4f", value);
     }
@@ -377,6 +546,43 @@ public class Exchange implements CommandParent<SendMessage> {
 
         public Float getValuteValue() {
             return parseFloat(this.value);
+        }
+    }
+
+    @Data
+    public static class DynamicValCurs {
+        @XmlAttribute(name = "ID")
+        private String id;
+
+        @XmlAttribute(name = "DateRange1")
+        private String dateRange1;
+
+        @XmlAttribute(name = "DateRange2")
+        private String dateRange2;
+
+        @XmlAttribute(name = "name")
+        private String name;
+
+        @XmlElement(name = "Record")
+        private List<Record> records;
+    }
+
+    @Data
+    public static class Record {
+        @XmlAttribute(name = "Id")
+        private String id;
+
+        @XmlAttribute(name = "Date")
+        private String date;
+
+        @XmlElement(name = "Nominal")
+        private String nominal;
+
+        @XmlElement(name = "Value")
+        private String value;
+
+        public Double getValuteValue() {
+            return parseDouble(this.value);
         }
     }
 }

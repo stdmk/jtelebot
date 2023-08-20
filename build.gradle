@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.11'
     implementation group: 'com.google.zxing', name: 'core', version: '3.4.1'
     implementation group: 'com.google.zxing', name: 'javase', version: '3.4.1'
+    implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.4'
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.7.5'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'

@@ -192,6 +192,10 @@ public class TextUtils {
         return Float.parseFloat(text.replace(",", "."));
     }
 
+    public static Double parseDouble(String text) {
+        return Double.parseDouble(text.replace(",", "."));
+    }
+
     public static boolean isThatUrl(String text) {
         try {
             new URL(text);

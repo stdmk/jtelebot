@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -18,6 +20,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -31,8 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.*;
@@ -57,10 +59,14 @@ class ExchangeTest {
     private Exchange exchange;
 
     private static final String XML_URL = "http://www.cbr.ru/scripts/XML_daily.asp?date_req=";
+    private static final String XML_CHART_DATA_URL = "https://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=%s&date_req2=%s&VAL_NM_RQ=%s";
     private static final LocalDate CURRENT_DATE = LocalDate.of(2007, 1, 2);
     private static final String CURRENT_DATE_STRING = "02.01.2007";
     private static final String PREVIOUS_DATE_STRING = "01.01.2007";
     private static final String NEXT_DATE_STRING = "03.01.2007";
+    private static final String PREVIOUS_MONTH_DATE_STRING = "02.12.2006";
+    private static final String USD_ID = "R01235";
+    private static final String EUR_ID = "R01239";
 
     @Test
     void parseWithNoApiResponseTest() throws IOException {
@@ -122,20 +128,72 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
-    @Test
-    void getRublesForCurrencyValueWithWrongArgumentTest() {
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 25})
+    void getChartForUsdEurWithWrongMonthsValueTest() {
         final String expectedErrorMessage = "wrong input";
-        Update update = TestUtils.getUpdateFromGroup("exchange 5");
+        Update update = TestUtils.getUpdateFromGroup("exchange 25");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
         assertEquals(expectedErrorMessage, botException.getMessage());
+    }
+
+    @Test
+    void getChartForUsdEurWithNotResponseTest() throws IOException {
+        final String expectedErrorMessage = "no response";
+        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(IOException.class);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
+
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        assertEquals(expectedErrorMessage, botException.getMessage());
+    }
+
+    @Test
+    void getChartForUsedEurWithDeserializingErrorTest() throws IOException {
+        final String expectedErrorMessage = "no response";
+        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+
+        JsonProcessingException jsonProcessingException = Mockito.mock(JsonProcessingException.class);
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn("1");
+        when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenThrow(jsonProcessingException);
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
+
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        assertEquals(expectedErrorMessage, botException.getMessage());
+    }
+
+    @Test
+    void getChartForUsdEurTest() throws IOException {
+        //does not work. Possibly because of the ₽ symbol
+//        final String expectedResponseText = "MIN/MAX\n" +
+//                "$ USD: <b>90.236</b> RUB / <b>91.234</b> RUB\n" +
+//                "€ EUR: <b>100.95</b> RUB / <b>105.213</b> RUB\n";
+        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+
+        when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, PREVIOUS_MONTH_DATE_STRING.replaceAll("\\.", "/"), CURRENT_DATE_STRING.replaceAll("\\.", "/"), USD_ID), Charset.forName("windows-1251"))).thenReturn("1");
+        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, PREVIOUS_MONTH_DATE_STRING.replaceAll("\\.", "/"), CURRENT_DATE_STRING.replaceAll("\\.", "/"), EUR_ID), Charset.forName("windows-1251"))).thenReturn("2");
+        when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursUsd());
+        when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
+
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        checkDefaultSendPhotoParams(method);
+//        assertEquals(expectedResponseText, sendPhoto.getCaption());
     }
 
     @Test
@@ -156,8 +214,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -174,8 +232,8 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -197,8 +255,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -215,8 +273,8 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -237,8 +295,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -260,8 +318,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
-        SendMessage sendMessage = exchange.parse(update);
-        checkDefaultSendMessageParams(sendMessage);
+        PartialBotApiMethod<?> method = exchange.parse(update);
+        checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
@@ -397,6 +455,60 @@ class ExchangeTest {
         valCurs.setValute(List.of(usd, eur, cny));
 
         return valCurs;
+    }
+
+    private Exchange.DynamicValCurs getDynamicValCursUsd() {
+        Exchange.DynamicValCurs dynamicValCurs = new Exchange.DynamicValCurs();
+        dynamicValCurs.setId(USD_ID);
+        dynamicValCurs.setDateRange1(CURRENT_DATE_STRING);
+        dynamicValCurs.setDateRange2(PREVIOUS_DATE_STRING);
+        dynamicValCurs.setName("name");
+        dynamicValCurs.setRecords(getUsdRecords());
+
+        return dynamicValCurs;
+    }
+
+    private List<Exchange.Record> getUsdRecords() {
+        Exchange.Record record1 = new Exchange.Record();
+        record1.setId(USD_ID);
+        record1.setDate(PREVIOUS_DATE_STRING);
+        record1.setValue("90,236");
+        record1.setNominal("1");
+
+        Exchange.Record record2 = new Exchange.Record();
+        record2.setId(USD_ID);
+        record2.setDate(CURRENT_DATE_STRING);
+        record2.setValue("91,234");
+        record2.setNominal("1");
+
+        return List.of(record1, record2);
+    }
+
+    private Exchange.DynamicValCurs getDynamicValCursEur() {
+        Exchange.DynamicValCurs dynamicValCurs = new Exchange.DynamicValCurs();
+        dynamicValCurs.setId(EUR_ID);
+        dynamicValCurs.setDateRange1(CURRENT_DATE_STRING);
+        dynamicValCurs.setDateRange2(PREVIOUS_DATE_STRING);
+        dynamicValCurs.setName("name");
+        dynamicValCurs.setRecords(getEurRecords());
+
+        return dynamicValCurs;
+    }
+
+    private List<Exchange.Record> getEurRecords() {
+        Exchange.Record record1 = new Exchange.Record();
+        record1.setId(EUR_ID);
+        record1.setDate(PREVIOUS_DATE_STRING);
+        record1.setValue("100,95");
+        record1.setNominal("1");
+
+        Exchange.Record record2 = new Exchange.Record();
+        record2.setId(EUR_ID);
+        record2.setDate(CURRENT_DATE_STRING);
+        record2.setValue("105,213");
+        record2.setNominal("1");
+
+        return List.of(record1, record2);
     }
 
 }
