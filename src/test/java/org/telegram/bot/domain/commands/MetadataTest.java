@@ -30,33 +30,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MetadataTest {
 
-    private static final String EXPECTED_RESPONSE_TEXT = "<b><u>PNG-IHDR</u></b>\n" +
-            "<b>Image Width</b>: 1;\n" +
-            "<b>Image Height</b>: 1;\n" +
-            "<b>Bits Per Sample</b>: 8;\n" +
-            "<b>Color Type</b>: True Color;\n" +
-            "<b>Compression Type</b>: Deflate;\n" +
-            "<b>Filter Method</b>: Adaptive;\n" +
-            "<b>Interlace Method</b>: No Interlace;\n" +
-            "\n" +
-            "<b><u>PNG-sRGB</u></b>\n" +
-            "<b>sRGB Rendering Intent</b>: Perceptual;\n" +
-            "\n" +
-            "<b><u>PNG-gAMA</u></b>\n" +
-            "<b>Image Gamma</b>: 0,455;\n" +
-            "\n" +
-            "<b><u>PNG-pHYs</u></b>\n" +
-            "<b>Pixels Per Unit X</b>: 3779;\n" +
-            "<b>Pixels Per Unit Y</b>: 3779;\n" +
-            "<b>Unit Specifier</b>: Metres;\n" +
-            "\n" +
-            "<b><u>File Type</u></b>\n" +
-            "<b>Detected File Type Name</b>: PNG;\n" +
-            "<b>Detected File Type Long Name</b>: Portable Network Graphics;\n" +
-            "<b>Detected MIME Type</b>: image/png;\n" +
-            "<b>Expected File Name Extension</b>: png;\n" +
-            "\n";
-
     @Mock
     private CommandWaitingService commandWaitingService;
     @Mock
@@ -137,6 +110,32 @@ class MetadataTest {
 
     @Test
     void parseTest() throws FileNotFoundException, TelegramApiException {
+        final String expectedResponseText = "<b><u>PNG-IHDR</u></b>\n" +
+                "<b>Image Width</b>: 1;\n" +
+                "<b>Image Height</b>: 1;\n" +
+                "<b>Bits Per Sample</b>: 8;\n" +
+                "<b>Color Type</b>: True Color;\n" +
+                "<b>Compression Type</b>: Deflate;\n" +
+                "<b>Filter Method</b>: Adaptive;\n" +
+                "<b>Interlace Method</b>: No Interlace;\n" +
+                "\n" +
+                "<b><u>PNG-sRGB</u></b>\n" +
+                "<b>sRGB Rendering Intent</b>: Perceptual;\n" +
+                "\n" +
+                "<b><u>PNG-gAMA</u></b>\n" +
+                "<b>Image Gamma</b>: 0,455;\n" +
+                "\n" +
+                "<b><u>PNG-pHYs</u></b>\n" +
+                "<b>Pixels Per Unit X</b>: 3779;\n" +
+                "<b>Pixels Per Unit Y</b>: 3779;\n" +
+                "<b>Unit Specifier</b>: Metres;\n" +
+                "\n" +
+                "<b><u>File Type</u></b>\n" +
+                "<b>Detected File Type Name</b>: PNG;\n" +
+                "<b>Detected File Type Long Name</b>: Portable Network Graphics;\n" +
+                "<b>Detected MIME Type</b>: image/png;\n" +
+                "<b>Expected File Name Extension</b>: png;\n" +
+                "\n";
         PhotoSize photoSize = new PhotoSize();
         photoSize.setFileSize(1);
         photoSize.setFileId("fileId");
@@ -149,7 +148,7 @@ class MetadataTest {
 
         SendMessage sendMessage = metadata.parse(update);
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals(EXPECTED_RESPONSE_TEXT, sendMessage.getText());
+        assertEquals(expectedResponseText, sendMessage.getText());
     }
 
 }
