@@ -81,14 +81,14 @@ public class Metadata implements CommandParent<SendMessage> {
                 } catch (IOException | ImageProcessingException e) {
                     log.error("Failed to get metadata from file", e);
                     botStats.incrementErrors(update, e, "Failed to get metadata from file");
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                try {
-                    file.close();
-                } catch (IOException e) {
-                    log.error("Failed to close inputstream of file", e);
-                    botStats.incrementErrors(update, e, "Failed to close inputstream of file");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                } finally {
+                    try {
+                        file.close();
+                    } catch (IOException e) {
+                        log.error("Failed to close inputstream of file", e);
+                        botStats.incrementErrors(update, e, "Failed to close inputstream of file");
+                    }
                 }
             }
         } else {
