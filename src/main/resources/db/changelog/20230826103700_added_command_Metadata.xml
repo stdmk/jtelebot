@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230826103700-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="62"/>
+            <column name="name" value="Метадата"/>
+            <column name="description" value="Метадата файлов"/>
+            <column name="params" value="[файл] [видео] [аудио] [фото]"/>
+            <column name="examples" value="метадата, metadata"/>
+            <column name="comment" value="в описании к фото или файлу должна быть команда метадата, либо метадату можно запросить в ответ на сообщение с файлом. Размер файла ограничен 20-ю мегабайтами (ограничение telegram). Для просмотра метадаты фото присылайте его файлом (сжимая, telegram всё стирает)"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230826103700-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="62"/>
+            <column name="commandname" value="metadata"/>
+            <column name="russifiedname" value="метадата"/>
+            <column name="enruname" value="vtnflfnf"/>
+            <column name="classname" value="metadata"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="62"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
