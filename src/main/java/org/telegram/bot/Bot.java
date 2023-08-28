@@ -96,6 +96,10 @@ public class Bot extends TelegramLongPollingBot {
             user = message.getFrom();
         }
 
+        if (textOfMessage == null) {
+            textOfMessage = message.getCaption();
+        }
+
         botStats.incrementReceivedMessages();
 
         Long chatId = message.getChatId();
