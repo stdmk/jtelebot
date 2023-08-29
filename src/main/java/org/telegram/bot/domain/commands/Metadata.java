@@ -23,7 +23,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Component
@@ -193,12 +192,16 @@ public class Metadata implements CommandParent<SendMessage> {
         if (latitudeData != null && longitudeData != null) {
             Coordinates coordinates = CoordinatesUtils.parseCoordinates(latitudeData + " " + longitudeData);
             if (coordinates != null) {
-                return String.format("%.4f", coordinates.getLatitude()).replaceAll(",", "_") + "_"
-                        + String.format("%.4f", coordinates.getLongitude()).replaceAll(",", "_");
+                return formatCoordinateForCommand(coordinates.getLatitude()) + "_"
+                        + formatCoordinateForCommand(coordinates.getLongitude());
             }
         }
 
         return null;
+    }
+
+    private String formatCoordinateForCommand(Double coordinate) {
+        return String.format("%.4f", coordinate).replaceAll("\\.", "_").replaceAll(",", "_");
     }
 
 }
