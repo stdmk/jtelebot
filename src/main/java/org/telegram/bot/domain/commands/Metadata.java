@@ -2,6 +2,8 @@ package org.telegram.bot.domain.commands;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,12 +15,15 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.coordinates.Coordinates;
+import org.telegram.bot.utils.coordinates.CoordinatesUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Component
@@ -26,6 +31,9 @@ import java.io.InputStream;
 public class Metadata implements CommandParent<SendMessage> {
 
     private static final Integer INCOME_FILE_SIZE_LIMIT_BYTES = 20971520;
+    private static final String GPS_DIRECTORY = "GPS";
+    private static final String GPS_LATITUDE_TAG = "GPS Latitude";
+    private static final String GPS_LONGITUDE_TAG = "GPS Longitude";
 
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
@@ -155,7 +163,42 @@ public class Metadata implements CommandParent<SendMessage> {
             buf.append("\n");
         });
 
+        String location = getLocation(metadata);
+        if (location != null) {
+            buf.append("/location").append("_").append(location);
+        }
+
         return buf.toString();
+    }
+
+    private String getLocation(com.drew.metadata.Metadata metadata) {
+        String latitudeData = null;
+        String longitudeData = null;
+        for (Directory directory : metadata.getDirectories()) {
+            if (GPS_DIRECTORY.equalsIgnoreCase(directory.getName())) {
+                for (Tag tag : directory.getTags()) {
+                    if (latitudeData != null && longitudeData != null) {
+                        break;
+                    }
+                    if (GPS_LATITUDE_TAG.equalsIgnoreCase(tag.getTagName())) {
+                        latitudeData = tag.getDescription();
+                    } else if (GPS_LONGITUDE_TAG.equalsIgnoreCase(tag.getTagName())) {
+                        longitudeData = tag.getDescription();
+                    }
+                }
+                break;
+            }
+        }
+
+        if (latitudeData != null && longitudeData != null) {
+            Coordinates coordinates = CoordinatesUtils.parseCoordinates(latitudeData + " " + longitudeData);
+            if (coordinates != null) {
+                return String.format("%.4f", coordinates.getLatitude()).replaceAll(",", "_") + "_"
+                        + String.format("%.4f", coordinates.getLongitude()).replaceAll(",", "_");
+            }
+        }
+
+        return null;
     }
 
 }

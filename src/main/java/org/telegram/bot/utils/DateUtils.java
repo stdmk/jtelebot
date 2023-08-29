@@ -2,6 +2,7 @@ package org.telegram.bot.utils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+@UtilityClass
 public class DateUtils {
 
     private static final String DATE_TIME_FORMAT_STRING = "dd.MM.yyyy HH:mm:ss";

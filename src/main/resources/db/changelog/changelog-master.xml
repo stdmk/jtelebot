@@ -159,4 +159,5 @@
     <include file="db/changelog/20230820091600_update_Exchange_help.xml"/>
     <include file="db/changelog/20230820100700_update_Password_help.xml"/>
     <include file="db/changelog/20230826103700_added_command_Metadata.xml"/>
+    <include file="db/changelog/20230829085700_added_command_Location.xml"/>
 </databaseChangeLog>
