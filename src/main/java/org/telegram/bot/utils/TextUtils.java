@@ -1,5 +1,6 @@
 package org.telegram.bot.utils;
 
+import lombok.experimental.UtilityClass;
 import org.telegram.bot.domain.entities.User;
 
 import javax.annotation.Nullable;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@UtilityClass
 public class TextUtils {
 
     public static final String BORDER = "-----------------------------\n";

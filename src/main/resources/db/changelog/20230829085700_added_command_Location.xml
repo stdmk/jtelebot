@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230829085700-1" author="stdmk">
+        <insert schemaName="bot" tableName="help">
+            <column name="id" value="63"/>
+            <column name="name" value="Локация"/>
+            <column name="description" value="Отправка локации"/>
+            <column name="params" value="широта долгота"/>
+            <column name="examples" value="локация 56,503 35,543624, location 56° 50' 3&quot; 35° 54' 36,24&quot;, локация 56° 50.3' 35° 54,3624'"/>
+            <column name="comment" value="обязательно сначала широта, потом долгота"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20230829085700-2" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="63"/>
+            <column name="commandname" value="location"/>
+            <column name="russifiedname" value="локация"/>
+            <column name="enruname" value="kjrfwbz"/>
+            <column name="classname" value="location"/>
+            <column name="accesslevel" value="0"/>
+            <column name="help" value="63"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

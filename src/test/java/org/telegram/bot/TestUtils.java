@@ -2,10 +2,7 @@ package org.telegram.bot;
 
 import org.apache.commons.io.IOUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.*;
 
@@ -289,6 +286,16 @@ public class TestUtils {
         assertNotNull(sendMediaGroup.getChatId());
 
         return sendMediaGroup;
+    }
+
+    public static SendLocation checkDefaultSendLocationParams(SendLocation sendLocation) {
+        assertNotNull(sendLocation);
+        assertNotNull(sendLocation.getChatId());
+        assertNotNull(sendLocation.getReplyToMessageId());
+        assertNotNull(sendLocation.getLatitude());
+        assertNotNull(sendLocation.getLongitude());
+
+        return sendLocation;
     }
 
     public static String getResourceAsString(String path) throws IOException {

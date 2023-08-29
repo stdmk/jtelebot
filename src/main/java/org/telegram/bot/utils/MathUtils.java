@@ -1,5 +1,8 @@
 package org.telegram.bot.utils;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class MathUtils {
     public static Integer getRandomInRange(Integer from, Integer to) {
         return from + (int) (Math.random() * to);
