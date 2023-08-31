@@ -49,8 +49,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.dateFormatter;
+import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.*;
 
 @Component
@@ -260,10 +263,11 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         LocalDate dateNow = LocalDate.now(clock);
-        LocalDate previousMonth = dateNow.minusMonths(months);
+        LocalDate dateTo = dateNow.plusDays(2);
+        LocalDate dateFrom = dateNow.minusMonths(months);
 
-        DynamicValCurs usdValCurs = getValCursDataFromApi(previousMonth, dateNow, USD_ID);
-        DynamicValCurs eurValCurs = getValCursDataFromApi(previousMonth, dateNow, EUR_ID);
+        DynamicValCurs usdValCurs = getValCursDataFromApi(dateFrom, dateTo, USD_ID);
+        DynamicValCurs eurValCurs = getValCursDataFromApi(dateFrom, dateTo, EUR_ID);
 
         String title = "MIN/MAX\n"
                 + "$ USD: <b>" + getMinValueFromRecords(usdValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(usdValCurs.getRecords()) + "</b> RUB\n"
@@ -280,7 +284,14 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
         dataset.addSeries(getSeries(usdValCurs.getRecords(),"USD"));
         dataset.addSeries(getSeries(eurValCurs.getRecords(), "EUR"));
 
-        String title = "RUB " + usdValCurs.getDateRange1() + " — " + usdValCurs.getDateRange2();
+        List<LocalDate> datesArray = Stream.concat(
+                usdValCurs.getRecords().stream().map(Record::getDate).map(date -> LocalDate.parse(date, dateFormatter)),
+                eurValCurs.getRecords().stream().map(Record::getDate).map(date -> LocalDate.parse(date, dateFormatter)))
+                .collect(Collectors.toList());
+        LocalDate dateFrom = datesArray.stream().min(LocalDate::compareTo).orElse(LocalDate.parse(usdValCurs.getDateRange1(), dateFormatter));
+        LocalDate dateTo = datesArray.stream().max(LocalDate::compareTo).orElse(LocalDate.parse(usdValCurs.getDateRange2(), dateFormatter));
+
+        String title = "RUB " + formatDate(dateFrom) + " — " + formatDate(dateTo);
         JFreeChart chart = ChartFactory.createTimeSeriesChart(title, "", "", dataset);
 
         XYPlot plot = chart.getXYPlot();

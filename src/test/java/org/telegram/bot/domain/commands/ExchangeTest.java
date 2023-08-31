@@ -62,9 +62,10 @@ class ExchangeTest {
     private static final String XML_CHART_DATA_URL = "https://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=%s&date_req2=%s&VAL_NM_RQ=%s";
     private static final LocalDate CURRENT_DATE = LocalDate.of(2007, 1, 2);
     private static final String CURRENT_DATE_STRING = "02.01.2007";
+    private static final String DYNAMIC_CURS_DATE_TO = "04.01.2007";
+    private static final String DYNAMIC_CURS_DATE_FROM = "02.12.2006";
     private static final String PREVIOUS_DATE_STRING = "01.01.2007";
     private static final String NEXT_DATE_STRING = "03.01.2007";
-    private static final String PREVIOUS_MONTH_DATE_STRING = "02.12.2006";
     private static final String USD_ID = "R01235";
     private static final String EUR_ID = "R01239";
 
@@ -186,8 +187,8 @@ class ExchangeTest {
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, PREVIOUS_MONTH_DATE_STRING.replaceAll("\\.", "/"), CURRENT_DATE_STRING.replaceAll("\\.", "/"), USD_ID), Charset.forName("windows-1251"))).thenReturn("1");
-        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, PREVIOUS_MONTH_DATE_STRING.replaceAll("\\.", "/"), CURRENT_DATE_STRING.replaceAll("\\.", "/"), EUR_ID), Charset.forName("windows-1251"))).thenReturn("2");
+        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, DYNAMIC_CURS_DATE_FROM.replaceAll("\\.", "/"), DYNAMIC_CURS_DATE_TO.replaceAll("\\.", "/"), USD_ID), Charset.forName("windows-1251"))).thenReturn("1");
+        when(networkUtils.readStringFromURL(String.format(XML_CHART_DATA_URL, DYNAMIC_CURS_DATE_FROM.replaceAll("\\.", "/"), DYNAMIC_CURS_DATE_TO.replaceAll("\\.", "/"), EUR_ID), Charset.forName("windows-1251"))).thenReturn("2");
         when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursUsd());
         when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
 
