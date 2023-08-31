@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
+
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
+    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final String IMAGE_RU_COMMAND = "картинка";
+    private static final String IMAGE_EN_COMMAND = "image";
+
+    @Value("${chatGptApiUrl}")
+    private String chatGptApiUrl;
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -54,10 +64,12 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
     private final RestTemplate defaultRestTemplate;
     private final BotStats botStats;
 
-    private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
-    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
-    private static final String IMAGE_RU_COMMAND = "картинка";
-    private static final String IMAGE_EN_COMMAND = "image";
+    @PostConstruct
+    private void postConstruct() {
+        if (chatGptApiUrl == null || chatGptApiUrl.isEmpty()) {
+            chatGptApiUrl = OPENAI_API_URL;
+        }
+    }
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -154,13 +166,13 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
     }
 
     private String getResponse(CreateImageRequest request, String token) {
-        String url = OPENAI_API_URL + "images/generations";
+        String url = chatGptApiUrl + "images/generations";
         CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
         return response.getData().get(0).getUrl();
     }
 
     private String getResponse(ChatRequest request, String token) {
-        String url = OPENAI_API_URL + "chat/completions";
+        String url = chatGptApiUrl + "chat/completions";
         ChatResponse response = getResponse(request, url, token, ChatResponse.class);
         return response.getChoices().get(0).getMessage().getContent();
     }
