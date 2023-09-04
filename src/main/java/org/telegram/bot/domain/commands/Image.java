@@ -83,7 +83,7 @@ public class Image implements CommandParent<PartialBotApiMethod<?>> {
         InputStream image;
         Long imageId = imageUrl.getId();
         try {
-            image = networkUtils.getFileFromUrl(imageUrl.getUrl(), 5000000);
+            image = networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl());
         } catch (Exception e) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setReplyToMessageId(message.getMessageId());

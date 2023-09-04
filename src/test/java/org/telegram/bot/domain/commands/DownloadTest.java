@@ -19,10 +19,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,7 +71,7 @@ class DownloadTest {
     void parseWithTwoArgumentsTest(String command) throws Exception {
         Update update = getUpdateFromGroup(command);
 
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
@@ -92,7 +92,7 @@ class DownloadTest {
     void parseWithoutFilenameInUrlTest() throws Exception {
         Update update = getUpdateFromGroup("download " + URL);
 
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
         assertNotNull(method);
@@ -107,7 +107,7 @@ class DownloadTest {
     void parseWithOneArgumentTest() throws Exception {
         Update update = getUpdateFromGroup("download " + URL + FILE_NAME);
 
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
@@ -120,7 +120,7 @@ class DownloadTest {
     void parseWithLargeFileTest() throws Exception {
         Update update = getUpdateFromGroup("download " + URL);
 
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenThrow(new Exception());
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
         assertThrows(BotException.class, () -> download.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);

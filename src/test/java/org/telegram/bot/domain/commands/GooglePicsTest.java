@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -92,7 +93,7 @@ class GooglePicsTest {
         Update update = TestUtils.getUpdateFromGroup("picture_1");
 
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url));
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenThrow(new Exception());
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
         BotException botException = assertThrows(BotException.class, () -> googlePics.parse(update));
         assertTrue(botException.getMessage().contains(url));
@@ -104,7 +105,7 @@ class GooglePicsTest {
         Update update = TestUtils.getUpdateFromGroup("picture_1");
 
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url).setTitle("title"));
-        when(networkUtils.getFileFromUrl(anyString(), anyInt())).thenReturn(Mockito.mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(Mockito.mock(InputStream.class));
 
         PartialBotApiMethod<?> method = googlePics.parse(update);
         TestUtils.checkDefaultSendPhotoParams(method);

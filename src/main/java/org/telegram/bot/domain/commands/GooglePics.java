@@ -85,7 +85,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
 
             InputStream image;
             try {
-                image = networkUtils.getFileFromUrl(imageUrl.getUrl(), 5000000);
+                image = networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl());
             } catch (Exception e) {
                 log.debug("Error receiving ImageUrl {}", imageUrl);
                 throw new BotException("Не удалось загрузить картинку по адресу: " + imageUrl.getUrl());

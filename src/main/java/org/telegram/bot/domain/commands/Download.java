@@ -88,7 +88,7 @@ public class Download implements CommandParent<PartialBotApiMethod<?>> {
 
             InputStream fileFromUrl;
             try {
-                fileFromUrl = networkUtils.getFileFromUrl(url, 5000000);
+                fileFromUrl = networkUtils.getFileFromUrlWithLimit(url);
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
             }

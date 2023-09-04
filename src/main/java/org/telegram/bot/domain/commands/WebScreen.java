@@ -76,7 +76,7 @@ public class WebScreen implements CommandParent<PartialBotApiMethod<?>> {
 
         InputStream screen;
         try {
-            screen = networkUtils.getFileFromUrl(API_URL + "&key=" + token + "&url=" + url);
+            screen = networkUtils.getFileFromUrlWithLimit(API_URL + "&key=" + token + "&url=" + url);
         } catch (IOException e) {
             log.debug("Error getting screen ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
