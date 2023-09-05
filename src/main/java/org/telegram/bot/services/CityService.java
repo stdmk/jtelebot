@@ -43,9 +43,8 @@ public interface CityService {
      * Save a City.
      *
      * @param city the entity to save.
-     * @return the persisted entity.
      */
-    City save(City city);
+    void save(City city);
 
     /**
      * Remove a City.

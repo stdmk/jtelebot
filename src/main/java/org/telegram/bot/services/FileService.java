@@ -28,9 +28,8 @@ public interface FileService {
      * Save a File.
      *
      * @param file the entity to save.
-     * @return the persisted entity.
      */
-    File save(File file);
+    void save(File file);
 
     /**
      * Remove the File.

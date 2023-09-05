@@ -43,18 +43,20 @@ public class Download implements CommandParent<PartialBotApiMethod<?>> {
             textMessage = cutCommandInText(message.getText());
         }
 
+        Long chatId = message.getChatId();
         if (textMessage == null) {
+            bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setChatId(chatId.toString());
             sendMessage.setText("теперь напиши мне что нужно скачать");
 
             return sendMessage;
         } else {
-            bot.sendUploadPhoto(message.getChatId());
+            bot.sendUploadDocument(chatId);
             String url;
             String fileName;
 
@@ -94,7 +96,7 @@ public class Download implements CommandParent<PartialBotApiMethod<?>> {
             }
 
             SendDocument sendDocument = new SendDocument();
-            sendDocument.setChatId(message.getChatId().toString());
+            sendDocument.setChatId(chatId);
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(new InputFile(fileFromUrl, fileName));
 

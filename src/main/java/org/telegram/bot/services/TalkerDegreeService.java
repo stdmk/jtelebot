@@ -27,7 +27,6 @@ public interface TalkerDegreeService {
      * Save a TalkerDegree.
      *
      * @param talkerDegree the entity to save.
-     * @return the persisted entity.
      */
-    TalkerDegree save(TalkerDegree talkerDegree);
+    void save(TalkerDegree talkerDegree);
 }

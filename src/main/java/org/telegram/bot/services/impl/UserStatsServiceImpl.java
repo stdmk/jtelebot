@@ -56,9 +56,9 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<UserStats> save(List<UserStats> userStatsList) {
+    public void save(List<UserStats> userStatsList) {
         log.debug("Request to save UserStats list {}", userStatsList);
-        return userStatsRepository.saveAll(userStatsList);
+        userStatsRepository.saveAll(userStatsList);
     }
 
     @Override

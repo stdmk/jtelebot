@@ -46,6 +46,7 @@ class ErrorsTest {
         when(errorService.getAll()).thenReturn(errorList);
 
         PartialBotApiMethod<?> method = errors.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
     }
 
@@ -57,6 +58,8 @@ class ErrorsTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
         PartialBotApiMethod<?> method = errors.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(errorService).clear();
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseMessage, sendMessage.getText());
@@ -70,6 +73,7 @@ class ErrorsTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
         BotException botException = assertThrows(BotException.class, () -> errors.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedExceptionMessage, botException.getMessage());
     }
 
@@ -83,14 +87,15 @@ class ErrorsTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
         BotException botException = assertThrows(BotException.class, () -> errors.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedExceptionMessage, botException.getMessage());
     }
 
     @Test
     void getErrorDataWithUnexpectedArgument() {
         Update update = getUpdateFromGroup("errors abv");
-
         PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertNull(method);
     }
 
@@ -109,6 +114,7 @@ class ErrorsTest {
         when(errorService.get(errorId)).thenReturn(error);
 
         PartialBotApiMethod<?> method = errors.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendDocumentParams(method);
     }
 }

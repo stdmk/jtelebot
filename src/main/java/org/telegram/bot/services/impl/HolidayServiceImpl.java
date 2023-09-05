@@ -57,9 +57,9 @@ public class HolidayServiceImpl implements HolidayService {
     }
 
     @Override
-    public Holiday save(Holiday holiday) {
+    public void save(Holiday holiday) {
         log.debug("Request to save Holiday: {}", holiday);
-        return holidayRepository.save(holiday);
+        holidayRepository.save(holiday);
     }
 
     @Override

@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -30,8 +29,6 @@ class AliasTest {
 
     @Mock
     private ApplicationContext context;
-    @Mock
-    private BotStats botStats;
     @Mock
     private AliasService aliasService;
     @Mock
@@ -93,6 +90,7 @@ class AliasTest {
 
         assertDoesNotThrow(() -> alias.analyze(echo, getUpdateFromGroup()));
 
+        verify(userStatsService).incrementUserStatsCommands(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class));
         verify(context).getBean(anyString());
     }
 

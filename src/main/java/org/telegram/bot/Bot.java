@@ -214,6 +214,10 @@ public class Bot extends TelegramLongPollingBot {
         sendAction(chatId, ActionType.TYPING);
     }
 
+    public void sendLocation(Long chatId) {
+        sendAction(chatId, ActionType.FINDLOCATION);
+    }
+
     public void sendAction(Long chatId, ActionType action) {
         SendChatAction sendChatAction = new SendChatAction();
         sendChatAction.setChatId(chatId);

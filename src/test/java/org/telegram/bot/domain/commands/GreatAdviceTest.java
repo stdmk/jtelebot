@@ -19,8 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GreatAdviceTest {
@@ -41,6 +40,7 @@ class GreatAdviceTest {
     void adviceWithNotEmptyMessageTextTest() {
         Update update = TestUtils.getUpdateFromGroup("advice test");
         SendMessage sendMessage = greatAdvice.parse(update);
+        verify(bot, never()).sendTyping(update.getMessage().getChatId());
         assertNull(sendMessage);
     }
 
@@ -52,6 +52,7 @@ class GreatAdviceTest {
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> greatAdvice.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -64,6 +65,7 @@ class GreatAdviceTest {
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> greatAdvice.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -80,6 +82,7 @@ class GreatAdviceTest {
 
         SendMessage sendMessage = greatAdvice.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertTrue(sendMessage.getText().contains(responseText));
     }

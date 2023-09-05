@@ -40,9 +40,8 @@ public interface DisableCommandService {
      * Save a DisableCommand.
      *
      * @param disableCommand the entity to save.
-     * @return the persisted entity.
      */
-    DisableCommand save(DisableCommand disableCommand);
+    void save(DisableCommand disableCommand);
 
     /**
      * Remove a DisableCommand.

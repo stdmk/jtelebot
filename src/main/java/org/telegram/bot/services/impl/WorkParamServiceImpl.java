@@ -23,9 +23,9 @@ public class WorkParamServiceImpl implements WorkParamService {
     }
 
     @Override
-    public List<WorkParam> save(List<WorkParam> workParamList) {
+    public void save(List<WorkParam> workParamList) {
         log.debug("Request to save WorkParams: {} ", workParamList);
-        return workParamRepository.saveAll(workParamList);
+        workParamRepository.saveAll(workParamList);
     }
 
     @Override

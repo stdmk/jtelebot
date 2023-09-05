@@ -27,6 +27,8 @@ import java.util.Locale;
 @Slf4j
 public class Cats implements CommandParent<PartialBotApiMethod<?>> {
 
+    private static final String CATS_API_URL = "https://api.thecatapi.com/v1/images/search";
+
     private final Bot bot;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
@@ -35,16 +37,16 @@ public class Cats implements CommandParent<PartialBotApiMethod<?>> {
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
-        bot.sendUploadPhoto(chatId);
         String textMessage = cutCommandInText(message.getText());
+
         if (textMessage != null) {
             return null;
         }
+        bot.sendUploadPhoto(chatId);
 
-        String catsApiUrl = "https://api.thecatapi.com/v1/images/search";
         ResponseEntity<Cat[]> response;
         try {
-            response = botRestTemplate.getForEntity(catsApiUrl, Cat[].class);
+            response = botRestTemplate.getForEntity(CATS_API_URL, Cat[].class);
         } catch (RestClientException e) {
             log.error("Error receiving cats picture: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));

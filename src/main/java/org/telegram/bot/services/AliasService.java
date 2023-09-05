@@ -68,9 +68,8 @@ public interface AliasService {
      * Save an Alias.
      *
      * @param alias the entity to save.
-     * @return the persisted entity.
      */
-    Alias save(Alias alias);
+    void save(Alias alias);
 
     /**
      * Delete an Alias.

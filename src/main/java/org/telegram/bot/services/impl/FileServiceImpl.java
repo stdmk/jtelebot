@@ -32,9 +32,9 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public File save(File file) {
+    public void save(File file) {
         log.debug("Request to save File: {}", file);
-        return fileRepository.save(file);
+        fileRepository.save(file);
     }
 
     @Override

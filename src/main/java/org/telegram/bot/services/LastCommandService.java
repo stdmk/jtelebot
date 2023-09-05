@@ -27,7 +27,6 @@ public interface LastCommandService {
      * Save a LastCommand.
      *
      * @param lastCommand the entity to save.
-     * @return the persisted entity.
      */
-    LastCommand save(LastCommand lastCommand);
+    void save(LastCommand lastCommand);
 }

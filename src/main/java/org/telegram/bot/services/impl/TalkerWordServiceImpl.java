@@ -21,7 +21,7 @@ public class TalkerWordServiceImpl implements TalkerWordService {
     private final TalkerWordRepository talkerWordRepository;
 
     @Override
-    public List<TalkerWord> save(Set<TalkerWord> talkerWordSet) {
+    public void save(Set<TalkerWord> talkerWordSet) {
         List<String> words = talkerWordSet.stream().map(TalkerWord::getWord).collect(Collectors.toList());
         log.debug("Request to save TalkerWords {}", words);
 
@@ -33,12 +33,12 @@ public class TalkerWordServiceImpl implements TalkerWordService {
                         talkerWord.getPhrases().stream(),
                         talkerWordSet.stream().map(TalkerWord::getPhrases).flatMap(Collection::stream)).collect(Collectors.toSet())));
 
-        return talkerWordRepository.saveAll(
+        talkerWordRepository.saveAll(
                 Stream.concat(
-                            storedTalkerWordList.stream(),
-                            talkerWordSet
-                                    .stream()
-                                    .filter(talkerWord -> !storedWords.contains(talkerWord.getWord())))
+                                storedTalkerWordList.stream(),
+                                talkerWordSet
+                                        .stream()
+                                        .filter(talkerWord -> !storedWords.contains(talkerWord.getWord())))
                         .collect(Collectors.toList()));
     }
 

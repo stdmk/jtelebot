@@ -28,10 +28,10 @@ public class ChatGPTSetter implements SetterParent<PartialBotApiMethod<?>> {
     private final ChatGPTMessageService chatGPTMessageService;
     private final PropertiesConfig propertiesConfig;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String EMPTY_CHATGPT_COMMAND = "chatgpt";
-    private final String RESET_CACHE_COMMAND = EMPTY_CHATGPT_COMMAND + "rc";
-    private final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
+    private static final String CALLBACK_COMMAND = "установить ";
+    private static final String EMPTY_CHATGPT_COMMAND = "chatgpt";
+    private static final String RESET_CACHE_COMMAND = EMPTY_CHATGPT_COMMAND + "rc";
+    private static final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
 
     @Override
     public PartialBotApiMethod<?> set(Update update, String commandText) {

@@ -28,8 +28,8 @@ public class LastCommandServiceImpl implements LastCommandService {
     }
 
     @Override
-    public LastCommand save(LastCommand lastCommand) {
+    public void save(LastCommand lastCommand) {
         log.debug("Request to save LastCommand: {} ", lastCommand);
-        return lastCommandRepository.save(lastCommand);
+        lastCommandRepository.save(lastCommand);
     }
 }

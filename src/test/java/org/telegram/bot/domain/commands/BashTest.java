@@ -19,8 +19,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
@@ -53,6 +52,7 @@ class BashTest {
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
 
         SendMessage sendMessage = bash.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
         String actualText = sendMessage.getText();
         assertEquals(expectedText, actualText);
@@ -63,6 +63,7 @@ class BashTest {
         Update update = TestUtils.getUpdateFromGroup("bash test");
 
         assertThrows(BotException.class, () -> bash.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -80,6 +81,7 @@ class BashTest {
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
         SendMessage sendMessage = bash.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualText = sendMessage.getText();
@@ -93,6 +95,7 @@ class BashTest {
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(new IOException());
 
         assertThrows(BotException.class, () -> bash.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -106,6 +109,7 @@ class BashTest {
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
         assertThrows(BotException.class, () -> bash.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
     }
 }

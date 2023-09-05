@@ -36,6 +36,7 @@ class ConverterTest {
     void parseWithWrongInputTest() {
         Update updateFromGroup = TestUtils.getUpdateFromGroup("конверт 123");
         assertThrows(BotException.class, () -> converter.parse(updateFromGroup));
+        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -49,6 +50,7 @@ class ConverterTest {
         Converter converter2 = new Converter(List.of(unitsConverter), bot, speechService);
 
         SendMessage sendMessage = converter2.parse(updateFromGroup);
+        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedInfo, sendMessage.getText());
@@ -67,6 +69,7 @@ class ConverterTest {
         Converter converter2 = new Converter(List.of(unitsConverter1, unitsConverter2), bot, speechService);
 
         SendMessage sendMessage = converter2.parse(updateFromGroup);
+        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResult1 + "\n" + expectedResult2, sendMessage.getText());

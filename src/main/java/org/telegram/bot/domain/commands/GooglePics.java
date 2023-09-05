@@ -58,18 +58,20 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             textMessage = cutCommandInText(message.getText());
         }
 
+        Long chatId = message.getChatId();
         if (textMessage == null) {
+            bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
 
             SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
+            sendMessage.setChatId(chatId.toString());
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText("теперь напиши мне что надо найти");
 
             return sendMessage;
         } else if (textMessage.startsWith("_")) {
-            bot.sendUploadPhoto(message.getChatId());
+            bot.sendUploadPhoto(chatId);
             long imageId;
             try {
                 imageId = Long.parseLong(textMessage.substring(1));
@@ -96,12 +98,12 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             sendPhoto.setCaption(imageUrl.getTitle());
             sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId().toString());
+            sendPhoto.setChatId(chatId.toString());
 
             return sendPhoto;
 
         } else {
-            bot.sendUploadPhoto(message.getChatId());
+            bot.sendUploadPhoto(chatId);
             log.debug("Request to search images for {}", textMessage);
             List<InputMedia> images = new ArrayList<>();
 
@@ -117,7 +119,7 @@ public class GooglePics implements CommandParent<PartialBotApiMethod<?>> {
             SendMediaGroup sendMediaGroup = new SendMediaGroup();
             sendMediaGroup.setMedias(images);
             sendMediaGroup.setReplyToMessageId(message.getMessageId());
-            sendMediaGroup.setChatId(message.getChatId().toString());
+            sendMediaGroup.setChatId(chatId.toString());
 
             return sendMediaGroup;
         }

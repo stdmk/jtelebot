@@ -3,6 +3,7 @@ package org.telegram.bot.domain.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.CommandParent;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -18,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 public class Location implements CommandParent<SendLocation> {
 
+    private final Bot bot;
     private final SpeechService speechService;
 
     @Override
@@ -29,6 +31,7 @@ public class Location implements CommandParent<SendLocation> {
         if (textMessage == null) {
             return null;
         }
+        bot.sendLocation(chatId);
 
         Coordinates coordinates = CoordinatesUtils.parseCoordinates(textMessage);
         if (coordinates == null) {

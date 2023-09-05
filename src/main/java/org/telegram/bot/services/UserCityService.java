@@ -42,9 +42,8 @@ public interface UserCityService {
      * Save a UserCity.
      *
      * @param userCity the entity to save.
-     * @return the persisted entity.
      */
-    UserCity save(UserCity userCity);
+    void save(UserCity userCity);
 
     /**
      * @param chat Chat entity of UserCity to get.

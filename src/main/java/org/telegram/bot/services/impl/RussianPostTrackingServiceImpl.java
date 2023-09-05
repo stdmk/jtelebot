@@ -38,6 +38,8 @@ import javax.xml.transform.stream.StreamResult;
 @Slf4j
 public class RussianPostTrackingServiceImpl implements PostTrackingService {
 
+    private static final String API_URL = "https://tracking.russianpost.ru/rtm34";
+
     private final PropertiesConfig propertiesConfig;
     private final BotStats botStats;
     private final SpeechService speechService;
@@ -45,7 +47,6 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
     @Override
     public List<TrackCodeEvent> getData(String barcode) {
         log.debug("Request to update track events data of barcode {}", barcode);
-        final String API_URL = "https://tracking.russianpost.ru/rtm34";
         final String russianPostLogin = propertiesConfig.getRussianPostLogin();
         final String russianPostPassword = propertiesConfig.getRussianPostPassword();
 
@@ -57,7 +58,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         SOAPConnection connection = getSoapConnection();
         try {
             SOAPMessage message = getSoapMessage(russianPostLogin, russianPostPassword, barcode);
-            String xml = callApi(connection, message, API_URL);
+            String xml = callApi(connection, message);
             trackingData = parseTrackingData(xml);
             checkForErrors(trackingData);
         } catch (BotException botException) {
@@ -127,9 +128,9 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         }
     }
 
-    private String callApi(SOAPConnection connection, SOAPMessage message, String url) {
+    private String callApi(SOAPConnection connection, SOAPMessage message) {
         try {
-            SOAPMessage soapResponse = connection.call(message, url);
+            SOAPMessage soapResponse = connection.call(message, API_URL);
 
             botStats.incrementRussianPostRequests();
 

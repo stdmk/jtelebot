@@ -54,6 +54,7 @@ class DownloadTest {
         Update update = getUpdateFromGroup("download");
 
         PartialBotApiMethod<?> method = download.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
         Mockito.verify(commandWaitingService).add(update.getMessage(), Download.class);
     }
@@ -74,6 +75,7 @@ class DownloadTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
+        verify(bot).sendUploadDocument(update.getMessage().getChatId());
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 
         InputFile inputFile = sendDocument.getDocument();
@@ -95,6 +97,7 @@ class DownloadTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
+        verify(bot).sendUploadDocument(update.getMessage().getChatId());
         assertNotNull(method);
         assertTrue(method instanceof SendDocument);
 
@@ -110,6 +113,7 @@ class DownloadTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
         PartialBotApiMethod<?> method = download.parse(update);
+        verify(bot).sendUploadDocument(update.getMessage().getChatId());
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 
         InputFile inputFile = sendDocument.getDocument();
@@ -123,6 +127,7 @@ class DownloadTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
         assertThrows(BotException.class, () -> download.parse(update));
+        verify(bot).sendUploadDocument(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);
     }
 

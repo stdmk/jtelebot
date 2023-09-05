@@ -37,9 +37,9 @@ public class DisableCommandServiceImpl implements DisableCommandService {
     }
 
     @Override
-    public DisableCommand save(DisableCommand disableCommand) {
+    public void save(DisableCommand disableCommand) {
         log.debug("Request to save DisableCommandList: {}", disableCommand);
-        return disableCommandRepository.save(disableCommand);
+        disableCommandRepository.save(disableCommand);
     }
 
     @Override

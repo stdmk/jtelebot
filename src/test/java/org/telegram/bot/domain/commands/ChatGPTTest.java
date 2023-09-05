@@ -5,6 +5,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
@@ -31,18 +34,22 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChatGPTTest {
+
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
 
     @Mock
     private Bot bot;
@@ -69,19 +76,24 @@ class ChatGPTTest {
 
     @Test
     void unavailableTokenTest() {
+        Update update = getUpdateFromGroup();
         when(propertiesConfig.getChatGPTToken()).thenReturn(null);
 
-        assertThrows(BotException.class, () -> chatGPT.parse(getUpdateFromGroup()));
+        assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot, never()).sendTyping(update.getMessage().getChatId());
+        verify(bot, never()).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
     @Test
     void emptyParamTest() {
+        Update update = getUpdateFromGroup();
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
 
-        chatGPT.parse(getUpdateFromGroup());
+        chatGPT.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 
@@ -95,6 +107,7 @@ class ChatGPTTest {
         when(objectMapper.writeValueAsString(any(Object.class))).thenThrow(mock(JsonProcessingException.class));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(botStats).incrementErrors(any(Object.class), any(JsonProcessingException.class), anyString());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
@@ -110,6 +123,7 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any())).thenThrow(new RestClientException("test"));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -134,6 +148,7 @@ class ChatGPTTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         BotException botException = assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorText, botException.getMessage());
     }
 
@@ -150,6 +165,7 @@ class ChatGPTTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "error".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -165,6 +181,7 @@ class ChatGPTTest {
                 .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
 
         assertThrows(BotException.class, () -> chatGPT.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -189,6 +206,7 @@ class ChatGPTTest {
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
         verify(chatGPTMessageService).update(captor.capture());
@@ -226,6 +244,7 @@ class ChatGPTTest {
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
         verify(chatGPTMessageService).update(captor.capture());
@@ -257,9 +276,32 @@ class ChatGPTTest {
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
 
         assertEquals(expectedUrl, sendPhoto.getPhoto().getAttachName());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideApiUrls")
+    void postConstructEmptyParamTest(String inputValue, String expectedUrl) throws NoSuchMethodException, NoSuchFieldException, IllegalAccessException, InvocationTargetException {
+        Field chatGptApiUrl = ChatGPT.class.getDeclaredField("chatGptApiUrl");
+        chatGptApiUrl.setAccessible(true);
+        chatGptApiUrl.set(chatGPT, inputValue);
+
+        Method postConstruct = ChatGPT.class.getDeclaredMethod("postConstruct");
+        postConstruct.setAccessible(true);
+
+        postConstruct.invoke(chatGPT);
+
+        assertEquals(expectedUrl, chatGptApiUrl.get(chatGPT));
+    }
+
+    private static Stream<Arguments> provideApiUrls() {
+        return Stream.of(
+                Arguments.of("", OPENAI_API_URL),
+                Arguments.of("new_url", "new_url")
+        );
     }
 
 }

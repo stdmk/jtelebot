@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.services.*;
@@ -35,8 +34,6 @@ class EchoTest {
     @Mock
     private CommandPropertiesService commandPropertiesService;
     @Mock
-    private BotStats botStats;
-    @Mock
     private TalkerDegreeService talkerDegreeService;
     @Mock
     private Bot bot;
@@ -52,6 +49,7 @@ class EchoTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
         SendMessage sendMessage = echo.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.ECHO);
@@ -95,6 +93,7 @@ class EchoTest {
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
         SendMessage sendMessage = echo.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 
         String actualResponseText = sendMessage.getText();
@@ -121,6 +120,7 @@ class EchoTest {
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
         SendMessage sendMessage = echo.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 
         String actualResponseText = sendMessage.getText();
@@ -163,6 +163,7 @@ class EchoTest {
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
 
         assertDoesNotThrow(() -> echo.analyze(echo, update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
     }
 
     @Test
@@ -182,6 +183,8 @@ class EchoTest {
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
 
         assertDoesNotThrow(() -> echo.analyze(echo, update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(talkerPhraseService).save(anySet(), any(Chat.class));
     }
 
     @Test
@@ -195,5 +198,6 @@ class EchoTest {
         when(talkerDegreeService.get(anyLong())).thenReturn(talkerDegree);
 
         assertDoesNotThrow(() -> echo.analyze(echo, update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
     }
 }

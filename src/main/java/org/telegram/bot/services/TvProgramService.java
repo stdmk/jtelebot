@@ -42,9 +42,8 @@ public interface TvProgramService {
      * Save a TvProgram.
      *
      * @param tvProgram the entity to save.
-     * @return the persisted entity.
      */
-    TvProgram save(TvProgram tvProgram);
+    void save(TvProgram tvProgram);
 
     /**
      * Save a list of TvProgram.

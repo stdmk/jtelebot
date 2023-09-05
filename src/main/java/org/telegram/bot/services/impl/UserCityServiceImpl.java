@@ -39,9 +39,9 @@ public class UserCityServiceImpl implements UserCityService {
     }
 
     @Override
-    public UserCity save(UserCity userCity) {
+    public void save(UserCity userCity) {
         log.debug("Request to save UserCity: {}", userCity);
-        return userCityRepository.save(userCity);
+        userCityRepository.save(userCity);
     }
 
     @Override

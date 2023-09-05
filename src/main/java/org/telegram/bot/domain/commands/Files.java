@@ -62,7 +62,6 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;
@@ -91,21 +90,28 @@ public class Files implements CommandParent<PartialBotApiMethod<?>> {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (textMessage.equals(EMPTY_COMMAND)) {
+                bot.sendTyping(message.getChatId());
                 return selectDirectory(message, chat, false, 0, null);
             } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
+                bot.sendTyping(message.getChatId());
                 commandWaitingService.remove(commandWaiting);
                 return selectFileByCallback(message, chat, textMessage);
             } else if (textMessage.startsWith(DELETE_FILE_COMMAND)) {
+                bot.sendTyping(message.getChatId());
                 return deleteFileByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
+                bot.sendTyping(message.getChatId());
                 return addFileByCallback(message, chat, user, textMessage);
             } else if (textMessage.startsWith(OPEN_FILE_COMMAND)) {
+                bot.sendUploadDocument(message.getChatId());
                 return sendFile(chat, textMessage);
             } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
+                bot.sendTyping(message.getChatId());
                 return makeDirByCallback(message, chat, user, textMessage);
             }
         }
 
+        bot.sendTyping(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
             return selectDirectory(message,  chat, true, 0, null);

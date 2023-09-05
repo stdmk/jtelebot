@@ -66,6 +66,7 @@ class GooglePicsTest {
 
         PartialBotApiMethod<?> method = googlePics.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
@@ -74,6 +75,7 @@ class GooglePicsTest {
     void googlePicsByInvalidImageUrlIdTest() {
         Update update = TestUtils.getUpdateFromGroup("picture_a");
         assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -84,6 +86,7 @@ class GooglePicsTest {
         when(imageUrlService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -96,6 +99,7 @@ class GooglePicsTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
         BotException botException = assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         assertTrue(botException.getMessage().contains(url));
     }
 
@@ -108,6 +112,7 @@ class GooglePicsTest {
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(Mockito.mock(InputStream.class));
 
         PartialBotApiMethod<?> method = googlePics.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         TestUtils.checkDefaultSendPhotoParams(method);
     }
 
@@ -118,6 +123,7 @@ class GooglePicsTest {
         when(propertiesConfig.getGoogleToken()).thenReturn(null);
 
         assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
@@ -130,6 +136,7 @@ class GooglePicsTest {
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -144,6 +151,7 @@ class GooglePicsTest {
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> googlePics.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(botStats).incrementGoogleRequests();
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
     }
@@ -167,6 +175,7 @@ class GooglePicsTest {
                         new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle())));
 
         PartialBotApiMethod<?> method = googlePics.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         SendMediaGroup sendMediaGroup = TestUtils.checkDefaultSendMediaGroupParams(method);
 
         InputMedia inputMedia = sendMediaGroup.getMedias().get(0);

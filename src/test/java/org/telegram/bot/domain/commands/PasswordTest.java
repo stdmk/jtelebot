@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +38,7 @@ class PasswordTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
         BotException botException = assertThrows(BotException.class, () -> password.parse(update));
+        verify(bot).sendTyping(update);
         assertEquals(expectedErrorText, botException.getMessage());
     }
 
@@ -45,6 +47,7 @@ class PasswordTest {
     void parseTest(String input) {
         Update update = TestUtils.getUpdateFromGroup("password" + input);
         SendMessage sendMessage = password.parse(update);
+        verify(bot).sendTyping(update);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
     }
 

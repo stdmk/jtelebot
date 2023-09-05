@@ -40,6 +40,8 @@ class GetidTest {
         when(userService.get(anyString())).thenReturn(null);
 
         assertThrows(BotException.class, () -> getid.parse(update));
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -53,6 +55,8 @@ class GetidTest {
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
 
         SendMessage method = getid.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
 
         assertEquals(responseText, sendMessage.getText());
@@ -68,6 +72,8 @@ class GetidTest {
         when(userService.get(anyLong())).thenReturn(TestUtils.getUser());
 
         SendMessage method = getid.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
 
         assertEquals(responseText, sendMessage.getText());
@@ -80,6 +86,8 @@ class GetidTest {
         Update update = TestUtils.getUpdateFromGroup("getid");
 
         SendMessage method = getid.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
 
         assertEquals(responseText, sendMessage.getText());
@@ -91,6 +99,8 @@ class GetidTest {
         Update update = TestUtils.getUpdateFromPrivate("getid");
 
         SendMessage method = getid.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
 
         assertEquals(responseText, sendMessage.getText());

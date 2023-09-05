@@ -2,7 +2,6 @@ package org.telegram.bot.domain;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.commands.Getid;
 import org.telegram.bot.services.SpeechService;

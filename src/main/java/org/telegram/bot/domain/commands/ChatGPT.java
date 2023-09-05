@@ -127,6 +127,7 @@ public class ChatGPT implements CommandParent<PartialBotApiMethod<?>> {
                 chatGPTMessageService.update(messagesHistory);
             }
         } else {
+            bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что отправить в ChatGPT";

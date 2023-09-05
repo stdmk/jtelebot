@@ -1,5 +1,6 @@
 package org.telegram.bot.domain.commands;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +13,9 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
+import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Zodiac;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -24,7 +27,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HoroscopeTest {
@@ -42,6 +45,20 @@ class HoroscopeTest {
     private Horoscope horoscope;
 
     @Test
+    void parseWithDeserializeExceptionTest() throws IOException {
+        Update update = TestUtils.getUpdateFromGroup("horoscope");
+
+        JsonParseException jsonParseException = mock(JsonParseException.class);
+        when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
+                .thenThrow(jsonParseException);
+
+        assertThrows((BotException.class), () -> horoscope.parse(update));
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+    }
+
+    @Test
     void parseUnknownHoroscopeTest() {
         final String expectedResponseText = "Не знаю такой тип гороскопа. Существуют:\n" +
                 "Общий — /horoscope_com\n" +
@@ -56,6 +73,7 @@ class HoroscopeTest {
 
         SendMessage sendMessage = horoscope.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -84,6 +102,7 @@ class HoroscopeTest {
                 .thenReturn(data);
 
         SendMessage sendMessage = horoscope.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -113,6 +132,7 @@ class HoroscopeTest {
                 .thenReturn(data);
 
         SendMessage sendMessage = horoscope.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -131,6 +151,7 @@ class HoroscopeTest {
                 .thenReturn(data);
 
         SendMessage sendMessage = horoscope.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertEquals(expectedResponseText, sendMessage.getText());

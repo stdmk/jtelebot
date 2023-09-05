@@ -52,6 +52,7 @@ class GoogleTranslateTest {
         when(propertiesConfig.getGoogleTranslateToken()).thenReturn(null);
 
         assertThrows(BotException.class, () -> googleTranslate.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
@@ -64,6 +65,7 @@ class GoogleTranslateTest {
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> googleTranslate.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -77,6 +79,7 @@ class GoogleTranslateTest {
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> googleTranslate.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -93,6 +96,7 @@ class GoogleTranslateTest {
 
         SendMessage sendMessage = googleTranslate.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(responseText, sendMessage.getText());
     }
@@ -110,6 +114,7 @@ class GoogleTranslateTest {
 
         SendMessage sendMessage = googleTranslate.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(responseText, sendMessage.getText());
     }
@@ -120,6 +125,7 @@ class GoogleTranslateTest {
 
         SendMessage sendMessage = googleTranslate.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
@@ -130,6 +136,7 @@ class GoogleTranslateTest {
         update.getMessage().getReplyToMessage().setText(null);
 
         assertThrows(BotException.class, () -> googleTranslate.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -148,6 +155,7 @@ class GoogleTranslateTest {
 
         SendMessage sendMessage = googleTranslate.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(responseText, sendMessage.getText());
 
@@ -167,6 +175,7 @@ class GoogleTranslateTest {
 
         SendMessage sendMessage = googleTranslate.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(responseText, sendMessage.getText());
 

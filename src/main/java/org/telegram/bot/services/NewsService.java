@@ -65,9 +65,8 @@ public interface NewsService {
      * Save a News.
      *
      * @param news the entity to save.
-     * @return the persisted entity.
      */
-    News save(News news);
+    void save(News news);
 
     /**
      * Remove a News.

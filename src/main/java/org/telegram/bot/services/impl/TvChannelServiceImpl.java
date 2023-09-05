@@ -38,9 +38,9 @@ public class TvChannelServiceImpl implements TvChannelService {
     }
 
     @Override
-    public TvChannel save(TvChannel tvChannel) {
+    public void save(TvChannel tvChannel) {
         log.debug("Request to save TvChannel: {}", tvChannel);
-        return tvChannelRepository.save(tvChannel);
+        tvChannelRepository.save(tvChannel);
     }
 
     @Override

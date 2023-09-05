@@ -13,6 +13,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,22 +40,27 @@ class ButtsTest {
 
     @Test
     void parseWithNoResponseTest() {
+        Update update = getUpdateFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> butts.parse(getUpdateFromGroup()));
+        assertThrows(BotException.class, () -> butts.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithNullButtsTest() {
+        Update update = getUpdateFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> butts.parse(getUpdateFromGroup()));
+        assertThrows(BotException.class, () -> butts.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseTest() {
+        Update update = getUpdateFromGroup();
         Butts.ButtsCount buttsCount = new Butts.ButtsCount();
         buttsCount.setCount(1);
         Butts.ButtsCount[] buttsCountArray = {buttsCount};
@@ -62,7 +68,8 @@ class ButtsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(buttsCountArray);
 
-        SendPhoto sendPhoto = butts.parse(getUpdateFromGroup());
+        SendPhoto sendPhoto = butts.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(sendPhoto, true);
     }
 }

@@ -19,7 +19,6 @@ public interface TimerService {
      * Save a Timer.
      *
      * @param timer the entity to save.
-     * @return the persisted entity.
      */
-    Timer save(Timer timer);
+    void save(Timer timer);
 }

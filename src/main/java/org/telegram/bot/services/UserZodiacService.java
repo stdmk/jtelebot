@@ -22,7 +22,6 @@ public interface UserZodiacService {
      * Save a UserZodiac.
      *
      * @param userZodiac the entity to save.
-     * @return the persisted entity.
      */
-    UserZodiac save(UserZodiac userZodiac);
+    void save(UserZodiac userZodiac);
 }

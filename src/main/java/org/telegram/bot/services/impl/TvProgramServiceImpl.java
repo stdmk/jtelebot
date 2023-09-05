@@ -38,9 +38,9 @@ public class TvProgramServiceImpl implements TvProgramService {
     }
 
     @Override
-    public TvProgram save(TvProgram tvProgram) {
+    public void save(TvProgram tvProgram) {
         log.debug("Request to save TvProgram: {}", tvProgram);
-        return tvProgramRepository.save(tvProgram);
+        tvProgramRepository.save(tvProgram);
     }
 
     @Override

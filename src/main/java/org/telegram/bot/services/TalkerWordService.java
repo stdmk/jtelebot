@@ -15,7 +15,7 @@ public interface TalkerWordService {
      *
      * @param talkerWordSet the set of entities to save.
      */
-    List<TalkerWord> save(Set<TalkerWord> talkerWordSet);
+    void save(Set<TalkerWord> talkerWordSet);
 
     /**
      * Get a TalkerWords.

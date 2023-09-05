@@ -39,9 +39,8 @@ public interface UserTvService {
      * Save a UserTv.
      *
      * @param userTv the entity to save.
-     * @return the persisted entity.
      */
-    UserTv save(UserTv userTv);
+    void save(UserTv userTv);
 
     /**
      * Remove a UserTv.

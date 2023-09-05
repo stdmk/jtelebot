@@ -42,9 +42,9 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
-    public City save(City city) {
+    public void save(City city) {
         log.debug("Request to save City: {}", city);
-        return cityRepository.save(city);
+        cityRepository.save(city);
     }
 
     @Override

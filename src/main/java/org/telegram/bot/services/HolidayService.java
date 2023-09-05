@@ -68,9 +68,8 @@ public interface HolidayService {
      * Save a Holiday.
      *
      * @param holiday the entity to save.
-     * @return the persisted entity.
      */
-    Holiday save(Holiday holiday);
+    void save(Holiday holiday);
 
     /**
      * Remove a Holiday.

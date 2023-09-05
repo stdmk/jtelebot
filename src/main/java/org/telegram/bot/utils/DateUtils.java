@@ -25,10 +25,10 @@ public class DateUtils {
     private static final String DATE_TIME_WITHOUT_YEAR_AND_SECONDS_FORMAT_STRING = "dd.MM HH:mm";
     public static final String DATE_WITHOUT_DAY_FORMAT_STRING = "MM.yyyy";
 
-    public static Pattern FULL_DATE_TIME_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})");
-    public static Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
-    public static Pattern FULL_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
-    public static Pattern SHORT_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2})");
+    public static final Pattern FULL_DATE_TIME_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})");
+    public static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+    public static final Pattern FULL_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
+    public static final Pattern SHORT_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2})");
 
     public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);

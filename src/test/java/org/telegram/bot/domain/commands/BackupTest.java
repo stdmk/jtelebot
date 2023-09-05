@@ -2,11 +2,11 @@ package org.telegram.bot.domain.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -29,12 +29,14 @@ class BackupTest {
 
     @Test
     void parseTest() {
+        Update update = getUpdateFromGroup();
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
 
         Backup backup = new Backup(bot);
         backup.entityManager = entityManager;
-        SendDocument sendDocument = backup.parse(getUpdateFromGroup());
+        SendDocument sendDocument = backup.parse(update);
+        verify(bot).sendUploadDocument(update);
         verify(query).executeUpdate();
 
         assertNotNull(sendDocument);

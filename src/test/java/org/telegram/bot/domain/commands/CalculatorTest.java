@@ -11,7 +11,6 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -58,20 +57,24 @@ class CalculatorTest {
         String actualText = sendMessage.getText();
         assertEquals(expectedText, actualText);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).add(update.getMessage(), Calculator.class);
     }
 
     @Test
     void parseWithNoResponseTest() {
+        Update update = getUpdateFromGroup("calc test");
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> calculator.parse(TestUtils.getUpdateFromGroup("calc test")));
+        assertThrows(BotException.class, () -> calculator.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithRequestErrorTest() {
         final String expectedErrorText = "Undefined symbol test";
+        Update update = getUpdateFromGroup("calc test");
 
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenThrow(
@@ -81,7 +84,8 @@ class CalculatorTest {
                                 ("{\"error\":\"" + expectedErrorText + "\"}").getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        SendMessage sendMessage = calculator.parse(TestUtils.getUpdateFromGroup("calc test"));
+        SendMessage sendMessage = calculator.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 
         String actualErrorText = sendMessage.getText();
@@ -92,12 +96,14 @@ class CalculatorTest {
     @ValueSource(strings = {"6", "Infinite"})
     void parseTest(String expressionResult) {
         final String expectedResponseText = "`" + expressionResult + "`";
+        Update update = getUpdateFromGroup("calc test");
 
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(response);
         when(response.getBody()).thenReturn("{\"result\":\"" + expressionResult + "\"}");
 
-        SendMessage sendMessage = calculator.parse(TestUtils.getUpdateFromGroup("calc test"));
+        SendMessage sendMessage = calculator.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();

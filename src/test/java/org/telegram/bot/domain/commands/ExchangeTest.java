@@ -35,8 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,6 +80,7 @@ class ExchangeTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -98,6 +98,7 @@ class ExchangeTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -130,6 +131,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -143,6 +145,7 @@ class ExchangeTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -157,6 +160,7 @@ class ExchangeTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -174,6 +178,7 @@ class ExchangeTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -193,6 +198,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot, never()).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(method);
 //        assertEquals(expectedResponseText, sendPhoto.getCaption());
     }
@@ -216,6 +223,7 @@ class ExchangeTest {
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -234,6 +242,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -257,6 +266,7 @@ class ExchangeTest {
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -275,6 +285,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -297,6 +308,7 @@ class ExchangeTest {
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
     }
@@ -320,6 +332,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
         PartialBotApiMethod<?> method = exchange.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
     }

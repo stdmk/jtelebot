@@ -81,12 +81,13 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         String responseText;
+        Long chatId = message.getChatId();
 
         InputFile chart = null;
         if (textMessage == null) {
+            bot.sendTyping(chatId);
             log.debug("Request to get exchange rates for usd and eur");
             responseText = getExchangeRatesForUsdEurCny();
         } else {
@@ -96,16 +97,19 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
                 Matcher monthsCountMatcher = MONTHS_COUNT_PATTERN.matcher(textMessage);
 
                 if (valuteToRubMatcher.find()) {
+                    bot.sendTyping(chatId);
                     String currencyCode = valuteToRubMatcher.group(2);
                     float amount =  Float.parseFloat(valuteToRubMatcher.group(1));
                     log.debug("Request to get rubles count for currency {} amount {}", currencyCode, amount);
                     responseText = getRublesForCurrencyValue(currencyCode, amount);
                 } else if (ruToValuteMatcher.find()) {
+                    bot.sendTyping(chatId);
                     String valuteCode = ruToValuteMatcher.group(3);
                     float rublesAmount =  Float.parseFloat(ruToValuteMatcher.group(1));
                     log.debug("Request to get valute {} count for rubles amount {}", valuteCode, rublesAmount);
                     responseText = getValuteForRublesAmount(valuteCode, rublesAmount);
                 } else if (monthsCountMatcher.find()) {
+                    bot.sendUploadPhoto(chatId);
                     int months = Integer.parseInt(monthsCountMatcher.group(1));
 
                     Pair<String, InputFile> result;
@@ -120,9 +124,11 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
                     responseText = result.getFirst();
                     chart = result.getSecond();
                 } else {
+                    bot.sendTyping(chatId);
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
             } else {
+                bot.sendTyping(chatId);
                 if (textMessage.startsWith("_")) {
                     textMessage = textMessage.substring(1);
                 }
@@ -138,13 +144,13 @@ public class Exchange implements CommandParent<PartialBotApiMethod<?>> {
             sendPhoto.setCaption(responseText);
             sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(message.getChatId());
+            sendPhoto.setChatId(chatId);
 
             return sendPhoto;
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.enableHtml(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);

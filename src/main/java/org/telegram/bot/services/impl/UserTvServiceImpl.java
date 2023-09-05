@@ -38,9 +38,9 @@ public class UserTvServiceImpl implements UserTvService {
     }
 
     @Override
-    public UserTv save(UserTv userTv) {
+    public void save(UserTv userTv) {
         log.debug("Request to save UserTv: {}", userTv);
-        return userTvRepository.save(userTv);
+        userTvRepository.save(userTv);
     }
 
     @Override

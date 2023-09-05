@@ -17,9 +17,8 @@ public interface WorkParamService {
      * Save WorkParams.
      *
      * @param workParamList list of workParam entities to save.
-     * @return the persisted entities.
      */
-    List<WorkParam> save(List<WorkParam> workParamList);
+    void save(List<WorkParam> workParamList);
 
     /**
      * Get a WorkParams by bot token.

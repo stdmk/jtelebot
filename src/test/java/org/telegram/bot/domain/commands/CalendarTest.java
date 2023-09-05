@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -24,6 +26,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.*;
 
@@ -70,8 +73,8 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        calendar.parse(update);
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML);
 
         String actualResponseText = sendMessage.getText();
@@ -102,6 +105,8 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
@@ -127,6 +132,8 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
@@ -153,6 +160,8 @@ class CalendarTest {
         when(responseEntity.getBody()).thenReturn(null);
 
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
 
         String actualResponseText = sendMessage.getText();
@@ -167,6 +176,7 @@ class CalendarTest {
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -178,6 +188,7 @@ class CalendarTest {
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -193,6 +204,7 @@ class CalendarTest {
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -207,6 +219,8 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
     }
 
@@ -221,6 +235,8 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         PartialBotApiMethod<?> method = calendar.parse(update);
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
+        verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
     }
 }

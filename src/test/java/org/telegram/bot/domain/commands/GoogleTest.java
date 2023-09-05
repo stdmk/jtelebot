@@ -67,6 +67,7 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn(null);
 
         assertThrows(BotException.class, () -> google.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
@@ -78,6 +79,7 @@ class GoogleTest {
 
         PartialBotApiMethod<?> method = google.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
@@ -89,6 +91,7 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
 
         assertThrows(BotException.class, () -> google.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -100,6 +103,7 @@ class GoogleTest {
         when(googleSearchResultService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> google.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -117,6 +121,8 @@ class GoogleTest {
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
         PartialBotApiMethod<?> method = google.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
         String responseText = sendMessage.getText();
 
@@ -146,6 +152,9 @@ class GoogleTest {
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
         PartialBotApiMethod<?> method = google.parse(update);
+
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
         InputFile photo = sendPhoto.getPhoto();
 
@@ -170,6 +179,8 @@ class GoogleTest {
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> google.parse(update));
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -184,6 +195,8 @@ class GoogleTest {
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> google.parse(update));
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(botStats).incrementGoogleRequests();
     }
@@ -218,6 +231,8 @@ class GoogleTest {
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
         PartialBotApiMethod<?> method = google.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
         String responseText = sendMessage.getText();
 

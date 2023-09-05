@@ -43,6 +43,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class FilesTest {
 
+    //TODO
+
     @Mock
     private Bot bot;
     @Mock
@@ -61,6 +63,7 @@ class FilesTest {
     void unknownCommandTest() {
         Update update = TestUtils.getUpdateFromGroup("files test");
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -71,6 +74,8 @@ class FilesTest {
         when(fileService.get(ROOT_DIR_ID)).thenReturn(null);
 
         assertThrows(BotException.class, () -> files.parse(update));
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -91,6 +96,7 @@ class FilesTest {
 
         PartialBotApiMethod<?> method = files.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
         assertTrue(sendMessage.getText().contains(dirName));
 
@@ -122,6 +128,7 @@ class FilesTest {
 
         PartialBotApiMethod<?> method = files.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
         assertTrue(sendMessage.getText().contains(dirName));
 
@@ -141,6 +148,7 @@ class FilesTest {
         Update update = TestUtils.getUpdateWithCallback("files stest test");
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -149,6 +157,7 @@ class FilesTest {
         Update update = TestUtils.getUpdateWithCallback("files s1 p1");
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -159,6 +168,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(getFile());
 
         PartialBotApiMethod<?> method = files.parse(update);
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         EditMessageText editMessageText = TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
 
         TestUtils.checkDefaultEditMessageTextParams(editMessageText);
@@ -177,6 +187,7 @@ class FilesTest {
                                 100));
 
         PartialBotApiMethod<?> method = files.parse(update);
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         EditMessageText editMessageText = TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
 
         InlineKeyboardMarkup replyMarkup = editMessageText.getReplyMarkup();
@@ -199,6 +210,7 @@ class FilesTest {
         Update update = TestUtils.getUpdateWithCallback("files dtest");
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -209,6 +221,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -219,6 +232,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(getFile().setUser(new User().setUserId(2L)));
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NOT_OWNER);
     }
 
@@ -230,6 +244,7 @@ class FilesTest {
 
         assertThrows(BotException.class, () -> files.parse(update));
 
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(fileService).remove(any(Chat.class), any(File.class));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
@@ -243,6 +258,7 @@ class FilesTest {
 
         PartialBotApiMethod<?> method = files.parse(update);
 
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(fileService).remove(any(Chat.class), any(File.class));
 
         TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
@@ -259,6 +275,7 @@ class FilesTest {
     void makeDirByCallbackTest() {
         Update update = TestUtils.getUpdateWithCallback("files m");
         assertDoesNotThrow(() -> files.parse(update));
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(commandWaitingService).add(any(Chat.class), any(User.class), any(Class.class), anyString());
     }
 
@@ -266,6 +283,7 @@ class FilesTest {
     void sendFileWithCorruptedFileIdTest() {
         Update update = TestUtils.getUpdateWithCallback("files otest");
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendUploadDocument(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -276,6 +294,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendUploadDocument(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -286,6 +305,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(getFile().setChat(new Chat().setChatId(2L)));
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendUploadDocument(update.getCallbackQuery().getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NOT_OWNER);
     }
 
@@ -294,6 +314,7 @@ class FilesTest {
         Update update = TestUtils.getUpdateWithCallback("files o1");
         when(fileService.get(anyLong())).thenReturn(getFile());
         assertDoesNotThrow(() -> files.parse(update));
+        verify(bot).sendUploadDocument(update.getCallbackQuery().getMessage().getChatId());
     }
 
     @Test
@@ -304,6 +325,7 @@ class FilesTest {
                 .thenReturn(new CommandWaiting().setTextMessage("files a"));
 
         assertNull(files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).remove(any(CommandWaiting.class));
     }
 
@@ -317,6 +339,7 @@ class FilesTest {
                 .thenReturn(new CommandWaiting().setTextMessage("files atest"));
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).remove(any(CommandWaiting.class));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
@@ -332,6 +355,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).remove(any(CommandWaiting.class));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
@@ -351,6 +375,8 @@ class FilesTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
         PartialBotApiMethod<?> method = files.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
 
         verify(fileService).save(captor.capture());
@@ -382,6 +408,8 @@ class FilesTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
         PartialBotApiMethod<?> method = files.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
 
         verify(fileService).save(captor.capture());
@@ -402,6 +430,7 @@ class FilesTest {
     void makeDirForWrongParentIdTest() {
         Update update = TestUtils.getUpdateFromGroup("files mtest test");
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -412,6 +441,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(null);
 
         assertThrows(BotException.class, () -> files.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -426,6 +456,8 @@ class FilesTest {
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
         PartialBotApiMethod<?> method = files.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
 
         verify(fileService).save(captor.capture());

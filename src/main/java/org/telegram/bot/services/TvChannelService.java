@@ -36,9 +36,8 @@ public interface TvChannelService {
      * Save a TvChannel.
      *
      * @param tvChannel the entity to save.
-     * @return the persisted entity.
      */
-    TvChannel save(TvChannel tvChannel);
+    void save(TvChannel tvChannel);
 
     /**
      * Save a list of TvChannel.

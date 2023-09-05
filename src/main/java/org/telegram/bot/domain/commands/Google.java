@@ -53,14 +53,17 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
+        Message message = getMessageFromUpdate(update);
+        Long chatId = message.getChatId();
+
         String token = propertiesConfig.getGoogleToken();
         if (StringUtils.isEmpty(token)) {
+            bot.sendTyping(chatId);
             log.error("Unable to find google token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
         String responseText;
-        Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
 
         if (textMessage == null) {
@@ -68,11 +71,12 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
         }
 
         if (textMessage == null) {
+            bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "теперь напиши мне что надо найти";
         } else if (textMessage.startsWith("_")) {
-            bot.sendUploadPhoto(message.getChatId());
+            bot.sendTyping(chatId);
             long googleResultSearchId;
             try {
                 googleResultSearchId = Long.parseLong(textMessage.substring(1));
@@ -97,12 +101,12 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
                 sendPhoto.setCaption(responseText);
                 sendPhoto.setParseMode("HTML");
                 sendPhoto.setReplyToMessageId(message.getMessageId());
-                sendPhoto.setChatId(message.getChatId().toString());
+                sendPhoto.setChatId(chatId.toString());
 
                 return sendPhoto;
             }
         } else {
-            bot.sendTyping(message.getChatId());
+            bot.sendTyping(chatId);
             log.debug("Request to get google results for: {}", textMessage);
             GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
 
@@ -147,7 +151,7 @@ public class Google implements CommandParent<PartialBotApiMethod<?>> {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId.toString());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);

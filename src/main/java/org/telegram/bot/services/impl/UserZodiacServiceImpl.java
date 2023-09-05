@@ -23,8 +23,8 @@ public class UserZodiacServiceImpl implements UserZodiacService {
     }
 
     @Override
-    public UserZodiac save(UserZodiac userZodiac) {
+    public void save(UserZodiac userZodiac) {
         log.debug("Request to save UserZodiac: {}", userZodiac);
-        return userZodiacRepository.save(userZodiac);
+        userZodiacRepository.save(userZodiac);
     }
 }

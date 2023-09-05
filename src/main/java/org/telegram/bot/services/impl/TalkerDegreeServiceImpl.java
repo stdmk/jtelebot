@@ -39,8 +39,8 @@ public class TalkerDegreeServiceImpl implements TalkerDegreeService {
     }
 
     @Override
-    public TalkerDegree save(TalkerDegree talkerDegree) {
+    public void save(TalkerDegree talkerDegree) {
         log.debug("Request to save TalkerDegree: {}", talkerDegree);
-        return talkerDegreeRepository.save(talkerDegree);
+        talkerDegreeRepository.save(talkerDegree);
     }
 }

@@ -57,9 +57,9 @@ public class AliasServiceImpl implements AliasService {
     }
 
     @Override
-    public Alias save(Alias alias) {
+    public void save(Alias alias) {
         log.debug("Request to save UserCity: {}", alias);
-        return aliasRepository.save(alias);
+        aliasRepository.save(alias);
     }
 
     @Override

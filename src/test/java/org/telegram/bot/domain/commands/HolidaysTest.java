@@ -58,6 +58,8 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
         SendMessage sendMessage = holidays.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -67,6 +69,7 @@ class HolidaysTest {
     void parseHolidayInfoWithCorruptedIdTest() {
         Update update = TestUtils.getUpdateFromGroup("holidays_a");
         assertThrows(BotException.class, () -> holidays.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -74,6 +77,7 @@ class HolidaysTest {
     void parseHolidayInfoWithUnknownHolidayIdTest() {
         Update update = TestUtils.getUpdateFromGroup("holidays_1");
         assertThrows(BotException.class, () -> holidays.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -94,6 +98,8 @@ class HolidaysTest {
                         .setUser(TestUtils.getUser()));
 
         SendMessage sendMessage = holidays.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -114,6 +120,8 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
 
         SendMessage sendMessage = holidays.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -127,6 +135,7 @@ class HolidaysTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         assertThrows(BotException.class, () -> holidays.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -141,6 +150,8 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
         SendMessage sendMessage = holidays.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -161,6 +172,8 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
         SendMessage sendMessage = holidays.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         assertEquals(expectedResponseText, sendMessage.getText());

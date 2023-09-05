@@ -21,8 +21,8 @@ public class TimerServiceImpl implements TimerService {
     }
 
     @Override
-    public Timer save(Timer timer) {
+    public void save(Timer timer) {
         log.debug("Request to save Timer {} ", timer);
-        return timerRepository.save(timer);
+        timerRepository.save(timer);
     }
 }

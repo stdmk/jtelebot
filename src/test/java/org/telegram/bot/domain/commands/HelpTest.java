@@ -61,6 +61,8 @@ class HelpTest {
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt())).thenReturn(List.of(new CommandProperties()));
 
         SendMessage sendMessage = help.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         String messageText = sendMessage.getText();
@@ -80,6 +82,8 @@ class HelpTest {
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.TRUSTED.getValue());
 
         SendMessage sendMessage = help.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
 
         String messageText = sendMessage.getText();
@@ -91,6 +95,7 @@ class HelpTest {
     void getHelpOfUnknownCommandTest() {
         Update update = TestUtils.getUpdateFromGroup("help abv");
         assertThrows(BotException.class, () -> help.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -115,6 +120,8 @@ class HelpTest {
         when(commandPropertiesService.getCommand(anyString())).thenReturn(commandProperties);
 
         SendMessage sendMessage = help.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
     }

@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +56,7 @@ class MetadataTest {
 
         SendMessage sendMessage = metadata.parse(update);
 
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertEquals("теперь пришли мне файл", sendMessage.getText());
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
@@ -72,6 +72,7 @@ class MetadataTest {
         update.getMessage().setDocument(document);
 
         assertThrows(BotException.class, () -> metadata.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -87,6 +88,7 @@ class MetadataTest {
         update.getMessage().setVideo(video);
 
         assertThrows(BotException.class, () -> metadata.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(botStats).incrementErrors(any(Update.class), any(Throwable.class), anyString());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
@@ -104,6 +106,7 @@ class MetadataTest {
         when(networkUtils.getFileFromTelegram(bot, audio.getFileId())).thenReturn(inputStream);
 
         assertThrows(BotException.class, () -> metadata.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
         verify(botStats).incrementErrors(any(Update.class), any(Throwable.class), anyString());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
@@ -121,6 +124,8 @@ class MetadataTest {
         when(networkUtils.getFileFromTelegram(bot, photoSize.getFileId())).thenReturn(file);
 
         SendMessage sendMessage = metadata.parse(update);
+
+        verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
         assertNotNull(sendMessage.getText());
     }

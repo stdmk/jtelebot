@@ -22,7 +22,7 @@ public class SpyModeServiceImpl implements SpyModeService {
 
     private final Map<Long, LocalDateTime> userIdLastAlertDateTimeMap = new ConcurrentHashMap<>();
 
-    private final Integer SECONDS_WITHOUT_REPEAT_ALERTS = 15;
+    private static final Integer SECONDS_WITHOUT_REPEAT_ALERTS = 15;
 
     @Override
     public SendMessage generateMessage(User user, String textMessage) {

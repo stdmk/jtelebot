@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -18,6 +19,8 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class LocationTest {
 
+    @Mock
+    private Bot bot;
     @Mock
     private SpeechService speechService;
 
@@ -35,6 +38,7 @@ class LocationTest {
     void parseWithWrongInputTest() {
         Update update = TestUtils.getUpdateFromGroup("location 1234");
         assertThrows(BotException.class, () -> location.parse(update));
+        verify(bot).sendLocation(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -46,6 +50,7 @@ class LocationTest {
         Update update = TestUtils.getUpdateFromGroup("location 56.83417 35,90604");
 
         SendLocation sendLocation = location.parse(update);
+        verify(bot).sendLocation(update.getMessage().getChatId());
         TestUtils.checkDefaultSendLocationParams(sendLocation);
         assertEquals(expectedLatitude, sendLocation.getLatitude());
         assertEquals(expectedLongitude, sendLocation.getLongitude());

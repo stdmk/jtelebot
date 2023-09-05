@@ -58,9 +58,9 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public News save(News news) {
+    public void save(News news) {
         log.debug("Request to save News {} ", news);
-        return newsRepository.save(news);
+        newsRepository.save(news);
     }
 
     @Override

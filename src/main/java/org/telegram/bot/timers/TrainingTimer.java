@@ -33,7 +33,7 @@ public class TrainingTimer extends TimerParent {
     private final TrainingStoppedService trainingStoppedService;
     private final UserCityService userCityService;
 
-    private final String COMMAND_NAME = "training";
+    private static final String COMMAND_NAME = "training";
 
     @Override
     @Scheduled(fixedRate = 600000)

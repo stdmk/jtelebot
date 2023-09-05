@@ -13,10 +13,10 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultSendPhotoParams;
@@ -39,22 +39,27 @@ class BoobsTest {
 
     @Test
     void parseWithNoResponseTest() {
+        Update update = getUpdateFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> boobs.parse(getUpdateFromGroup()));
+        assertThrows(BotException.class, () -> boobs.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithNullBoobsTest() {
+        Update update = getUpdateFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> boobs.parse(getUpdateFromGroup()));
+        assertThrows(BotException.class, () -> boobs.parse(update));
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseTest() {
+        Update update = getUpdateFromGroup();
         Boobs.BoobsCount boobsCount = new Boobs.BoobsCount();
         boobsCount.setCount(1);
         Boobs.BoobsCount[] boobsCountArray = {boobsCount};
@@ -62,7 +67,8 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsCountArray);
 
-        SendPhoto sendPhoto = boobs.parse(getUpdateFromGroup());
+        SendPhoto sendPhoto = boobs.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(sendPhoto, true);
     }
 

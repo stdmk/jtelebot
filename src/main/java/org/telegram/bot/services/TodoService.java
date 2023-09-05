@@ -21,9 +21,8 @@ public interface TodoService {
      * Save a Todo.
      *
      * @param todo the entity to save.
-     * @return the persisted entity.
      */
-    Todo save(Todo todo);
+    void save(Todo todo);
 
     /**
      * Get a Todo list.
