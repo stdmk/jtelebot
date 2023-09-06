@@ -50,7 +50,7 @@ public class Dogs implements CommandParent<PartialBotApiMethod<?>> {
         String imageUrl = getDogsImageUrl();
         InputFile inputFile = new InputFile(imageUrl);
         String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
-        if (imageUrl.endsWith(".jpg")) {
+        if (imageUrl.toLowerCase().endsWith(".jpg")) {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(inputFile);
             sendPhoto.setCaption(commandName);

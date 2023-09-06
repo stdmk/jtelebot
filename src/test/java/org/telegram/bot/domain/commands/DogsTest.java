@@ -79,6 +79,19 @@ class DogsTest {
     }
 
     @Test
+    void parseWithJpgResponseIgnoreCaseTest() {
+        Update update = TestUtils.getUpdateFromGroup("dogs");
+        Dogs.Dog dog = new Dogs.Dog().setUrl("123.JpG");
+        ResponseEntity<Dogs.Dog> response = new ResponseEntity<>(dog, HttpStatus.valueOf(200));
+
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
+
+        PartialBotApiMethod<?> method = dogs.parse(update);
+        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        TestUtils.checkDefaultSendPhotoParams(method);
+    }
+
+    @Test
     void parseWithNotJpgResponseTest() {
         Update update = TestUtils.getUpdateFromGroup("dogs");
         Dogs.Dog dog = new Dogs.Dog().setUrl("123.mp4");
