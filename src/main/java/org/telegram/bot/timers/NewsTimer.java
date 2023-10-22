@@ -6,16 +6,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NewsTimer extends TimerParent {
 
-    private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
@@ -67,17 +66,14 @@ public class NewsTimer extends TimerParent {
                     NewsMessage finalNewsMessage = newsMessage;
                     newsService.getAll(newsSource)
                             .forEach(news -> {
-                                try {
                                     SendMessage sendMessage = new SendMessage();
+
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
                                     sendMessage.disableWebPagePreview();
                                     sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
 
-                                    bot.execute(sendMessage);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
+                                    sendMessageExecutor.executeMethod(sendMessage);
                             });
                 }
             });

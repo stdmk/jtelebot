@@ -4,15 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.services.*;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.*;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrainingTimer extends TimerParent {
 
-    private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final TrainingEventService trainingEventService;
     private final TrainingScheduledService trainingScheduledService;
     private final TrainSubscriptionService trainSubscriptionService;
@@ -80,13 +79,8 @@ public class TrainingTimer extends TimerParent {
                     sendMessage.setReplyMarkup(getCancelTrainingKeyboard(trainingEvent.getId()));
                     sendMessage.setText(responseText);
 
-                    try {
-                        bot.execute(sendMessage);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    } finally {
-                        reduceSubscriptionCountLeft(subscription);
-                    }
+                    reduceSubscriptionCountLeft(subscription);
+                    sendMessageExecutor.executeMethod(sendMessage);
                 });
     }
 

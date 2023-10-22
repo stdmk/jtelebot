@@ -4,15 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Parcel;
 import org.telegram.bot.domain.entities.TrackCode;
 import org.telegram.bot.domain.entities.TrackCodeEvent;
 import org.telegram.bot.services.ParcelService;
 import org.telegram.bot.services.TrackCodeService;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -23,7 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class TrackCodeEventsTimer extends TimerParent {
-    private final Bot bot;
+
+    private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
     private final ParcelService parcelService;
     private final TrackCodeService trackCodeService;
@@ -57,16 +57,12 @@ public class TrackCodeEventsTimer extends TimerParent {
                                     "<code>" + parcel.getTrackCode().getBarcode() + "</code>\n" +
                                     "Нет ответа от сервиса удали /parcel_d" + parcel.getId() + " и добавь снова подходящий";
 
-                            try {
-                                SendMessage sendMessage = new SendMessage();
-                                sendMessage.setChatId(parcel.getUser().getUserId());
-                                sendMessage.enableHtml(true);
-                                sendMessage.setText(messageText);
+                            SendMessage sendMessage = new SendMessage();
+                            sendMessage.setChatId(parcel.getUser().getUserId());
+                            sendMessage.enableHtml(true);
+                            sendMessage.setText(messageText);
 
-                                bot.execute(sendMessage);
-                            } catch (TelegramApiException e) {
-                                e.printStackTrace();
-                            }
+                            sendMessageExecutor.executeMethod(sendMessage);
                         });
             } else {
                 LocalDateTime lastEventDateTime = lastEventUpdateDateTimeMap.get(trackCodeAfter.getId());
@@ -79,16 +75,12 @@ public class TrackCodeEventsTimer extends TimerParent {
                                 .forEach(parcel -> {
                                     String messageText = org.telegram.bot.commands.Parcel.buildStringEventMessage(parcel, newEvent);
 
-                                    try {
-                                        SendMessage sendMessage = new SendMessage();
-                                        sendMessage.setChatId(parcel.getUser().getUserId());
-                                        sendMessage.enableHtml(true);
-                                        sendMessage.setText(messageText);
+                                    SendMessage sendMessage = new SendMessage();
+                                    sendMessage.setChatId(parcel.getUser().getUserId());
+                                    sendMessage.enableHtml(true);
+                                    sendMessage.setText(messageText);
 
-                                        bot.execute(sendMessage);
-                                    } catch (TelegramApiException e) {
-                                        e.printStackTrace();
-                                    }
+                                    sendMessageExecutor.executeMethod(sendMessage);
                                 }));
             }
         });

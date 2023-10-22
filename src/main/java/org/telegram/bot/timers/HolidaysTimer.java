@@ -4,21 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Holidays;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class HolidaysTimer extends TimerParent {
 
-    private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final ChatService chatService;
     private final Holidays holidays;
     private final LanguageResolver languageResolver;
@@ -44,15 +44,8 @@ public class HolidaysTimer extends TimerParent {
                     sendMessage.setText(textMessage);
 
                     return sendMessage;
-        })
-                .forEach(sendMessage -> {
-                    if (sendMessage != null) {
-                        try {
-                            bot.execute(sendMessage);
-                        } catch (TelegramApiException e) {
-                            e.printStackTrace();
-                        }
-                    }
-        });
+                })
+                .filter(Objects::nonNull)
+                .forEach(sendMessageExecutor::executeMethod);
     }
 }

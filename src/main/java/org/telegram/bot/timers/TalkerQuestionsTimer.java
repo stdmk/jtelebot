@@ -4,16 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.commands.Echo;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.services.*;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.MathUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,7 +28,7 @@ public class TalkerQuestionsTimer extends TimerParent {
     private final TalkerDegreeService talkerDegreeService;
     private final UserStatsService userStatsService;
     private final Echo echo;
-    private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
 
     private final Map<Long, LocalDateTime> lastAlertBotMessageMap = new ConcurrentHashMap<>();
@@ -75,13 +74,8 @@ public class TalkerQuestionsTimer extends TimerParent {
                 sendMessage.setReplyToMessageId(lastMessage.getMessageId());
                 sendMessage.setText(question);
 
-                try {
-                    bot.execute(sendMessage);
-                    lastAlertBotMessageMap.put(chatId, dateTimeNow);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                    botStats.incrementErrors(sendMessage, e, "ошибка отправки сообщения с вопросом от бота");
-                }
+                sendMessageExecutor.executeMethod(sendMessage);
+                lastAlertBotMessageMap.put(chatId, dateTimeNow);
             }
         });
     }

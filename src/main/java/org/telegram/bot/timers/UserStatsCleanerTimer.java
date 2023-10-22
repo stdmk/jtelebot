@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Top;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +23,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class UserStatsCleanerTimer extends TimerParent {
 
-    private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final TimerService timerService;
     private final UserStatsService userStatsService;
     private final ChatService chatService;
@@ -80,13 +79,7 @@ public class UserStatsCleanerTimer extends TimerParent {
 
             userStatsService.clearMonthlyStats();
 
-            sendMessageListWithMonthlyTop.forEach(sendMessage -> {
-                try {
-                    bot.execute((sendMessage));
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            });
+            sendMessageListWithMonthlyTop.forEach(sendMessageExecutor::executeMethod);
 
             timer.setLastAlarmDt(nextAlarm.withDayOfMonth(1));
             timerService.save(timer);
