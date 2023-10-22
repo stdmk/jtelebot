@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Metadata;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -58,7 +59,7 @@ class MetadataTest {
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals("теперь пришли мне файл", sendMessage.getText());
+        assertEquals("${command.metadata.commandwaitingstart}", sendMessage.getText());
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 

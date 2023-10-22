@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.telegram.bot.Bot;
+import org.telegram.bot.commands.Alias;
+import org.telegram.bot.commands.Echo;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -53,7 +55,7 @@ class AliasTest {
                 .setUser(new User().setUserId(1L))
                 .setName("test")
                 .setValue("echo");
-        final String expectedResponseText = "*Список твоих алиасов:*\n1. test - `echo`\n";
+        final String expectedResponseText = "*${command.alias.aliaslist}:*\n1. test - `echo`\n";
 
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(List.of(aliasEntity));

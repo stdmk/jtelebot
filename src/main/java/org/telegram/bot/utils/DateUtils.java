@@ -129,11 +129,11 @@ public class DateUtils {
                 String yearsCount = String.valueOf(years);
 
                 if (Arrays.asList("11", "12", "13", "14", "15", "16", "17", "18", "19").contains(yearsCount)) {
-                    postfix = " л. ";
+                    postfix = " ${utils.date.years}. ";
                 } else if (yearsCount.endsWith("1") || yearsCount.endsWith("2") || yearsCount.endsWith("3") || yearsCount.endsWith("4")) {
-                    postfix = " г. ";
+                    postfix = " ${utils.date.year}. ";
                 } else {
-                    postfix = " л. ";
+                    postfix = " ${utils.date.years}. ";
                 }
 
                 buf.append(years).append(postfix);
@@ -141,12 +141,12 @@ public class DateUtils {
 
             int months = period.getMonths();
             if (months != 0) {
-                buf.append(months).append(" мес. ");
+                buf.append(months).append(" ${utils.date.months}. ");
             }
 
             int days = period.getDays();
             if (days != 0) {
-                buf.append(days).append(" д. ");
+                buf.append(days).append(" ${utils.date.d}. ");
             }
 
             buf.append(")");
@@ -185,22 +185,22 @@ public class DateUtils {
         StringBuilder buf = new StringBuilder();
         long days = duration.toDaysPart();
         if (days != 0) {
-            buf.append(days).append(" д. ");
+            buf.append(days).append(" ${utils.date.d}. ");
         }
 
         int hours = duration.toHoursPart();
         if (hours != 0) {
-            buf.append(hours).append(" ч. ");
+            buf.append(hours).append(" ${utils.date.h}. ");
         }
 
         long minutes = duration.toMinutesPart();
         if (minutes != 0) {
-            buf.append(minutes).append(" м. ");
+            buf.append(minutes).append(" ${utils.date.m}. ");
         }
 
         long seconds = duration.toSecondsPart();
         if (seconds != 0) {
-            buf.append(seconds).append(" с. ");
+            buf.append(seconds).append(" ${utils.date.s}. ");
         }
 
         if (buf.length() == 0) {
@@ -218,12 +218,20 @@ public class DateUtils {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), zoneId);
     }
 
-    public static String getDayOfWeek(LocalDateTime dateTime) {
-        return dateTime.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
+    public static String getDayOfWeek(LocalDateTime dateTime, String lang) {
+        return dateTime.getDayOfWeek().getDisplayName(TextStyle.SHORT, getLocale(lang)) + ".";
     }
 
-    public static String getDayOfWeek(LocalDate date) {
-        return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, new Locale("ru")) + ".";
+    public static String getDayOfWeek(LocalDate date, String lang) {
+        return date.getDayOfWeek().getDisplayName(TextStyle.SHORT, getLocale(lang)) + ".";
+    }
+
+    private Locale getLocale(String lang) {
+        if (lang != null) {
+            return new Locale(lang);
+        }
+
+        return Locale.getDefault();
     }
 
     public static Duration getDuration(LocalTime timeStart, LocalTime timeEnd) {
@@ -249,35 +257,6 @@ public class DateUtils {
 
     public static LocalDateTime atStartOfDay(LocalDateTime localDateTime) {
         return localDateTime.toLocalDate().atStartOfDay(ZoneId.systemDefault()).toLocalDateTime();
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum MonthName {
-        JANUARY("январь", "января", 1),
-        FEBRUARY("февраль", "февраля", 2),
-        MARCH("март", "марта", 3),
-        APRIL("апрель", "апреля", 4),
-        MAY("май", "мая", 5),
-        JUNE("июнь", "июня", 6),
-        JULY("июль", "июля", 7),
-        AUGUST("август", "августа", 8),
-        SEPTEMBER("сентябрь", "сентября", 9),
-        OCTOBER("октябрь", "октября", 10),
-        NOVEMBER("ноябрь", "ноября", 11),
-        DECEMBER("декабрь", "декабря", 12);
-
-        private final String name;
-        private final String genitive;
-        private final int MonthValue;
-
-        public static MonthName getByName(String name) {
-            String lowerName = name.toLowerCase();
-            return Arrays.stream(MonthName.values())
-                    .filter(monthName -> monthName.getName().equals(lowerName) || monthName.getGenitive().equals(lowerName))
-                    .findFirst()
-                    .orElse(null);
-        }
     }
 
     @Getter

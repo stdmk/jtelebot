@@ -22,4 +22,6 @@ public interface MethodExecutor {
      * @param message handling message.
      */
     void executeMethod(PartialBotApiMethod<?> method, Message message);
+
+    void executeMethod(PartialBotApiMethod<?> method);
 }

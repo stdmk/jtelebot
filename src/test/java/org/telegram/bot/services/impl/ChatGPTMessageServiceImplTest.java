@@ -6,7 +6,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.repositories.ChatGPTMessageRepository;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 
 import java.util.List;
 import java.util.stream.Collectors;

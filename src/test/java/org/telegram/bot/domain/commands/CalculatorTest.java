@@ -11,6 +11,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.commands.Calculator;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -48,7 +49,7 @@ class CalculatorTest {
 
     @Test
     void parseWithEmptyTextTest() {
-        final String expectedText = "теперь напиши мне что нужно посчитать";
+        final String expectedText = "${command.calculator.commandwaitingstart}";
         Update update = getUpdateFromGroup();
 
         SendMessage sendMessage = calculator.parse(update);

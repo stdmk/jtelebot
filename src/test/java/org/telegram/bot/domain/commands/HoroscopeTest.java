@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Horoscope;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
@@ -60,7 +61,7 @@ class HoroscopeTest {
 
     @Test
     void parseUnknownHoroscopeTest() {
-        final String expectedResponseText = "Не знаю такой тип гороскопа. Существуют:\n" +
+        final String expectedResponseText = "${command.horoscope.unknownhoroscopetype}:\n" +
                 "Общий — /horoscope_com\n" +
                 "Эротический — /horoscope_ero\n" +
                 "Анти — /horoscope_anti\n" +
@@ -80,7 +81,7 @@ class HoroscopeTest {
 
     @Test
     void parseWithoutHoroscopeTest() throws IOException {
-        final String expectedResponseText = "Гороскоп <b>Общий</b>\n" +
+        final String expectedResponseText = "${command.horoscope.caption} <b>Общий</b>\n" +
                 "(today)\n" +
                 "\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♈️Овен</a></u>aries\n" +
@@ -110,7 +111,7 @@ class HoroscopeTest {
 
     @Test
     void parseKnownHoroscopeTest() throws IOException {
-        final String expectedResponseText = "Гороскоп <b>Анти</b>\n" +
+        final String expectedResponseText = "${command.horoscope.caption} <b>Анти</b>\n" +
                 "(today)\n" +
                 "\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♈️Овен</a></u>aries\n" +
@@ -140,7 +141,7 @@ class HoroscopeTest {
 
     @Test
     void parseKnownHoroscopeWithZodiacSetTest() throws IOException {
-        final String expectedResponseText = "Гороскоп <b>Анти</b>\n" +
+        final String expectedResponseText = "${command.horoscope.caption} <b>Анти</b>\n" +
                 "(today)\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♒️Водолей</a></u>aquarius";
         Horoscope.HoroscopeData data = getHoroscopeData();

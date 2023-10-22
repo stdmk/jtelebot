@@ -5,12 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.commands.Top;
 import org.telegram.bot.domain.entities.Timer;
+import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
@@ -22,6 +27,8 @@ public class UserStatsCleanerTimer extends TimerParent {
     private final Bot bot;
     private final TimerService timerService;
     private final UserStatsService userStatsService;
+    private final ChatService chatService;
+    private final Top top;
 
     @Override
     @Scheduled(fixedRate = 10800000)
@@ -65,7 +72,15 @@ public class UserStatsCleanerTimer extends TimerParent {
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");
-            userStatsService.clearMonthlyStats(bot).forEach(sendMessage -> {
+
+            List<SendMessage> sendMessageListWithMonthlyTop = chatService.getAllGroups()
+                    .stream()
+                    .map(top::getTopByChat)
+                    .collect(Collectors.toList());
+
+            userStatsService.clearMonthlyStats();
+
+            sendMessageListWithMonthlyTop.forEach(sendMessage -> {
                 try {
                     bot.execute((sendMessage));
                 } catch (TelegramApiException e) {

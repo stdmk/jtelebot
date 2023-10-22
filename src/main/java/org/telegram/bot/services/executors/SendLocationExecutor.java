@@ -38,4 +38,20 @@ public class SendLocationExecutor implements MethodExecutor {
             log.error("Unexpected error: ", e);
         }
     }
+
+    @Override
+    public void executeMethod(PartialBotApiMethod<?> method) {
+        SendLocation sendLocation = (SendLocation) method;
+        log.info("To " + sendLocation.getChatId() + ": " + sendLocation.getLatitude() + " " + sendLocation.getLongitude());
+
+        try {
+            bot.execute(sendLocation);
+        } catch (TelegramApiException e) {
+            botStats.incrementErrors(method, e, "error sending response");
+            log.error("Error: cannot send response: {}", e.getMessage());
+        } catch (Exception e) {
+            botStats.incrementErrors(method, e, "unexpected error");
+            log.error("Unexpected error: ", e);
+        }
+    }
 }

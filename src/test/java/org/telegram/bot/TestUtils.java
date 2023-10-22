@@ -26,8 +26,7 @@ public class TestUtils {
         Chat chat = new Chat();
         chat.setId(DEFAULT_CHAT_ID);
 
-        User user = new User();
-        user.setId(ANOTHER_USER_ID);
+        User user = getTelegramUser(ANOTHER_USER_ID);
 
         Message repliedMessage = getMessage(ANOTHER_MESSAGE_ID, chat, user, textMessage);
 
@@ -49,8 +48,7 @@ public class TestUtils {
         Chat chat = new Chat();
         chat.setId(DEFAULT_CHAT_ID);
 
-        User user = new User();
-        user.setId(DEFAULT_USER_ID);
+        User user = getTelegramUser();
 
         Message message = getMessage(chat, user);
 
@@ -69,8 +67,7 @@ public class TestUtils {
         Chat chat = new Chat();
         chat.setId(DEFAULT_CHAT_ID);
 
-        User user = new User();
-        user.setId(DEFAULT_USER_ID);
+        User user = getTelegramUser();
 
         Message message = getMessage(chat, user, textMessage);
 
@@ -84,8 +81,7 @@ public class TestUtils {
         Chat chat = new Chat();
         chat.setId(DEFAULT_USER_ID);
 
-        User user = new User();
-        user.setId(DEFAULT_USER_ID);
+        User user = getTelegramUser();
 
         Message message = getMessage(chat, user, textMessage);
 
@@ -99,8 +95,7 @@ public class TestUtils {
         Chat chat = new Chat();
         chat.setId(DEFAULT_CHAT_ID);
 
-        User user = new User();
-        user.setId(DEFAULT_USER_ID);
+        User user = getTelegramUser();
 
         return getMessage(chat, user);
     }
@@ -129,6 +124,18 @@ public class TestUtils {
 
     public static org.telegram.bot.domain.entities.Chat getChat(Long chatId) {
         return new org.telegram.bot.domain.entities.Chat().setChatId(chatId);
+    }
+
+    public static User getTelegramUser() {
+        return getTelegramUser(DEFAULT_USER_ID);
+    }
+
+    public static User getTelegramUser(Long userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setLanguageCode("en");
+
+        return user;
     }
 
     public static org.telegram.bot.domain.entities.User getUser() {

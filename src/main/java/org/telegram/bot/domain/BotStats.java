@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.WorkParam;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.WorkParamService;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 
 import java.time.Instant;

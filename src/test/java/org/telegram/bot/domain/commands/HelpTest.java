@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Help;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
@@ -16,7 +17,7 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -49,8 +50,8 @@ class HelpTest {
 
     @Test
     void firstGetHelpFromAdminTest() {
-        final String currentLevelString = "Твой текущий уровень - <b>";
-        final String grantingString = "Права администратора успешно предоставлены";
+        final String currentLevelString = "${command.help.currentlevel} - <b>";
+        final String grantingString = "${command.help.grants}";
         Update update = TestUtils.getUpdateFromGroup("help");
 
         when(propertiesConfig.getAdminId()).thenReturn(DEFAULT_USER_ID);
@@ -58,7 +59,8 @@ class HelpTest {
                 .thenReturn(new User().setUserId(DEFAULT_USER_ID).setAccessLevel(AccessLevel.NEWCOMER.getValue()));
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.NEWCOMER.getValue());
         when(userService.getUserAccessLevel(anyLong())).thenReturn(AccessLevel.ADMIN.getValue());
-        when(commandPropertiesService.getAvailableCommandsForLevel(anyInt())).thenReturn(List.of(new CommandProperties()));
+        when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
+                .thenReturn(List.of(new CommandProperties().setClassName("className")));
 
         SendMessage sendMessage = help.parse(update);
 
@@ -72,8 +74,8 @@ class HelpTest {
 
     @Test
     void getHelpFromChatTest() {
-        final String currentLevelString = "Твой текущий уровень - <b>";
-        final String noPanic = "<b>Без паники!</b>";
+        final String currentLevelString = "${command.help.currentlevel} - <b>";
+        final String noPanic = "<b>${command.help.dontpanic}!</b>";
         Update update = TestUtils.getUpdateFromGroup("help");
 
         when(propertiesConfig.getAdminId()).thenReturn(ANOTHER_USER_ID);
@@ -101,15 +103,16 @@ class HelpTest {
 
     @Test
     void getHelpOfCommandTest() {
-        final String expectedResponseText = "<b>Команда:</b> Command\n" +
-                "<b>Описание:</b> Description\n" +
-                "<b>Параметры:</b> Params\n" +
-                "<b>Примеры:</b> Examples\n" +
-                "<b>Примечания:</b> отсутствуют\n" +
-                "<b>Уровень:</b> 5";
+        final String expectedResponseText = "<b>${command.help.commandinfo.name}:</b> ${help.help.name}\n" +
+                "<b>${command.help.commandinfo.desc}:</b> ${help.help.desc}\n" +
+                "<b>${command.help.commandinfo.args}:</b> ${help.help.params}\n" +
+                "<b>${command.help.commandinfo.examples}:</b> ${help.help.examples}\n" +
+                "<b>${command.help.commandinfo.comment}:</b> ${help.help.comment}\n" +
+                "<b>${command.help.commandinfo.level}:</b> 5";
         Update update = TestUtils.getUpdateFromGroup("help abv");
         CommandProperties commandProperties = new CommandProperties()
                 .setAccessLevel(AccessLevel.TRUSTED.getValue())
+                .setClassName("help")
                 .setHelp(
                         new org.telegram.bot.domain.entities.Help()
                                 .setName("Command")

@@ -6,14 +6,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.services.*;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
@@ -29,6 +29,8 @@ import static org.telegram.bot.utils.TelegramUtils.isThatAnOldMessage;
 @Component
 @Slf4j
 public class Bot extends TelegramLongPollingBot {
+
+    //TODO не забудь в пропетях указать язык
 
     private final List<TextAnalyzer> textAnalyzerList;
     private final ApplicationContext context;
@@ -117,7 +119,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze((CommandParent<?>) textAnalyzer, update));
+        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze((Command<?>) textAnalyzer, update));
 
         Chat chatEntity = new Chat().setChatId(chatId);
         org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);
@@ -136,9 +138,9 @@ public class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        CommandParent<?> command = null;
+        Command<?> command = null;
         try {
-            command = (CommandParent<?>) context.getBean(commandProperties.getClassName());
+            command = (Command<?>) context.getBean(commandProperties.getClassName());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -171,7 +173,7 @@ public class Bot extends TelegramLongPollingBot {
         return botUserName;
     }
 
-    public void parseAsync(Update update, CommandParent<?> command) {
+    public void parseAsync(Update update, Command<?> command) {
         parser.parseAsync(update, command);
     }
 

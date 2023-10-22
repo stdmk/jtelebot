@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.domain.commands.Parcel.DELIVERED_OPERATION_TYPE;
+import static org.telegram.bot.commands.Parcel.DELIVERED_OPERATION_TYPE;
 
 @Service
 @RequiredArgsConstructor

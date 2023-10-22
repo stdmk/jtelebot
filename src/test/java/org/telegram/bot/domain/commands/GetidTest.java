@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Getid;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
@@ -47,9 +48,9 @@ class GetidTest {
 
     @Test
     void getIdOfUsernameTest() {
-        final String responseText = "Айди [username](tg://user?id=1): `1`\n" +
-                "Айди этого чата: `-1`\n" +
-                "Твой айди: `1`";
+        final String responseText = "${command.getid.id} [username](tg://user?id=1): `1`\n" +
+                "${command.getid.groupid}: `-1`\n" +
+                "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateFromGroup("getid test");
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
@@ -64,9 +65,9 @@ class GetidTest {
 
     @Test
     void getIdOfUserFromRepliedMessageTest() {
-        final String responseText = "Айди [username](tg://user?id=1): `1`\n" +
-                "Айди этого чата: `-1`\n" +
-                "Твой айди: `1`";
+        final String responseText = "${command.getid.id} [username](tg://user?id=1): `1`\n" +
+                "${command.getid.groupid}: `-1`\n" +
+                "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateWithRepliedMessage("getid");
 
         when(userService.get(anyLong())).thenReturn(TestUtils.getUser());
@@ -81,8 +82,8 @@ class GetidTest {
 
     @Test
     void getIdInGroupChatTest() {
-        final String responseText = "Айди этого чата: `-1`\n" +
-                "Твой айди: `1`";
+        final String responseText = "${command.getid.groupid}: `-1`\n" +
+                "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateFromGroup("getid");
 
         SendMessage method = getid.parse(update);
@@ -95,7 +96,7 @@ class GetidTest {
 
     @Test
     void getIdTest() {
-        final String responseText = "Твой айди: `1`";
+        final String responseText = "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateFromPrivate("getid");
 
         SendMessage method = getid.parse(update);

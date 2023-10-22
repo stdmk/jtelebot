@@ -16,27 +16,26 @@ import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 @RequiredArgsConstructor
 @Getter
 public enum UserStatsParam {
-    NUMBER_OF_MESSAGES(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), "getNumberOfMessages", "numberOfMessages"),
-    NUMBER_OF_ALL_MESSAGES(Arrays.asList("все", "всё"), "getNumberOfAllMessages", "numberOfAllMessages"),
-    NUMBER_OF_MESSAGES_PER_DAY(Arrays.asList("день", "сутки"), "getNumberOfMessagesPerDay", "numberOfMessagesPerDay"),
-    NUMBER_OF_KARMA(Arrays.asList("карма", "кармы"), "getNumberOfKarma", "numberOfKarma"),
-    NUMBER_OF_ALL_KARMA(Arrays.asList("кармавсе", "кармавсё"), "getNumberOfAllKarma", "numberOfAllKarma"),
-    NUMBER_OF_STICKERS(Arrays.asList("стикеры", "стикер", "стикеров"), "getNumberOfStickers", "numberOfStickers"),
-    NUMBER_OF_PHOTOS(Arrays.asList("изображения", "изображений", "изоражение"), "getNumberOfPhotos", "numberOfPhotos"),
-    NUMBER_OF_ANIMATIONS(Arrays.asList("анимаций", "анимация"), "getNumberOfAnimations", "numberOfAnimations"),
-    NUMBER_OF_AUDIO(Arrays.asList("музыка", "музыки"), "getNumberOfAudio", "numberOfAudio"),
-    NUMBER_OF_DOCUMENTS(Arrays.asList("документы", "документ", "документов"), "getNumberOfDocuments", "numberOfDocuments"),
-    NUMBER_OF_VIDEOS(Collections.singletonList("видео"), "getNumberOfVideos", "numberOfVideos"),
-    NUMBER_OF_VIDEO_NOTES(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), "getNumberOfVideoNotes", "numberOfVideoNotes"),
-    NUMBER_OF_VOICES(Arrays.asList("голосовых", "голосовые", "голосовое"), "getNumberOfAudio", "numberOfAudio"),
-    NUMBER_OF_COMMANDS(Arrays.asList("команд", "команда"), "getNumberOfCommands", "numberOfCommands"),
-    NUMBER_OF_GOODNESS(Arrays.asList("доброты", "доброта", "добра"), "getNumberOfGoodness", "numberOfGoodness"),
-    NUMBER_OF_WICKEDNESS(Arrays.asList("злоботы", "злобота", "злоба", "злобы"), "getNumberOfWickedness", "numberOfWickedness"),
+    NUMBER_OF_MESSAGES(Arrays.asList("месяц", "сообщений", "сообщения", "сообщение"), "getNumberOfMessages"),
+    NUMBER_OF_ALL_MESSAGES(Arrays.asList("все", "всё"), "getNumberOfAllMessages"),
+    NUMBER_OF_MESSAGES_PER_DAY(Arrays.asList("день", "сутки"), "getNumberOfMessagesPerDay"),
+    NUMBER_OF_KARMA(Arrays.asList("карма", "кармы"), "getNumberOfKarma"),
+    NUMBER_OF_ALL_KARMA(Arrays.asList("кармавсе", "кармавсё"), "getNumberOfAllKarma"),
+    NUMBER_OF_STICKERS(Arrays.asList("стикеры", "стикер", "стикеров"), "getNumberOfStickers"),
+    NUMBER_OF_PHOTOS(Arrays.asList("изображения", "изображений", "изоражение"), "getNumberOfPhotos"),
+    NUMBER_OF_ANIMATIONS(Arrays.asList("анимаций", "анимация"), "getNumberOfAnimations"),
+    NUMBER_OF_AUDIO(Arrays.asList("музыка", "музыки"), "getNumberOfAudio"),
+    NUMBER_OF_DOCUMENTS(Arrays.asList("документы", "документ", "документов"), "getNumberOfDocuments"),
+    NUMBER_OF_VIDEOS(Collections.singletonList("видео"), "getNumberOfVideos"),
+    NUMBER_OF_VIDEO_NOTES(Arrays.asList("видеосообщений", "видеосообщение", "видеосообщения"), "getNumberOfVideoNotes"),
+    NUMBER_OF_VOICES(Arrays.asList("голосовых", "голосовые", "голосовое"), "getNumberOfAudio"),
+    NUMBER_OF_COMMANDS(Arrays.asList("команд", "команда"), "getNumberOfCommands"),
+    NUMBER_OF_GOODNESS(Arrays.asList("доброты", "доброта", "добра"), "getNumberOfGoodness"),
+    NUMBER_OF_WICKEDNESS(Arrays.asList("злоботы", "злобота", "злоба", "злобы"), "getNumberOfWickedness"),
     ;
 
     private final List<String> paramNames;
     private final String method;
-    private final String fieldName;
 
     /**
      * Getting UserStatsParam by paramName.

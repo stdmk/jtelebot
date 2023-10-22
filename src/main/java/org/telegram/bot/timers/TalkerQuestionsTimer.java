@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.commands.Echo;
+import org.telegram.bot.commands.Echo;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.UserStats;

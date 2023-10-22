@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.commands.Backup;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.commands.Backup;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component

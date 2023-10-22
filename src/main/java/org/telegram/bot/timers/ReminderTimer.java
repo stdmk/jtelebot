@@ -5,16 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.telegram.bot.Bot;
-import org.telegram.bot.domain.commands.Remind;
+import org.telegram.bot.commands.Remind;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.services.ReminderService;
 import org.telegram.bot.services.UserCityService;
+import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.*;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
@@ -24,7 +25,8 @@ public class ReminderTimer extends TimerParent {
 
     private final ReminderService reminderService;
     private final UserCityService userCityService;
-    private final Bot bot;
+    private final LanguageResolver languageResolver;
+    private final SendMessageExecutor sendMessageExecutor;
 
     @Override
     @Scheduled(fixedRate = 30000)
@@ -41,18 +43,16 @@ public class ReminderTimer extends TimerParent {
             ZonedDateTime zonedDateTime = reminderDateTime.atZone(zoneId);
 
             if (dateTimeNow.isAfter(zonedDateTime.toLocalDateTime())) {
+                Locale locale = languageResolver.getLocale(chat);
+
                 SendMessage sendMessage = new SendMessage();
                 sendMessage.setChatId(chat.getChatId());
                 sendMessage.enableHtml(true);
                 sendMessage.disableWebPagePreview();
                 sendMessage.setText(Remind.prepareTextOfReminder(reminder));
-                sendMessage.setReplyMarkup(Remind.preparePostponeKeyboard(reminder));
+                sendMessage.setReplyMarkup(Remind.preparePostponeKeyboard(reminder, locale));
 
-                try {
-                    bot.execute(sendMessage);
-                } catch (TelegramApiException e) {
-                    continue;
-                }
+                sendMessageExecutor.executeMethod(sendMessage);
 
                 String repeatability = reminder.getRepeatability();
                 if (StringUtils.isEmpty(repeatability)) {

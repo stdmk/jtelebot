@@ -7,12 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Holidays;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -38,6 +40,8 @@ class HolidaysTest {
     @Mock
     private SpeechService speechService;
     @Mock
+    private LanguageResolver languageResolver;
+    @Mock
     private Clock clock;
 
     @InjectMocks
@@ -45,10 +49,10 @@ class HolidaysTest {
 
     @Test
     void parseComingHolidaysTest() {
-        final String expectedResponseText = "<u>Ближайшие праздники:</u>\n" +
-                "<b>вт. 02.01 </b><i>holiday1</i> (1 год)\n" +
+        final String expectedResponseText = "<u>${command.holidays.caption}:</u>\n" +
+                "<b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
                 "/holidays_1\n" +
-                "<b>вт. 02.01 </b><i>holiday2</i> (2 года)\n" +
+                "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
         Update update = TestUtils.getUpdateFromGroup("holidays");
         List<Holiday> holidayList = getSomeHolidays();
@@ -56,6 +60,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
+        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -84,8 +89,8 @@ class HolidaysTest {
     @Test
     void parseHolidayInfoTest() {
         final String expectedResponseText = "<u>holiday1</u>\n" +
-                "<i>02.01.2006 вт.</i> (1 год)\n" +
-                "Автор: <a href=\"tg://user?id=1\">username</a>";
+                "<i>02.01.2006 Tue.</i> (1 ${command.holidays.years1})\n" +
+                "${command.holidays.author}: <a href=\"tg://user?id=1\">username</a>";
         Update update = TestUtils.getUpdateFromGroup("holidays_1");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -96,6 +101,7 @@ class HolidaysTest {
                         .setDate(CURRENT_DATE.minusYears(1))
                         .setName("holiday1")
                         .setUser(TestUtils.getUser()));
+        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -107,10 +113,10 @@ class HolidaysTest {
 
     @Test
     void parseWithSearchHolidaysByTextTest() {
-        final String expectedResponseText = "<u>Результаты поиска:</u>\n" +
-                "<b>вт. 02.01 </b><i>holiday1</i> (1 год)\n" +
+        final String expectedResponseText = "<u>${command.holidays.searchresults}:</u>\n" +
+                "<b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
                 "/holidays_1\n" +
-                "<b>вт. 02.01 </b><i>holiday2</i> (2 года)\n" +
+                "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
         Update update = TestUtils.getUpdateFromGroup("holidays test");
         List<Holiday> holidayList = getSomeHolidays();
@@ -118,6 +124,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
+        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -141,7 +148,7 @@ class HolidaysTest {
 
     @Test
     void parseWithSearchHolidaysByDateWithoutHolidaysTest() {
-        final String expectedResponseText = "Праздники на эту дату отсутствуют";
+        final String expectedResponseText = "${command.holidays.noholidays}";
         Update update = TestUtils.getUpdateFromGroup("holidays 11.12");
         List<Holiday> holidayList = getSomeHolidays();
 
@@ -159,10 +166,10 @@ class HolidaysTest {
 
     @Test
     void parseWithSearchHolidaysByDateTest() {
-        final String expectedResponseText = "<u>02.01.2007</u> (вт.)\n" +
-                "<b>02.01 </b><i>holiday1</i> (1 год)\n" +
+        final String expectedResponseText = "<u>02.01.2007</u> (Tue.)\n" +
+                "<b>02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
                 "/holidays_1\n" +
-                "<b>02.01 </b><i>holiday2</i> (2 года)\n" +
+                "<b>02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
         Update update = TestUtils.getUpdateFromGroup("holidays 02.01");
         List<Holiday> holidayList = getSomeHolidays();
@@ -170,6 +177,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
+        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 

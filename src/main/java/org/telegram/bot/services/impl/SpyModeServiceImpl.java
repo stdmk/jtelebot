@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.services.SpyModeService;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;

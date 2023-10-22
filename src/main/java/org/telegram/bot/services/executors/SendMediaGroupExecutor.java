@@ -31,6 +31,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
     public void executeMethod(PartialBotApiMethod<?> method, Message message) {
         SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
         log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
+
         try {
             bot.execute(sendMediaGroup);
         } catch (TelegramApiException e) {
@@ -41,8 +42,23 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         }
     }
 
+    @Override
+    public void executeMethod(PartialBotApiMethod<?> method) {
+        SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
+        log.info("To " + sendMediaGroup.getChatId() + ": sending photos " + sendMediaGroup);
+
+        try {
+            bot.execute(sendMediaGroup);
+        } catch (TelegramApiException e) {
+            tryToSendOnePhoto(sendMediaGroup);
+        } catch (Exception e) {
+            botStats.incrementErrors(method, e, "unexpected error");
+            log.error("Unexpected error: ", e);
+        }
+    }
+
     private void tryToSendOnePhoto(SendMediaGroup sendMediaGroup) {
-        StringBuilder buf = new StringBuilder("Остальные картинки: \n");
+        StringBuilder buf = new StringBuilder("${executor.sendmeadiagroup.otherpictures}: \n");
         sendMediaGroup.getMedias().stream().skip(1).forEach(inputMedia -> buf.append(inputMedia.getCaption()).append("\n"));
 
         InputMedia inputMedia = sendMediaGroup.getMedias().get(0);
@@ -61,7 +77,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(sendMediaGroup.getChatId());
             sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
-            sendMessage.setText("Не удалось загрузить картинку по адресу: " + inputMedia.getMedia() + "\n" + buf);
+            sendMessage.setText("${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
 
             try {
                 bot.execute(sendMessage);

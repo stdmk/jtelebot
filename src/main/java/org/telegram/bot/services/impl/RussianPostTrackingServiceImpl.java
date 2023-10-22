@@ -28,7 +28,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.PostTrackingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;

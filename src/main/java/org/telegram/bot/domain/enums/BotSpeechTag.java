@@ -6,21 +6,21 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum BotSpeechTag {
-    COMMAND_FOR_GROUP_CHATS("commandForGroupChats"),
-    DATA_BASE_INTEGRITY("databaseIntegrity"),
+    COMMAND_FOR_GROUP_CHATS("commandforgroupchats"),
+    DATA_BASE_INTEGRITY("databaseintegrity"),
     ECHO("echo"),
-    NO_RESPONSE("noResponse"),
-    NO_ACCESS("noAccess"),
-    NOT_OWNER("notOwner"),
+    NO_RESPONSE("noresponse"),
+    NO_ACCESS("noaccess"),
+    NOT_OWNER("notowner"),
     SAVED("saved"),
-    UNABLE_TO_FIND_TOKEN("unableToFindToken"),
-    USER_NOT_FOUND("userNotFound"),
-    WRONG_INPUT("wrongInput"),
-    INTERNAL_ERROR("internalError"),
-    FOUND_NOTHING("foundNothing"),
-    SETTING_REQUIRED("settingRequired"),
-    DUPLICATE_ENTRY("duplicateEntry"),
-    TOO_BIG_FILE("tooBigFile"),
+    UNABLE_TO_FIND_TOKEN("unabletofindtoken"),
+    USER_NOT_FOUND("usernotfound"),
+    WRONG_INPUT("wronginput"),
+    INTERNAL_ERROR("internalerror"),
+    FOUND_NOTHING("foundnothing"),
+    SETTING_REQUIRED("settingrequired"),
+    DUPLICATE_ENTRY("duplicateentry"),
+    TOO_BIG_FILE("toobigfile"),
     ;
 
     private final String value;
