@@ -77,7 +77,7 @@ public class TrackCodeEventsTimer extends TimerParent {
                         .sorted(Comparator.comparing(TrackCodeEvent::getEventDateTime))
                         .forEach(newEvent -> getParcelListByTrackCode(parcelList, trackCodeAfter)
                                 .forEach(parcel -> {
-                                    String messageText = org.telegram.bot.domain.commands.Parcel.buildStringEventMessage(parcel, newEvent);
+                                    String messageText = org.telegram.bot.commands.Parcel.buildStringEventMessage(parcel, newEvent);
 
                                     try {
                                         SendMessage sendMessage = new SendMessage();

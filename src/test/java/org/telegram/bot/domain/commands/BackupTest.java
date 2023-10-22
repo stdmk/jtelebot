@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
+import org.telegram.bot.commands.Backup;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -34,7 +36,8 @@ class BackupTest {
         when(query.executeUpdate()).thenReturn(1);
 
         Backup backup = new Backup(bot);
-        backup.entityManager = entityManager;
+        ReflectionTestUtils.setField(backup, "entityManager", entityManager);
+
         SendDocument sendDocument = backup.parse(update);
         verify(bot).sendUploadDocument(update);
         verify(query).executeUpdate();

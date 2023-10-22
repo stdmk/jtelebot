@@ -1,11 +1,9 @@
 package org.telegram.bot.services;
 
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
@@ -82,10 +80,8 @@ public interface UserStatsService {
 
     /**
      * Clear user stats by last Month.
-     *
-     * @return list of tops for send its to chats
      */
-    List<SendMessage> clearMonthlyStats(Bot bot);
+    void clearMonthlyStats();
 
     /**
      * Clear user stats by last Day.

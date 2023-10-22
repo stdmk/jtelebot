@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.commands.Exchange;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -207,8 +208,8 @@ class ExchangeTest {
     @Test
     void getRublesForCurrencyValueWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>btlc</b>\n" +
-                "Список доступных: Доллар США - /exchange_usd\n" +
+        final String expectedResponseText = "${command.exchange.valutenotfound} <b>btlc</b>\n" +
+                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 " + unknownValuteCode);
@@ -250,8 +251,8 @@ class ExchangeTest {
     @Test
     void getValuteForRublesCountWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>btlc</b>\n" +
-                "Список доступных: Доллар США - /exchange_usd\n" +
+        final String expectedResponseText = "${command.exchange.valutenotfound} <b>btlc</b>\n" +
+                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange 5 rub " + unknownValuteCode);
@@ -293,8 +294,8 @@ class ExchangeTest {
     @Test
     void getExchangeRatesForUnknownCodeTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "Не нашёл валюту <b>BTLC</b>\n" +
-                "Список доступных: Доллар США - /exchange_usd\n" +
+        final String expectedResponseText = "${command.exchange.valutenotfound} <b>BTLC</b>\n" +
+                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
         Update update = TestUtils.getUpdateFromGroup("exchange_" + unknownValuteCode);

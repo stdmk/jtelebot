@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.CommandParent;
+import org.telegram.bot.domain.Command;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.executors.MethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -30,7 +30,7 @@ public class Parser {
     }
 
     @Async
-    public void parseAsync(Update update, CommandParent<?> command) {
+    public void parseAsync(Update update, Command<?> command) {
         PartialBotApiMethod<?> method = null;
         try {
             method = command.parse(update);

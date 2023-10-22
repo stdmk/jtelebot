@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.Bot;
-import org.telegram.bot.domain.commands.Top;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
@@ -16,7 +14,6 @@ import org.telegram.bot.services.LastMessageService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import javax.transaction.Transactional;
@@ -97,21 +94,12 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
-    public List<SendMessage> clearMonthlyStats(Bot bot) {
+    public void clearMonthlyStats() {
         log.debug("Request to clear monthly stats of users");
-
-        Top top = new Top(bot, this, userService, speechService);
-        List<SendMessage> response = chatService.getAllGroups()
-                .stream()
-                .map(top::getTopByChat)
-                .collect(Collectors.toList());
-
         userStatsRepository.saveAll(getAllGroupStats()
                 .stream()
                 .peek(this::clearUserStatsFields)
                 .collect(Collectors.toList()));
-
-        return response;
     }
 
     private void clearUserStatsFields(UserStats userStats) {

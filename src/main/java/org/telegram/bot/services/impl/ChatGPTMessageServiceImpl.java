@@ -9,7 +9,7 @@ import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.ChatGPTMessageRepository;
 import org.telegram.bot.services.ChatGPTMessageService;
-import org.telegram.bot.services.config.PropertiesConfig;
+import org.telegram.bot.config.PropertiesConfig;
 
 import java.util.Comparator;
 import java.util.List;

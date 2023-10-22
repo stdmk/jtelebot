@@ -7,8 +7,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.telegram.bot.commands.convertors.TimeConverter;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,19 +26,19 @@ class TimeConverterTest {
 
     @Test
     void getInfoTest() {
-        final String expectedInfo = "<b>Конвертер времени</b>\n" +
-                "Фемтосекунда — фс\n" +
-                "Пикосекунда — пс\n" +
-                "Наносекунда — нс\n" +
-                "Микросекунда — мкс\n" +
-                "Миллисекунда — мс\n" +
-                "Сантисекунда — сс\n" +
-                "Секунда — с\n" +
-                "Минута — м\n" +
-                "Час — ч\n" +
-                "Сутки — д\n" +
-                "Год — г\n" +
-                "Век — в\n";
+        final String expectedInfo = "<b>${command.converter.time.caption}</b>\n" +
+                "${command.converter.time.femtosecond} — ${command.converter.time.femtosecond}\n" +
+                "${command.converter.time.picosecond} — ${command.converter.time.picosecond}\n" +
+                "${command.converter.time.nanosecond} — ${command.converter.time.nanosecond}\n" +
+                "${command.converter.time.microsecond} — ${command.converter.time.microsecond}\n" +
+                "${command.converter.time.millisecond} — ${command.converter.time.millisecond}\n" +
+                "${command.converter.time.centisecond} — ${command.converter.time.centisecond}\n" +
+                "${command.converter.time.second} — ${command.converter.time.second}\n" +
+                "${command.converter.time.minute} — ${command.converter.time.minute}\n" +
+                "${command.converter.time.hour} — ${command.converter.time.hour}\n" +
+                "${command.converter.time.day} — ${command.converter.time.day}\n" +
+                "${command.converter.time.year} — ${command.converter.time.year}\n" +
+                "${command.converter.time.century} — ${command.converter.time.century}\n";
         String actualInfo = converter.getInfo();
         assertEquals(expectedInfo, actualInfo);
     }
@@ -58,16 +63,36 @@ class TimeConverterTest {
     @ParameterizedTest
     @MethodSource("provideValues")
     void convertTest(BigDecimal value, String from, String to, String expectedResult) {
+        ReflectionTestUtils.setField(converter, "unitNameAbbreviaturesMap", getUnitNameAbbreviaturesMap());
         String actualResult = converter.convert(value, from, to);
         assertEquals(expectedResult, actualResult);
     }
 
     private static Stream<Arguments> provideValues() {
         return Stream.of(
-                Arguments.of(BigDecimal.ONE, "с", "мкс", "1 с = <b>1000000 мкс</b>\n( * 1000000)"),
-                Arguments.of(BigDecimal.ONE, "мкс", "с", "1 мкс = <b>0.000001 с</b>\n( / 1000000)"),
-                Arguments.of(BigDecimal.ONE, "с", "с", "1 с = <b>1 с</b>\n( * 1)")
+                Arguments.of(BigDecimal.ONE, "s", "mks", "1 ${command.converter.time.second} = <b>1000000 ${command.converter.time.microsecond}</b>\n( * 1000000)"),
+                Arguments.of(BigDecimal.ONE, "mks", "s", "1 ${command.converter.time.microsecond} = <b>0.000001 ${command.converter.time.second}</b>\n( / 1000000)"),
+                Arguments.of(BigDecimal.ONE, "s", "s", "1 ${command.converter.time.second} = <b>1 ${command.converter.time.second}</b>\n( * 1)")
         );
+    }
+
+    private Map<String, Set<String>> getUnitNameAbbreviaturesMap() {
+        Map<String, Set<String>> unitNameAbbreviaturesMap = new HashMap<>();
+
+        unitNameAbbreviaturesMap.put("FEMTOSECOND", Set.of("fs"));
+        unitNameAbbreviaturesMap.put("PICOSECOND", Set.of("ps"));
+        unitNameAbbreviaturesMap.put("NANOSECOND", Set.of("ns"));
+        unitNameAbbreviaturesMap.put("MICROSECOND", Set.of("mks"));
+        unitNameAbbreviaturesMap.put("MILLISECOND", Set.of("ms"));
+        unitNameAbbreviaturesMap.put("CENTISECOND", Set.of("cs"));
+        unitNameAbbreviaturesMap.put("SECOND", Set.of("s"));
+        unitNameAbbreviaturesMap.put("MINUTE", Set.of("m"));
+        unitNameAbbreviaturesMap.put("HOUR", Set.of("h"));
+        unitNameAbbreviaturesMap.put("DAY", Set.of("d"));
+        unitNameAbbreviaturesMap.put("YEAR", Set.of("y"));
+        unitNameAbbreviaturesMap.put("CENTURY", Set.of("c"));
+
+        return unitNameAbbreviaturesMap;
     }
 
 }

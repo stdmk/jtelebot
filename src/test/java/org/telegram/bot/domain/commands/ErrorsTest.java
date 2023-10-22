@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.commands.Errors;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
 import org.telegram.bot.domain.enums.BotSpeechTag;

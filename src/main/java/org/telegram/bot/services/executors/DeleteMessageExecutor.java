@@ -38,4 +38,20 @@ public class DeleteMessageExecutor implements MethodExecutor {
             log.error("Unexpected error: ", e);
         }
     }
+
+    @Override
+    public void executeMethod(PartialBotApiMethod<?> method) {
+        DeleteMessage deleteMessage = (DeleteMessage) method;
+        log.info("Deleting message {}", deleteMessage.getMessageId());
+
+        try {
+            bot.execute(deleteMessage);
+        } catch (TelegramApiException e) {
+            botStats.incrementErrors(method, e, "error sending response");
+            log.error("Error: cannot send response: {}", e.getMessage());
+        } catch (Exception e) {
+            botStats.incrementErrors(method, e, "unexpected error");
+            log.error("Unexpected error: ", e);
+        }
+    }
 }

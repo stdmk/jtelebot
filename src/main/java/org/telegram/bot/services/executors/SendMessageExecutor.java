@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -17,6 +19,8 @@ public class SendMessageExecutor implements MethodExecutor {
 
     private final Bot bot;
     private final BotStats botStats;
+    private final LanguageResolver languageResolver;
+    private final InternalizationService internalizationService;
 
     @Override
     public String getMethod() {
@@ -25,7 +29,9 @@ public class SendMessageExecutor implements MethodExecutor {
 
     @Override
     public void executeMethod(PartialBotApiMethod<?> method, Message message) {
-        SendMessage sendMessage = (SendMessage) method;
+        String lang = languageResolver.getChatLanguageCode(message);
+        SendMessage sendMessage = internalizationService.internalize((SendMessage) method, lang);
+
         log.info("To " + message.getChatId() + ": " + sendMessage.getText());
 
         try {
@@ -36,6 +42,29 @@ public class SendMessageExecutor implements MethodExecutor {
             tryToSendWithoutMarkdowns(sendMessage);
         } catch (Exception e) {
             botStats.incrementErrors(message, method, e, "unexpected error");
+            log.error("Unexpected error: ", e);
+        }
+    }
+
+    @Override
+    public void executeMethod(PartialBotApiMethod<?> method) {
+        SendMessage sendMessage = (SendMessage) method;
+
+        String chatId = sendMessage.getChatId();
+        String lang = languageResolver.getChatLanguageCode(chatId);
+
+        sendMessage = internalizationService.internalize(sendMessage, lang);
+
+        log.info("To " + chatId + ": " + sendMessage.getText());
+
+        try {
+            bot.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            botStats.incrementErrors(method, e, "error sending message");
+            log.error("Error: cannot send response: {}", e.getMessage());
+            tryToSendWithoutMarkdowns(sendMessage);
+        } catch (Exception e) {
+            botStats.incrementErrors(method, e, "unexpected error");
             log.error("Unexpected error: ", e);
         }
     }
