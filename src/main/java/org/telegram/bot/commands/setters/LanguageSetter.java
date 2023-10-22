@@ -48,7 +48,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
     @Override
     public boolean canProcessed(String command) {
-        return emptyLangCommands.stream().anyMatch(emptyCommand -> emptyCommand.startsWith(command));
+        return emptyLangCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -125,12 +125,12 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
                 .stream()
                 .filter(command::startsWith)
                 .findFirst()
-                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)));
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)));
 
-        String lang = command.substring(emptyCommand.length());
+        String lang = command.substring(emptyCommand.length() + 1);
 
         if (!internalizationService.getAvailableLocales().contains(lang)) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
         chatLanguageService.save(chat, lang);
