@@ -83,6 +83,10 @@ public class InternalizationServiceImpl implements InternalizationService {
 
     @Override
     public String internalize(String text, @Nullable String lang) {
+        if (text == null) {
+            return null;
+        }
+
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(text);
 
         List<MatchResult> results = matcher.results().collect(Collectors.toList());
