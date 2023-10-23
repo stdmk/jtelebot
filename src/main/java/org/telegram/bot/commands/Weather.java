@@ -127,7 +127,7 @@ public class Weather implements Command<SendMessage> {
         try {
             response = botRestTemplate.getForEntity(weatherApiUrl + city, WeatherCurrent.class);
         } catch (HttpClientErrorException e) {
-            throw new BotException("Ответ сервиса погоды: " + getErrorMessage(e));
+            throw new BotException("${command.weather.apiresponse}: " + getErrorMessage(e));
         }
 
         return response.getBody();
@@ -437,7 +437,7 @@ public class Weather implements Command<SendMessage> {
         if (hours.equals(1)) {
             Double oneHour = precipitations.getOneHours();
             if (oneHour != null) {
-                return emoji + String.format(captionFormat, "${command.weather.perhour}:") + String.format("%.2f", oneHour) + " мм";
+                return emoji + String.format(captionFormat, "${command.weather.perhour}:     ") + String.format("%.2f", oneHour) + " мм";
             }
         } else if (hours.equals(3)) {
             Double threeHours = precipitations.getThreeHours();
