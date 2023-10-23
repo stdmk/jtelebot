@@ -11,7 +11,7 @@ import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
@@ -42,27 +42,27 @@ public class Top implements Command<SendMessage> {
     private final UserStatsService userStatsService;
     private final UserService userService;
     private final SpeechService speechService;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
 
     private final Map<String, Set<String>> topListParamValuesMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void postConstruct() {
-        topListParamValuesMap.put("getNumberOfMessagesPerDay", internalizationService.getAllTranslations("command.top.list.daily"));
-        topListParamValuesMap.put("getNumberOfMessages", internalizationService.getAllTranslations("command.top.list.monthly"));
-        topListParamValuesMap.put("getNumberOfAllMessages", internalizationService.getAllTranslations("command.top.list.total"));
-        topListParamValuesMap.put("getNumberOfKarma", internalizationService.getAllTranslations("command.top.list.karma"));
-        topListParamValuesMap.put("getNumberOfStickers", internalizationService.getAllTranslations("command.top.list.stickers"));
-        topListParamValuesMap.put("getNumberOfPhotos", internalizationService.getAllTranslations("command.top.list.photos"));
-        topListParamValuesMap.put("getNumberOfAnimations", internalizationService.getAllTranslations("command.top.list.animations"));
-        topListParamValuesMap.put("getNumberOfAudio", internalizationService.getAllTranslations("command.top.list.audio"));
-        topListParamValuesMap.put("getNumberOfDocuments", internalizationService.getAllTranslations("command.top.list.documents"));
-        topListParamValuesMap.put("getNumberOfVideos", internalizationService.getAllTranslations("command.top.list.videos"));
-        topListParamValuesMap.put("getNumberOfVideoNotes", internalizationService.getAllTranslations("command.top.list.videonotes"));
-        topListParamValuesMap.put("getNumberOfVoices", internalizationService.getAllTranslations("command.top.list.voices"));
-        topListParamValuesMap.put("getNumberOfCommands", internalizationService.getAllTranslations("command.top.list.commands"));
-        topListParamValuesMap.put("getNumberOfGoodness", internalizationService.getAllTranslations("command.top.list.goodness"));
-        topListParamValuesMap.put("getNumberOfWickedness", internalizationService.getAllTranslations("command.top.list.wickedness"));
+        topListParamValuesMap.put("getNumberOfMessagesPerDay", internationalizationService.getAllTranslations("command.top.list.daily"));
+        topListParamValuesMap.put("getNumberOfMessages", internationalizationService.getAllTranslations("command.top.list.monthly"));
+        topListParamValuesMap.put("getNumberOfAllMessages", internationalizationService.getAllTranslations("command.top.list.total"));
+        topListParamValuesMap.put("getNumberOfKarma", internationalizationService.getAllTranslations("command.top.list.karma"));
+        topListParamValuesMap.put("getNumberOfStickers", internationalizationService.getAllTranslations("command.top.list.stickers"));
+        topListParamValuesMap.put("getNumberOfPhotos", internationalizationService.getAllTranslations("command.top.list.photos"));
+        topListParamValuesMap.put("getNumberOfAnimations", internationalizationService.getAllTranslations("command.top.list.animations"));
+        topListParamValuesMap.put("getNumberOfAudio", internationalizationService.getAllTranslations("command.top.list.audio"));
+        topListParamValuesMap.put("getNumberOfDocuments", internationalizationService.getAllTranslations("command.top.list.documents"));
+        topListParamValuesMap.put("getNumberOfVideos", internationalizationService.getAllTranslations("command.top.list.videos"));
+        topListParamValuesMap.put("getNumberOfVideoNotes", internationalizationService.getAllTranslations("command.top.list.videonotes"));
+        topListParamValuesMap.put("getNumberOfVoices", internationalizationService.getAllTranslations("command.top.list.voices"));
+        topListParamValuesMap.put("getNumberOfCommands", internationalizationService.getAllTranslations("command.top.list.commands"));
+        topListParamValuesMap.put("getNumberOfGoodness", internationalizationService.getAllTranslations("command.top.list.goodness"));
+        topListParamValuesMap.put("getNumberOfWickedness", internationalizationService.getAllTranslations("command.top.list.wickedness"));
     }
 
     @Override

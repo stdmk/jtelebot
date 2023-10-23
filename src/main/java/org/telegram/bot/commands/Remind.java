@@ -91,7 +91,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     private final UserService userService;
     private final UserCityService userCityService;
     private final SpeechService speechService;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     private final LanguageResolver languageResolver;
     private final BotStats botStats;
 
@@ -101,32 +101,32 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     @PostConstruct
     void postConstruct() {
         String template = "(%s)\\s+(\\d+)\\s+(%s)";
-        String blockIn = String.join("|", internalizationService.getAllTranslations("command.remind.in"));
-        String minutesBlock = translationsSetToTemporaryUnitsPatternBlock(internalizationService.getAllTranslations("command.remind.minutes"));
-        String hoursBlock = translationsSetToTemporaryUnitsPatternBlock(internalizationService.getAllTranslations("command.remind.minutes"));
-        String daysBlock = translationsSetToTemporaryUnitsPatternBlock(internalizationService.getAllTranslations("command.remind.minutes"));
+        String blockIn = String.join("|", internationalizationService.getAllTranslations("command.remind.in"));
+        String minutesBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
+        String hoursBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
+        String daysBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
 
         AFTER_MINUTES_PATTERN = Pattern.compile(String.format(template, blockIn, minutesBlock));
         AFTER_HOURS_PATTERN = Pattern.compile(String.format(template, blockIn, hoursBlock));
         AFTER_DAYS_PATTERN = Pattern.compile(String.format(template, blockIn, daysBlock));
 
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.today")), LocalDate::now);
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.aftertomorrow")), () -> LocalDate.now().plusDays(2));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.tomorrow")), () -> LocalDate.now().plusDays(1));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.monday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.tuesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.wednesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.thursday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.friday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.saturday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.datekeyword.sunday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.today")), LocalDate::now);
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.aftertomorrow")), () -> LocalDate.now().plusDays(2));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tomorrow")), () -> LocalDate.now().plusDays(1));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.monday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tuesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.wednesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.thursday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.friday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.saturday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.sunday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)));
 
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.morning")), () -> LocalTime.of(7, 0));
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.lunch")), () -> LocalTime.of(12, 0));
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.afternoon")), () -> LocalTime.of(15, 0));
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.evening")), () -> LocalTime.of(22, 0));
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.dinner")), () -> LocalTime.of(19, 0));
-        timeKeywords.put(csvTranslationSetToTranslationSet(internalizationService.getAllTranslations("command.remind.timekeyword.night")), () -> LocalTime.of(3, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.morning")), () -> LocalTime.of(7, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.lunch")), () -> LocalTime.of(12, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.afternoon")), () -> LocalTime.of(15, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.evening")), () -> LocalTime.of(22, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.dinner")), () -> LocalTime.of(19, 0));
+        timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.night")), () -> LocalTime.of(3, 0));
     }
 
     private String translationsSetToTemporaryUnitsPatternBlock(Set<String> translationsSet) {

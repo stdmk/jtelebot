@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
@@ -38,12 +37,12 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
     private final UserService userService;
     private final ChatLanguageService chatLanguageService;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     private final SpeechService speechService;
 
     @PostConstruct
     private void postConstruct() {
-        emptyLangCommands.addAll(internalizationService.getAllTranslations("setter.language.emptycommand"));
+        emptyLangCommands.addAll(internationalizationService.getAllTranslations("setter.language.emptycommand"));
     }
 
     @Override
@@ -68,22 +67,20 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
             Long userId = update.getCallbackQuery().getFrom().getId();
             if (chatId < 0) checkAccessLevelForGroupChat(userId);
 
-            User user = new User().setUserId(userId);
             if (emptyLangCommands.contains(lowerCaseCommandText)) {
-                return getLangSetterWithKeyboard(message, chat, user, false);
+                return getLangSetterWithKeyboard(message, chat, false);
             } else {
-                return selectLangByCallback(message, chat, user, lowerCaseCommandText);
+                return selectLangByCallback(message, chat, lowerCaseCommandText);
             }
         }
 
         Long userId = message.getFrom().getId();
         if (chatId < 0) checkAccessLevelForGroupChat(userId);
 
-        User user = new User().setUserId(userId);
         if (lowerCaseCommandText.equals(EMPTY_LANG_COMMAND)) {
-            return getLangSetterWithKeyboard(message, chat, user, true);
+            return getLangSetterWithKeyboard(message, chat, true);
         } else {
-            return setLang(message, chat, user, lowerCaseCommandText);
+            return setLang(message, chat, lowerCaseCommandText);
         }
     }
 
@@ -94,9 +91,9 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private PartialBotApiMethod<?> selectLangByCallback(Message message, Chat chat, User user, String command) {
+    private PartialBotApiMethod<?> selectLangByCallback(Message message, Chat chat, String command) {
         if (emptyLangCommands.contains(command)) {
-            return getLangSetterWithKeyboard(message, chat, user, false);
+            return getLangSetterWithKeyboard(message, chat, false);
         }
 
         String emptyCommand = emptyLangCommands
@@ -107,18 +104,18 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
         String lang = command.substring(emptyCommand.length());
 
-        if (!internalizationService.getAvailableLocales().contains(lang)) {
+        if (!internationalizationService.getAvailableLocales().contains(lang)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
         chatLanguageService.save(chat, lang);
 
-        return getLangSetterWithKeyboard(message, chat, user, false);
+        return getLangSetterWithKeyboard(message, chat, false);
     }
 
-    private PartialBotApiMethod<?> setLang(Message message, Chat chat, User user, String command) {
+    private PartialBotApiMethod<?> setLang(Message message, Chat chat, String command) {
         if (emptyLangCommands.contains(command)) {
-            return getLangSetterWithKeyboard(message, chat, user, true);
+            return getLangSetterWithKeyboard(message, chat, true);
         }
 
         String emptyCommand = emptyLangCommands
@@ -129,7 +126,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
         String lang = command.substring(emptyCommand.length() + 1);
 
-        if (!internalizationService.getAvailableLocales().contains(lang)) {
+        if (!internationalizationService.getAvailableLocales().contains(lang)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
@@ -144,7 +141,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private PartialBotApiMethod<?> getLangSetterWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getLangSetterWithKeyboard(Message message, Chat chat, Boolean newMessage) {
         log.debug("Request to get language setter for chat {}", chat.getChatId());
 
         ChatLanguage chatLanguage = chatLanguageService.get(chat);
@@ -178,7 +175,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithLangButtons() {
-        Set<String> availableLocales = internalizationService.getAvailableLocales();
+        Set<String> availableLocales = internationalizationService.getAvailableLocales();
 
         List<InlineKeyboardButton> setUserLangRow = new ArrayList<>();
         availableLocales.forEach(locale -> {

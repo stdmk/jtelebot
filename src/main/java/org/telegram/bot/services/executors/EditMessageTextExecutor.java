@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -20,7 +20,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
     private final Bot bot;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
 
     @Override
     public String getMethod() {
@@ -30,7 +30,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
     @Override
     public void executeMethod(PartialBotApiMethod<?> method, Message message) {
         String lang = languageResolver.getChatLanguageCode(message);
-        EditMessageText editMessageText = internalizationService.internalize((EditMessageText) method, lang);
+        EditMessageText editMessageText = internationalizationService.internationalize((EditMessageText) method, lang);
         log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
 
         try {
@@ -51,7 +51,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
         String chatId = editMessageText.getChatId();
         String lang = languageResolver.getChatLanguageCode(chatId);
 
-        editMessageText = internalizationService.internalize(editMessageText, lang);
+        editMessageText = internationalizationService.internationalize(editMessageText, lang);
 
         log.info("To " + chatId + ": edited message " + editMessageText.getText());
 

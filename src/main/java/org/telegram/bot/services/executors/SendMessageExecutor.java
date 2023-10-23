@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,7 +20,7 @@ public class SendMessageExecutor implements MethodExecutor {
     private final Bot bot;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
 
     @Override
     public String getMethod() {
@@ -30,7 +30,7 @@ public class SendMessageExecutor implements MethodExecutor {
     @Override
     public void executeMethod(PartialBotApiMethod<?> method, Message message) {
         String lang = languageResolver.getChatLanguageCode(message);
-        SendMessage sendMessage = internalizationService.internalize((SendMessage) method, lang);
+        SendMessage sendMessage = internationalizationService.internationalize((SendMessage) method, lang);
 
         log.info("To " + message.getChatId() + ": " + sendMessage.getText());
 
@@ -53,7 +53,7 @@ public class SendMessageExecutor implements MethodExecutor {
         String chatId = sendMessage.getChatId();
         String lang = languageResolver.getChatLanguageCode(chatId);
 
-        sendMessage = internalizationService.internalize(sendMessage, lang);
+        sendMessage = internationalizationService.internationalize(sendMessage, lang);
 
         log.info("To " + chatId + ": " + sendMessage.getText());
 

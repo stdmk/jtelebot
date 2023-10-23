@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -27,7 +27,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class InternalizationServiceImpl implements InternalizationService {
+public class InternationalizationServiceImpl implements InternationalizationService {
 
     private static final String CSV_SEPARATOR = "|";
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([A-Za-z.]+)}");
@@ -36,53 +36,53 @@ public class InternalizationServiceImpl implements InternalizationService {
     private final MessageSource messageSource;
 
     @Override
-    public SendMessage internalize(SendMessage sendMessage, @Nullable String lang) {
-        sendMessage.setText(this.internalize(sendMessage.getText(), lang));
-        this.internalize(sendMessage.getReplyMarkup(), lang);
+    public SendMessage internationalize(SendMessage sendMessage, @Nullable String lang) {
+        sendMessage.setText(this.internationalize(sendMessage.getText(), lang));
+        this.internationalize(sendMessage.getReplyMarkup(), lang);
 
         return sendMessage;
     }
 
     @Override
-    public EditMessageText internalize(EditMessageText editMessageText, @Nullable String lang) {
-        editMessageText.setText(this.internalize(editMessageText.getText(), lang));
-        this.internalize(editMessageText.getReplyMarkup(), lang);
+    public EditMessageText internationalize(EditMessageText editMessageText, @Nullable String lang) {
+        editMessageText.setText(this.internationalize(editMessageText.getText(), lang));
+        this.internationalize(editMessageText.getReplyMarkup(), lang);
 
         return editMessageText;
     }
 
-    private void internalize(ReplyKeyboard replyMarkup, String lang) {
+    private void internationalize(ReplyKeyboard replyMarkup, String lang) {
         if (replyMarkup != null) {
             if (replyMarkup instanceof InlineKeyboardMarkup) {
                 ((InlineKeyboardMarkup) replyMarkup).getKeyboard().forEach(buttons ->
                         buttons.forEach(button -> {
-                            button.setText(this.internalize(button.getText(), lang));
-                            button.setCallbackData(this.internalize(button.getCallbackData(), lang));
+                            button.setText(this.internationalize(button.getText(), lang));
+                            button.setCallbackData(this.internationalize(button.getCallbackData(), lang));
                         }));
             }
         }
     }
 
     @Override
-    public SendDocument internalize(SendDocument sendDocument, @Nullable String lang) {
-        sendDocument.setCaption(this.internalize(sendDocument.getCaption(), lang));
+    public SendDocument internationalize(SendDocument sendDocument, @Nullable String lang) {
+        sendDocument.setCaption(this.internationalize(sendDocument.getCaption(), lang));
         return sendDocument;
     }
 
     @Override
-    public SendPhoto internalize(SendPhoto sendPhoto, @Nullable String lang) {
-        sendPhoto.setCaption(this.internalize(sendPhoto.getCaption(), lang));
+    public SendPhoto internationalize(SendPhoto sendPhoto, @Nullable String lang) {
+        sendPhoto.setCaption(this.internationalize(sendPhoto.getCaption(), lang));
         return sendPhoto;
     }
 
     @Override
-    public SendVideo internalize(SendVideo sendVideo, @Nullable String lang) {
-        sendVideo.setCaption(this.internalize(sendVideo.getCaption(), lang));
+    public SendVideo internationalize(SendVideo sendVideo, @Nullable String lang) {
+        sendVideo.setCaption(this.internationalize(sendVideo.getCaption(), lang));
         return sendVideo;
     }
 
     @Override
-    public String internalize(String text, @Nullable String lang) {
+    public String internationalize(String text, @Nullable String lang) {
         if (text == null) {
             return null;
         }

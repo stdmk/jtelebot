@@ -12,7 +12,6 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -24,9 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 @Component
@@ -37,7 +34,6 @@ public class Set implements Command<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final UserService userService;
     private final SpeechService speechService;
-    private final InternalizationService internalizationService;
 
     private final List<Setter<?>> setters;
 

@@ -44,7 +44,7 @@ public class Weather implements Command<SendMessage> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final RestTemplate botRestTemplate;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     private final LanguageResolver languageResolver;
 
     @Override
@@ -234,7 +234,7 @@ public class Weather implements Command<SendMessage> {
 
     private String buildWeatherItem(String placeholder, String lang) {
         final String captionFormat = "%-15s";
-        String internalizedText = internalizationService.internalize(placeholder, lang);
+        String internalizedText = internationalizationService.internationalize(placeholder, lang);
 
         return String.format(captionFormat, internalizedText + ":");
     }

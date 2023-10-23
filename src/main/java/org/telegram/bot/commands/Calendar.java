@@ -16,7 +16,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.LanguageResolver;
@@ -52,7 +52,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
 
     private final Bot bot;
     private final UserCityService userCityService;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     private final SpeechService speechService;
     private final LanguageResolver languageResolver;
     private final RestTemplate botRestTemplate;
@@ -66,18 +66,18 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
 
     @PostConstruct
     private void postConstruct() {
-        monthValueNamesMap.put(1, internalizationService.getAllTranslations("command.calendar.jan"));
-        monthValueNamesMap.put(2, internalizationService.getAllTranslations("command.calendar.feb"));
-        monthValueNamesMap.put(3, internalizationService.getAllTranslations("command.calendar.mar"));
-        monthValueNamesMap.put(4, internalizationService.getAllTranslations("command.calendar.apr"));
-        monthValueNamesMap.put(5, internalizationService.getAllTranslations("command.calendar.may"));
-        monthValueNamesMap.put(6, internalizationService.getAllTranslations("command.calendar.jun"));
-        monthValueNamesMap.put(7, internalizationService.getAllTranslations("command.calendar.jul"));
-        monthValueNamesMap.put(8, internalizationService.getAllTranslations("command.calendar.aug"));
-        monthValueNamesMap.put(9, internalizationService.getAllTranslations("command.calendar.sep"));
-        monthValueNamesMap.put(10, internalizationService.getAllTranslations("command.calendar.oct"));
-        monthValueNamesMap.put(11, internalizationService.getAllTranslations("command.calendar.nov"));
-        monthValueNamesMap.put(12, internalizationService.getAllTranslations("command.calendar.dec"));
+        monthValueNamesMap.put(1, internationalizationService.getAllTranslations("command.calendar.jan"));
+        monthValueNamesMap.put(2, internationalizationService.getAllTranslations("command.calendar.feb"));
+        monthValueNamesMap.put(3, internationalizationService.getAllTranslations("command.calendar.mar"));
+        monthValueNamesMap.put(4, internationalizationService.getAllTranslations("command.calendar.apr"));
+        monthValueNamesMap.put(5, internationalizationService.getAllTranslations("command.calendar.may"));
+        monthValueNamesMap.put(6, internationalizationService.getAllTranslations("command.calendar.jun"));
+        monthValueNamesMap.put(7, internationalizationService.getAllTranslations("command.calendar.jul"));
+        monthValueNamesMap.put(8, internationalizationService.getAllTranslations("command.calendar.aug"));
+        monthValueNamesMap.put(9, internationalizationService.getAllTranslations("command.calendar.sep"));
+        monthValueNamesMap.put(10, internationalizationService.getAllTranslations("command.calendar.oct"));
+        monthValueNamesMap.put(11, internationalizationService.getAllTranslations("command.calendar.nov"));
+        monthValueNamesMap.put(12, internationalizationService.getAllTranslations("command.calendar.dec"));
     }
 
     @Override

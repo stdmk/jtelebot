@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LengthConverter implements UnitsConverter {
 
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     
     private static final String CAPTION = "${command.converter.length.caption}";
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
@@ -30,20 +30,20 @@ public class LengthConverter implements UnitsConverter {
 
     @PostConstruct
     private void postConstruct() {
-        unitNameAbbreviaturesMap.put("FEMTOMETER", internalizationService.getAllTranslations("command.converter.length.fm"));
-        unitNameAbbreviaturesMap.put("PICOMETER", internalizationService.getAllTranslations("command.converter.length.pm"));
-        unitNameAbbreviaturesMap.put("NANOMETER", internalizationService.getAllTranslations("command.converter.length.nm"));
-        unitNameAbbreviaturesMap.put("MICROMETER", internalizationService.getAllTranslations("command.converter.length.mk"));
-        unitNameAbbreviaturesMap.put("MILLIMETER", internalizationService.getAllTranslations("command.converter.length.mm"));
-        unitNameAbbreviaturesMap.put("CENTIMETER", internalizationService.getAllTranslations("command.converter.length.cm"));
-        unitNameAbbreviaturesMap.put("DECIMETER", internalizationService.getAllTranslations("command.converter.length.dm"));
-        unitNameAbbreviaturesMap.put("METER", internalizationService.getAllTranslations("command.converter.length.m"));
-        unitNameAbbreviaturesMap.put("KILOMETER", internalizationService.getAllTranslations("command.converter.length.km"));
-        unitNameAbbreviaturesMap.put("MILE", internalizationService.getAllTranslations("command.converter.length.mi"));
-        unitNameAbbreviaturesMap.put("YARD", internalizationService.getAllTranslations("command.converter.length.yd"));
-        unitNameAbbreviaturesMap.put("FOOR", internalizationService.getAllTranslations("command.converter.length.ft"));
-        unitNameAbbreviaturesMap.put("INCH", internalizationService.getAllTranslations("command.converter.length.nch"));
-        unitNameAbbreviaturesMap.put("NAUTICAL_MILE", internalizationService.getAllTranslations("command.converter.length.mn"));
+        unitNameAbbreviaturesMap.put("FEMTOMETER", internationalizationService.getAllTranslations("command.converter.length.fm"));
+        unitNameAbbreviaturesMap.put("PICOMETER", internationalizationService.getAllTranslations("command.converter.length.pm"));
+        unitNameAbbreviaturesMap.put("NANOMETER", internationalizationService.getAllTranslations("command.converter.length.nm"));
+        unitNameAbbreviaturesMap.put("MICROMETER", internationalizationService.getAllTranslations("command.converter.length.mk"));
+        unitNameAbbreviaturesMap.put("MILLIMETER", internationalizationService.getAllTranslations("command.converter.length.mm"));
+        unitNameAbbreviaturesMap.put("CENTIMETER", internationalizationService.getAllTranslations("command.converter.length.cm"));
+        unitNameAbbreviaturesMap.put("DECIMETER", internationalizationService.getAllTranslations("command.converter.length.dm"));
+        unitNameAbbreviaturesMap.put("METER", internationalizationService.getAllTranslations("command.converter.length.m"));
+        unitNameAbbreviaturesMap.put("KILOMETER", internationalizationService.getAllTranslations("command.converter.length.km"));
+        unitNameAbbreviaturesMap.put("MILE", internationalizationService.getAllTranslations("command.converter.length.mi"));
+        unitNameAbbreviaturesMap.put("YARD", internationalizationService.getAllTranslations("command.converter.length.yd"));
+        unitNameAbbreviaturesMap.put("FOOR", internationalizationService.getAllTranslations("command.converter.length.ft"));
+        unitNameAbbreviaturesMap.put("INCH", internationalizationService.getAllTranslations("command.converter.length.nch"));
+        unitNameAbbreviaturesMap.put("NAUTICAL_MILE", internationalizationService.getAllTranslations("command.converter.length.mn"));
     }
 
     @Override

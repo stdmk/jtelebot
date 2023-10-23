@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TimeConverter implements UnitsConverter {
 
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
 
     private static final String CAPTION = "${command.converter.time.caption}";
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
@@ -30,18 +30,18 @@ public class TimeConverter implements UnitsConverter {
 
     @PostConstruct
     private void postConstruct() {
-        unitNameAbbreviaturesMap.put("FEMTOSECOND", internalizationService.getAllTranslations("command.converter.time.fs"));
-        unitNameAbbreviaturesMap.put("PICOSECOND", internalizationService.getAllTranslations("command.converter.time.ps"));
-        unitNameAbbreviaturesMap.put("NANOSECOND", internalizationService.getAllTranslations("command.converter.time.ns"));
-        unitNameAbbreviaturesMap.put("MICROSECOND", internalizationService.getAllTranslations("command.converter.time.mks"));
-        unitNameAbbreviaturesMap.put("MILLISECOND", internalizationService.getAllTranslations("command.converter.time.ms"));
-        unitNameAbbreviaturesMap.put("CENTISECOND", internalizationService.getAllTranslations("command.converter.time.cs"));
-        unitNameAbbreviaturesMap.put("SECOND", internalizationService.getAllTranslations("command.converter.time.s"));
-        unitNameAbbreviaturesMap.put("MINUTE", internalizationService.getAllTranslations("command.converter.time.m"));
-        unitNameAbbreviaturesMap.put("HOUR", internalizationService.getAllTranslations("command.converter.time.h"));
-        unitNameAbbreviaturesMap.put("DAY", internalizationService.getAllTranslations("command.converter.time.d"));
-        unitNameAbbreviaturesMap.put("YEAR", internalizationService.getAllTranslations("command.converter.time.y"));
-        unitNameAbbreviaturesMap.put("CENTURY", internalizationService.getAllTranslations("command.converter.time.c"));
+        unitNameAbbreviaturesMap.put("FEMTOSECOND", internationalizationService.getAllTranslations("command.converter.time.fs"));
+        unitNameAbbreviaturesMap.put("PICOSECOND", internationalizationService.getAllTranslations("command.converter.time.ps"));
+        unitNameAbbreviaturesMap.put("NANOSECOND", internationalizationService.getAllTranslations("command.converter.time.ns"));
+        unitNameAbbreviaturesMap.put("MICROSECOND", internationalizationService.getAllTranslations("command.converter.time.mks"));
+        unitNameAbbreviaturesMap.put("MILLISECOND", internationalizationService.getAllTranslations("command.converter.time.ms"));
+        unitNameAbbreviaturesMap.put("CENTISECOND", internationalizationService.getAllTranslations("command.converter.time.cs"));
+        unitNameAbbreviaturesMap.put("SECOND", internationalizationService.getAllTranslations("command.converter.time.s"));
+        unitNameAbbreviaturesMap.put("MINUTE", internationalizationService.getAllTranslations("command.converter.time.m"));
+        unitNameAbbreviaturesMap.put("HOUR", internationalizationService.getAllTranslations("command.converter.time.h"));
+        unitNameAbbreviaturesMap.put("DAY", internationalizationService.getAllTranslations("command.converter.time.d"));
+        unitNameAbbreviaturesMap.put("YEAR", internationalizationService.getAllTranslations("command.converter.time.y"));
+        unitNameAbbreviaturesMap.put("CENTURY", internationalizationService.getAllTranslations("command.converter.time.c"));
     }
 
     @Override

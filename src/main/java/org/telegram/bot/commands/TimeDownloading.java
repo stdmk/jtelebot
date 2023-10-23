@@ -8,7 +8,7 @@ import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternalizationService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
@@ -29,25 +29,25 @@ public class TimeDownloading implements Command<SendMessage> {
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
-    private final InternalizationService internalizationService;
+    private final InternationalizationService internationalizationService;
     private final Map<Long, Set<String>> weightNamesMultiplierMap = new ConcurrentHashMap<>();
     private final Map<Long, Set<String>> speedNamesMultiplierMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void postConstruct() {
-        weightNamesMultiplierMap.put(1L, internalizationService.getAllTranslations("command.timedownloading.weight.b"));
-        weightNamesMultiplierMap.put(1024L, internalizationService.getAllTranslations("command.timedownloading.weight.kb"));
-        weightNamesMultiplierMap.put(1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.weight.mb"));
-        weightNamesMultiplierMap.put(1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.weight.gb"));
-        weightNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.weight.tb"));
-        weightNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.weight.pb"));
+        weightNamesMultiplierMap.put(1L, internationalizationService.getAllTranslations("command.timedownloading.weight.b"));
+        weightNamesMultiplierMap.put(1024L, internationalizationService.getAllTranslations("command.timedownloading.weight.kb"));
+        weightNamesMultiplierMap.put(1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.weight.mb"));
+        weightNamesMultiplierMap.put(1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.weight.gb"));
+        weightNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.weight.tb"));
+        weightNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.weight.pb"));
 
-        speedNamesMultiplierMap.put(1L, internalizationService.getAllTranslations("command.timedownloading.speed.b"));
-        speedNamesMultiplierMap.put(1024L, internalizationService.getAllTranslations("command.timedownloading.speed.kb"));
-        speedNamesMultiplierMap.put(1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.speed.mb"));
-        speedNamesMultiplierMap.put(1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.speed.gb"));
-        speedNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.speed.tb"));
-        speedNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L * 1024L, internalizationService.getAllTranslations("command.timedownloading.speed.pb"));
+        speedNamesMultiplierMap.put(1L, internationalizationService.getAllTranslations("command.timedownloading.speed.b"));
+        speedNamesMultiplierMap.put(1024L, internationalizationService.getAllTranslations("command.timedownloading.speed.kb"));
+        speedNamesMultiplierMap.put(1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.speed.mb"));
+        speedNamesMultiplierMap.put(1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.speed.gb"));
+        speedNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.speed.tb"));
+        speedNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L * 1024L, internationalizationService.getAllTranslations("command.timedownloading.speed.pb"));
     }
 
     @Override
