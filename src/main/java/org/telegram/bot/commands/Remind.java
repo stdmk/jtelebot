@@ -1054,7 +1054,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         return "<b>${command.remind.caption}</b>\n" +
                 reminder.getText() + "\n<i>" +
                 formatDate(reminder.getDate()) + " " + formatTime(reminder.getTime()) + "</i>\n" +
-                "command.remind.postponeuntil:\n";
+                "${command.remind.postponeuntil}:\n";
     }
 
     public static InlineKeyboardMarkup preparePostponeKeyboard(Reminder reminder, Locale locale) {
