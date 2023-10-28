@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +18,7 @@ public class TextUtils {
     private static final Pattern COMMAND_PATTERN = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern WORD_PATTERN = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
 
     /**
      * Gets a potential command from text.
@@ -221,12 +221,10 @@ public class TextUtils {
     }
 
     public static boolean isThatInteger(String text) {
-        try {
-            Integer.parseInt(text);
-        } catch (NumberFormatException e) {
+        if (text == null) {
             return false;
         }
 
-        return true;
+        return INTEGER_PATTERN.matcher(text).matches();
     }
 }

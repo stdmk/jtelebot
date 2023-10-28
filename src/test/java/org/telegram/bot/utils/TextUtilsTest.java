@@ -7,7 +7,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 
 class TextUtilsTest {
 
-    @org.junit.jupiter.api.Test
+    @Test
     void reduceSpacesTest() {
         String textExample = "test\n\n\n\ntest1    test2";
 
@@ -35,5 +35,15 @@ class TextUtilsTest {
     void cutHtmlTagsTest() {
         String text = "<a href=\"example.com\">test</a>";
         assertEquals(cutHtmlTags(text), "test");
+    }
+
+    @Test
+    void isThatNotIntegerTest() {
+        assertFalse(isThatInteger("text"));
+        assertFalse(isThatInteger("1.1"));
+        assertFalse(isThatInteger("1,2"));
+        assertFalse(isThatInteger(""));
+        assertFalse(isThatInteger(null));
+        assertTrue(isThatInteger("1"));
     }
 }
