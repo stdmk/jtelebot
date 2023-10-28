@@ -6,7 +6,6 @@ import org.apache.commons.text.StringSubstitutor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.LanguageResolver;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -30,9 +29,8 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 public class InternationalizationServiceImpl implements InternationalizationService {
 
     private static final String CSV_SEPARATOR = "|";
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([A-Za-z.]+)}");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([A-Za-z0-9.]+)}");
 
-    private final LanguageResolver languageResolver;
     private final MessageSource messageSource;
 
     @Override
