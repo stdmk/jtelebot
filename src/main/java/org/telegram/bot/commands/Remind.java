@@ -103,8 +103,8 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         String template = "(%s)\\s+(\\d+)\\s+(%s)";
         String blockIn = String.join("|", internationalizationService.getAllTranslations("command.remind.in"));
         String minutesBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
-        String hoursBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
-        String daysBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.minutes"));
+        String hoursBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.hours"));
+        String daysBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.days"));
 
         AFTER_MINUTES_PATTERN = Pattern.compile(String.format(template, blockIn, minutesBlock));
         AFTER_HOURS_PATTERN = Pattern.compile(String.format(template, blockIn, hoursBlock));
