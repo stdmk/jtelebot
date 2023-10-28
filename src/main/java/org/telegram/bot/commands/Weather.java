@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,13 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.isThatInteger;
@@ -37,6 +43,17 @@ import static org.telegram.bot.utils.TextUtils.withCapital;
 @RequiredArgsConstructor
 @Slf4j
 public class Weather implements Command<SendMessage> {
+
+    private static final String OPEN_WEATHER_SITE_URL = "https://openweathermap.org/city/";
+    private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=";
+    private static final String FORECAST_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=%s&units=metric&appid=%s&%s=";
+    private static final String PRECIPITATION_CAPTION_FORMAT = "%-12s";
+    private static final String WEATHER_CAPTION_FORMAT = "%-14s";
+    private static final int HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS = 2;
+    private static final int HOURLY_FORECAST_MIN_LENGTH_OF_TEMP = 2;
+    private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 6;
+    private static final int DAILY_FORECAST_MINIMUM_REQUIRED_SPACE_COUNT = 3;
+    private static final DateTimeFormatter OPEN_WEATHER_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -116,12 +133,7 @@ public class Weather implements Command<SendMessage> {
      * @throws BotException if get an error from service.
      */
     private WeatherCurrent getWeatherCurrent(String token, String city, String lang) throws BotException {
-        String weatherApiUrl;
-        if (isThatInteger(city)) {
-            weatherApiUrl = "http://api.openweathermap.org/data/2.5/weather?lang=" + lang + "&units=metric&appid=" + token + "&id=";
-        } else {
-            weatherApiUrl = "http://api.openweathermap.org/data/2.5/weather?lang=" + lang + "&units=metric&appid=" + token + "&q=";
-        }
+        String weatherApiUrl = String.format(CURRENT_WEATHER_API_URL, lang, token, getQueryParameter(city));
 
         ResponseEntity<WeatherCurrent> response;
         try {
@@ -143,12 +155,7 @@ public class Weather implements Command<SendMessage> {
      * @throws BotException if get an error from service.
      */
     private WeatherForecast getWeatherForecast(String token, String city, String lang) throws BotException {
-        String forecastApiUrl;
-        if (isThatInteger(city)) {
-            forecastApiUrl = "https://api.openweathermap.org/data/2.5/forecast?lang=" + lang + "&units=metric&appid=" + token + "&id=";
-        } else {
-            forecastApiUrl = "https://api.openweathermap.org/data/2.5/forecast?lang=" + lang + "&units=metric&appid=" + token + "&q=";
-        }
+        String forecastApiUrl = String.format(FORECAST_WEATHER_API_URL, lang, token, getQueryParameter(city));
 
         ResponseEntity<WeatherForecast> response;
         try {
@@ -158,6 +165,16 @@ public class Weather implements Command<SendMessage> {
         }
 
         return response.getBody();
+    }
+
+    /**
+     * Get the value of a query parameter to search for weather by city identifier or name.
+     *
+     * @param value input value.
+     * @return query parameter value.
+     */
+    private String getQueryParameter(String value) {
+        return isThatInteger(value) ? "id" : "q";
     }
 
     /**
@@ -178,35 +195,34 @@ public class Weather implements Command<SendMessage> {
      * @return current weather info.
      */
     private String prepareCurrentWeatherText(WeatherCurrent weatherCurrent, String lang) {
-        final String openWeatherMapWeatherUrl = "https://openweathermap.org/city/";
         StringBuilder buf = new StringBuilder();
         Sys sys = weatherCurrent.getSys();
         WeatherData weather = weatherCurrent.getWeather().get(0);
         Main main = weatherCurrent.getMain();
         Wind wind = weatherCurrent.getWind();
 
-        buf.append("[").append(weatherCurrent.getName()).append("](" + openWeatherMapWeatherUrl).append(weatherCurrent.getId()).append(")(").append(sys.getCountry()).append(")\n```\n");
+        buf.append("[").append(weatherCurrent.getName()).append("](" + OPEN_WEATHER_SITE_URL).append(weatherCurrent.getId()).append(")(").append(sys.getCountry()).append(")\n```\n");
         buf.append(withCapital(weather.getDescription())).append(getWeatherEmoji(weather.getId())).append("\n");
         Rain rain = weatherCurrent.getRain();
         Snow snow = weatherCurrent.getSnow();
         if (rain != null) {
-            String precipitations = getPrecipitations(rain, 1, true);
+            String precipitations = getPrecipitations(rain, 1, true, lang);
             if (precipitations != null) {
                 buf.append(precipitations).append("\n");
             }
 
-            precipitations = getPrecipitations(rain, 3, true);
+            precipitations = getPrecipitations(rain, 3, true, lang);
             if (precipitations != null) {
                 buf.append(precipitations).append("\n");
             }
         }
         if (snow != null) {
-            String precipitations = getPrecipitations(snow, 1, false);
+            String precipitations = getPrecipitations(snow, 1, false, lang);
             if (precipitations != null) {
                 buf.append(precipitations).append("\n");
             }
 
-            precipitations = getPrecipitations(snow, 3, false);
+            precipitations = getPrecipitations(snow, 3, false, lang);
             if (precipitations != null) {
                 buf.append(precipitations).append("\n");
             }
@@ -232,13 +248,6 @@ public class Weather implements Command<SendMessage> {
         return buf.toString();
     }
 
-    private String buildWeatherItem(String placeholder, String lang) {
-        final String captionFormat = "%-15s";
-        String internalizedText = internationalizationService.internationalize(placeholder, lang);
-
-        return String.format(captionFormat, internalizedText + ":");
-    }
-
     /**
      * Preparing hourly forecast part of weather.
      *
@@ -246,23 +255,19 @@ public class Weather implements Command<SendMessage> {
      * @return forecast info.
      */
     private String prepareHourlyForecastWeatherText(WeatherForecast weatherForecast) {
-        final int hoursOfForecastCount = 6;
         Integer timezone = weatherForecast.getCity().getTimezone();
-
         StringBuilder buf = new StringBuilder("*${command.weather.hourlyforecast}:*\n```\n");
 
-        final int lengthOfAdditionalSymbols = 2;
-        final int minLengthOfTemp = 2;
         int maxLengthOfTemp = weatherForecast.getList()
                 .stream()
-                .limit(hoursOfForecastCount)
+                .limit(HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT)
                 .mapToInt(data -> String.format("%+.0f", data.getMain().getTemp()).length())
                 .max()
-                .orElse(minLengthOfTemp) + lengthOfAdditionalSymbols;
+                .orElse(HOURLY_FORECAST_MIN_LENGTH_OF_TEMP) + HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS;
 
         weatherForecast.getList()
                 .stream()
-                .limit(hoursOfForecastCount)
+                .limit(HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT)
                 .forEach(forecast -> buf.append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
                     .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.0f", forecast.getMain().getTemp()) + "°"))
@@ -281,83 +286,62 @@ public class Weather implements Command<SendMessage> {
      * @return forecast info.
      */
     private String prepareDailyForecastWeatherText(WeatherForecast weatherForecast, String lang) {
-        Integer timezone = weatherForecast.getCity().getTimezone();
-
+        normalizeWeatherForecast(weatherForecast);
         StringBuilder buf = new StringBuilder("*${command.weather.dailyforecast}:*\n```\n");
-
-        LocalDate firstDateOfForecast = unixTimeToLocalDateTime(weatherForecast.getList().get(0).getDt() + timezone).toLocalDate();
-        LocalDate lastDateOfForecast = firstDateOfForecast.plusDays(5);
-
         List<WeatherForecastData> forecastList = weatherForecast.getList();
-        int spaceCount = getSpaceCount(forecastList, timezone);
-        for (int i = 0; i < forecastList.size(); i++) {
-            LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
-            int currentDayOfMonth = currentDate.getDayOfMonth();
+        LocalDate firstDate = forecastList.get(0).getNormalizedDate().toLocalDate();
 
-            if (currentDate.isAfter(firstDateOfForecast) && currentDayOfMonth != lastDateOfForecast.getDayOfMonth()) {
-                WeatherForecastData minTemp = forecastList.get(i);
-                WeatherForecastData maxTemp = forecastList.get(i);
+        List<LocalDate> dateOfForecast = Stream.of(1, 2, 3, 4).map(firstDate::plusDays).collect(Collectors.toList());
+        List<List<WeatherForecastData>> forecastListList = dateOfForecast.stream().map(date -> getForecastDataByDate(forecastList, date)).collect(Collectors.toList());
+        int spaceCount = getSpaceCount(forecastListList);
 
-                for (int j = i; j < i + 9 && j < forecastList.size(); j++) {
-                    WeatherForecastData currentForecast = forecastList.get(j);
-
-                    if (currentForecast.getMain().getTemp() < minTemp.getMain().getTemp()) {
-                        minTemp = currentForecast;
-                    }
-
-                    if (currentForecast.getMain().getTemp() > maxTemp.getMain().getTemp()) {
-                        maxTemp = currentForecast;
-                    }
-                }
-
-                buf.append(String.format("%02d", currentDayOfMonth)).append(" ").append(getDayOfWeek(currentDate, lang)).append(" ")
-                        .append(getWeatherEmoji(maxTemp.getWeather().get(0).getId())).append(" ")
-                        .append(String.format("%-" + spaceCount + "s", String.format("%+.0f", maxTemp.getMain().getTemp()) + "°"))
-                        .append(getWeatherEmoji(minTemp.getWeather().get(0).getId())).append(" ")
-                        .append(String.format("%+.0f", minTemp.getMain().getTemp())).append("°").append("\n");
-
-                firstDateOfForecast = currentDate;
-                i = i + 8;
-            }
-        }
+        Stream.of(0, 1, 2, 3).forEach(index ->
+                buf.append(buildDailyForecastString(forecastListList.get(index), dateOfForecast.get(index), spaceCount, lang)));
 
         return buf + "```";
     }
 
-    private int getSpaceCount(List<WeatherForecastData> forecastList, Integer timezone) {
-        LocalDate firstDateOfForecast = unixTimeToLocalDateTime(forecastList.get(0).getDt() + timezone).toLocalDate();
-        LocalDate lastDateOfForecast = firstDateOfForecast.plusDays(5);
+    private List<WeatherForecastData> getForecastDataByDate(List<WeatherForecastData> forecastList, LocalDate date) {
+        LocalDateTime dateTimeStart = date.atStartOfDay();
+        LocalDateTime dateTimeEnd = date.atTime(LocalTime.MAX).plusSeconds(1);
 
-        List<Double> maxDailyTempList = new ArrayList<>();
-        for (int i = 0; i < forecastList.size(); i++) {
-            LocalDate currentDate = unixTimeToLocalDateTime(forecastList.get(i).getDt()).toLocalDate();
-            int currentDayOfMonth = currentDate.getDayOfMonth();
+        return forecastList
+                .stream()
+                .filter(weatherForecastData -> weatherForecastData.getNormalizedDate().isAfter(dateTimeStart)
+                        && weatherForecastData.getNormalizedDate().isBefore(dateTimeEnd))
+                .collect(Collectors.toList());
+    }
 
-            if (currentDate.isAfter(firstDateOfForecast) && currentDayOfMonth != lastDateOfForecast.getDayOfMonth()) {
-                WeatherForecastData maxTemp = forecastList.get(i);
+    private String buildDailyForecastString(List<WeatherForecastData> forecastData, LocalDate date, int spaceCount, String lang) {
+        WeatherForecastData max = forecastData
+                .stream()
+                .max(Comparator.comparing(weatherForecastData -> weatherForecastData.getMain().getTemp()))
+                .orElse(forecastData.get(0));
 
-                for (int j = i; j < i + 9 && j < forecastList.size(); j++) {
-                    WeatherForecastData currentForecast = forecastList.get(j);
+        WeatherForecastData min = forecastData
+                .stream()
+                .min(Comparator.comparing(weatherForecastData -> weatherForecastData.getMain().getTemp()))
+                .orElse(forecastData.get(0));
 
-                    if (currentForecast.getMain().getTemp() > maxTemp.getMain().getTemp()) {
-                        maxTemp = currentForecast;
-                    }
-                }
+        return String.format("%02d", date.getDayOfMonth()) + " " + getDayOfWeek(date, lang) + " " +
+                getWeatherEmoji(max.getWeather().get(0).getId()) + " " +
+                String.format("%-" + spaceCount + "s", String.format("%+.0f", max.getMain().getTemp()) + "°") +
+                getWeatherEmoji(min.getWeather().get(0).getId()) + " " +
+                String.format("%+.0f", min.getMain().getTemp()) + "°" + "\n";
+    }
 
-                firstDateOfForecast = currentDate;
-                maxDailyTempList.add(maxTemp.getMain().getTempMax());
-                i = i + 8;
-            }
-        }
-
-        final int minimumRequiredSpaceCount = 3;
-        Long maxTempValueAbs = maxDailyTempList.stream()
+    private int getSpaceCount(List<List<WeatherForecastData>> forecastListList) {
+        Long maxTempValueAbs = forecastListList
+                .stream()
+                .map(forecastList -> forecastList.stream().map(WeatherForecastData::getMain).collect(Collectors.toList()))
+                .map(mainList -> mainList.stream().map(Main::getTemp).collect(Collectors.toList()))
+                .map(temps -> temps.stream().max(Double::compareTo).orElse(0D))
                 .map(Math::round)
                 .map(Math::abs)
                 .max(Long::compareTo)
                 .orElse(1L);
 
-        return minimumRequiredSpaceCount + String.valueOf(maxTempValueAbs).length();
+        return DAILY_FORECAST_MINIMUM_REQUIRED_SPACE_COUNT + String.valueOf(maxTempValueAbs).length();
     }
 
     /**
@@ -425,8 +409,7 @@ public class Weather implements Command<SendMessage> {
      * @param rain rain?
      * @return precipitation info.
      */
-    private String getPrecipitations(Precipitations precipitations, Integer hours, boolean rain) {
-        final String captionFormat = "%-12s";
+    private String getPrecipitations(Precipitations precipitations, Integer hours, boolean rain, String lang) {
         String emoji;
         if (rain) {
             emoji = Emoji.DROPLET.getEmoji();
@@ -437,16 +420,36 @@ public class Weather implements Command<SendMessage> {
         if (hours.equals(1)) {
             Double oneHour = precipitations.getOneHours();
             if (oneHour != null) {
-                return emoji + String.format(captionFormat, "${command.weather.perhour}:     ") + String.format("%.2f", oneHour) + " мм";
+                return emoji + buildWeatherItem("${command.weather.perhour}", lang, PRECIPITATION_CAPTION_FORMAT) + String.format("%.2f", oneHour) + " мм";
             }
         } else if (hours.equals(3)) {
             Double threeHours = precipitations.getThreeHours();
             if (threeHours != null) {
-                return emoji + String.format(captionFormat, "${command.weather.threehours}:") + String.format("%.2f", threeHours) + " мм";
+                return emoji + buildWeatherItem("${command.weather.threehours}", lang, PRECIPITATION_CAPTION_FORMAT) + String.format("%.2f", threeHours) + " мм";
             }
         }
 
         return null;
+    }
+
+    private String buildWeatherItem(String placeholder, String lang) {
+        return buildWeatherItem(placeholder, lang, WEATHER_CAPTION_FORMAT);
+    }
+
+    private String buildWeatherItem(String placeholder, String lang, String captionFormat) {
+        String internalizedText = internationalizationService.internationalize(placeholder, lang);
+        return String.format(captionFormat, internalizedText + ":");
+    }
+
+    private void normalizeWeatherForecast(WeatherForecast weatherForecast) {
+        Integer timezone = weatherForecast.getCity().getTimezone();
+        weatherForecast.getList().forEach(weatherForecastData ->
+                weatherForecastData.setNormalizedDate(getDateTimeFromWeatherForecastData(weatherForecastData, timezone)));
+    }
+
+    private LocalDateTime getDateTimeFromWeatherForecastData(WeatherForecastData weatherForecastData, long timezone) {
+        return LocalDateTime.parse(weatherForecastData.getDtTxt(), OPEN_WEATHER_DATE_TIME_FORMATTER)
+                .plusSeconds(timezone);
     }
 
     @Data
@@ -459,6 +462,7 @@ public class Weather implements Command<SendMessage> {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class WeatherForecastData {
         private Integer dt;
         private Main main;
@@ -473,6 +477,7 @@ public class Weather implements Command<SendMessage> {
         private Sys sys;
         @JsonProperty("dt_txt")
         private String dtTxt;
+        private LocalDateTime normalizedDate;
     }
 
     private static class Rain extends Precipitations {}
