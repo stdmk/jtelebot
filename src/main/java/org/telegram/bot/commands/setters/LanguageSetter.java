@@ -97,7 +97,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
     private void checkAccessLevelForGroupChat(Long userId) {
         Integer userAccessLevel = userService.getUserAccessLevel(userId);
-        if (userService.isUserHaveAccessForCommand(userAccessLevel, AccessLevel.MODERATOR.getValue())) {
+        if (!userService.isUserHaveAccessForCommand(userAccessLevel, AccessLevel.MODERATOR.getValue())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
         }
     }
