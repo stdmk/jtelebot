@@ -91,8 +91,15 @@ public class Turn implements Command<SendMessage>, TextAnalyzer {
 
     @Override
     public void analyze(Command<?> command, Update update) {
-        Message message = getMessageFromUpdate(update);
-        String textMessage = message.getText();
+        String textMessage;
+        if (update.hasMessage()) {
+            textMessage = update.getMessage().getText();
+        } else if (update.hasEditedMessage()) {
+            textMessage = update.getEditedMessage().getText();
+        } else {
+            return;
+        }
+
         if (textMessage == null || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase())) {
             return;
         }
