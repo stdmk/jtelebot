@@ -68,14 +68,12 @@ public class Parser {
             return;
         }
 
-        Message message = getMessage(update);
-
         methodExecutors
                 .stream()
                 .filter(methodExecutor -> methodExecutor.getMethod().equals(method.getMethod()))
                 .findFirst()
                 .ifPresentOrElse(
-                        methodExecutor -> methodExecutor.executeMethod(method, message),
+                        methodExecutor -> methodExecutor.executeMethod(method, update),
                         () -> log.error("Missing executor for {}", method.getMethod()));
 
         botStats.incrementCommandsProcessed();

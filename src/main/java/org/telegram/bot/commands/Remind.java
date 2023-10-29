@@ -229,7 +229,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         editMessage.setMessageId(message.getMessageId());
         editMessage.enableHtml(true);
         editMessage.disableWebPagePreview();
-        editMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message)));
+        editMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message, user)));
         editMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder));
 
         return editMessage;
@@ -347,7 +347,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
-        sendMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message)));
+        sendMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message, user)));
         sendMessage.setReplyMarkup(prepareKeyboardWithReminderInfo(reminder));
 
         return sendMessage;
@@ -489,7 +489,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
-        sendMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message)) + "<b>" + caption + "</b>");
+        sendMessage.setText(prepareReminderInfoText(reminder, languageResolver.getChatLanguageCode(message, user)) + "<b>" + caption + "</b>");
         sendMessage.setReplyMarkup(keyboard);
 
         return sendMessage;
@@ -589,7 +589,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         reminderService.save(reminder);
 
-        String languageCode = languageResolver.getChatLanguageCode(message);
+        String languageCode = languageResolver.getChatLanguageCode(message, user);
         InlineKeyboardMarkup keyboard = prepareKeyboardWithReminderInfo(rowsWithButtons, reminder);
 
         EditMessageText editMessageText = new EditMessageText();
@@ -911,7 +911,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         log.debug("Request to list all reminders for chat {} and user {}, page: {}", chat.getChatId(), user.getUserId(), page);
         Page<Reminder> reminderList = reminderService.getByChatAndUser(chat, user, page);
 
-        String languageCode = languageResolver.getChatLanguageCode(message);
+        String languageCode = languageResolver.getChatLanguageCode(message, user);
         String caption = TextUtils.getLinkToUser(user, true) + "<b> ${command.remind.yourreminders}:</b>\n" + buildTextReminderList(reminderList.toList(), languageCode);
 
         if (newMessage) {

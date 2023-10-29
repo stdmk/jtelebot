@@ -73,7 +73,7 @@ public class Weather implements Command<SendMessage> {
 
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
-        Long userId = message.getFrom().getId();
+        User user = new User().setUserId(message.getFrom().getId());
         String cityName;
         String responseText;
 
@@ -85,7 +85,7 @@ public class Weather implements Command<SendMessage> {
 
         if (textMessage == null) {
             log.debug("Empty request. Searching for users city");
-            UserCity userCity = userCityService.get(new User().setUserId(userId), new Chat().setChatId(message.getChatId()));
+            UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
             if (userCity == null) {
                 log.debug("City in not set. Turning on command waiting");
                 commandWaitingService.add(message, this.getClass());
@@ -104,7 +104,7 @@ public class Weather implements Command<SendMessage> {
         }
         log.debug("City name is {}", cityName);
 
-        String languageCode = languageResolver.getChatLanguageCode(message);
+        String languageCode = languageResolver.getChatLanguageCode(message, user);
 
         WeatherCurrent weatherCurrent = getWeatherCurrent(token, cityName, languageCode);
         WeatherForecast weatherForecast = getWeatherForecast(token, cityName, languageCode);

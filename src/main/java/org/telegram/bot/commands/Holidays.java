@@ -42,7 +42,7 @@ public class Holidays implements Command<SendMessage> {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
-        String languageCode = languageResolver.getChatLanguageCode(message);
+        String languageCode = languageResolver.getChatLanguageCode(update);
         String responseText;
 
         if (textMessage == null) {

@@ -230,7 +230,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                 inlineKeyboardMarkup = getReportKeyboard(user, page, reportDownloadCommand);
             } else if (textMessage.startsWith(DOWNLOAD_COMMAND)) {
                 LocalDate dateNow = LocalDate.now();
-                String languageCode = languageResolver.getChatLanguageCode(message);
+                String languageCode = languageResolver.getChatLanguageCode(message, user);
                 InputFile inputFile;
                 String caption;
 

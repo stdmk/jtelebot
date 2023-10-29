@@ -7,10 +7,12 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @RequiredArgsConstructor
@@ -29,19 +31,20 @@ public class SendPhotoExecutor implements MethodExecutor {
     }
 
     @Override
-    public void executeMethod(PartialBotApiMethod<?> method, Message message) {
-        String lang = languageResolver.getChatLanguageCode(message);
+    public void executeMethod(PartialBotApiMethod<?> method, Update update) {
+        Message message = TelegramUtils.getMessage(update);
+        String lang = languageResolver.getChatLanguageCode(update);
         SendPhoto sendPhoto = internationalizationService.internationalize((SendPhoto) method, lang);
         log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
 
         try {
             bot.execute(sendPhoto);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(message, method, e, "error sending response");
+            botStats.incrementErrors(update, method, e, "error sending response");
             log.error("Error: cannot send response: {}", e.getMessage());
             tryToDeliverTheMessage(sendPhoto);
         } catch (Exception e) {
-            botStats.incrementErrors(message, method, e, "unexpected error");
+            botStats.incrementErrors(update, method, e, "unexpected error");
             log.error("Unexpected error: ", e);
         }
     }

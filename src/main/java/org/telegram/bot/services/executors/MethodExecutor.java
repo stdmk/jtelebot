@@ -1,7 +1,7 @@
 package org.telegram.bot.services.executors;
 
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 /**
  * Telegram method handler.
@@ -19,9 +19,9 @@ public interface MethodExecutor {
      * Execute telegram method.
      *
      * @param method handling method.
-     * @param message handling message.
+     * @param update handling update.
      */
-    void executeMethod(PartialBotApiMethod<?> method, Message message);
+    void executeMethod(PartialBotApiMethod<?> method, Update update);
 
     void executeMethod(PartialBotApiMethod<?> method);
 }

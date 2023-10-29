@@ -5,10 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserLanguage;
 import org.telegram.bot.services.ChatLanguageService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.services.UserLanguageService;
+import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
@@ -19,17 +24,8 @@ import java.util.Locale;
 public class LanguageResolverImpl implements LanguageResolver {
 
     private final ChatLanguageService chatLanguageService;
+    private final UserLanguageService userLanguageService;
     private final PropertiesConfig propertiesConfig;
-
-    @Override
-    public Locale getLocale(Message message) {
-        String lang = this.getChatLanguageCode(message);
-        if (lang != null) {
-            return Locale.forLanguageTag(lang);
-        }
-
-        return Locale.getDefault();
-    }
 
     @Override
     public Locale getLocale(Chat chat) {
@@ -42,10 +38,33 @@ public class LanguageResolverImpl implements LanguageResolver {
     }
 
     @Override
-    public String getChatLanguageCode(Message message) {
+    public String getChatLanguageCode(Update update) {
+        Message message = TelegramUtils.getMessage(update);
+        if (message == null) {
+            return null;
+        }
+
+        Long userId;
+        if (update.hasCallbackQuery()) {
+            userId = update.getCallbackQuery().getFrom().getId();
+        } else {
+            userId = message.getFrom().getId();
+        }
+
+        return getChatLanguageCode(message, new User().setUserId(userId));
+    }
+
+    @Nullable
+    @Override
+    public String getChatLanguageCode(Message message, User user) {
         Chat chat = new Chat().setChatId(message.getChatId());
 
         String lang;
+        UserLanguage userLanguage = userLanguageService.get(chat, user);
+        if (userLanguage != null) {
+            return userLanguage.getLang();
+        }
+
         ChatLanguage chatLanguage = chatLanguageService.get(chat);
         if (chatLanguage != null) {
             return chatLanguage.getLang();

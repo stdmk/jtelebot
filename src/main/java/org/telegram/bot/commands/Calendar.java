@@ -104,7 +104,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
 
         LocalDate date;
         String responseText;
-        Locale locale = getUserLocale(message);
+        Locale locale = getUserLocale(message, user);
 
         if (textMessage == null) {
            date = LocalDate.now(clock).withDayOfMonth(1);
@@ -135,8 +135,8 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private Locale getUserLocale(Message message) {
-        String langCode = languageResolver.getChatLanguageCode(message);
+    private Locale getUserLocale(Message message, User user) {
+        String langCode = languageResolver.getChatLanguageCode(message, user);
         if (langCode == null) {
             return Locale.getDefault();
         }
