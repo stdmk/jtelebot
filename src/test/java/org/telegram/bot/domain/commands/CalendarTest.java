@@ -22,6 +22,7 @@ import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.*;
@@ -86,7 +87,7 @@ class CalendarTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
         PartialBotApiMethod<?> method = calendar.parse(update);
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -118,7 +119,7 @@ class CalendarTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
         PartialBotApiMethod<?> method = calendar.parse(update);
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -146,7 +147,7 @@ class CalendarTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("test"));
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
         PartialBotApiMethod<?> method = calendar.parse(update);
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -179,7 +180,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
         when(responseEntity.getBody()).thenReturn(null);
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
         PartialBotApiMethod<?> method = calendar.parse(update);
         verify(bot).sendTyping(update.getMessage().getChatId());

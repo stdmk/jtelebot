@@ -60,7 +60,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -101,7 +101,7 @@ class HolidaysTest {
                         .setDate(CURRENT_DATE.minusYears(1))
                         .setName("holiday1")
                         .setUser(TestUtils.getUser()));
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -124,7 +124,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
@@ -177,7 +177,7 @@ class HolidaysTest {
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update.getMessage())).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
         SendMessage sendMessage = holidays.parse(update);
 
