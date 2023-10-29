@@ -29,7 +29,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,9 +50,8 @@ public class Weather implements Command<SendMessage> {
     private static final String WEATHER_CAPTION_FORMAT = "%-14s";
     private static final int HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS = 2;
     private static final int HOURLY_FORECAST_MIN_LENGTH_OF_TEMP = 2;
-    private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 6;
+    private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 8;
     private static final int DAILY_FORECAST_MINIMUM_REQUIRED_SPACE_COUNT = 3;
-    private static final DateTimeFormatter OPEN_WEATHER_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -108,6 +106,7 @@ public class Weather implements Command<SendMessage> {
 
         WeatherCurrent weatherCurrent = getWeatherCurrent(token, cityName, languageCode);
         WeatherForecast weatherForecast = getWeatherForecast(token, cityName, languageCode);
+        normalizeWeatherForecast(weatherForecast);
 
         responseText = prepareCurrentWeatherText(weatherCurrent, languageCode)
                 + prepareHourlyForecastWeatherText(weatherForecast)
@@ -258,16 +257,18 @@ public class Weather implements Command<SendMessage> {
         Integer timezone = weatherForecast.getCity().getTimezone();
         StringBuilder buf = new StringBuilder("*${command.weather.hourlyforecast}:*\n```\n");
 
-        int maxLengthOfTemp = weatherForecast.getList()
+        List<WeatherForecastData> weatherForecastList = weatherForecast.getList()
                 .stream()
                 .limit(HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT)
+                .collect(Collectors.toList());
+
+        int maxLengthOfTemp = weatherForecastList
+                .stream()
                 .mapToInt(data -> String.format("%+.0f", data.getMain().getTemp()).length())
                 .max()
                 .orElse(HOURLY_FORECAST_MIN_LENGTH_OF_TEMP) + HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS;
 
-        weatherForecast.getList()
-                .stream()
-                .limit(HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT)
+        weatherForecastList
                 .forEach(forecast -> buf.append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
                     .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.0f", forecast.getMain().getTemp()) + "°"))
@@ -286,7 +287,6 @@ public class Weather implements Command<SendMessage> {
      * @return forecast info.
      */
     private String prepareDailyForecastWeatherText(WeatherForecast weatherForecast, String lang) {
-        normalizeWeatherForecast(weatherForecast);
         StringBuilder buf = new StringBuilder("*${command.weather.dailyforecast}:*\n```\n");
         List<WeatherForecastData> forecastList = weatherForecast.getList();
         LocalDate firstDate = forecastList.get(0).getNormalizedDate().toLocalDate();
@@ -448,8 +448,7 @@ public class Weather implements Command<SendMessage> {
     }
 
     private LocalDateTime getDateTimeFromWeatherForecastData(WeatherForecastData weatherForecastData, long timezone) {
-        return LocalDateTime.parse(weatherForecastData.getDtTxt(), OPEN_WEATHER_DATE_TIME_FORMATTER)
-                .plusSeconds(timezone);
+        return unixTimeToLocalDateTime(weatherForecastData.getDt() + timezone);
     }
 
     @Data

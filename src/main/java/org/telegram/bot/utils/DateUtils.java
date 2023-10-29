@@ -210,12 +210,12 @@ public class DateUtils {
         return buf.toString();
     }
 
-    public static LocalDateTime unixTimeToLocalDateTime(Integer time) {
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.of("UTC"));
-    }
-
     public static LocalDateTime unixTimeToLocalDateTime(Integer time, ZoneId zoneId) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), zoneId);
+    }
+
+    public static LocalDateTime unixTimeToLocalDateTime(long time) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.of("UTC"));
     }
 
     public static String getDayOfWeek(LocalDateTime dateTime, String lang) {
