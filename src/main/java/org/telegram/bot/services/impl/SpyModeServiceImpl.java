@@ -29,7 +29,7 @@ public class SpyModeServiceImpl implements SpyModeService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(propertiesConfig.getAdminId().toString());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText("Received a message from " + TextUtils.getLinkToUser(user, false) + ": " + textMessage);
+        sendMessage.setText("Received a message from " + TextUtils.getLinkToUser(user, false) + ": `" + textMessage + "`");
 
         LocalDateTime dateTimeNow = LocalDateTime.now();
         Long userId = user.getId();
