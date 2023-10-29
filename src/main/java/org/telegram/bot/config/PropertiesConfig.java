@@ -31,6 +31,7 @@ public class PropertiesConfig {
     private Integer russianPostRequestsLimit;
     private Integer chatGPTContextSize = 16;
     private String defaultLanguage = "en";
+    private String xmlTvFileUrl;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {

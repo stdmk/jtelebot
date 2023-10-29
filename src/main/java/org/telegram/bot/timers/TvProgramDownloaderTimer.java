@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TvChannel;
@@ -41,12 +42,13 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class TvProgramDownloaderTimer extends TimerParent {
 
+    private static final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";
+
     private final TimerService timerService;
     private final TvChannelService tvChannelService;
     private final TvProgramService tvProgramService;
+    private final PropertiesConfig propertiesConfig;
     private final BotStats botStats;
-
-    private final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";
 
     @Override
     @Scheduled(fixedRate = 14400000)
@@ -59,15 +61,20 @@ public class TvProgramDownloaderTimer extends TimerParent {
             timerService.save(timer);
         }
 
+        String xmlTvFileUrl = propertiesConfig.getXmlTvFileUrl();
+        if (xmlTvFileUrl == null) {
+            log.warn("xmlTvFileUrl is missing. TV program will not load");
+            return;
+        }
+
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for downloading and transferring tv-program");
 
-
             try {
-                transferTvProgramDataFile();
+                transferTvProgramDataFile(xmlTvFileUrl);
             } catch (IOException e) {
                 log.error("Failed to download tv program data: {}", e.getMessage());
                 return;
@@ -96,11 +103,10 @@ public class TvProgramDownloaderTimer extends TimerParent {
      *
      * @throws IOException if failed to transfer file.
      */
-    private void transferTvProgramDataFile() throws IOException {
-        String zipFileName = "xmltv.xml.gz";
-        final String tvProgramDataUrl = "https://www.teleguide.info/download/new3/" + zipFileName;
+    private void transferTvProgramDataFile(String xmlTvFileUrl) throws IOException {
+        String zipFileName = xmlTvFileUrl.substring(xmlTvFileUrl.lastIndexOf("/") + 1);
 
-        FileUtils.copyURLToFile(new URL(tvProgramDataUrl), new File(zipFileName));
+        FileUtils.copyURLToFile(new URL(xmlTvFileUrl), new File(zipFileName));
 
         try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFileName));
              OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {
