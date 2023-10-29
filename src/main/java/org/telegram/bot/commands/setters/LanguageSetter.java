@@ -114,6 +114,11 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)));
 
         String params = command.substring(emptyCommand.length());
+
+        int spaceIndex = params.indexOf(" ");
+        if (spaceIndex <= 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
         String entity = params.substring(0, params.indexOf(" "));
         String lang = params.substring(params.indexOf(" ") + 1);
 
@@ -125,7 +130,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
             userLanguageService.save(chat, user, lang);
         } else {
             if (chatNames.contains(entity)) {
-                if (chat.getChatId() < 0) {
+                if (chat.getChatId() > 0) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                 }
                 chatLanguageService.save(chat, lang);
@@ -148,15 +153,20 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
                 .findFirst()
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)));
 
-        String params = command.substring(emptyCommand.length());
-        String entity = params.substring(0, params.indexOf(" "));
-        String lang = params.substring(params.indexOf(" ") + 1);
+        String params = command.substring(emptyCommand.length() + 1);
+
+        int spaceIndex = params.indexOf(" ");
+        if (spaceIndex <= 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+        String entity = params.substring(0, spaceIndex);
+        String lang = params.substring(spaceIndex + 1);
 
         if (userNames.contains(entity)) {
             userLanguageService.save(chat, user, lang);
         } else {
             if (chatNames.contains(entity)) {
-                if (chat.getChatId() < 0) {
+                if (chat.getChatId() > 0) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
                 }
                 chatLanguageService.save(chat, lang);
