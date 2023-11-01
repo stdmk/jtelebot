@@ -34,11 +34,17 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     public List<Reminder> getAllNotNotifiedByDate(LocalDate date) {
-        log.debug("Request to get all Reminders by date {}", date);
+        log.debug("Request to get all not notified Reminders by date {}", date);
         return reminderRepository.findAllByDateBetweenAndNotified(
                 date.minusDays(1),
                 date.plusDays(1),
                 false);
+    }
+
+    @Override
+    public List<Reminder> getAllNotNotifiedBeforeDate(LocalDate date) {
+        log.debug("Request to get all not notified Reminders before date {}", date);
+        return reminderRepository.findAllByDateLessThanEqualAndNotified(date.minusDays(1), false);
     }
 
     @Override

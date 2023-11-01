@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -28,13 +29,23 @@ public class ReminderTimer extends TimerParent {
     private final LanguageResolver languageResolver;
     private final SendMessageExecutor sendMessageExecutor;
 
+    private boolean isFirstExecute = true;
+
     @Override
     @Scheduled(fixedRate = 30000)
     public void execute() {
         Map<User, ZoneId> userDateTimeMap = new HashMap<>();
         LocalDateTime dateTimeNow = LocalDateTime.now();
 
-        for (Reminder reminder : reminderService.getAllNotNotifiedByDate(dateTimeNow.toLocalDate())) {
+        List<Reminder> notNotifiedRemindersList;
+        if (isFirstExecute) {
+            notNotifiedRemindersList = reminderService.getAllNotNotifiedBeforeDate(dateTimeNow.toLocalDate());
+            isFirstExecute = false;
+        } else {
+            notNotifiedRemindersList = reminderService.getAllNotNotifiedByDate(dateTimeNow.toLocalDate());
+        }
+
+        for (Reminder reminder : notNotifiedRemindersList) {
             User user = reminder.getUser();
             Chat chat = reminder.getChat();
 

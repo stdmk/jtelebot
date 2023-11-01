@@ -23,12 +23,20 @@ public interface ReminderService {
     Reminder get(Chat chat, User user, Long reminderId);
 
     /**
-     * Get all Reminders by date.
+     * Get all not notified Reminders by date.
      *
      * @param date for filter.
      * @return the persisted entities.
      */
     List<Reminder> getAllNotNotifiedByDate(LocalDate date);
+
+    /**
+     * Get all not notified Reminders before date.
+     *
+     * @param date for filter.
+     * @return the persisted entities.
+     */
+    List<Reminder> getAllNotNotifiedBeforeDate(LocalDate date);
 
     /**
      * Get Reminders for Chat and User.

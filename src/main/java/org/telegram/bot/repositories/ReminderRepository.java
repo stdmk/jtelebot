@@ -16,4 +16,5 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     Reminder findByChatAndUserAndId(Chat chat, User user, Long reminderId);
     Page<Reminder> findAllByChatAndUserOrderByDateAscTimeAsc(Chat chat, User user, Pageable pageable);
     List<Reminder> findAllByDateBetweenAndNotified(LocalDate before, LocalDate after, boolean notified);
+    List<Reminder> findAllByDateLessThanEqualAndNotified(LocalDate before, boolean notified);
 }
