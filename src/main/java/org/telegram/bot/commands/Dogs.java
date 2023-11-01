@@ -22,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -31,6 +32,7 @@ import java.util.Optional;
 public class Dogs implements Command<PartialBotApiMethod<?>> {
 
     private static final String DOGS_API_URL = "https://random.dog/woof.json";
+    private static final List<String> PHOTO_EXTENSION_LIST = List.of("jpg", "jpeg", "png");
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -50,7 +52,7 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
         String imageUrl = getDogsImageUrl();
         InputFile inputFile = new InputFile(imageUrl);
         String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
-        if (imageUrl.toLowerCase().endsWith(".jpg")) {
+        if (isPhoto(imageUrl)) {
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(inputFile);
             sendPhoto.setCaption(commandName);
@@ -67,6 +69,17 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
         sendDocument.setDocument(inputFile);
 
         return sendDocument;
+    }
+
+    private boolean isPhoto(String url) {
+        int indexOfLastDot = url.lastIndexOf(".");
+        if (indexOfLastDot <= 0) {
+            return false;
+        }
+
+        String fileExtension = url.substring(indexOfLastDot + 1).toLowerCase();
+
+        return PHOTO_EXTENSION_LIST.contains(fileExtension);
     }
 
     private String getDogsImageUrl() {
