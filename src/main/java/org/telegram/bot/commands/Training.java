@@ -28,7 +28,6 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,8 +49,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final LanguageResolver languageResolver;
-
-    private final Locale LOCALE = new Locale("ru");
+    private final InternationalizationService internationalizationService;
 
     private static final String COMMAND_NAME = "training";
     private static final String ADD_COMMAND = "_add";
@@ -242,7 +240,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     inputFile = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year), languageCode);
                     caption = "{command.training.yearreport} " + year;
                 } else if (textMessage.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
-                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, LOCALE);
+                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, languageResolver.getLocale(chat));
                     inputFile = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName, languageCode);
                     caption = "{command.training.monthly} " + monthName;
                 } else if (textMessage.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
@@ -329,12 +327,14 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     .append(canceled)
                     .append(unplanned)
                     .append(formatShortTime(training.getTimeStart())).append(" — ").append(formatShortTime(training.getTimeEnd()))
-                        .append(" (").append(durationToString(training.getTimeEnd(), training.getTimeStart())).append(")\n")
+                    .append(" (").append(durationToString(training.getTimeEnd(), training.getTimeStart())).append(")\n")
                     .append(subscriptionName)
                     .append("\n");
         });
 
-        return new InputFile(new ByteArrayInputStream(buf.toString().getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
+        String txt = internationalizationService.internationalize(buf.toString(), lang);
+
+        return new InputFile(new ByteArrayInputStream(txt.getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
     }
 
     private String getReportStatistic(List<TrainingEvent> trainingEventList) {
@@ -627,14 +627,14 @@ public class Training implements Command<PartialBotApiMethod<?>> {
 
         return inlineKeyboardMarkup;
     }
-    
+
     private List<InlineKeyboardButton> getTrainingMainInfoButtonRow() {
         List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
         InlineKeyboardButton infoButton = new InlineKeyboardButton();
         infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "${command.training.button.trainings}");
         infoButton.setCallbackData(COMMAND_NAME);
         infoButtonRow.add(infoButton);
-        
+
         return infoButtonRow;
     }
 
