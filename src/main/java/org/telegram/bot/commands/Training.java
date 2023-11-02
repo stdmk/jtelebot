@@ -592,7 +592,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
         if (reportDownloadCommand != null) {
             List<InlineKeyboardButton> downloadReportTrainingRow = new ArrayList<>();
             InlineKeyboardButton downloadReportButton = new InlineKeyboardButton();
-            downloadReportButton.setText(Emoji.DOWN_ARROW.getEmoji() + "${${command.training.button.download}}");
+            downloadReportButton.setText(Emoji.DOWN_ARROW.getEmoji() + "${command.training.button.download}");
             downloadReportButton.setCallbackData(reportDownloadCommand);
             downloadReportTrainingRow.add(downloadReportButton);
 

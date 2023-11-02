@@ -46,8 +46,8 @@ public class Weather implements Command<SendMessage> {
     private static final String OPEN_WEATHER_SITE_URL = "https://openweathermap.org/city/";
     private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=";
     private static final String FORECAST_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=%s&units=metric&appid=%s&%s=";
-    private static final String PRECIPITATION_CAPTION_FORMAT = "%-12s";
-    private static final String WEATHER_CAPTION_FORMAT = "%-14s";
+    private static final String PRECIPITATION_CAPTION_FORMAT = "%-13s";
+    private static final String WEATHER_CAPTION_FORMAT = "%-15s";
     private static final int HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS = 2;
     private static final int HOURLY_FORECAST_MIN_LENGTH_OF_TEMP = 2;
     private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 8;

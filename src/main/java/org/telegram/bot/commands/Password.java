@@ -20,7 +20,7 @@ public class Password implements Command<SendMessage> {
     private static final String UPPER_LATIN = "QWERTYUIOPASDFGHJKLZXCVBNM";
     private static final String LOWER_LATIN = "qwertyuiopasdfghjklzxcvbnm";
     private static final String DIGITS = "1234567890";
-    private static final String SPECIAL_SYMBOLS = "!@#$%&*()_+-=[]|,./?><";
+    private static final String SPECIAL_SYMBOLS = "!@$%^&*()_-+";
     private static final String SYMBOLS_SOURCE = UPPER_LATIN + LOWER_LATIN + DIGITS + SPECIAL_SYMBOLS;
     private static final Integer DEFAULT_PASSWORD_LENGTH = 15;
 

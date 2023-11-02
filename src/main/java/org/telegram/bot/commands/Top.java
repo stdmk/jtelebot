@@ -204,15 +204,28 @@ public class Top implements Command<SendMessage> {
     private String getTopListOfUsers(Chat chat, String param) {
         log.debug("Request to top by {} for chat {}", param, chat);
 
-        String methodName = getMethodNameByParam(param);
+        final String loweredParam = param.toLowerCase();
+        String methodName = getMethodNameByParam(loweredParam);
         if (methodName == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        boolean equalsTotalParam = topListParamValuesMap.get("getNumberOfAllMessages").stream().anyMatch(totalParam -> totalParam.equals(param));
-        boolean endsWithTotalParam = topListParamValuesMap.get("getNumberOfAllMessages").stream().anyMatch(totalParam -> totalParam.endsWith(param));
-        boolean equalsDailyParam = topListParamValuesMap.get("getNumberOfMessagesPerDay").stream().anyMatch(dailyParam -> dailyParam.equals(param));
-        boolean endWithDailyParam = topListParamValuesMap.get("getNumberOfMessagesPerDay").stream().anyMatch(dailyParam -> dailyParam.endsWith(param));
+        Set<String> totalParams = topListParamValuesMap.get("getNumberOfAllMessages")
+                .stream()
+                .map(csv -> csv.split(","))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toSet());
+
+        Set<String> dailyParams = topListParamValuesMap.get("getNumberOfMessagesPerDay")
+                .stream()
+                .map(csv -> csv.split(","))
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toSet());
+
+        boolean equalsTotalParam = totalParams.contains(loweredParam);
+        boolean endsWithTotalParam = totalParams.stream().anyMatch(loweredParam::endsWith);
+        boolean equalsDailyParam = dailyParams.contains(loweredParam);
+        boolean endWithDailyParam = dailyParams.stream().anyMatch(loweredParam::endsWith);
         if (!equalsTotalParam && endsWithTotalParam) {
             methodName = methodName.substring(0, 11) + "All" + methodName.substring(11);
         } else if (!equalsDailyParam && endWithDailyParam) {
@@ -271,13 +284,17 @@ public class Top implements Command<SendMessage> {
     }
 
     private String getMethodNameByParam(String receivedParam) {
+        if (receivedParam == null) {
+            return null;
+        }
+
         receivedParam = receivedParam.toLowerCase();
 
         for (Map.Entry<String, Set<String>> entry : topListParamValuesMap.entrySet()) {
             for (String data : entry.getValue()) {
                 String[] params = data.split(",");
                 for (String param : params) {
-                    if (param.equals(receivedParam)) {
+                    if (receivedParam.startsWith(param)) {
                         return entry.getKey();
                     }
                 }
