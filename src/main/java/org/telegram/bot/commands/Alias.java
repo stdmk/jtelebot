@@ -3,7 +3,6 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
@@ -11,20 +10,20 @@ import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class Alias implements Command<SendMessage>, TextAnalyzer {
 
-    private final MessageSource messageSource;
     private final ApplicationContext context;
     private final Bot bot;
 
@@ -32,6 +31,7 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
     private final UserService userService;
     private final UserStatsService userStatsService;
     private final CommandPropertiesService commandPropertiesService;
+    private final SpeechService speechService;
 
     @Override
     public SendMessage parse(Update update) {
@@ -43,27 +43,38 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
         Chat chat = new Chat().setChatId(chatId);
         User user = new User().setUserId(message.getFrom().getId());
 
-        if (cutCommandInText(message.getText()) != null) {
-            return null;
+        String responseText;
+        String textMessage = cutCommandInText(message.getText());
+        if (textMessage != null) {
+            log.debug("Request to get info about alias by name {} of user {} and chat {}", textMessage, user, chat);
+
+            org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, textMessage);
+            if (alias == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+            }
+
+            responseText = buildAliasInfoString(alias);
+        } else {
+            log.debug("Request to get list of user {} and chat {}", user, chat);
+
+            responseText = "*${command.alias.aliaslist}:*\n" + aliasService.getByChatAndUser(chat, user)
+                    .stream()
+                    .map(this::buildAliasInfoString)
+                    .collect(Collectors.joining("\n"));
         }
-
-        log.debug("Request to get list of user {} and chat {}", user, chat);
-        StringBuilder buf = new StringBuilder("*${command.alias.aliaslist}:*\n");
-
-        aliasService.getByChatAndUser(chat, user)
-                .forEach(alias -> buf
-                        .append(alias.getId()).append(". ")
-                        .append(alias.getName()).append(" - `")
-                        .append(alias.getValue()).append("`\n"));
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableMarkdown(true);
         sendMessage.disableWebPagePreview();
-        sendMessage.setText(buf.toString());
+        sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private String buildAliasInfoString(org.telegram.bot.domain.entities.Alias alias) {
+        return alias.getId() + ". " + alias.getName() + " - `" + alias.getValue() + "`";
     }
 
     @Override
