@@ -15,6 +15,7 @@ import org.telegram.bot.domain.entities.Wiki;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -34,12 +35,14 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 @Slf4j
 public class Wikipedia implements Command<SendMessage> {
 
-    private static final String WIKI_SEARCH_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
+    private static final String WIKI_API_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
+    private static final String WIKI_SEARCH_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
 
     private final Bot bot;
     private final WikiService wikiService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
+    private final LanguageResolver languageResolver;
     private final RestTemplate botRestTemplate;
 
     @Override
@@ -73,24 +76,26 @@ public class Wikipedia implements Command<SendMessage> {
             responseText = getWikiPageDetails(wiki);
         } else {
             log.debug("Request to search wiki pages by text {}", textMessage);
-            Wiki wiki = getWiki(textMessage);
+
+            String lang = languageResolver.getChatLanguageCode(update);
+            Wiki wiki = getWiki(textMessage, lang);
 
             if (wiki != null && !wiki.getText().equals("")) {
                 responseText = getWikiPageDetails(wiki);
             } else {
-                List<String> titles = searchPageTitles(textMessage);
+                List<String> titles = searchPageTitles(textMessage, lang);
 
                 if (titles.isEmpty()) {
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
                 } else if (titles.size() == 1) {
-                    Wiki wiki1 = getWiki(titles.get(0));
+                    Wiki wiki1 = getWiki(titles.get(0), lang);
                     if (wiki1 == null || wiki1.getText().equals("")) {
                         responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
                     } else {
                         responseText = getWikiPageDetails(wiki1);
                     }
                 } else {
-                    responseText = "<b>${command.wikipedia.searchresults} " + textMessage + "</b>\n" + buildSearchResponseText(titles);
+                    responseText = "<b>${command.wikipedia.searchresults} " + textMessage + "</b>\n" + buildSearchResponseText(titles, lang);
                 }
             }
         }
@@ -122,13 +127,14 @@ public class Wikipedia implements Command<SendMessage> {
      * Getting search response text by page titles.
      *
      * @param titles titles of pages.
+     * @param lang language code.
      * @return formatted text with list of pages.
      */
-    private String buildSearchResponseText(List<String> titles) {
+    private String buildSearchResponseText(List<String> titles, String lang) {
         StringBuilder buf = new StringBuilder();
         titles
                 .stream()
-                .map(this::getWiki)
+                .map(title -> getWiki(title, lang))
                 .filter(Objects::nonNull)
                 .map(wikiService::save)
                 .forEach(wiki -> buf.append(wiki.getTitle()).append("\n").append("/wiki_").append(wiki.getPageId()).append("\n"));
@@ -140,12 +146,14 @@ public class Wikipedia implements Command<SendMessage> {
      * Getting list of found titles by text.
      *
      * @param searchText search text.
+     * @param lang language code.
      * @return list of found titles.
      */
-    private List<String> searchPageTitles(String searchText) {
+    private List<String> searchPageTitles(String searchText, String lang) {
         List<String> titles = new ArrayList<>();
 
-        ResponseEntity<Object[]> response = botRestTemplate.getForEntity(WIKI_SEARCH_URL + searchText, Object[].class);
+        String url = String.format(WIKI_SEARCH_URL, lang) + searchText;
+        ResponseEntity<Object[]> response = botRestTemplate.getForEntity(url, Object[].class);
         Object[] responseBody = response.getBody();
 
         if (responseBody == null) {
@@ -166,14 +174,14 @@ public class Wikipedia implements Command<SendMessage> {
      * Getting Wiki by title.
      *
      * @param title title of wiki.
+     * @param lang language code.
      * @return Wiki entity.
      */
-    private Wiki getWiki(String title) {
-        final String WIKI_API_URL = "https://ru.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
-
+    private Wiki getWiki(String title, String lang) {
         ResponseEntity<WikiData> response;
+        String url = String.format(WIKI_API_URL, lang) + title;
         try {
-            response = botRestTemplate.getForEntity(WIKI_API_URL + title, WikiData.class);
+            response = botRestTemplate.getForEntity(url, WikiData.class);
         } catch (RestClientException e) {
             return null;
         }
