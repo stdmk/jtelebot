@@ -109,7 +109,7 @@ public class Top implements Command<SendMessage> {
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableHtml(true);
         try {
-            sendMessage.setText(getTopListOfUsers(chat, "monthly") + "\n${command.top.monthlyclearcaption}");
+            sendMessage.setText(getTopListOfUsers(chat, "${command.top.list.monthly}") + "\n${command.top.monthlyclearcaption}");
         } catch (BotException ignored) {
 
         }
