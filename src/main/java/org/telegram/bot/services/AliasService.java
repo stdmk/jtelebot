@@ -40,6 +40,15 @@ public interface AliasService {
     Alias get(Chat chat, User user, String name);
 
     /**
+     * Get aliases by name for Chat.
+     *
+     * @param chat Chat entity.
+     * @param name name of alias.
+     * @return list of aliases.
+     */
+    List<Alias> get(Chat chat, String name);
+
+    /**
      * Get Aliases for User and Chat.
      * @param chat Chat entity of Alias to get.
      * @param user User entity of Alias to get.

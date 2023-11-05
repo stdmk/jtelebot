@@ -56,8 +56,8 @@ class AliasTest {
     void parseWithUnknownAliasNameTest() {
         Update update = getUpdateFromGroup("alias test");
 
-        when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class), anyString()))
-                .thenReturn(null);
+        when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), anyString()))
+                .thenReturn(List.of());
 
         assertThrows((BotException.class), () -> alias.parse(update));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
@@ -65,12 +65,11 @@ class AliasTest {
 
     @Test
     void parseWithAliasNameTest() {
-        final String expectedResponseText = "1. test - `echo`";
-        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntity();
+        final String expectedResponseText = "${command.alias.foundaliases}:\ntest1 — `echo1`\ntest2 — `echo2`";
+        List<org.telegram.bot.domain.entities.Alias> aliasEntityList = getSomeAliasEntityList();
         Update update = getUpdateFromGroup("alias test");
 
-        when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class), anyString()))
-                .thenReturn(aliasEntity);
+        when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), anyString())).thenReturn(aliasEntityList);
 
         SendMessage sendMessage = alias.parse(update);
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
@@ -81,11 +80,11 @@ class AliasTest {
 
     @Test
     void parseTest() {
-        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntity();
-        final String expectedResponseText = "*${command.alias.aliaslist}:*\n1. test - `echo`";
+        final String expectedResponseText = "*${command.alias.aliaslist}:*\ntest1 — `echo1`\ntest1 — `echo1`\ntest2 — `echo2`";
+        List<org.telegram.bot.domain.entities.Alias> aliasEntityList = getSomeAliasEntityList();
 
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
-                .thenReturn(List.of(aliasEntity));
+                .thenReturn(aliasEntityList);
 
         SendMessage sendMessage = alias.parse(getUpdateFromGroup());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
@@ -96,7 +95,7 @@ class AliasTest {
 
     @Test
     void analyzeTest() {
-        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntity();
+        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().get(0);
         CommandProperties commandProperties = new CommandProperties().setClassName("Echo").setAccessLevel(0);
 
         when(aliasService.get(
@@ -117,13 +116,26 @@ class AliasTest {
         verify(context).getBean(anyString());
     }
 
-    private org.telegram.bot.domain.entities.Alias getSomeAliasEntity() {
-        return new org.telegram.bot.domain.entities.Alias()
-                .setId(1L)
-                .setChat(new Chat().setChatId(-1L))
-                .setUser(new User().setUserId(1L))
-                .setName("test")
-                .setValue("echo");
+    private List<org.telegram.bot.domain.entities.Alias> getSomeAliasEntityList() {
+        return List.of(
+                new org.telegram.bot.domain.entities.Alias()
+                    .setId(1L)
+                    .setChat(new Chat().setChatId(-1L))
+                    .setUser(new User().setUserId(1L))
+                    .setName("test1")
+                    .setValue("echo1"),
+                new org.telegram.bot.domain.entities.Alias()
+                        .setId(2L)
+                        .setChat(new Chat().setChatId(-1L))
+                        .setUser(new User().setUserId(2L))
+                        .setName("test1")
+                        .setValue("echo1"),
+                new org.telegram.bot.domain.entities.Alias()
+                        .setId(3L)
+                        .setChat(new Chat().setChatId(-1L))
+                        .setUser(new User().setUserId(1L))
+                        .setName("test2")
+                        .setValue("echo2"));
     }
 
 }

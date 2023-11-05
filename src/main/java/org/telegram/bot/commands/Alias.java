@@ -17,6 +17,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,25 +47,27 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
         Chat chat = new Chat().setChatId(chatId);
         User user = new User().setUserId(message.getFrom().getId());
 
-        String responseText;
         String textMessage = cutCommandInText(message.getText());
+        String caption;
+        List<org.telegram.bot.domain.entities.Alias> aliasList;
         if (textMessage != null) {
-            log.debug("Request to get info about alias by name {} of user {} and chat {}", textMessage, user, chat);
+            log.debug("Request to get info about aliases by name {} for chat {}", textMessage, chat);
+            caption = "${command.alias.foundaliases}:\n";
 
-            org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, textMessage);
-            if (alias == null) {
+            aliasList = deduplicate(aliasService.get(chat, textMessage));
+            if (aliasList.isEmpty()) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             }
-
-            responseText = buildAliasInfoString(alias);
         } else {
             log.debug("Request to get list of user {} and chat {}", user, chat);
-
-            responseText = "*${command.alias.aliaslist}:*\n" + aliasService.getByChatAndUser(chat, user)
-                    .stream()
-                    .map(this::buildAliasInfoString)
-                    .collect(Collectors.joining("\n"));
+            caption = "*${command.alias.aliaslist}:*\n";
+            aliasList = aliasService.getByChatAndUser(chat, user);
         }
+
+        String responseText = caption + aliasList
+                .stream()
+                .map(this::buildAliasInfoString)
+                .collect(Collectors.joining("\n"));
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
@@ -73,8 +79,29 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
         return sendMessage;
     }
 
+    /**
+     * Deduplicate alias list by name and value of alias.
+     *
+     * @param aliasList list of aliases to deduplication.
+     * @return reduplicated list.
+     */
+    private List<org.telegram.bot.domain.entities.Alias> deduplicate(List<org.telegram.bot.domain.entities.Alias> aliasList) {
+        List<org.telegram.bot.domain.entities.Alias> resultList = new ArrayList<>();
+        Map<String, String> aliasNameAliasValueMap = new HashMap<>();
+
+        aliasList.forEach(alias -> {
+            String aliasValue = aliasNameAliasValueMap.get(alias.getName());
+            if (!alias.getValue().equals(aliasValue)) {
+                aliasNameAliasValueMap.put(alias.getName(), alias.getValue());
+                resultList.add(alias);
+            }
+        });
+
+        return resultList;
+    }
+
     private String buildAliasInfoString(org.telegram.bot.domain.entities.Alias alias) {
-        return alias.getId() + ". " + alias.getName() + " - `" + alias.getValue() + "`";
+        return alias.getName() + " — `" + alias.getValue() + "`";
     }
 
     @Override
