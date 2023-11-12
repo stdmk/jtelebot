@@ -10,6 +10,7 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -18,26 +19,36 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
 
-    private final ChatGPTMessageService chatGPTMessageService;
-    private final PropertiesConfig propertiesConfig;
-
-    private static final String CALLBACK_COMMAND = "установить ";
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_CHATGPT_COMMAND = "chatgpt";
     private static final String RESET_CACHE_COMMAND = EMPTY_CHATGPT_COMMAND + "rc";
     private static final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
 
+    private final Set<String> emptyGptCommands = new HashSet<>();
+
+    private final ChatGPTMessageService chatGPTMessageService;
+    private final InternationalizationService internationalizationService;
+    private final PropertiesConfig propertiesConfig;
+
+    @PostConstruct
+    private void postConstruct() {
+        emptyGptCommands.addAll(internationalizationService.getAllTranslations("setter.chatgpt.emptycommand"));
+    }
+
     @Override
     public boolean canProcessed(String command) {
-        //TODO
-        return command.startsWith("chatgpt");
+        return emptyGptCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -77,7 +88,7 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
         return getResetCacheSetterWithKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> getResetCacheSetterWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getResetCacheSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         List<ChatGPTMessage> messages;
         if (chat.getChatId() < 0) {
             messages = chatGPTMessageService.getMessages(chat);
@@ -85,7 +96,7 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
             messages = chatGPTMessageService.getMessages(user);
         }
 
-        String responseText = "Текущий контекст: <b>" + messages.size() + " сообщений</b>\n" +
+        String responseText = "${settet.chatgpt.currentcontext}: <b>" + messages.size() + " ${settet.chatgpt.messages}</b>\n" +
                 "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>";
 
         if (newMessage) {
@@ -113,13 +124,13 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> resetCacheButtonRow = new ArrayList<>();
         InlineKeyboardButton resetCacheButton = new InlineKeyboardButton();
-        resetCacheButton.setText(Emoji.WASTEBASKET.getEmoji() + "Сбросить контекст");
+        resetCacheButton.setText(Emoji.WASTEBASKET.getEmoji() + "${settet.chatgpt.button.resetcache}");
         resetCacheButton.setCallbackData(CALLBACK_RESET_CACHE_COMMAND);
         resetCacheButtonRow.add(resetCacheButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${settet.chatgpt.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

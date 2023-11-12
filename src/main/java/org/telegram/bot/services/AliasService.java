@@ -82,19 +82,21 @@ public interface AliasService {
 
     /**
      * Delete an Alias.
-     * @param chat Chat entity of Alias to get.
-     * @param user User entity of Alias to get.
+     *
+     * @param chat    Chat entity of Alias to get.
+     * @param user    User entity of Alias to get.
      * @param aliasId of the entity to delete.
      * @return true if deleted.
      */
-    Boolean remove(Chat chat, User user, Long aliasId);
+    boolean remove(Chat chat, User user, Long aliasId);
 
     /**
      * Delete an Alias.
+     *
      * @param chat Chat entity of Alias to get.
      * @param user User entity of Alias to get.
      * @param name of the alias to delete.
      * @return true if deleted.
      */
-    Boolean remove(Chat chat, User user, String name);
+    boolean remove(Chat chat, User user, String name);
 }

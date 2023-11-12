@@ -13,10 +13,7 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CityService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserCityService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -25,40 +22,60 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.TimeZones;
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String EMPTY_CITY_COMMAND = "${setter.city.emptycommand}";
+    private static final String UPDATE_CITY_COMMAND = EMPTY_CITY_COMMAND + " ${setter.city.update}";
+    private static final String SELECT_CITY_COMMAND = EMPTY_CITY_COMMAND + " ${setter.city.select}";
+    private static final String CALLBACK_SELECT_CITY_COMMAND = CALLBACK_COMMAND + SELECT_CITY_COMMAND;
+    private static final String DELETE_CITY_COMMAND = EMPTY_CITY_COMMAND + " ${setter.city.remove}";
+    private static final String CALLBACK_DELETE_CITY_COMMAND = CALLBACK_COMMAND + DELETE_CITY_COMMAND;
+    private static final String ADD_CITY_COMMAND = EMPTY_CITY_COMMAND + " ${setter.city.add}";
+    private static final String CALLBACK_ADD_CITY_COMMAND = CALLBACK_COMMAND + ADD_CITY_COMMAND;
+    private static final String SET_TIMEZONE = EMPTY_CITY_COMMAND + " ${setter.city.zone}";
+    private static final String CALLBACK_SET_TIMEZONE = CALLBACK_COMMAND + SET_TIMEZONE;
+    private static final String ADDING_HELP_TEXT_NAMES = "${setter.city.commandwaitingstart}";
+    private static final String ADDING_HELP_TEXT_TIMEZONE = "${setter.city.selectzonehelp}";
+
+    private final java.util.Set<String> emptyCityCommands = new HashSet<>();
+    private final java.util.Set<String> updateCityCommands = new HashSet<>();
+    private final java.util.Set<String> deleteCityCommands = new HashSet<>();
+    private final java.util.Set<String> addCityCommands = new HashSet<>();
+    private final java.util.Set<String> selectCityCommands = new HashSet<>();
+    private final java.util.Set<String> setTimeZoneCommands = new HashSet<>();
+
     private final CityService cityService;
     private final UserCityService userCityService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String UPDATE_CITY_COMMAND = "город обновить";
-    private final String SELECT_CITY_COMMAND = "город выбрать";
-    private final String CALLBACK_SELECT_CITY_COMMAND = CALLBACK_COMMAND + SELECT_CITY_COMMAND;
-    private final String DELETE_CITY_COMMAND = "город удалить";
-    private final String CALLBACK_DELETE_CITY_COMMAND = CALLBACK_COMMAND + DELETE_CITY_COMMAND;
-    private final String ADD_CITY_COMMAND = "город добавить";
-    private final String CALLBACK_ADD_CITY_COMMAND = CALLBACK_COMMAND + ADD_CITY_COMMAND;
-    private final String SET_TIMEZONE = "город зона";
-    private final String CALLBACK_SET_TIMEZONE = CALLBACK_COMMAND + SET_TIMEZONE;
+    @PostConstruct
+    private void postConstruct() {
+        emptyCityCommands.addAll(internationalizationService.getAllTranslations("setter.city.emptycommand"));
+        updateCityCommands.addAll(internationalizationService.internationalize(UPDATE_CITY_COMMAND));
+        deleteCityCommands.addAll(internationalizationService.internationalize(DELETE_CITY_COMMAND));
+        addCityCommands.addAll(internationalizationService.internationalize(ADD_CITY_COMMAND));
+        selectCityCommands.addAll(internationalizationService.internationalize(SELECT_CITY_COMMAND));
+        setTimeZoneCommands.addAll(internationalizationService.internationalize(SET_TIMEZONE));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        //TODO
-        return command.startsWith("город");
+        return emptyCityCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -72,29 +89,28 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        String EMPTY_CITY_COMMAND = "город";
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_CITY_COMMAND)) {
+            if (emptyCityCommands.contains(lowerCaseCommandText) || updateCityCommands.contains(lowerCaseCommandText)) {
                 return getMainKeyboard(message, chat, user, false);
-            } else if (lowerCaseCommandText.startsWith(SELECT_CITY_COMMAND)) {
+            } else if (containsStartWith(selectCityCommands, lowerCaseCommandText)) {
                 return selectCityByCallback(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(DELETE_CITY_COMMAND)) {
+            } else if (containsStartWith(deleteCityCommands, lowerCaseCommandText)) {
                 return deleteCityByCallback(message, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(ADD_CITY_COMMAND)) {
+            } else if (containsStartWith(addCityCommands, lowerCaseCommandText)) {
                 return addCityByCallback(message,  chat, user, false);
-            } else if (lowerCaseCommandText.startsWith(SET_TIMEZONE)) {
+            } else if (containsStartWith(setTimeZoneCommands, lowerCaseCommandText)) {
                 return setTimeZoneForCity(message, chat, user, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
+        if (emptyCityCommands.contains(lowerCaseCommandText)) {
             return getMainKeyboard(message,  chat, user, true);
-        } else if (lowerCaseCommandText.startsWith(DELETE_CITY_COMMAND)) {
+        } else if (containsStartWith(deleteCityCommands, lowerCaseCommandText)) {
             return deleteCity(message, user, commandText);
-        } else if (lowerCaseCommandText.startsWith(ADD_CITY_COMMAND)) {
+        } else if (containsStartWith(addCityCommands, lowerCaseCommandText)) {
             return addCity(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -102,13 +118,15 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText selectCityByCallback(Message message, Chat chat, User user, String command) throws BotException {
-        if (command.equals(SELECT_CITY_COMMAND)) {
+        String selectCityCommand = getLocalizedCommand(command, SELECT_CITY_COMMAND);
+
+        if (command.toLowerCase().equals(selectCityCommand)) {
             return getKeyboardWithCities(message, user, CALLBACK_SELECT_CITY_COMMAND);
         }
 
         long cityId;
         try {
-            cityId = Long.parseLong(command.substring(SELECT_CITY_COMMAND.length() + 1));
+            cityId = Long.parseLong(command.substring(selectCityCommand.length() + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -132,12 +150,14 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> addCity(Message message, Chat chat, User user, String command) throws BotException {
+        String addCityCommand = getLocalizedCommand(command, ADD_CITY_COMMAND);
+
         log.debug("Request to add new city");
-        if (command.equals(ADD_CITY_COMMAND)) {
+        if (command.toLowerCase().equals(addCityCommand)) {
             return addCityByCallback(message,  chat, user, true);
         }
 
-        String params = command.substring(ADD_CITY_COMMAND.length() + 1);
+        String params = command.substring(addCityCommand.length() + 1);
 
         int i = params.indexOf(" ");
         if (i < 0) {
@@ -161,24 +181,18 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private SendMessage deleteCity(Message message, User user, String command) throws BotException {
+        String deleteCityCommand = getLocalizedCommand(command, DELETE_CITY_COMMAND);
+
         log.debug("Request to delete city");
 
         String params;
         try {
-            params = command.substring(DELETE_CITY_COMMAND.length() + 1);
+            params = command.substring(deleteCityCommand.length() + 1);
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        long cityId;
-
-        try {
-            cityId = Long.parseLong(params);
-        } catch (Exception e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        City city = cityService.get(cityId);
+        City city = cityService.get(params);
         if (!city.getUser().getUserId().equals(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
@@ -189,11 +203,13 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText setTimeZoneForCity(Message message, Chat chat, User user, String command) throws BotException {
+        String setTimezoneCommand = getLocalizedCommand(command, SET_TIMEZONE);
+
         log.debug("Request to set timezone for city");
 
         String params;
         try {
-            params = command.substring(SET_TIMEZONE.length() + 1);
+            params = command.substring(setTimezoneCommand.length() + 1);
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -227,24 +243,25 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     private PartialBotApiMethod<?> addCityByCallback(Message message,  Chat chat, User user, boolean newMessage) {
         commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_CITY_COMMAND);
 
-        String ADDING_HELP_TEXT_NAMES = "\nНапиши мне через пробел название города на русском и английском языках\nНапример: Тверь Tver";
         if (newMessage) {
-            return buildSendMessageWithText(message, ADDING_HELP_TEXT_NAMES);
+            return buildSendMessageWithText(message, "\n" + ADDING_HELP_TEXT_NAMES);
         }
 
-        return buildEditMessageWithText(message, ADDING_HELP_TEXT_NAMES);
+        return buildEditMessageWithText(message, "\n" + ADDING_HELP_TEXT_NAMES);
     }
 
     private EditMessageText deleteCityByCallback(Message message, User user, String command) throws BotException {
+        String deleteCityCommand = getLocalizedCommand(command, DELETE_CITY_COMMAND);
+
         log.debug("Request to delete city");
 
-        if (command.equals(DELETE_CITY_COMMAND)) {
+        if (command.toLowerCase().equals(deleteCityCommand)) {
             return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
         }
 
         long cityId;
         try {
-            cityId = Long.parseLong(command.substring(DELETE_CITY_COMMAND.length() + 1));
+            cityId = Long.parseLong(command.substring(deleteCityCommand.length() + 1));
         } catch (NumberFormatException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -272,11 +289,11 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         List<City> cities;
 
         if (callbackCommand.equals(CALLBACK_DELETE_CITY_COMMAND)) {
-            title = "Список добавленных тобой городов";
+            title = "${setter.city.owncitiescaption}";
             emoji = Emoji.DELETE.getEmoji();
             cities = cityService.getAll(user);
         } else {
-            title = "Выбери город из списка или добавь новый";
+            title = "${setter.city.selectoradd}";
             emoji = "";
             cities = cityService.getAll();
         }
@@ -311,9 +328,9 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         UserCity userCity = userCityService.get(user, chat);
         if (userCity == null || userCity.getCity() == null) {
-            responseText = "Город не установлен. Нажми кнопку \"Выбрать\"";
+            responseText = "${setter.city.citynotset}. ${setter.city.pushbutton} \"${setter.city.button.select}\"";
         } else {
-            responseText = "Выбранный город: " + userCity.getCity().getNameRu() + " (" + userCity.getCity().getTimeZone() + ")";
+            responseText = "${setter.city.selectedcity}: " + userCity.getCity().getNameRu() + " (" + userCity.getCity().getTimeZone() + ")";
         }
 
         if (newMessage) {
@@ -348,31 +365,31 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "Выбрать");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.city.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_CITY_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "Добавить");
+        addButton.setText(Emoji.NEW.getEmoji() + "${setter.city.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_CITY_COMMAND);
         addButtonRow.add(addButton);
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.city.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_CITY_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.city.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_CITY_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.city.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -399,15 +416,13 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
                 })
                 .collect(Collectors.toList());
 
-        String ADDING_HELP_TEXT_TIMEZONE = "\nЧасовой пояс города выставлен по умолчанию.\nПожалуйста, выбери значение из предложенных";
-
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rows);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableMarkdown(true);
-        sendMessage.setText(ADDING_HELP_TEXT_TIMEZONE);
+        sendMessage.setText("\n" + ADDING_HELP_TEXT_TIMEZONE);
         sendMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return sendMessage;
@@ -432,4 +447,17 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         return editMessageText;
     }
+
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
+
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
+    }
+
 }

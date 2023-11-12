@@ -80,6 +80,11 @@ public class InternationalizationServiceImpl implements InternationalizationServ
     }
 
     @Override
+    public Set<String> internationalize(String text) {
+        return getAvailableLocales().stream().map(lang -> this.internationalize(text, lang)).collect(Collectors.toSet());
+    }
+
+    @Override
     public String internationalize(String text, @Nullable String lang) {
         if (text == null) {
             return null;
@@ -113,7 +118,7 @@ public class InternationalizationServiceImpl implements InternationalizationServ
 
     private String getRandomMessageFromCsvString(String data) {
         String[] messages = data.split("\\" + CSV_SEPARATOR);
-        int randomIndex = getRandomInRange(0, messages.length) - 1;
+        int randomIndex = getRandomInRange(0, messages.length - 1);
 
         return messages[randomIndex];
     }

@@ -38,6 +38,17 @@ public class LanguageResolverImpl implements LanguageResolver {
     }
 
     @Override
+    public Locale getLocale(Message message, User user) {
+        String lang = this.getChatLanguageCode(message, user);
+
+        if (lang != null) {
+            return Locale.forLanguageTag(lang);
+        }
+
+        return Locale.getDefault();
+    }
+
+    @Override
     public String getChatLanguageCode(Update update) {
         Message message = TelegramUtils.getMessage(update);
         if (message == null) {

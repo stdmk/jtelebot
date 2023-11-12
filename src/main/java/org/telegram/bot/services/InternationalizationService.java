@@ -60,6 +60,14 @@ public interface InternationalizationService {
     SendVideo internationalize(SendVideo sendVideo, @Nullable String lang);
 
     /**
+     * Internationalize into all languages.
+     *
+     * @param text text.
+     * @return set of internationalized strings.
+     */
+    Set<String> internationalize(String text);
+
+    /**
      * Internationalize of some text.
      *
      * @param text text.

@@ -88,7 +88,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         if (chatId < 0) checkAccessLevelForGroupChat(userId);
 
         User user = new User().setUserId(userId);
-        if (lowerCaseCommandText.equals(EMPTY_LANG_COMMAND)) {
+        if (emptyLangCommands.contains(lowerCaseCommandText)) {
             return getLangSetterWithKeyboard(message, chat, user, true);
         } else {
             return setLang(message, chat, user, lowerCaseCommandText);

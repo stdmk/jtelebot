@@ -10,6 +10,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.CommandWaitingRepository;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Service
@@ -19,6 +20,7 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
     private final CommandWaitingRepository commandWaitingRepository;
     private final CommandPropertiesService commandPropertiesService;
+    private final InternationalizationService internationalizationService;
 
     @Override
     public CommandWaiting get(Chat chat, User user) {
@@ -61,7 +63,7 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
         commandWaiting
                 .setCommandName(commandName)
                 .setIsFinished(false)
-                .setTextMessage("/" + commandText + " ");
+                .setTextMessage("/" + internationalizationService.internationalize(commandText, null) + " ");
 
         save(commandWaiting);
     }

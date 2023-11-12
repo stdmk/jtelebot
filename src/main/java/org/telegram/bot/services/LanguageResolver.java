@@ -24,6 +24,16 @@ public interface LanguageResolver {
     Locale getLocale(Chat chat);
 
     /**
+     * Get locale from Chat.
+     *
+     * @param message Telegram Message.
+     * @param user Chat entity.
+     * @return locale.
+     */
+    @NotNull
+    Locale getLocale(Message message, User user);
+
+    /**
      * Get language code from Update.
      *
      * @param update Telegram Update.

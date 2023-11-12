@@ -14,10 +14,7 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -26,37 +23,58 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String SELECT_PAGE = " ${setter.alias.selectpage}";
+    private static final String EMPTY_ALIAS_COMMAND = "${setter.alias.emptycommand}";
+    private static final String UPDATE_ALIAS_COMMAND = EMPTY_ALIAS_COMMAND + " ${setter.alias.update}";
+    private static final String DELETE_ALIAS_COMMAND = EMPTY_ALIAS_COMMAND + " ${setter.alias.remove}";
+    private static final String SELECT_ALIAS_COMMAND = EMPTY_ALIAS_COMMAND + " ${setter.alias.select}";
+    private static final String CALLBACK_DELETE_ALIAS_COMMAND = CALLBACK_COMMAND + DELETE_ALIAS_COMMAND;
+    private static final String CALLBACK_SELECT_ALIAS_COMMAND = CALLBACK_COMMAND + SELECT_ALIAS_COMMAND;
+    private static final String ADD_ALIAS_COMMAND = EMPTY_ALIAS_COMMAND + " ${setter.alias.add}";
+    private static final String CALLBACK_ADD_ALIAS_COMMAND = CALLBACK_COMMAND + ADD_ALIAS_COMMAND;
+    private static final String ADDING_ALIAS_TEXT = "${setter.alias.commandwaitingstart}";
+    private static final int FIRST_PAGE = 0;
+
+    private final java.util.Set<String> emptyAliasCommands = new HashSet<>();
+    private final java.util.Set<String> updateAliasCommands = new HashSet<>();
+    private final java.util.Set<String> deleteAliasCommands = new HashSet<>();
+    private final java.util.Set<String> addAliasCommands = new HashSet<>();
+    private final java.util.Set<String> selectAliasCommands = new HashSet<>();
+
     private final AliasService aliasService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final CommandPropertiesService commandPropertiesService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String SELECT_PAGE = " page";
-    private final String UPDATE_ALIAS_COMMAND = "алиас обновить";
-    private final String DELETE_ALIAS_COMMAND = "алиас удалить";
-    private final String SELECT_ALIAS_COMMAND = "алиас выбрать";
-    private final String CALLBACK_DELETE_ALIAS_COMMAND = CALLBACK_COMMAND + DELETE_ALIAS_COMMAND;
-    private final String CALLBACK_SELECT_ALIAS_COMMAND = CALLBACK_COMMAND + SELECT_ALIAS_COMMAND;
-    private final String ADD_ALIAS_COMMAND = "алиас добавить";
-    private final String CALLBACK_ADD_ALIAS_COMMAND = CALLBACK_COMMAND + ADD_ALIAS_COMMAND;
-    private final String ADDING_ALIAS_TEXT = "\nНапиши мне имя алиаса и его содержимое, например: дождь правда завтра дождь?";
-    private final int FIRST_PAGE = 0;
+    @PostConstruct
+    private void postConstruct() {
+        emptyAliasCommands.addAll(internationalizationService.getAllTranslations("setter.alias.emptycommand"));
+        updateAliasCommands.addAll(internationalizationService.internationalize(UPDATE_ALIAS_COMMAND));
+        deleteAliasCommands.addAll(internationalizationService.internationalize(DELETE_ALIAS_COMMAND));
+        addAliasCommands.addAll(internationalizationService.internationalize(ADD_ALIAS_COMMAND));
+        selectAliasCommands.addAll(internationalizationService.internationalize(SELECT_ALIAS_COMMAND));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        //TODO
-        return command.startsWith("алиас");
+        return emptyAliasCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -69,28 +87,27 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
-        String EMPTY_ALIAS_COMMAND = "алиас";
 
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND) || lowerCaseCommandText.equals(UPDATE_ALIAS_COMMAND)) {
+            if (emptyAliasCommands.contains(lowerCaseCommandText) || updateAliasCommands.contains(lowerCaseCommandText)) {
                 return getAliasListByCallbackWithKeyboard(message, chat, user, FIRST_PAGE);
-            } else if (lowerCaseCommandText.startsWith(DELETE_ALIAS_COMMAND)) {
+            } else if (containsStartWith(deleteAliasCommands, lowerCaseCommandText)) {
                 return deleteAliasByCallback(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(ADD_ALIAS_COMMAND)) {
+            } else if (containsStartWith(addAliasCommands, lowerCaseCommandText)) {
                 return addAliasByCallback(message, chat, user);
-            } else if (commandText.startsWith(SELECT_ALIAS_COMMAND)) {
+            } else if (containsStartWith(selectAliasCommands, lowerCaseCommandText)) {
                 return selectAliasByCallback(message, chat, user, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_ALIAS_COMMAND)) {
+        if (emptyAliasCommands.contains(lowerCaseCommandText)) {
             return getAliasListWithKeyboard(message, chat, user);
-        } else if (lowerCaseCommandText.startsWith(DELETE_ALIAS_COMMAND)) {
+        } else if (containsStartWith(deleteAliasCommands, lowerCaseCommandText)) {
             return deleteAlias(message, chat, user, commandText);
-        } else if (lowerCaseCommandText.startsWith(ADD_ALIAS_COMMAND)) {
+        } else if (containsStartWith(addAliasCommands, lowerCaseCommandText)) {
             return addAlias(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -126,7 +143,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
     private String prepareTextOfListAliases(Page<Alias> aliasList) {
         final StringBuilder buf = new StringBuilder();
-        buf.append("<b>Список твоих алиасов:</b>\n");
+        buf.append("<b>${setter.alias.listcaption}:</b>\n");
 
         aliasList.forEach(alias -> buf
                 .append(alias.getId()).append(". ")
@@ -157,15 +174,23 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText deleteAliasByCallback(Message message, Chat chat, User user, String command) {
-        String selectPageCommand = DELETE_ALIAS_COMMAND + SELECT_PAGE;
-        if (command.startsWith(selectPageCommand)) {
+        String selectPageCommand = getStartsWith(
+                internationalizationService.internationalize(DELETE_ALIAS_COMMAND + SELECT_PAGE),
+                command.toLowerCase());
+
+        if (selectPageCommand != null && command.startsWith(selectPageCommand)) {
             int page = Integer.parseInt(command.substring(selectPageCommand.length()));
             return getAliasListByCallbackWithKeyboard(message, chat, user, page);
         }
 
         log.debug("Request to delete alias");
 
-        aliasService.remove(chat, user, Long.valueOf(command.substring(DELETE_ALIAS_COMMAND.length() + 1)));
+        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase());
+        if (deleteAliasCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        aliasService.remove(chat, user, Long.valueOf(command.substring(deleteAliasCommand.length() + 1)));
 
         return getAliasListByCallbackWithKeyboard(message, chat, user, FIRST_PAGE);
     }
@@ -180,7 +205,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
         editMessageText.setReplyMarkup(prepareKeyboardWithAliasesForDelete(aliasList, FIRST_PAGE));
-        editMessageText.setText(prepareTextOfListAliases(aliasList) + ADDING_ALIAS_TEXT);
+        editMessageText.setText(prepareTextOfListAliases(aliasList) + "\n" + ADDING_ALIAS_TEXT);
 
         return editMessageText;
     }
@@ -188,9 +213,14 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
     private SendMessage deleteAlias(Message message, Chat chat, User user, String command) throws BotException {
         log.debug("Request to delete alias");
 
+        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase());
+        if (deleteAliasCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
         String params;
         try {
-            params = command.substring(DELETE_ALIAS_COMMAND.length() + 1);
+            params = command.substring(deleteAliasCommand.length() + 1);
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -216,8 +246,30 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectAliasByCallback(Message message, Chat chat, User user, String command) {
-        if (!command.startsWith(SELECT_ALIAS_COMMAND + SELECT_PAGE)) {
-            Long aliasId = Long.parseLong(command.substring(SELECT_ALIAS_COMMAND.length() + 1));
+        String selectPageCommand = getStartsWith(
+                internationalizationService.internationalize(SELECT_ALIAS_COMMAND + SELECT_PAGE),
+                command.toLowerCase());
+
+        if (selectPageCommand != null && command.startsWith(selectPageCommand)) {
+            int page = Integer.parseInt(command.substring((selectPageCommand).length()));
+            Page<Alias> chatAliasList = aliasService.getByChat(chat, page);
+            List<Alias> userAliasList = aliasService.getByChatAndUser(chat, user);
+
+            EditMessageText editMessageText = new EditMessageText();
+            editMessageText.setChatId(message.getChatId().toString());
+            editMessageText.setMessageId(message.getMessageId());
+            editMessageText.enableHtml(true);
+            editMessageText.setText("<b>${setter.alias.chatlistcaption}:</b>");
+            editMessageText.setReplyMarkup(prepareKeyboardWithAliasesForSelect(chatAliasList, userAliasList, page));
+
+            return editMessageText;
+        } else {
+            String selectAliasCommand = getStartsWith(internationalizationService.internationalize(SELECT_ALIAS_COMMAND), command.toLowerCase());
+            if (selectAliasCommand == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            Long aliasId = Long.parseLong(command.substring(selectAliasCommand.length() + 1));
 
             Alias alias = aliasService.get(aliasId);
 
@@ -233,37 +285,29 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
             return getAliasListByCallbackWithKeyboard(message, chat, user, FIRST_PAGE);
         }
-
-        int page = Integer.parseInt(command.substring((SELECT_ALIAS_COMMAND + SELECT_PAGE).length()));
-        Page<Alias> chatAliasList = aliasService.getByChat(chat, page);
-        List<Alias> userAliasList = aliasService.getByChatAndUser(chat, user);
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText("<b>Список алиасов данной группы:</b>");
-        editMessageText.setReplyMarkup(prepareKeyboardWithAliasesForSelect(chatAliasList, userAliasList, page));
-
-        return editMessageText;
     }
 
     private PartialBotApiMethod<?> addAlias(Message message, Chat chat, User user, String command) {
         log.debug("Request to add new alias");
 
-        if (command.equals(ADD_ALIAS_COMMAND)) {
+        String addAliasCommand = getStartsWith(addAliasCommands, command.toLowerCase());
+        if (addAliasCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        if (addAliasCommand.contains(command.toLowerCase())) {
             Page<Alias> allNewsInChat = aliasService.getByChatAndUser(chat, user, FIRST_PAGE);
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableHtml(true);
             sendMessage.setReplyMarkup(prepareKeyboardWithAliasesForDelete(allNewsInChat, FIRST_PAGE));
-            sendMessage.setText(prepareTextOfListAliases(allNewsInChat) + ADDING_ALIAS_TEXT);
+            sendMessage.setText(prepareTextOfListAliases(allNewsInChat) + "\n" + ADDING_ALIAS_TEXT);
 
             return sendMessage;
         }
 
-        String params = command.substring(ADD_ALIAS_COMMAND.length() + 1);
+        String params = command.substring(addAliasCommand.length() + 1);
 
         int i = params.indexOf(" ");
         if (i < 0) {
@@ -340,19 +384,19 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
     private void addingMainRows(List<List<InlineKeyboardButton>> rows, String callbackCommand, int page, int totalPages) {
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
-        String CALLBACK_SELECT_PAGE_ALIAS_LIST = callbackCommand + SELECT_PAGE;
+        String callbackSelectPageAliasList = callbackCommand + SELECT_PAGE;
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
-            backButton.setCallbackData(CALLBACK_SELECT_PAGE_ALIAS_LIST + (page - 1));
+            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${setter.alias.button.back}");
+            backButton.setCallbackData(callbackSelectPageAliasList + (page - 1));
 
             pagesRow.add(backButton);
         }
 
         if (page + 1 < totalPages) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getEmoji());
-            forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_ALIAS_LIST + (page + 1));
+            forwardButton.setText("${setter.alias.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setCallbackData(callbackSelectPageAliasList + (page + 1));
 
             pagesRow.add(forwardButton);
         }
@@ -361,24 +405,24 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "Добавить");
+        addButton.setText(Emoji.NEW.getEmoji() + "${setter.alias.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_ALIAS_COMMAND);
         addButtonRow.add(addButton);
 
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "Выбрать");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.alias.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_ALIAS_COMMAND + SELECT_PAGE + FIRST_PAGE);
         addButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.alias.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_ALIAS_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.alias.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

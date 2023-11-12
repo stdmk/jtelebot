@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -227,4 +228,14 @@ public class TextUtils {
 
         return INTEGER_PATTERN.matcher(text).matches();
     }
+
+    public static boolean containsStartWith(Set<String> stringSet, String text) {
+        return stringSet.stream().anyMatch(text::startsWith);
+    }
+
+    @Nullable
+    public static String getStartsWith(Set<String> stringSet, String text) {
+        return stringSet.stream().filter(text::startsWith).findFirst().orElse(null);
+    }
+
 }

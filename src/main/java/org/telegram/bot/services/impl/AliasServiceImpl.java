@@ -69,7 +69,7 @@ public class AliasServiceImpl implements AliasService {
     }
 
     @Override
-    public Boolean remove(Chat chat, User user, Long aliasId) {
+    public boolean remove(Chat chat, User user, Long aliasId) {
         log.debug("Request to delete Alias by id: {}", aliasId);
 
         Alias alias = get(chat, user, aliasId);
@@ -83,7 +83,7 @@ public class AliasServiceImpl implements AliasService {
     }
 
     @Override
-    public Boolean remove(Chat chat, User user, String name) {
+    public boolean remove(Chat chat, User user, String name) {
         log.debug("Request to delete Alias by name: {}", name);
 
         Alias alias = get(chat, user, name);
