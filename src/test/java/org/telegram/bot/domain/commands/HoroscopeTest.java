@@ -84,18 +84,18 @@ class HoroscopeTest {
         final String expectedResponseText = "${command.horoscope.caption} <b>Общий</b>\n" +
                 "(today)\n" +
                 "\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♈️Овен</a></u>aries\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♉️Телец</a></u>taurus\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♊️Близнецы</a></u>gemini\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♋️Рак</a></u>cancer\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♌️Лев</a></u>leo\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♍️Дева</a></u>virgo\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♎️Весы</a></u>libra\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♏️Скорпион</a></u>scorpio\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♐️Стрелец</a></u>sagittarius\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♑️Козерог</a></u>capricorn\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♒️Водолей</a></u>aquarius\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♓️Рыбы</a></u>pisces\n";
+                "<u><a href=\"https://ignio.com/r/daily/\">♈️${enum.zodiac.aries}</a></u>aries\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♉️${enum.zodiac.taurus}</a></u>taurus\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♊️${enum.zodiac.gemini}</a></u>gemini\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♋️${enum.zodiac.cancer}</a></u>cancer\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♌️${enum.zodiac.leo}</a></u>leo\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♍️${enum.zodiac.virgo}</a></u>virgo\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♎️${enum.zodiac.libra}</a></u>libra\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♏️${enum.zodiac.scorpio}</a></u>scorpio\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♐️${enum.zodiac.sagittarius}</a></u>sagittarius\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♑️${enum.zodiac.capricorn}</a></u>capricorn\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♓️${enum.zodiac.pisces}</a></u>pisces\n";
         Horoscope.HoroscopeData data = getHoroscopeData();
         Update update = TestUtils.getUpdateFromGroup("horoscope");
 
@@ -114,18 +114,18 @@ class HoroscopeTest {
         final String expectedResponseText = "${command.horoscope.caption} <b>Анти</b>\n" +
                 "(today)\n" +
                 "\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♈️Овен</a></u>aries\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♉️Телец</a></u>taurus\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♊️Близнецы</a></u>gemini\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♋️Рак</a></u>cancer\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♌️Лев</a></u>leo\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♍️Дева</a></u>virgo\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♎️Весы</a></u>libra\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♏️Скорпион</a></u>scorpio\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♐️Стрелец</a></u>sagittarius\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♑️Козерог</a></u>capricorn\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♒️Водолей</a></u>aquarius\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♓️Рыбы</a></u>pisces\n";
+                "<u><a href=\"https://ignio.com/r/daily/\">♈️${enum.zodiac.aries}</a></u>aries\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♉️${enum.zodiac.taurus}</a></u>taurus\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♊️${enum.zodiac.gemini}</a></u>gemini\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♋️${enum.zodiac.cancer}</a></u>cancer\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♌️${enum.zodiac.leo}</a></u>leo\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♍️${enum.zodiac.virgo}</a></u>virgo\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♎️${enum.zodiac.libra}</a></u>libra\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♏️${enum.zodiac.scorpio}</a></u>scorpio\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♐️${enum.zodiac.sagittarius}</a></u>sagittarius\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♑️${enum.zodiac.capricorn}</a></u>capricorn\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius\n" +
+                "<u><a href=\"https://ignio.com/r/daily/\">♓️${enum.zodiac.pisces}</a></u>pisces\n";
         Horoscope.HoroscopeData data = getHoroscopeData();
         Update update = TestUtils.getUpdateFromGroup("horoscope_anti");
 
@@ -143,7 +143,7 @@ class HoroscopeTest {
     void parseKnownHoroscopeWithZodiacSetTest() throws IOException {
         final String expectedResponseText = "${command.horoscope.caption} <b>Анти</b>\n" +
                 "(today)\n" +
-                "<u><a href=\"https://ignio.com/r/daily/\">♒️Водолей</a></u>aquarius";
+                "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius";
         Horoscope.HoroscopeData data = getHoroscopeData();
         Update update = TestUtils.getUpdateFromGroup("horoscope_anti");
 
