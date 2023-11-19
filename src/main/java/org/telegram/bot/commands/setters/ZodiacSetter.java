@@ -9,6 +9,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.domain.enums.Zodiac;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -19,28 +20,41 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import javax.annotation.PostConstruct;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String SELECT_ZODIAC_COMMAND = "зодиак ${setter.zodiac.select}";
+    private static final String UPDATE_ZODIAC_COMMAND = "зодиак ${setter.zodiac.update}";
+    private static final String CALLBACK_SELECT_ZODIAC_COMMAND = CALLBACK_COMMAND + SELECT_ZODIAC_COMMAND;
+
+    private final java.util.Set<String> emptyZodiacCommands = new HashSet<>();
+    private final java.util.Set<String> selectZodiacCommands = new HashSet<>();
+    private final java.util.Set<String> updateZodiacCommands = new HashSet<>();
+
     private final UserZodiacService userZodiacService;
     private final SpeechService speechService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String SELECT_ZODIAC_COMMAND = "зодиак выбрать";
-    private final String UPDATE_ZODIAC_COMMAND = "зодиак обновить";
-    private final String CALLBACK_SELECT_ZODIAC_COMMAND = CALLBACK_COMMAND + SELECT_ZODIAC_COMMAND;
+    @PostConstruct
+    private void postConstruct() {
+        emptyZodiacCommands.addAll(internationalizationService.getAllTranslations("setter.zodiac.emptycommand"));
+        selectZodiacCommands.addAll(internationalizationService.internationalize(SELECT_ZODIAC_COMMAND));
+        updateZodiacCommands.addAll(internationalizationService.internationalize(UPDATE_ZODIAC_COMMAND));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        return command.startsWith("зодиак");
+        return emptyZodiacCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -54,21 +68,20 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        String EMPTY_CITY_COMMAND = "зодиак";
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_ZODIAC_COMMAND)) {
+            if (emptyZodiacCommands.contains(lowerCaseCommandText) || updateZodiacCommands.contains(lowerCaseCommandText)) {
                 return getUserZodiacWithKeyboard(message, chat, user, false);
-            } else if (lowerCaseCommandText.startsWith(SELECT_ZODIAC_COMMAND)) {
+            } else if (containsStartWith(selectZodiacCommands, lowerCaseCommandText)) {
                 return selectZodiacByCallback(message, chat, user, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
+        if (emptyZodiacCommands.contains(lowerCaseCommandText)) {
             return getUserZodiacWithKeyboard(message,  chat, user, true);
-        } else if (lowerCaseCommandText.startsWith(SELECT_ZODIAC_COMMAND)) {
+        } else if (containsStartWith(selectZodiacCommands, lowerCaseCommandText)) {
             return selectUserZodiac(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -76,15 +89,16 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectZodiacByCallback(Message message, Chat chat, User user, String command) throws BotException {
-        command = command.replace(CALLBACK_COMMAND, "");
+//        command = command.replace(CALLBACK_COMMAND, "");
 
-        if (command.equals(SELECT_ZODIAC_COMMAND)) {
+        String selectZodiacCommand = getLocalizedCommand(command, SELECT_ZODIAC_COMMAND);
+        if (command.equals(selectZodiacCommand)) {
             return getUserZodiacWithKeyboard(message, chat, user, false);
         }
 
         Zodiac zodiac;
         try {
-            zodiac = Zodiac.valueOf(command.substring(SELECT_ZODIAC_COMMAND.length() + 1));
+            zodiac = Zodiac.valueOf(command.substring(selectZodiacCommand.length() + 1));
         } catch (IllegalArgumentException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -101,14 +115,16 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectUserZodiac(Message message, Chat chat, User user, String command) throws BotException {
+        String selectZodiacCommand = getLocalizedCommand(command, SELECT_ZODIAC_COMMAND);
         log.debug("Request to select userTv");
-        if (command.equals(SELECT_ZODIAC_COMMAND)) {
+
+        if (command.equals(selectZodiacCommand)) {
             return selectZodiacByCallback(message,  chat, user, SELECT_ZODIAC_COMMAND);
         }
 
         Zodiac zodiac;
         try {
-            zodiac = Zodiac.findByNames((command.substring(SELECT_ZODIAC_COMMAND.length() + 1)).toUpperCase(Locale.ROOT));
+            zodiac = Zodiac.findByNames((command.substring(selectZodiacCommand.length() + 1)).toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -133,18 +149,18 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
     private PartialBotApiMethod<?> getUserZodiacWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
         UserZodiac userZodiac = userZodiacService.get(chat, user);
 
-        String zodiacNameRu;
+        String zodiacName;
         if (userZodiac == null) {
-            zodiacNameRu = "Не выбран";
+            zodiacName = "${setter.zodiac.notset}";
         } else {
-            zodiacNameRu = userZodiac.getZodiac().getNameRu();
+            zodiacName = userZodiac.getZodiac().getName();
         }
 
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.enableHtml(true);
-            sendMessage.setText("Выбранный зодиак: <b>" + zodiacNameRu + "</b>");
+            sendMessage.setText("${setter.zodiac.chosenzodiac}: <b>" + zodiacName + "</b>");
             sendMessage.setReplyMarkup(prepareKeyboardWithUserTvList());
 
             return sendMessage;
@@ -154,7 +170,7 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableHtml(true);
-        editMessageText.setText("Выбранный зодиак: <b>" + zodiacNameRu + "</b>");
+        editMessageText.setText("${setter.zodiac.chosenzodiac}: <b>" + zodiacName + "</b>");
         editMessageText.setReplyMarkup(prepareKeyboardWithUserTvList());
 
         return editMessageText;
@@ -165,7 +181,7 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
 
             InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-            inlineKeyboardButton.setText(zodiac.getEmoji() + zodiac.getNameRu());
+            inlineKeyboardButton.setText(zodiac.getEmoji() + zodiac.getName());
             inlineKeyboardButton.setCallbackData(CALLBACK_SELECT_ZODIAC_COMMAND + " " + zodiac.name());
 
             selectButtonRow.add(inlineKeyboardButton);
@@ -175,13 +191,13 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.zodiac.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_ZODIAC_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.zodiac.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -193,4 +209,17 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
 
         return inlineKeyboardMarkup;
     }
+
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
+
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
+    }
+
 }

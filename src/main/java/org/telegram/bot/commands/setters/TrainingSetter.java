@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -27,43 +28,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.telegram.bot.utils.DateUtils.*;
-import static org.telegram.bot.utils.TextUtils.BORDER;
+import static org.telegram.bot.utils.TextUtils.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
-    private final SpeechService speechService;
-    private final CommandWaitingService commandWaitingService;
-    private final TrainSubscriptionService trainSubscriptionService;
-    private final TrainingService trainingService;
-    private final TrainingScheduledService trainingScheduledService;
-    private final TrainingStoppedService trainingStoppedService;
-    private final BotStats botStats;
-
-    private static final Locale LOCALE = new Locale("ru");
-    private static final String CALLBACK_COMMAND = "установить ";
-    private static final String EMPTY_SET_COMMAND = "тренировки";
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String EMPTY_SET_COMMAND = "training";
     private static final String CALLBACK_SET_COMMAND = CALLBACK_COMMAND + EMPTY_SET_COMMAND;
-    private static final String SET_SUBSCRIPTION_COMMAND = "sub";
-    private static final String DELETE_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND + "d";
+    private static final String SUBSCRIPTION_COMMAND = "sub";
+    private static final String SET_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SUBSCRIPTION_COMMAND;
+    private static final String DELETE_SUBSCRIPTION_COMMAND = SET_SUBSCRIPTION_COMMAND + "d";
     private static final String CALLBACK_DELETE_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + DELETE_SUBSCRIPTION_COMMAND;
-    private static final String ADD_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND + "a";
+    private static final String ADD_SUBSCRIPTION_COMMAND = SET_SUBSCRIPTION_COMMAND + "a";
     private static final String CALLBACK_ADD_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + ADD_SUBSCRIPTION_COMMAND;
-    private static final String UPDATE_SUBSCRIPTION_COMMAND = EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND + "u";
+    private static final String UPDATE_SUBSCRIPTION_COMMAND = SET_SUBSCRIPTION_COMMAND + "u";
     private static final String CALLBACK_UPDATE_SUBSCRIPTION_COMMAND = CALLBACK_COMMAND + UPDATE_SUBSCRIPTION_COMMAND;
-    private static final String SET_TRAINING_COMMAND = "train";
-    private static final String DELETE_TRAINING_COMMAND = EMPTY_SET_COMMAND + SET_TRAINING_COMMAND + "d";
+    private static final String TRAINING_COMMAND = "train";
+    private static final String SET_TRAINING_COMMAND = EMPTY_SET_COMMAND + TRAINING_COMMAND;
+    private static final String DELETE_TRAINING_COMMAND = SET_TRAINING_COMMAND + "d";
     private static final String CALLBACK_DELETE_TRAINING_COMMAND = CALLBACK_COMMAND + DELETE_TRAINING_COMMAND;
-    private static final String ADD_TRAINING_COMMAND = EMPTY_SET_COMMAND + SET_TRAINING_COMMAND + "a";
+    private static final String ADD_TRAINING_COMMAND = SET_TRAINING_COMMAND + "a";
     private static final String CALLBACK_ADD_TRAINING_COMMAND = CALLBACK_COMMAND + ADD_TRAINING_COMMAND;
-    private static final String SET_SCHEDULE_COMMAND = "sch";
+    private static final String SCHEDULE_COMMAND = "sch";
+    private static final String SET_SCHEDULE_COMMAND = EMPTY_SET_COMMAND + SCHEDULE_COMMAND;
     private static final String DELETE_SCHEDULE_COMMAND = "d";
     private static final String ADD_SCHEDULE_COMMAND = "a";
-    private static final String STOP_SCHEDULE_COMMAND = EMPTY_SET_COMMAND + SET_SCHEDULE_COMMAND + "s";
+    private static final String STOP_SCHEDULE_COMMAND = SET_SCHEDULE_COMMAND + "s";
     private static final String CALLBACK_STOP_SCHEDULE_COMMAND = CALLBACK_COMMAND + STOP_SCHEDULE_COMMAND;
-    private static final String SELECT_DAY_SCHEDULE_COMMAND = EMPTY_SET_COMMAND + SET_SCHEDULE_COMMAND + "w";
+    private static final String SELECT_DAY_SCHEDULE_COMMAND = SET_SCHEDULE_COMMAND + "w";
     private static final String CALLBACK_SELECT_DAY_SCHEDULE_COMMAND = CALLBACK_COMMAND + SELECT_DAY_SCHEDULE_COMMAND;
     private static final String COUNT_ABBR = "c";
     private static final String DATE_ABBR = "da";
@@ -91,7 +86,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private static final String SELECT_DAY_OF_WEEK_COMMAND = DAY_WEEK_ABBR + "\\d+";
     private static final String ADD_TRAINING_ENTITY_COMMAND = ADD_TRAINING_ABBR + "\\d+";
     private static final String REMOVE_TRAINING_ENTITY_COMMAND = REMOVE_TRAINING_ABBR + "\\d+";
-    private static final String SELECT_WEEK_DAY_COMMAND = SET_SCHEDULE_COMMAND + SELECT_DAY_OF_WEEK_COMMAND;
+    private static final String SELECT_WEEK_DAY_COMMAND = SCHEDULE_COMMAND + SELECT_DAY_OF_WEEK_COMMAND;
     private static final String SELECT_WEEK_DAY_ADD_TRAINING_COMMAND = SELECT_WEEK_DAY_COMMAND + ADD_TRAINING_ENTITY_COMMAND;
     private static final String SELECT_WEEK_DAY_REMOVE_TRAINING_COMMAND = SELECT_WEEK_DAY_COMMAND + REMOVE_TRAINING_ENTITY_COMMAND;
 
@@ -105,7 +100,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private static final Pattern SET_COUNT_PATTERN =  Pattern.compile(SET_COUNT_COMMAND);
     private static final Pattern SET_DATE_PATTERN = Pattern.compile(SET_DATE_COMMAND);
     private static final Pattern SET_DURATION_PATTERN = Pattern.compile(SET_DURATION_COMMAND);
-    private static final Pattern UPDATE_SUB_PATTERN = Pattern.compile(UPDATE_SUBSCRIPTION_COMMAND + "\\d");
+    private static final Pattern UPDATE_SUB_PATTERN = Pattern.compile(UPDATE_SUBSCRIPTION_COMMAND + "\\d+");
     private static final Pattern SET_TRAINING_PATTERN = Pattern.compile(ADD_TRAINING_COMMAND);
     private static final Pattern SET_TRAINING_ADD_PATTERN = Pattern.compile(SET_TRAINING_TIME_COMMAND);
     private static final Pattern SET_TRAINING_ADD_TIME_END_PATTERN = Pattern.compile(SET_TRAINING_TIME_END_COMMAND);
@@ -122,9 +117,32 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private static final Pattern ADD_TRAINING_ENTITY_COMMAND_PATTERN = Pattern.compile(ADD_TRAINING_ENTITY_COMMAND);
     private static final Pattern REMOVE_TRAINING_ENTITY_COMMAND_PATTERN = Pattern.compile(REMOVE_TRAINING_ENTITY_COMMAND);
 
+    private final java.util.Set<String> emptyTrainingCommands = new HashSet<>();
+    private final java.util.Set<String> subscriptionCommands = new HashSet<>();
+    private final java.util.Set<String> trainingCommands = new HashSet<>();
+    private final java.util.Set<String> scheduleCommands = new HashSet<>();
+
+    private final SpeechService speechService;
+    private final CommandWaitingService commandWaitingService;
+    private final TrainSubscriptionService trainSubscriptionService;
+    private final TrainingService trainingService;
+    private final TrainingScheduledService trainingScheduledService;
+    private final TrainingStoppedService trainingStoppedService;
+    private final InternationalizationService internationalizationService;
+    private final LanguageResolver languageResolver;
+    private final BotStats botStats;
+
+    @PostConstruct
+    private void postConstruct() {
+        emptyTrainingCommands.addAll(internationalizationService.getAllTranslations("setter.training.emptycommand"));
+        subscriptionCommands.addAll(internationalizationService.internationalize(SET_SUBSCRIPTION_COMMAND));
+        trainingCommands.addAll(internationalizationService.internationalize(SET_TRAINING_COMMAND));
+        scheduleCommands.addAll(internationalizationService.internationalize(SET_SCHEDULE_COMMAND));
+    }
+
     @Override
     public boolean canProcessed(String command) {
-        return command.startsWith("тренировки");
+        return emptyTrainingCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -141,24 +159,24 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_SET_COMMAND)) {
+            if (emptyTrainingCommands.contains(lowerCaseCommandText)) {
                 return getSetterMainMenu(message, false);
-            } else if (lowerCaseCommandText.startsWith(EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND)) {
+            } else if (containsStartWith(subscriptionCommands, lowerCaseCommandText)) {
                 return setSubscription(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(EMPTY_SET_COMMAND + SET_TRAINING_COMMAND)) {
+            } else if (containsStartWith(trainingCommands, lowerCaseCommandText)) {
                 return setTraining(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(EMPTY_SET_COMMAND + SET_SCHEDULE_COMMAND)) {
+            } else if (containsStartWith(scheduleCommands, lowerCaseCommandText)) {
                 return setSchedule(message, chat, user, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_SET_COMMAND)) {
+        if (emptyTrainingCommands.contains(lowerCaseCommandText)) {
             return getSetterMainMenu(message, true);
         }
-        if (lowerCaseCommandText.startsWith(EMPTY_SET_COMMAND + SET_SUBSCRIPTION_COMMAND)) {
+        if (containsStartWith(subscriptionCommands, lowerCaseCommandText)) {
             return setSubscription(message, chat, user, commandText);
-        } else if (lowerCaseCommandText.startsWith(EMPTY_SET_COMMAND + SET_TRAINING_COMMAND)) {
+        } else if (containsStartWith(trainingCommands, lowerCaseCommandText)) {
             return setTraining(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -223,21 +241,22 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
                     + COUNT_ABBR + " " + count
                     + DATE_ABBR + " " + DateUtils.formatDate(date)
                     + DURATION_ABBR);
-            responseText = "напиши мне время действия абонемента числом в календарных месяцах (1, 2, 3, 6 и т.п.)";
+            responseText = "${setter.training.subscr.help.during}";
         } else if (setSubCountMatcher.find()) {
             Integer count = parseCount(command);
 
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_ADD_SUBSCRIPTION_COMMAND
                     + COUNT_ABBR + " " + count
                     + DATE_ABBR);
-            responseText = "Напиши мне дату начала действия абонемента в формате ДД.ММ.ГГГГ, " +
-                    "например: <code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
+            responseText = "${setter.training.subscr.help.datestart}: " +
+                    "<code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
         } else if (setSubMatcher.find()) {
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_ADD_SUBSCRIPTION_COMMAND
                     + COUNT_ABBR);
-            responseText = "Напиши мне число тренировок в абонементе";
+            responseText = "${setter.training.subscr.help.count}";
         } else if (setDeleteMatcher.find()) {
-            long subscriptionId = parseId(command, DELETE_SUBSCRIPTION_COMMAND.length());
+            String deleteSubscriptionCommand = getLocalizedCommand(command, DELETE_SUBSCRIPTION_COMMAND);
+            long subscriptionId = parseId(command, deleteSubscriptionCommand.length());
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
@@ -252,7 +271,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
-                botStats.incrementErrors(message, "Запрошен несуществующий абонемент при обновлении даты окончания");
+                botStats.incrementErrors(message, "Non-existent subscription requested when updating end date");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 
@@ -270,14 +289,13 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
             TrainSubscription trainSubscription = trainSubscriptionService.get(subscriptionId, user);
             if (trainSubscription == null) {
-                botStats.incrementErrors(message, "Запрошен несуществующий абонемент при удалении абонемента");
+                botStats.incrementErrors(message, "A non-existent subscription was requested when deleting a subscription");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscriptionId
                     + DATE_ABBR);
-            responseText = "Напиши мне дату окончания действия абонемента в формате ДД.ММ.ГГГГ, " +
-                    "например: <code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
+            responseText = "${setter.training.subscr.help.datestop}: <code>" + DateUtils.formatDate(LocalDate.now()) + "</code>";
         } else {
             return getManageSubscriptionsMenu(message, user, false);
         }
@@ -291,18 +309,18 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> getManageSubscriptionsMenu(Message message, User user, boolean newMessage) {
-        StringBuilder buf = new StringBuilder("<b>Текущие абонементы:</b>\n");
+        StringBuilder buf = new StringBuilder("<b>${setter.training.subscr.caption}:</b>\n");
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         List<TrainSubscription> trainSubscriptionList = trainSubscriptionService.getActive(user);
         if (trainSubscriptionList.isEmpty()) {
-            buf.append("отсутствуют");
+            buf.append("${setter.training.subscr.noavailable}");
         } else {
             trainSubscriptionList.forEach(subscription -> {
                 buf.append(DateUtils.formatDate(subscription.getStartDate())).append("\n")
-                        .append("Занятий: ").append(subscription.getCount()).append("\n")
-                        .append("На ").append(subscription.getPeriod().getMonths()).append(" мес.")
-                        .append(" (до ").append(DateUtils.formatDate(subscription.getStartDate().plus(subscription.getPeriod()))).append(")\n\n");
+                        .append("${setter.training.subscr.count}: ").append(subscription.getCount()).append("\n")
+                        .append("${setter.training.subscr.for} ").append(subscription.getPeriod().getMonths()).append(" ${setter.training.subscr.month}.")
+                        .append(" (${setter.training.subscr.until} ").append(DateUtils.formatDate(subscription.getStartDate().plus(subscription.getPeriod()))).append(")\n\n");
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton subscriptionDeleteButton = new InlineKeyboardButton();
@@ -321,7 +339,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addRow = new ArrayList<>();
         InlineKeyboardButton addSubscriptionButton = new InlineKeyboardButton();
-        addSubscriptionButton.setText(Emoji.NEW.getEmoji() + "Добавить");
+        addSubscriptionButton.setText(Emoji.NEW.getEmoji() + "${setter.training.subscr.button.add}");
         addSubscriptionButton.setCallbackData(CALLBACK_ADD_SUBSCRIPTION_COMMAND);
         addRow.add(addSubscriptionButton);
 
@@ -392,7 +410,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             LocalTime timeEnd = parseTime(SET_TIME_END_COMMAND_PATTERN, command, TIME_END_ABBR);
             Float cost = parseCost(command);
 
-            responseText = "Напиши мне наименование тренировки";
+            responseText = "${setter.training.training.help.name}";
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + TIME_ABBR + " " + formatShortTime(time)
                     + TIME_END_ABBR + " " + formatShortTime(timeEnd)
@@ -406,23 +424,22 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
                     + TIME_ABBR + " " + formatShortTime(time)
                     + TIME_END_ABBR + " " + formatShortTime(timeEnd)
                     + COST_ABBR);
-            responseText = "Напиши мне стоимость тренировки (1 — одно занятие, 0,5 — половина занятия, 2 и т.п.)";
+            responseText = "${setter.training.training.help.cost}";
         } else if (setTrainingAddMatcher.find()) {
             LocalTime time = parseTime(SET_TIME_COMMAND_PATTERN, command, TIME_ABBR);
 
-            responseText = "Напиши мне время окончания тренировки в формате ЧЧ:ММ. " +
-                    "Например: <code>" + formatShortTime(time.plusHours(1)) + "</code>";
+            responseText = "${setter.training.training.help.timestop}: <code>" + formatShortTime(time.plusHours(1)) + "</code>";
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + TIME_ABBR + " " + formatShortTime(time)
                     + TIME_END_ABBR);
         } else if (setTrainingMatcher.find()) {
             LocalTime localTimeNow = LocalTime.now();
-            responseText = "Напиши мне время начала тренировки в формате ЧЧ:ММ. " +
-                    "Например: <code>" + formatShortTime(localTimeNow.minusMinutes(localTimeNow.getMinute())) + "</code>";
+            responseText = "${setter.training.training.help.timestart}: <code>" + formatShortTime(localTimeNow.minusMinutes(localTimeNow.getMinute())) + "</code>";
             commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_ADD_TRAINING_COMMAND
                     + TIME_ABBR);
         } else if (setTrainingDeleteMatcher.find()) {
-            long trainingId = parseId(command, DELETE_TRAINING_COMMAND.length());
+            String deleteTrainingCommand = getLocalizedCommand(command, DELETE_TRAINING_COMMAND);
+            long trainingId = parseId(command, deleteTrainingCommand.length());
 
             Training training = trainingService.get(user, trainingId);
             if (training == null) {
@@ -447,12 +464,12 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> getManageTrainingMenu(Message message, User user, boolean newMessage) {
-        StringBuilder buf = new StringBuilder("<b>Текущие тренировки:</b>\n");
+        StringBuilder buf = new StringBuilder("<b>${setter.training.training.caption}:</b>\n");
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         List<Training> trainingList = trainingService.get(user);
         if (trainingList.isEmpty()) {
-            buf.append("отсутствуют");
+            buf.append("${setter.training.training.noavailable}");
         } else {
             trainingList.forEach(training -> {
                 buf.append(training.getName()).append(" — ").append(formatShortTime(training.getTimeStart())).append(" (").append(training.getCost()).append(")\n");
@@ -469,7 +486,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addRow = new ArrayList<>();
         InlineKeyboardButton addTrainingButton = new InlineKeyboardButton();
-        addTrainingButton.setText(Emoji.NEW.getEmoji() + "Добавить");
+        addTrainingButton.setText(Emoji.NEW.getEmoji() + "${setter.training.training.button.add}");
         addTrainingButton.setCallbackData(CALLBACK_ADD_TRAINING_COMMAND);
         addRow.add(addTrainingButton);
 
@@ -557,22 +574,23 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText getManageScheduleMenu(Message message, User user) {
-        StringBuilder buf = new StringBuilder("<b>Текущие тренировки:</b>\n");
+        StringBuilder buf = new StringBuilder("<b>${setter.training.schedule.caption}:</b>\n");
 
         boolean scheduleStopped = trainingStoppedService.isStopped(user);
         if (scheduleStopped) {
-            buf.append("<u>РАСПИСАНИЕ ОСТАНОВЛЕНО</u>\n\n");
+            buf.append("<u>${setter.training.schedule.stopped}</u>\n\n");
         }
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
 
+        Locale locale = languageResolver.getLocale(message, user);
         List<TrainingScheduled> trainingScheduledList = trainingScheduledService.get(user);
         if (trainingScheduledList.isEmpty()) {
-            buf.append("отсутствуют");
+            buf.append("${setter.training.schedule.noavailable}");
         } else {
             Arrays.stream(DayOfWeek.values()).forEach(dayOfWeek -> {
-                buf.append("<b>").append(dayOfWeek.getDisplayName(TextStyle.FULL, LOCALE)).append("</b>\n");
+                buf.append("<b>").append(dayOfWeek.getDisplayName(TextStyle.FULL, locale)).append("</b>\n");
                 trainingScheduledList
                         .stream()
                         .filter(trainingScheduled -> dayOfWeek.equals(trainingScheduled.getDayOfWeek()))
@@ -584,17 +602,18 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         Arrays.stream(DayOfWeek.values()).forEach(dayOfWeek -> {
             InlineKeyboardButton dayOfWeekButton = new InlineKeyboardButton();
-            dayOfWeekButton.setText(dayOfWeek.getDisplayName(TextStyle.SHORT, LOCALE));
+            dayOfWeekButton.setText(dayOfWeek.getDisplayName(TextStyle.SHORT, locale));
             dayOfWeekButton.setCallbackData(CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue());
             daysOfWeekRow.add(dayOfWeekButton);
         });
 
         String caption;
         if (scheduleStopped) {
-            caption = Emoji.CHECK_MARK_BUTTON.getEmoji() + "Запустить расписание";
+            caption = Emoji.CHECK_MARK_BUTTON.getEmoji() + "${setter.training.schedule.start}";
         } else {
-            caption = Emoji.NO_ENTRY_SIGN.getEmoji() + "Остановить расписание";
+            caption = Emoji.NO_ENTRY_SIGN.getEmoji() + "${setter.training.schedule.stop}";
         }
+
         List<InlineKeyboardButton> stopRow = new ArrayList<>();
         InlineKeyboardButton stopButton = new InlineKeyboardButton();
         stopButton.setText(caption);
@@ -618,15 +637,18 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText getManageScheduleByDayOfWeekMenu(Message message, User user, DayOfWeek dayOfWeek) {
-        StringBuilder buf = new StringBuilder("<b>" + dayOfWeek.getDisplayName(TextStyle.FULL, LOCALE) + "</b>\n");
+        Locale locale = languageResolver.getLocale(message, user);
+        StringBuilder buf = new StringBuilder("<b>" + dayOfWeek.getDisplayName(TextStyle.FULL, locale) + "</b>\n");
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        final String selectDayOfWeekCallback = CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue();
+        final String selectDayOfWeekCallback = internationalizationService.internationalize(
+                CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue(),
+                locale.toLanguageTag());
 
         List<Long> alreadySelectedTrainingIdList = new ArrayList<>();
         List<Training> userTrainings = trainingService.get(user);
         List<TrainingScheduled> trainingScheduledList = trainingScheduledService.get(user, dayOfWeek);
         if (trainingScheduledList.isEmpty()) {
-            buf.append("отсутствуют");
+            buf.append("${setter.training.schedule.noavailable}");
         } else {
             trainingScheduledList.forEach(trainingScheduled -> {
                 Training training = trainingScheduled.getTraining();
@@ -674,7 +696,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
     private PartialBotApiMethod<?> getSetterMainMenu(Message message, boolean newMessage) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        String caption = "<b>Установки тренировок:</b>";
+        String caption = "<b>${setter.training.caption}:</b>";
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
@@ -703,31 +725,31 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private List<List<InlineKeyboardButton>> getSetterMainMenuButtons(List<List<InlineKeyboardButton>> rows) {
         List<InlineKeyboardButton> subscriptionButtonRow = new ArrayList<>();
         InlineKeyboardButton subscriptionButton = new InlineKeyboardButton();
-        subscriptionButton.setText(Emoji.TICKET.getEmoji() + "Абонемент");
-        subscriptionButton.setCallbackData(CALLBACK_SET_COMMAND + SET_SUBSCRIPTION_COMMAND);
+        subscriptionButton.setText(Emoji.TICKET.getEmoji() + "${setter.training.button.subscr}");
+        subscriptionButton.setCallbackData(CALLBACK_SET_COMMAND + SUBSCRIPTION_COMMAND);
         subscriptionButtonRow.add(subscriptionButton);
 
         List<InlineKeyboardButton> trainingButtonRow = new ArrayList<>();
         InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(Emoji.GREEN_BOOK.getEmoji() + "Номенклатура");
-        trainingButton.setCallbackData(CALLBACK_SET_COMMAND + SET_TRAINING_COMMAND);
+        trainingButton.setText(Emoji.GREEN_BOOK.getEmoji() + "${setter.training.button.nomenclature}");
+        trainingButton.setCallbackData(CALLBACK_SET_COMMAND + TRAINING_COMMAND);
         trainingButtonRow.add(trainingButton);
 
         List<InlineKeyboardButton> scheduleButtonRow = new ArrayList<>();
         InlineKeyboardButton scheduleButton = new InlineKeyboardButton();
-        scheduleButton.setText(Emoji.DATE.getEmoji() + "Расписание");
-        scheduleButton.setCallbackData(CALLBACK_SET_COMMAND + SET_SCHEDULE_COMMAND);
+        scheduleButton.setText(Emoji.DATE.getEmoji() + "${setter.training.button.schedule}");
+        scheduleButton.setCallbackData(CALLBACK_SET_COMMAND + SCHEDULE_COMMAND);
         scheduleButtonRow.add(scheduleButton);
 
         List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
         InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "Тренировки");
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "${setter.training.button.trainings}");
         infoButton.setCallbackData("training");
         infoButtonRow.add(infoButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.training.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -744,7 +766,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
         try {
             return Long.parseLong(text.substring(beginIndex));
         } catch (NumberFormatException e) {
-            botStats.incrementErrors(text, e, "Не удалось распарсить идентификатор");
+            botStats.incrementErrors(text, e, "Failed to parse ID");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
     }
@@ -804,8 +826,21 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
-            botStats.incrementErrors(matcher, "Не удалось распарсить" + parse.toString());
+            botStats.incrementErrors(matcher, "Failed to parse" + parse.toString());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
     }
+
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
+
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
+    }
+
 }

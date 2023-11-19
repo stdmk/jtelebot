@@ -121,7 +121,7 @@ public class Horoscope implements Command<SendMessage> {
 
             HoroscopeElement horoscopeElement = getHoroscopeElementByZodiacName(horoscopeData, zodiac);
 
-            buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getNameRu()).append("</a></u>");
+            buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
             buf.append(horoscopeElement.getToday()).append("\n");
         });
 
@@ -136,7 +136,7 @@ public class Horoscope implements Command<SendMessage> {
 
         HoroscopeElement horoscopeElement = getHoroscopeElementByZodiacName(horoscopeData, zodiac);
 
-        buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getNameRu()).append("</a></u>");
+        buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
         buf.append(horoscopeElement.getToday());
 
         return buf.toString();

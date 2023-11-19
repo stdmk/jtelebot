@@ -13,10 +13,7 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.TvChannelService;
-import org.telegram.bot.services.UserTvService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -25,32 +22,50 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import javax.annotation.PostConstruct;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String EMPTY_CITY_COMMAND = "${setter.tv.emptycommand}";
+    private static final String UPDATE_TV_COMMAND = EMPTY_CITY_COMMAND + " ${setter.tv.update}";
+    private static final String SELECT_TV_COMMAND = EMPTY_CITY_COMMAND + " ${setter.tv.select}";
+    private static final String CALLBACK_SELECT_TV_COMMAND = CALLBACK_COMMAND + SELECT_TV_COMMAND;
+    private static final String SELECT_PAGE_TV_LIST = SELECT_TV_COMMAND + " page";
+    private static final String CALLBACK_SELECT_PAGE_TV_LIST = CALLBACK_COMMAND + SELECT_PAGE_TV_LIST;
+    private static final String DELETE_TV_COMMAND = EMPTY_CITY_COMMAND + " ${setter.tv.delete}";
+    private static final String CALLBACK_DELETE_TV_COMMAND = CALLBACK_COMMAND + DELETE_TV_COMMAND;
+
+    private final java.util.Set<String> emptyTvCommands = new HashSet<>();
+    private final java.util.Set<String> updateTvCommands = new HashSet<>();
+    private final java.util.Set<String> selectTvCommands = new HashSet<>();
+    private final java.util.Set<String> deleteTvCommands = new HashSet<>();
+
     private final UserTvService userTvService;
     private final SpeechService speechService;
     private final TvChannelService tvChannelService;
     private final CommandWaitingService commandWaitingService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String UPDATE_TV_COMMAND = "тв обновить";
-    private final String SELECT_TV_COMMAND = "тв выбрать";
-    private final String CALLBACK_SELECT_TV_COMMAND = CALLBACK_COMMAND + SELECT_TV_COMMAND;
-    private final String SELECT_PAGE_TV_LIST = SELECT_TV_COMMAND + " page";
-    private final String DELETE_TV_COMMAND = "тв удалить";
-    private final String CALLBACK_DELETE_TV_COMMAND = CALLBACK_COMMAND + DELETE_TV_COMMAND;
+    @PostConstruct
+    private void postConstruct() {
+        emptyTvCommands.addAll(internationalizationService.getAllTranslations("setter.tv.emptycommand"));
+        updateTvCommands.addAll(internationalizationService.internationalize(UPDATE_TV_COMMAND));
+        selectTvCommands.addAll(internationalizationService.internationalize(SELECT_TV_COMMAND));
+        deleteTvCommands.addAll(internationalizationService.internationalize(DELETE_TV_COMMAND));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        return command.startsWith("тв");
+        return emptyTvCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -64,47 +79,52 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        String EMPTY_CITY_COMMAND = "тв";
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND) || lowerCaseCommandText.equals(UPDATE_TV_COMMAND)) {
+            if (emptyTvCommands.contains(lowerCaseCommandText) || updateTvCommands.contains(lowerCaseCommandText)) {
                 return getUserTvListWithKeyboard(message, chat, user, false);
-            } else if (lowerCaseCommandText.startsWith(SELECT_TV_COMMAND)) {
+            } else if (containsStartWith(selectTvCommands, lowerCaseCommandText)) {
                 return selectTvByCallback(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(DELETE_TV_COMMAND)) {
+            } else if (containsStartWith(deleteTvCommands, lowerCaseCommandText)) {
                 return getKeyboardWithDeletingTvChannels(message, chat, user, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_CITY_COMMAND)) {
+        if (emptyTvCommands.contains(lowerCaseCommandText)) {
             return getUserTvListWithKeyboard(message,  chat, user, true);
-        } else if (lowerCaseCommandText.startsWith(DELETE_TV_COMMAND)) {
+        } else if (containsStartWith(deleteTvCommands, lowerCaseCommandText)) {
             return deleteUserTv(message, chat, user, commandText);
-        } else if (lowerCaseCommandText.startsWith(SELECT_TV_COMMAND)) {
+        } else if (containsStartWith(selectTvCommands, lowerCaseCommandText)) {
             return selectUserTv(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
-    private EditMessageText selectTvByCallback(Message message, Chat chat, User user, String command) throws BotException {
-        command = command.replace(CALLBACK_COMMAND, "");
+    private EditMessageText selectTvByCallback(Message message, Chat chat, User user, String command) {
+//        String callbackCommand = getLocalizedCommand(command, CALLBACK_COMMAND);
+//        command = command.replace(callbackCommand, "");
 
-        if (command.equals(SELECT_TV_COMMAND)) {
-            return getKeyboardWithSelectingTvChannels(message, chat, user, 0);
-        } else if (command.startsWith(SELECT_PAGE_TV_LIST)) {
-            return getKeyboardWithSelectingTvChannels(
-                    message,
-                    chat,
-                    user,
-                    Integer.parseInt(command.substring(SELECT_PAGE_TV_LIST.length())));
+        String selectTvCommand = getLocalizedCommand(command, SELECT_TV_COMMAND);
+        if (command.equals(selectTvCommand)) {
+            return getKeyboardWithSelectingTvChannels(message, 0);
+        }
+
+        Set<String> selectPageTvListCommandSet = internationalizationService.internationalize(SELECT_PAGE_TV_LIST);
+        if (selectPageTvListCommandSet != null) {
+            String selectPageTvListCommand = getStartsWith(selectPageTvListCommandSet, command);
+            if (selectPageTvListCommand != null) {
+                return getKeyboardWithSelectingTvChannels(
+                        message,
+                        Integer.parseInt(command.substring(selectPageTvListCommand.length())));
+            }
         }
 
         int tvChannelId;
         try {
-            tvChannelId = Integer.parseInt(command.substring(SELECT_TV_COMMAND.length() + 1));
+            tvChannelId = Integer.parseInt(command.substring(selectTvCommand.length() + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -127,7 +147,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         return (EditMessageText) getUserTvListWithKeyboard(message, chat, user, false);
     }
 
-    private EditMessageText getKeyboardWithSelectingTvChannels(Message message, Chat chat, User user, int page) {
+    private EditMessageText getKeyboardWithSelectingTvChannels(Message message, int page) {
         Page<TvChannel> tvChannelList = tvChannelService.getAll(page);
 
         List<List<InlineKeyboardButton>> tvChannelRows = tvChannelList.stream().map(tvChannel -> {
@@ -143,10 +163,9 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         }).collect(Collectors.toList());
 
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
-        String CALLBACK_SELECT_PAGE_TV_LIST = CALLBACK_COMMAND + SELECT_PAGE_TV_LIST;
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
+            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${setter.tv.button.back}");
             backButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page - 1));
 
             pagesRow.add(backButton);
@@ -154,7 +173,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         if (page < tvChannelList.getTotalPages()) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${setter.tv.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
             forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -169,14 +188,15 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableMarkdown(true);
-        editMessageText.setText("Выбери телеканал из списка");
+        editMessageText.setText("${setter.tv.selecthelp}");
         editMessageText.setReplyMarkup(inlineKeyboardMarkup);
 
         return editMessageText;
     }
 
     private EditMessageText getKeyboardWithDeletingTvChannels(Message message, Chat chat, User user, String commandText) throws BotException {
-        if (!DELETE_TV_COMMAND.equals(commandText)) {
+        String deleteTvCommand = getLocalizedCommand(commandText, DELETE_TV_COMMAND);
+        if (!deleteTvCommand.equals(commandText)) {
             deleteUserTv(message, chat, user, commandText);
         }
 
@@ -201,7 +221,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         editMessageText.setChatId(message.getChatId().toString());
         editMessageText.setMessageId(message.getMessageId());
         editMessageText.enableMarkdown(true);
-        editMessageText.setText("Список выбранных телеканалов");
+        editMessageText.setText("${setter.tv.selectedchannels}");
         editMessageText.setReplyMarkup(inlineKeyboardMarkup);
 
         return editMessageText;
@@ -232,11 +252,12 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private SendMessage deleteUserTv(Message message, Chat chat, User user, String command) throws BotException {
+        String deleteTvCommand = getLocalizedCommand(command, DELETE_TV_COMMAND);
         log.debug("Request to delete userTv");
 
         String params;
         try {
-            params = command.substring(DELETE_TV_COMMAND.length() + 1);
+            params = command.substring(deleteTvCommand.length() + 1);
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -267,12 +288,14 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectUserTv(Message message, Chat chat, User user, String command) throws BotException {
+        String selectTvCommand = getLocalizedCommand(command, SELECT_TV_COMMAND);
         log.debug("Request to select userTv");
-        if (command.equals(SELECT_TV_COMMAND)) {
+
+        if (command.equals(selectTvCommand)) {
             return selectTvByCallback(message,  chat, user, SELECT_TV_COMMAND);
         }
 
-        String param = command.substring(SELECT_TV_COMMAND.length() + 1);
+        String param = command.substring(selectTvCommand.length() + 1);
 
         String tvChannelName = param.toLowerCase(Locale.ROOT);
         TvChannel tvChannel = tvChannelService.get(tvChannelName)
@@ -314,25 +337,25 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "Выбрать");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.tv.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_TV_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.tv.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.tv.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.tv.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -346,7 +369,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
     private String prepareTextOfListUserTvList(List<UserTv> userTvList) {
         final StringBuilder buf = new StringBuilder();
-        buf.append("<b>Список выбранных тв-каналов:</b>\n");
+        buf.append("<b>${setter.tv.selectedchannels}:</b>\n");
 
         userTvList.forEach(userTv -> buf
                 .append(userTv.getId()).append(". ")
@@ -360,25 +383,25 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "Удалить");
+        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.tv.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NEW.getEmoji() + "Выбрать");
+        selectButton.setText(Emoji.NEW.getEmoji() + "${setter.tv.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_TV_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.tv.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.tv.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -403,13 +426,16 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private EditMessageText buildEditMessageWithText(Message message, String text) {
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText(text);
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
 
-        return editMessageText;
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
     }
+
 }

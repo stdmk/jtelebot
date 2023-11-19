@@ -12,6 +12,7 @@ import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TalkerDegreeService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -22,28 +23,43 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String EMPTY_TALKER_COMMAND = "${setter.talker.emptycommand}";
+    private static final String CALLBACK_SET_TALKER_COMMAND = CALLBACK_COMMAND + EMPTY_TALKER_COMMAND;
+    private static final String SET_IDLE_MINUTES_COMMAND = EMPTY_TALKER_COMMAND + "m";
+    private static final String CALLBACK_SET_IDLE_MINUTES_COMMAND = CALLBACK_COMMAND + SET_IDLE_MINUTES_COMMAND;
+
+    private final java.util.Set<String> emptyTalkerCommands = new HashSet<>();
+    private final java.util.Set<String> setIdleCommands = new HashSet<>();
+
     private final TalkerDegreeService talkerDegreeService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String EMPTY_TALKER_COMMAND = "болтун";
-    private final String CALLBACK_SET_TALKER_COMMAND = CALLBACK_COMMAND + EMPTY_TALKER_COMMAND;
-    private final String SET_IDLE_MINUTES_COMMAND = EMPTY_TALKER_COMMAND + "m";
-    private final String CALLBACK_SET_IDLE_MINUTES_COMMAND = CALLBACK_COMMAND + SET_IDLE_MINUTES_COMMAND;
+    @PostConstruct
+    private void postConstruct() {
+        emptyTalkerCommands.addAll(internationalizationService.getAllTranslations("setter.talker.emptycommand"));
+        setIdleCommands.addAll(internationalizationService.internationalize(SET_IDLE_MINUTES_COMMAND));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        return command.startsWith("болтун");
+        return emptyTalkerCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -60,21 +76,21 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         if (update.hasCallbackQuery()) {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
-            if (lowerCaseCommandText.equals(EMPTY_TALKER_COMMAND)) {
+            if (emptyTalkerCommands.contains(lowerCaseCommandText)) {
                 return getTalkerSetterWithKeyboard(message, chat, false);
-            } else if (lowerCaseCommandText.startsWith(SET_IDLE_MINUTES_COMMAND)) {
+            } else if (containsStartWith(setIdleCommands, lowerCaseCommandText)) {
                 return setIdleMinutes(message, chat, user, commandText);
-            } else if (lowerCaseCommandText.startsWith(EMPTY_TALKER_COMMAND)) {
+            } else if (containsStartWith(emptyTalkerCommands, lowerCaseCommandText)) {
                 return selectTalkerDegreeByCallback(message, chat, commandText);
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
-        if (lowerCaseCommandText.equals(EMPTY_TALKER_COMMAND)) {
+        if (emptyTalkerCommands.contains(lowerCaseCommandText)) {
             return getTalkerSetterWithKeyboard(message, chat, true);
-        } else if (lowerCaseCommandText.startsWith(SET_IDLE_MINUTES_COMMAND)) {
+        } else if (containsStartWith(setIdleCommands, lowerCaseCommandText)) {
             return setIdleMinutes(message, chat, user, commandText);
-        } else if (lowerCaseCommandText.startsWith(EMPTY_TALKER_COMMAND)) {
+        } else if (containsStartWith(emptyTalkerCommands, lowerCaseCommandText)) {
             return selectTalkerDegree(message, chat, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -84,15 +100,16 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
     private PartialBotApiMethod<?> setIdleMinutes(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
+        String setIdleMinutesCommand = getLocalizedCommand(command, SET_IDLE_MINUTES_COMMAND);
         String responseText;
 
-        if (SET_IDLE_MINUTES_COMMAND.equals(command)) {
+        if (setIdleMinutesCommand.equals(command)) {
             commandWaitingService.add(chat, user, Set.class, CALLBACK_SET_IDLE_MINUTES_COMMAND);
-            responseText = "напиши мне продолжительность молчания в чате в минутах";
+            responseText = "${setter.talker.sethelp}";
         } else {
             int minutes;
             try {
-                minutes = Integer.parseInt(command.substring(SET_IDLE_MINUTES_COMMAND.length() + 1));
+                minutes = Integer.parseInt(command.substring(setIdleMinutesCommand.length() + 1));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -118,8 +135,8 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
 
         Integer currentDegreeValue = talkerDegree.getDegree();
-        String responseText = "Вероятность: <b>" + currentDegreeValue + "%</b>\n" +
-                "Простой: <b>" + talkerDegree.getChatIdleMinutes() + " м.</b>";
+        String responseText = "${setter.talker.probability}: <b>" + currentDegreeValue + "%</b>\n" +
+                "${setter.talker.downtime}: <b>" + talkerDegree.getChatIdleMinutes() + " ${setter.talker.m}.</b>";
 
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
@@ -142,13 +159,15 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectTalkerDegreeByCallback(Message message, Chat chat, String command) {
-        if (command.equals(EMPTY_TALKER_COMMAND)) {
+        String emptyTalkerCommand = getLocalizedCommand(command, EMPTY_TALKER_COMMAND);
+
+        if (command.equals(emptyTalkerCommand)) {
             return getTalkerSetterWithKeyboard(message, chat, false);
         }
 
         int degree;
         try {
-            degree = Integer.parseInt(command.substring(EMPTY_TALKER_COMMAND.length() + 1));
+            degree = Integer.parseInt(command.substring(emptyTalkerCommand.length() + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -166,15 +185,16 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectTalkerDegree(Message message, Chat chat, String command) {
+        String emptyTalkerCommand = getLocalizedCommand(command, EMPTY_TALKER_COMMAND);
         log.debug("Request to select talker degree");
 
-        if (command.equals(EMPTY_TALKER_COMMAND)) {
+        if (command.equals(emptyTalkerCommand)) {
             return getTalkerSetterWithKeyboard(message, chat, true);
         }
 
         int degree;
         try {
-            degree = Integer.parseInt(command.substring(EMPTY_TALKER_COMMAND.length() + 1));
+            degree = Integer.parseInt(command.substring(emptyTalkerCommand.length() + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -226,13 +246,13 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> setIdleRow = new ArrayList<>();
         InlineKeyboardButton setIdleButton = new InlineKeyboardButton();
-        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getEmoji() + "Простой чата");
+        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getEmoji() + "${setter.talker.button.downtime}");
         setIdleButton.setCallbackData(CALLBACK_SET_IDLE_MINUTES_COMMAND);
         setIdleRow.add(setIdleButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.talker.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -247,4 +267,17 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
 
         return inlineKeyboardMarkup;
     }
+
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
+
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
+    }
+
 }

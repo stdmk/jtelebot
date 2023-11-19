@@ -13,10 +13,7 @@ import org.telegram.bot.domain.enums.AccessLevel;
 import org.telegram.bot.domain.enums.BotSpeechTag;
 import org.telegram.bot.domain.enums.Emoji;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.NewsService;
-import org.telegram.bot.services.NewsSourceService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -25,33 +22,53 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.PostConstruct;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
+    private static final String CALLBACK_COMMAND = "${setter.command} ";
+    private static final String EMPTY_NEWS_COMMAND = "${setter.news.emptycommand}";
+    private static final String UPDATE_NEWS_COMMAND = EMPTY_NEWS_COMMAND + " ${setter.news.update}";
+    private static final String DELETE_NEWS_COMMAND = EMPTY_NEWS_COMMAND + " ${setter.news.remove}";
+    private static final String CALLBACK_DELETE_NEWS_COMMAND = CALLBACK_COMMAND + DELETE_NEWS_COMMAND;
+    private static final String ADD_NEWS_COMMAND = EMPTY_NEWS_COMMAND + " ${setter.news.add}";
+    private static final String CALLBACK_ADD_NEWS_COMMAND = CALLBACK_COMMAND + ADD_NEWS_COMMAND;
+    private static final String ADDING_HELP_TEXT = "${setter.news.addhelp}\n${setter.news.addexample}\n";
+
+    private final java.util.Set<String> emptyNewsCommands = new HashSet<>();
+    private final java.util.Set<String> updateNewsCommands = new HashSet<>();
+    private final java.util.Set<String> deleteNewsCommands = new HashSet<>();
+    private final java.util.Set<String> addNewsCommands = new HashSet<>();
+
     private final NewsService newsService;
     private final NewsSourceService newsSourceService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final InternationalizationService internationalizationService;
 
-    private final String CALLBACK_COMMAND = "установить ";
-    private final String UPDATE_NEWS_COMMAND = "новости обновить";
-    private final String DELETE_NEWS_COMMAND = "новости удалить";
-    private final String CALLBACK_DELETE_NEWS_COMMAND = CALLBACK_COMMAND + DELETE_NEWS_COMMAND;
-    private final String ADD_NEWS_COMMAND = "новости добавить";
-    private final String CALLBACK_ADD_NEWS_COMMAND = CALLBACK_COMMAND + ADD_NEWS_COMMAND;
-    private final String ADDING_HELP_TEXT = "\nНапиши мне имя нового источника новостей и ссылку на рсс-поток через пробел\nНапример: Лента https://lenta.ru/rss/last24";
+    @PostConstruct
+    private void postConstruct() {
+        emptyNewsCommands.addAll(internationalizationService.getAllTranslations("setter.news.emptycommand"));
+        updateNewsCommands.addAll(internationalizationService.internationalize(UPDATE_NEWS_COMMAND));
+        deleteNewsCommands.addAll(internationalizationService.internationalize(DELETE_NEWS_COMMAND));
+        addNewsCommands.addAll(internationalizationService.internationalize(ADD_NEWS_COMMAND));
+    }
 
     @Override
     public boolean canProcessed(String command) {
-        return command.startsWith("новости");
+        return emptyNewsCommands.stream().anyMatch(command::startsWith);
     }
 
     @Override
@@ -63,23 +80,22 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         String lowerCaseCommandText = commandText.toLowerCase();
-        String EMPTY_NEWS_COMMAND = "новости";
 
         if (update.hasCallbackQuery()) {
-            if (lowerCaseCommandText.equals(EMPTY_NEWS_COMMAND) || lowerCaseCommandText.equals(UPDATE_NEWS_COMMAND)) {
+            if (emptyNewsCommands.contains(lowerCaseCommandText) || updateNewsCommands.contains(lowerCaseCommandText)) {
                 return getNewsSourcesListForChatWithKeyboard(message, chat);
-            } else if (lowerCaseCommandText.startsWith(DELETE_NEWS_COMMAND)) {
+            } else if (containsStartWith(deleteNewsCommands, lowerCaseCommandText)) {
                 return deleteNewsSourceForChatByCallback(message, chat, commandText);
-            } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
+            } else if (containsStartWith(addNewsCommands, lowerCaseCommandText)) {
                 return addNewsSourceForChatByCallback(message, chat, new User().setUserId(update.getCallbackQuery().getFrom().getId()));
             }
         }
 
-        if (lowerCaseCommandText.equals(EMPTY_NEWS_COMMAND)) {
+        if (emptyNewsCommands.contains(lowerCaseCommandText)) {
             return getNewsSourcesListForChat(message, chat);
-        } else if (lowerCaseCommandText.startsWith(DELETE_NEWS_COMMAND)) {
+        } else if (containsStartWith(deleteNewsCommands, lowerCaseCommandText)) {
             return deleteNewsSourceForChat(message, chat, commandText);
-        } else if (lowerCaseCommandText.startsWith(ADD_NEWS_COMMAND)) {
+        } else if (containsStartWith(addNewsCommands, lowerCaseCommandText)) {
             return addNewsSourceForChat(message, chat, new User().setUserId(message.getFrom().getId()), commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -87,8 +103,10 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> addNewsSourceForChat(Message message, Chat chat, User user, String command) {
+        String addNewsCommand = getLocalizedCommand(command, ADD_NEWS_COMMAND);
         log.debug("Request to add new news resource");
-        if (command.equals(ADD_NEWS_COMMAND)) {
+
+        if (command.equals(addNewsCommand)) {
             List<News> allNewsInChat = newsService.getAll(chat);
 
             SendMessage sendMessage = new SendMessage();
@@ -100,7 +118,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
             return sendMessage;
         }
 
-        String params = command.substring(ADD_NEWS_COMMAND.length() + 1);
+        String params = command.substring(addNewsCommand.length() + 1);
 
         int i = params.indexOf(" ");
         if (i < 0) {
@@ -124,7 +142,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
                 name = params.substring(0, i);
             } catch (MalformedURLException malformedURLException) {
                 commandWaitingService.remove(commandWaitingService.get(chat, user));
-                return buildSendMessageWithText(message, "Ошибочный адрес url источника");
+                return buildSendMessageWithText(message, "${setter.news.wrongurl}");
             }
         }
 
@@ -174,11 +192,12 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private SendMessage deleteNewsSourceForChat(Message message, Chat chat, String command) throws BotException {
+        String deleteNewsCommand = getLocalizedCommand(command, DELETE_NEWS_COMMAND);
         log.debug("Request to delete news resource");
 
         String params;
         try {
-            params = command.substring(DELETE_NEWS_COMMAND.length() + 1);
+            params = command.substring(deleteNewsCommand.length() + 1);
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -204,9 +223,11 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText deleteNewsSourceForChatByCallback(Message message, Chat chat, String command) {
+        String deleteNewsCommand = getLocalizedCommand(command, DELETE_NEWS_COMMAND);
         log.debug("Request to delete news resource");
+
         try {
-            newsService.remove(Long.valueOf(command.substring(DELETE_NEWS_COMMAND.length() + 1)));
+            newsService.remove(Long.valueOf(command.substring(deleteNewsCommand.length() + 1)));
         } catch (Exception ignored) {}
 
         return getNewsSourcesListForChatWithKeyboard(message, chat);
@@ -243,7 +264,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
     private String prepareTextOfListNewsSources(List<News> allNewsInChat) {
         final StringBuilder buf = new StringBuilder();
-        buf.append("<b>Список новостных источников:</b>\n");
+        buf.append("<b>${setter.news.caption}:</b>\n");
 
         allNewsInChat.forEach(news -> buf
                 .append("<a href=\"").append(news.getNewsSource().getUrl()).append("\">")
@@ -267,19 +288,19 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "Добавить");
+        addButton.setText(Emoji.NEW.getEmoji() + "${setter.news.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_NEWS_COMMAND);
         addButtonRow.add(addButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "Обновить");
+        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.news.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_NEWS_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "Установки");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.news.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -302,4 +323,17 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         return sendMessage;
     }
+
+    private String getLocalizedCommand(String text, String command) {
+        String localizedCommand = getStartsWith(
+                internationalizationService.internationalize(command),
+                text.toLowerCase());
+
+        if (localizedCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return localizedCommand;
+    }
+
 }
