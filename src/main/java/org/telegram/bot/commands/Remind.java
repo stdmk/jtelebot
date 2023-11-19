@@ -694,22 +694,22 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         rows.add(List.of(todayButton));
 
         InlineKeyboardButton tomorrowButton = new InlineKeyboardButton();
-        tomorrowButton.setText("${command.remind.tomorrow");
+        tomorrowButton.setText("${command.remind.tomorrow}");
         tomorrowButton.setCallbackData(startOfCallbackCommand + dateFormatter.format(dateNow.plusDays(1)));
         rows.add(List.of(tomorrowButton));
 
         InlineKeyboardButton afterTomorrowButton = new InlineKeyboardButton();
-        afterTomorrowButton.setText("${command.remind.aftertomorrow");
+        afterTomorrowButton.setText("${command.remind.aftertomorrow}");
         afterTomorrowButton.setCallbackData(startOfCallbackCommand + dateFormatter.format(dateNow.plusDays(2)));
         rows.add(List.of(afterTomorrowButton));
 
         InlineKeyboardButton saturdayButton = new InlineKeyboardButton();
-        saturdayButton.setText("${command.remind.onsaturday");
+        saturdayButton.setText("${command.remind.onsaturday}");
         saturdayButton.setCallbackData(startOfCallbackCommand + dateFormatter.format(dateNow.with(TemporalAdjusters.next(DayOfWeek.SATURDAY))));
         rows.add(List.of(saturdayButton));
 
         InlineKeyboardButton sundayButton = new InlineKeyboardButton();
-        sundayButton.setText("${command.remind.onsunday");
+        sundayButton.setText("${command.remind.onsunday}");
         sundayButton.setCallbackData(startOfCallbackCommand + dateFormatter.format(dateNow.with(TemporalAdjusters.next(DayOfWeek.SUNDAY))));
         rows.add(List.of(sundayButton));
 
@@ -757,7 +757,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         InlineKeyboardButton nightButton = new InlineKeyboardButton();
         String nightTime = "03:00";
-        nightButton.setText("${command.remind.nigth} " + nightTime);
+        nightButton.setText("${command.remind.night} " + nightTime);
         nightButton.setCallbackData(startOfCallbackCommand + nightTime);
         rows.add(List.of(nightButton));
 

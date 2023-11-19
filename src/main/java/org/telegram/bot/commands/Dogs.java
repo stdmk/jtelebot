@@ -18,6 +18,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -33,6 +34,7 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
 
     private static final String DOGS_API_URL = "https://random.dog/woof.json";
     private static final List<String> PHOTO_EXTENSION_LIST = List.of("jpg", "jpeg", "png");
+    private static final List<String> VIDEO_EXTENSION_LIST = List.of("webm", "mp4");
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -47,12 +49,13 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
         if (textMessage != null) {
             return null;
         }
-        bot.sendUploadPhoto(chatId);
 
         String imageUrl = getDogsImageUrl();
         InputFile inputFile = new InputFile(imageUrl);
         String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
         if (isPhoto(imageUrl)) {
+            bot.sendUploadPhoto(chatId);
+
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setPhoto(inputFile);
             sendPhoto.setCaption(commandName);
@@ -60,7 +63,19 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setChatId(chatId);
 
             return sendPhoto;
+        } else if (isVideo(imageUrl)) {
+            bot.sendUploadVideo(chatId);
+
+            SendVideo sendVideo = new SendVideo();
+            sendVideo.setVideo(inputFile);
+            sendVideo.setCaption(commandName);
+            sendVideo.setReplyToMessageId(message.getMessageId());
+            sendVideo.setChatId(chatId);
+
+            return sendVideo;
         }
+
+        bot.sendUploadDocument(chatId);
 
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(chatId);
@@ -72,14 +87,20 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
     }
 
     private boolean isPhoto(String url) {
+        return PHOTO_EXTENSION_LIST.contains(getFileExtension(url));
+    }
+
+    private boolean isVideo(String url) {
+        return VIDEO_EXTENSION_LIST.contains(getFileExtension(url));
+    }
+
+    private String getFileExtension(String url) {
         int indexOfLastDot = url.lastIndexOf(".");
         if (indexOfLastDot <= 0) {
-            return false;
+            return "";
         }
 
-        String fileExtension = url.substring(indexOfLastDot + 1).toLowerCase();
-
-        return PHOTO_EXTENSION_LIST.contains(fileExtension);
+        return url.substring(indexOfLastDot + 1).toLowerCase();
     }
 
     private String getDogsImageUrl() {

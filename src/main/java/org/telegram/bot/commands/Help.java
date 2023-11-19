@@ -91,7 +91,7 @@ public class Help implements Command<SendMessage> {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableHtml(true);
-        sendMessage.setDisableNotification(false);
+        sendMessage.disableWebPagePreview();
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 

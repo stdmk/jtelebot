@@ -49,7 +49,6 @@ class DogsTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any()))
                 .thenThrow(new RestClientException("no_response"));
         assertThrows(BotException.class, () -> dogs.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -62,7 +61,6 @@ class DogsTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
         assertThrows(BotException.class, () -> dogs.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -93,15 +91,28 @@ class DogsTest {
     }
 
     @Test
-    void parseWithNotJpgResponseTest() {
+    void parseWithWebmResponseTest() {
         Update update = TestUtils.getUpdateFromGroup("dogs");
-        Dogs.Dog dog = new Dogs.Dog().setUrl("123.mp4");
+        Dogs.Dog dog = new Dogs.Dog().setUrl("123.webm");
         ResponseEntity<Dogs.Dog> response = new ResponseEntity<>(dog, HttpStatus.valueOf(200));
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
         PartialBotApiMethod<?> method = dogs.parse(update);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        verify(bot).sendUploadVideo(update.getMessage().getChatId());
+        TestUtils.checkDefaultSendVideoParams(method);
+    }
+
+    @Test
+    void parseWithUnknownExtensionResponseTest() {
+        Update update = TestUtils.getUpdateFromGroup("dogs");
+        Dogs.Dog dog = new Dogs.Dog().setUrl("123.zip");
+        ResponseEntity<Dogs.Dog> response = new ResponseEntity<>(dog, HttpStatus.valueOf(200));
+
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
+
+        PartialBotApiMethod<?> method = dogs.parse(update);
+        verify(bot).sendUploadDocument(update.getMessage().getChatId());
         TestUtils.checkDefaultSendDocumentParams(method);
     }
 

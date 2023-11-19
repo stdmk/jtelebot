@@ -281,6 +281,21 @@ public class TestUtils {
         return sendPhoto;
     }
 
+    public static SendVideo checkDefaultSendVideoParams(PartialBotApiMethod<?> method) {
+        assertTrue(method instanceof SendVideo);
+        return checkDefaultSendVideoParams((SendVideo) method);
+    }
+
+    public static SendVideo checkDefaultSendVideoParams(SendVideo sendVideo) {
+        assertNotNull(sendVideo);
+        assertNotNull(sendVideo.getChatId());
+        assertNotNull(sendVideo.getReplyToMessageId());
+        assertNotNull(sendVideo.getVideo());
+        assertNotNull(sendVideo.getCaption());
+
+        return sendVideo;
+    }
+
     public static SendMediaGroup checkDefaultSendMediaGroupParams(PartialBotApiMethod<?> method) {
         assertTrue(method instanceof SendMediaGroup);
         return checkDefaultSendMediaGroupParams((SendMediaGroup) method);

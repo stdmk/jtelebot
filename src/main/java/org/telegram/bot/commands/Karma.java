@@ -129,11 +129,11 @@ public class Karma implements Command<SendMessage>, TextAnalyzer {
 
             buf = new StringBuilder("${command.karma.userskarma} <b>" + getLinkToUser(anotherUser, true) + "</b> ");
             if (value < 0) {
-                buf.append("${command.karma.increased ").append(Emoji.THUMBS_DOWN.getEmoji());
+                buf.append("${command.karma.reduced} ").append(Emoji.THUMBS_DOWN.getEmoji());
             } else {
-                buf.append("${command.karma.reduced ").append(Emoji.THUMBS_UP.getEmoji());
+                buf.append("${command.karma.increased} ").append(Emoji.THUMBS_UP.getEmoji());
             }
-            buf.append(" ${command.karma.karmachangedto} <b>").append(anotherUserStats.getNumberOfKarma()).append("</b>");
+            buf.append(" ${command.karma.changedto} <b>").append(anotherUserStats.getNumberOfKarma()).append("</b>");
         }
 
         SendMessage sendMessage = new SendMessage();
