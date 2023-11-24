@@ -146,7 +146,7 @@ public class Karma implements Command<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         if (textMessage == null) {
@@ -183,7 +183,7 @@ public class Karma implements Command<SendMessage>, TextAnalyzer {
                     return;
                 }
                 newUpdate.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
-                bot.parseAsync(newUpdate, command);
+                bot.parseAsync(newUpdate, this);
             }
         }
     }

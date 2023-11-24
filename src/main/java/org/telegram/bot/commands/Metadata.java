@@ -141,7 +141,7 @@ public class Metadata implements Command<SendMessage> {
 
         checkFileSizeLimit(fileSize);
 
-        return networkUtils.getFileFromTelegram(bot, fileId);
+        return networkUtils.getInputStreamFromTelegramFile(fileId);
     }
 
     private void checkFileSizeLimit(Long fileSize) {

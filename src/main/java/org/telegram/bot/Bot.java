@@ -30,8 +30,6 @@ import static org.telegram.bot.utils.TelegramUtils.isThatAnOldMessage;
 @Slf4j
 public class Bot extends TelegramLongPollingBot {
 
-    //TODO не забудь в пропетях указать язык
-
     private final List<TextAnalyzer> textAnalyzerList;
     private final ApplicationContext context;
     private final BotStats botStats;
@@ -119,7 +117,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze((Command<?>) textAnalyzer, update));
+        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(update));
 
         Chat chatEntity = new Chat().setChatId(chatId);
         org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);

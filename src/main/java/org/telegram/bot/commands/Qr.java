@@ -112,7 +112,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
 
         if (message.hasPhoto()) {
@@ -120,7 +120,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, TextAnalyzer {
             BufferedImage image;
 
             try {
-                image = ImageIO.read(networkUtils.getFileFromTelegram(bot, photoList.get(photoList.size() - 1).getFileId()));
+                image = ImageIO.read(networkUtils.getInputStreamFromTelegramFile(photoList.get(photoList.size() - 1).getFileId()));
             } catch (TelegramApiException | IOException e) {
                 log.error("Failed to get file from telegram: {}", e.getMessage());
                 return;

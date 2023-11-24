@@ -4,6 +4,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.stereotype.Component;
@@ -18,11 +19,14 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+@RequiredArgsConstructor
 @Component
 public class NetworkUtils {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
     private static final Integer TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES = 52428800;
+
+    private final Bot bot;
 
     public InputStream getFileFromUrlWithLimit(String url) throws IOException {
         return getFileFromUrlWithLimit(url, TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES);
@@ -40,7 +44,11 @@ public class NetworkUtils {
         return connection.getInputStream();
     }
 
-    public InputStream getFileFromTelegram(Bot bot, String fileId) throws TelegramApiException {
+    public byte[] getFileFromTelegram(String fileId) throws TelegramApiException, IOException {
+        return IOUtils.toByteArray(getInputStreamFromTelegramFile(fileId));
+    }
+
+    public InputStream getInputStreamFromTelegramFile(String fileId) throws TelegramApiException {
         GetFile getFile = new GetFile();
         getFile.setFileId(fileId);
 

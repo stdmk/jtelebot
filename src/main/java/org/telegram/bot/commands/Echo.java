@@ -62,7 +62,7 @@ public class Echo implements Command<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         if (update.hasCallbackQuery()) {
             return;
         }
@@ -101,7 +101,7 @@ public class Echo implements Command<SendMessage>, TextAnalyzer {
                 return;
             }
             newUpdate.getMessage().setText(commandName + " " + textMessage);
-            bot.parseAsync(newUpdate, command);
+            bot.parseAsync(newUpdate, this);
         }
     }
 
