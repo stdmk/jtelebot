@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 public interface TextAnalyzer {
-    void analyze(Command<?> command, Update update);
+    void analyze(Update update);
 
     default Update copyUpdate(Update update) {
         Update newUpdate = null;

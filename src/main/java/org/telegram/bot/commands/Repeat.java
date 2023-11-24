@@ -31,7 +31,7 @@ public class Repeat implements TextAnalyzer, Command<PartialBotApiMethod<?>> {
     private final LastCommandService lastCommandService;
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
 

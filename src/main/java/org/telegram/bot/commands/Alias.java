@@ -105,7 +105,7 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());

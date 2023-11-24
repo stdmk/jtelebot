@@ -21,6 +21,8 @@ public class TestUtils {
     public static final Integer DEFAULT_MESSAGE_ID = 1;
     public static final Integer ANOTHER_MESSAGE_ID = 2;
     public static final String DEFAULT_MESSAGE_TEXT = "test";
+    public static final String DEFAULT_FILE_ID = "fileId";
+    public static final Integer DEFAULT_VOICE_DURATION = 17;
 
     public static Update getUpdateWithRepliedMessage(String textMessage) {
         Chat chat = new Chat();
@@ -38,6 +40,17 @@ public class TestUtils {
         update.getMessage().setReplyToMessage(message);
 
         return update;
+    }
+
+    public static Update getUpdateWithVoice() {
+        Voice voice = new Voice();
+        voice.setFileId(DEFAULT_FILE_ID);
+        voice.setDuration(DEFAULT_VOICE_DURATION);
+
+        Update updateFromGroup = getUpdateFromGroup();
+        updateFromGroup.getMessage().setVoice(voice);
+
+        return updateFromGroup;
     }
 
     public static Update getUpdateFromGroup() {

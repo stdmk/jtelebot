@@ -90,7 +90,7 @@ public class Turn implements Command<SendMessage>, TextAnalyzer {
     }
 
     @Override
-    public void analyze(Command<?> command, Update update) {
+    public void analyze(Update update) {
         String textMessage;
         if (update.hasMessage()) {
             textMessage = update.getMessage().getText();
@@ -119,7 +119,7 @@ public class Turn implements Command<SendMessage>, TextAnalyzer {
                     return;
                 }
                 newUpdate.getMessage().setText(commandName + " " + textMessage);
-                bot.parseAsync(newUpdate, command);
+                bot.parseAsync(newUpdate, this);
             }
         }
     }
