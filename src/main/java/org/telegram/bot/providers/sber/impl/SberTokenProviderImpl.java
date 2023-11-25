@@ -1,4 +1,4 @@
-package org.telegram.bot.providers;
+package org.telegram.bot.providers.sber.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,7 @@ import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.dto.SberAccessTokenResponseDto;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
+import org.telegram.bot.providers.sber.SberTokenProvider;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package org.telegram.bot.providers;
+package org.telegram.bot.providers.sber.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

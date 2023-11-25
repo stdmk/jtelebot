@@ -1,4 +1,4 @@
-package org.telegram.bot.providers;
+package org.telegram.bot.providers.sber.impl;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.SpeechParseException;
+import org.telegram.bot.providers.sber.SberTokenProvider;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SaluteSpeechTest {
+class SaluteSpeechParserTest {
 
     private static final byte[] FILE = "123".getBytes();
 
@@ -33,58 +34,58 @@ class SaluteSpeechTest {
     private RestTemplate insecureRestTemplate;
 
     @Mock
-    private ResponseEntity<SaluteSpeech.SpeechRecognizeResult> speechRecognizeResultResponseEntity;
+    private ResponseEntity<SaluteSpeechParser.SpeechRecognizeResult> speechRecognizeResultResponseEntity;
 
     @InjectMocks
-    private SaluteSpeech saluteSpeech;
+    private SaluteSpeechParser saluteSpeechParser;
 
     @Test
     void parseWithNullDurationTest() {
-        assertThrows(SpeechParseException.class, () -> saluteSpeech.parse(FILE, null));
+        assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, null));
     }
 
     @Test
     void parseWithTooLongDurationTest() {
-        assertThrows(SpeechParseException.class, () -> saluteSpeech.parse(FILE, 999));
+        assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 999));
     }
 
     @Test
     void recognizeWithGettingSberAccessTokenExceptionTest() throws GettingSberAccessTokenException {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenThrow(new GettingSberAccessTokenException("error"));
-        assertThrows(SpeechParseException.class, () -> saluteSpeech.parse(FILE, 30));
+        assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 30));
     }
 
     @Test
     void recognizeWithRestClientExceptionTest() throws GettingSberAccessTokenException {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeech.SpeechRecognizeResult>>any()))
+        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenThrow(new RestClientException("error"));
 
-        assertThrows(SpeechParseException.class, () -> saluteSpeech.parse(FILE, 30));
+        assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 30));
     }
 
     @Test
     void recognizeWithEmptyResponseTest() throws GettingSberAccessTokenException {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeech.SpeechRecognizeResult>>any()))
+        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
-        assertThrows(SpeechParseException.class, () -> saluteSpeech.parse(FILE, 30));
+        assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 30));
     }
 
     @Test
     void recognizeTest() throws SpeechParseException, GettingSberAccessTokenException {
         List<String> result = List.of("test1", "test2");
         final String expectedResult = String.join(". ", result);
-        SaluteSpeech.SpeechRecognizeResult speechRecognizeResult = new SaluteSpeech.SpeechRecognizeResult().setStatus(200)
+        SaluteSpeechParser.SpeechRecognizeResult speechRecognizeResult = new SaluteSpeechParser.SpeechRecognizeResult().setStatus(200)
                         .setResult(result);
 
         when(speechRecognizeResultResponseEntity.getBody()).thenReturn(speechRecognizeResult);
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeech.SpeechRecognizeResult>>any()))
+        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenReturn(speechRecognizeResultResponseEntity);
 
-        String actualResult = saluteSpeech.parse(FILE, 30);
+        String actualResult = saluteSpeechParser.parse(FILE, 30);
 
         assertEquals(expectedResult, actualResult);
     }
