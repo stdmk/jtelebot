@@ -6,18 +6,26 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.SpeechParseException;
-import org.telegram.bot.providers.SpeechParser;
+import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.providers.sber.SpeechParser;
+import org.telegram.bot.providers.sber.SpeechSynthesizer;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -27,13 +35,19 @@ import static org.telegram.bot.TestUtils.*;
 class VoiceTest {
 
     @Mock
+    private SpeechService speechService;
+    @Mock
     private NetworkUtils networkUtils;
+    @Mock
+    private SpeechSynthesizer speechSynthesizer;
     @Mock
     private SpeechParser speechParser;
     @Mock
     private SendMessageExecutor sendMessageExecutor;
     @Mock
     private BotStats botStats;
+    @Mock
+    private Bot bot;
 
     @InjectMocks
     private Voice voice;
@@ -96,6 +110,38 @@ class VoiceTest {
         verify(sendMessageExecutor).executeMethod(sendMessageArgumentCaptor.capture());
 
         TestUtils.checkDefaultSendMessageParams(sendMessageArgumentCaptor.getValue());
+    }
+
+    @Test
+    void parseWithoutTextTest() {
+        Update updateFromGroup = getUpdateFromGroup();
+        assertThrows((BotException.class), () -> voice.parse(updateFromGroup));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+    }
+
+    @Test
+    void parseWithTextFromRepliedMessageTest() throws SpeechSynthesizeException {
+        final String errorText = "error";
+        final String expectedText = "test";
+        Update updateWithRepliedMessage = getUpdateWithRepliedMessage(expectedText);
+
+        when(speechSynthesizer.synthesize(expectedText)).thenThrow(new SpeechSynthesizeException(errorText));
+
+        BotException botException = assertThrows((BotException.class), () -> voice.parse(updateWithRepliedMessage));
+        assertEquals(errorText, botException.getMessage());
+
+        verify(speechSynthesizer).synthesize(expectedText);
+    }
+
+    @Test
+    void parseText() throws SpeechSynthesizeException {
+        final byte[] expectedFile = "test".getBytes();
+        Update updateFromGroup = getUpdateFromGroup("voice test");
+
+        when(speechSynthesizer.synthesize(anyString())).thenReturn(expectedFile);
+
+        SendVoice method = voice.parse(updateFromGroup);
+        TestUtils.checkDefaultSendVoiceParams(method);
     }
 
 }

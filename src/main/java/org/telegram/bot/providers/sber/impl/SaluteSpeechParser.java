@@ -1,4 +1,4 @@
-package org.telegram.bot.providers;
+package org.telegram.bot.providers.sber.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,13 +15,16 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.SpeechParseException;
+import org.telegram.bot.providers.sber.SberApiProvider;
+import org.telegram.bot.providers.sber.SberTokenProvider;
+import org.telegram.bot.providers.sber.SpeechParser;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class SaluteSpeech implements SberApiProvider, SpeechParser {
+public class SaluteSpeechParser implements SberApiProvider, SpeechParser {
 
     private static final Integer SPEECH_DURATION_LIMIT = 60;
     private static final String SALUTE_SPEECH_API_URL = "https://smartspeech.sber.ru/rest/v1/speech:recognize";

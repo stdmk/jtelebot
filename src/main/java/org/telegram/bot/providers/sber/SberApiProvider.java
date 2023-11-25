@@ -1,4 +1,4 @@
-package org.telegram.bot.providers;
+package org.telegram.bot.providers.sber;
 
 import org.telegram.bot.enums.SberScope;
 

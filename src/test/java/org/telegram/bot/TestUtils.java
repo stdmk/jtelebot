@@ -333,6 +333,15 @@ public class TestUtils {
         return sendLocation;
     }
 
+    public static SendVoice checkDefaultSendVoiceParams(SendVoice sendVoice) {
+        assertNotNull(sendVoice);
+        assertNotNull(sendVoice.getChatId());
+        assertNotNull(sendVoice.getReplyToMessageId());
+        assertNotNull(sendVoice.getVoice());
+
+        return sendVoice;
+    }
+
     public static String getResourceAsString(String path) throws IOException {
         return IOUtils.toString(new FileInputStream("src/test/resources/" + path), StandardCharsets.UTF_8);
     }
