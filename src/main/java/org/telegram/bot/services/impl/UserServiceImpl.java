@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.repositories.UserRepository;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.UserService;

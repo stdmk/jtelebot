@@ -13,7 +13,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.ImageUrl;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;

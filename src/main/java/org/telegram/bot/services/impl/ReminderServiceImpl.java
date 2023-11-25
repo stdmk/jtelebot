@@ -9,7 +9,7 @@ import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Reminder;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.ReminderRepeatability;
+import org.telegram.bot.enums.ReminderRepeatability;
 import org.telegram.bot.repositories.ReminderRepository;
 import org.telegram.bot.services.ReminderService;
 

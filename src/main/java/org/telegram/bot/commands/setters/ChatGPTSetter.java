@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.domain.enums.Emoji;
+import org.telegram.bot.enums.AccessLevel;
+import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.InternationalizationService;
@@ -96,7 +96,7 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
             messages = chatGPTMessageService.getMessages(user);
         }
 
-        String responseText = "${settet.chatgpt.currentcontext}: <b>" + messages.size() + " ${settet.chatgpt.messages}</b>\n" +
+        String responseText = "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n" +
                 "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>";
 
         if (newMessage) {
@@ -124,13 +124,13 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> resetCacheButtonRow = new ArrayList<>();
         InlineKeyboardButton resetCacheButton = new InlineKeyboardButton();
-        resetCacheButton.setText(Emoji.WASTEBASKET.getEmoji() + "${settet.chatgpt.button.resetcache}");
+        resetCacheButton.setText(Emoji.WASTEBASKET.getEmoji() + "${setter.chatgpt.button.resetcache}");
         resetCacheButton.setCallbackData(CALLBACK_RESET_CACHE_COMMAND);
         resetCacheButtonRow.add(resetCacheButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${settet.chatgpt.button.settings}");
+        backButton.setText(Emoji.BACK.getEmoji() + "${setter.chatgpt.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

@@ -21,11 +21,12 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.domain.enums.ChatGPTRole;
+import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -40,6 +41,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,19 +56,21 @@ class ChatGPTTest {
     @Mock
     private Bot bot;
     @Mock
-    PropertiesConfig propertiesConfig;
+    private PropertiesConfig propertiesConfig;
     @Mock
-    SpeechService speechService;
+    private SpeechService speechService;
     @Mock
-    CommandWaitingService commandWaitingService;
+    private CommandWaitingService commandWaitingService;
     @Mock
-    ChatGPTMessageService chatGPTMessageService;
+    private ChatGPTMessageService chatGPTMessageService;
     @Mock
-    ObjectMapper objectMapper;
+    private InternationalizationService internationalizationService;
     @Mock
-    RestTemplate defaultRestTemplate;
+    private ObjectMapper objectMapper;
     @Mock
-    BotStats botStats;
+    private RestTemplate defaultRestTemplate;
+    @Mock
+    private BotStats botStats;
 
     @Captor
     ArgumentCaptor<List<ChatGPTMessage>> captor;
@@ -259,7 +263,7 @@ class ChatGPTTest {
     }
 
     @Test
-    void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException {
+    void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final String expectedUrl = "url";
         Update update = getUpdateFromGroup("chatgpt iMaGe say hello");
 
@@ -269,11 +273,18 @@ class ChatGPTTest {
         response.setCreated(1);
         response.setData(List.of(imageUrl));
 
+        Set<String> imageCommands = Set.of("image");
+        when(internationalizationService.getAllTranslations("command.chatgpt.imagecommand")).thenReturn(imageCommands);
+        when(internationalizationService.internationalize("${command.chatgpt.imagecommand}")).thenReturn(imageCommands);
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+
+        Method postConstruct = ChatGPT.class.getDeclaredMethod("postConstruct");
+        postConstruct.setAccessible(true);
+        postConstruct.invoke(chatGPT);
 
         PartialBotApiMethod<?> method = chatGPT.parse(update);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
@@ -288,6 +299,8 @@ class ChatGPTTest {
         Field chatGptApiUrl = ChatGPT.class.getDeclaredField("chatGptApiUrl");
         chatGptApiUrl.setAccessible(true);
         chatGptApiUrl.set(chatGPT, inputValue);
+
+        when(internationalizationService.getAllTranslations("command.chatgpt.imagecommand")).thenReturn(Set.of("image"));
 
         Method postConstruct = ChatGPT.class.getDeclaredMethod("postConstruct");
         postConstruct.setAccessible(true);

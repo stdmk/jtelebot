@@ -9,7 +9,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;

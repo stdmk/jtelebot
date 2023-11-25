@@ -24,11 +24,12 @@ import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.domain.enums.ChatGPTRole;
+import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
@@ -39,8 +40,13 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.TextUtils.containsStartWith;
+import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Component
 @RequiredArgsConstructor
@@ -49,17 +55,18 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
-    private static final String IMAGE_RU_COMMAND = "картинка";
-    private static final String IMAGE_EN_COMMAND = "image";
 
     @Value("${chatGptApiUrl}")
     private String chatGptApiUrl;
+
+    private final Set<String> imageCommands = new HashSet<>();
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final ChatGPTMessageService chatGPTMessageService;
+    private final InternationalizationService internationalizationService;
     private final ObjectMapper objectMapper;
     private final RestTemplate defaultRestTemplate;
     private final BotStats botStats;
@@ -69,6 +76,8 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
         if (chatGptApiUrl == null || chatGptApiUrl.isEmpty()) {
             chatGptApiUrl = OPENAI_API_URL;
         }
+
+        imageCommands.addAll(internationalizationService.getAllTranslations("command.chatgpt.imagecommand"));
     }
 
     @Override
@@ -93,14 +102,17 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
         if (textMessage != null) {
             String lowerTextMessage = textMessage.toLowerCase();
 
-            if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND) || lowerTextMessage.startsWith(IMAGE_EN_COMMAND)) {
+            if (containsStartWith(imageCommands, lowerTextMessage)) {
                 bot.sendUploadPhoto(chatId);
-                if (lowerTextMessage.startsWith(IMAGE_RU_COMMAND)) {
-                    textMessage = textMessage.substring(IMAGE_RU_COMMAND.length() + 1);
-                } else {
-                    textMessage = textMessage.substring(IMAGE_EN_COMMAND.length() + 1);
+
+                String imageCommand = getStartsWith(
+                        internationalizationService.internationalize("${command.chatgpt.imagecommand}"),
+                        lowerTextMessage);
+                if (imageCommand == null) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                 }
 
+                textMessage = textMessage.substring(imageCommand.length() + 1);
                 responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
 
                 imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);

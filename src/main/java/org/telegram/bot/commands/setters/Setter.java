@@ -1,6 +1,6 @@
 package org.telegram.bot.commands.setters;
 
-import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.enums.AccessLevel;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;

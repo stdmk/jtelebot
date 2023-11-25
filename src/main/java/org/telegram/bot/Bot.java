@@ -11,7 +11,7 @@ import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;

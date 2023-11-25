@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.enums.Horoscope;
+import org.telegram.bot.enums.Horoscope;
 
 import java.io.File;
 import java.io.IOException;

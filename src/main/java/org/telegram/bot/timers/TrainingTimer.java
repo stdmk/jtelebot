@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.*;
-import org.telegram.bot.domain.enums.Emoji;
+import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.services.*;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.DateUtils;

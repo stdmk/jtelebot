@@ -1,7 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevel;
+import org.telegram.bot.enums.AccessLevel;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.User}.

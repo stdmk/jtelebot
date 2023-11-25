@@ -1,6 +1,6 @@
 package org.telegram.bot.services;
 
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.Speech}.

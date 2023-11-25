@@ -12,8 +12,8 @@ import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
-import org.telegram.bot.domain.enums.BotSpeechTag;
-import org.telegram.bot.domain.enums.Zodiac;
+import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.Zodiac;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
@@ -53,15 +53,15 @@ public class Horoscope implements Command<SendMessage> {
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
 
-        org.telegram.bot.domain.enums.Horoscope horoscopeType;
+        org.telegram.bot.enums.Horoscope horoscopeType;
         if (textMessage == null) {
-            horoscopeType = org.telegram.bot.domain.enums.Horoscope.COM;
+            horoscopeType = org.telegram.bot.enums.Horoscope.COM;
         } else {
             if (textMessage.startsWith("_")) {
                 textMessage = textMessage.substring(1);
             }
             try {
-                horoscopeType = org.telegram.bot.domain.enums.Horoscope.findByName(textMessage);
+                horoscopeType = org.telegram.bot.enums.Horoscope.findByName(textMessage);
             } catch (IllegalArgumentException e) {
                 horoscopeType = null;
             }
@@ -96,7 +96,7 @@ public class Horoscope implements Command<SendMessage> {
     private String getResponseTextWithHoroscopeTypeList() {
         StringBuilder buf = new StringBuilder("${command.horoscope.unknownhoroscopetype}:\n");
 
-        Arrays.stream(org.telegram.bot.domain.enums.Horoscope.values())
+        Arrays.stream(org.telegram.bot.enums.Horoscope.values())
                 .forEach(horoscope -> buf
                         .append(horoscope.getRuName())
                         .append(" — /")
@@ -108,7 +108,7 @@ public class Horoscope implements Command<SendMessage> {
         return buf.toString();
     }
 
-    private String getHoroscopeForAllZodiacs(org.telegram.bot.domain.enums.Horoscope horoscope) {
+    private String getHoroscopeForAllZodiacs(org.telegram.bot.enums.Horoscope horoscope) {
         HoroscopeData horoscopeData = getHoroByHoroscopeType(horoscope);
 
         StringBuilder buf = new StringBuilder("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n");
@@ -128,7 +128,7 @@ public class Horoscope implements Command<SendMessage> {
         return buf.toString();
     }
 
-    private String getHoroscopeForZodiacs(org.telegram.bot.domain.enums.Horoscope horoscope, Zodiac zodiac) {
+    private String getHoroscopeForZodiacs(org.telegram.bot.enums.Horoscope horoscope, Zodiac zodiac) {
         HoroscopeData horoscopeData = getHoroByHoroscopeType(horoscope);
 
         StringBuilder buf = new StringBuilder("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n");
@@ -153,7 +153,7 @@ public class Horoscope implements Command<SendMessage> {
         }
     }
 
-    private HoroscopeData getHoroByHoroscopeType(org.telegram.bot.domain.enums.Horoscope horoscope) {
+    private HoroscopeData getHoroByHoroscopeType(org.telegram.bot.enums.Horoscope horoscope) {
         String horoscopeFileName = "horoscope/" + horoscope.name().toLowerCase(Locale.ROOT) + ".xml";
         File file = new File(horoscopeFileName);
 

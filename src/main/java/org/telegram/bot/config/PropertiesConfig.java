@@ -33,6 +33,7 @@ public class PropertiesConfig {
     private String defaultLanguage = "en";
     private String xmlTvFileUrl;
     private String saluteSpeechSecret;
+    private String gigaChatSecret;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {
