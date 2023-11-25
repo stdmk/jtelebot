@@ -9,7 +9,7 @@ import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerPhrase;
 import org.telegram.bot.domain.entities.TalkerWord;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TalkerDegreeService;

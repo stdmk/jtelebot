@@ -36,10 +36,6 @@ public class CommandProperties {
     @Column(name = "accesslevel")
     private Integer accessLevel;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "help", nullable = false)
-    private Help help;
-
     @Column(name = "defaultdisabledforgroups")
     private Boolean defaultDisabledForGroups;
 }

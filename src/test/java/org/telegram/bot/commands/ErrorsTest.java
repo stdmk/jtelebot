@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;

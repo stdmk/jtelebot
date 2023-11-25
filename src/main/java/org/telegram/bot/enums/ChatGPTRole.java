@@ -1,4 +1,4 @@
-package org.telegram.bot.domain.enums;
+package org.telegram.bot.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

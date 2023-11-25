@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.telegram.bot.domain.enums.ChatGPTRole;
+import org.telegram.bot.enums.ChatGPTRole;
 
 import javax.persistence.*;
 

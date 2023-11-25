@@ -9,8 +9,8 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.enums.AccessLevel;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.AccessLevel;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
@@ -111,13 +111,7 @@ class HelpTest {
         Update update = TestUtils.getUpdateFromGroup("help abv");
         CommandProperties commandProperties = new CommandProperties()
                 .setAccessLevel(AccessLevel.TRUSTED.getValue())
-                .setClassName("help")
-                .setHelp(
-                        new org.telegram.bot.domain.entities.Help()
-                                .setName("Command")
-                                .setDescription("Description")
-                                .setParams("Params")
-                                .setExamples("Examples"));
+                .setClassName("help");
 
         when(commandPropertiesService.getCommand(anyString())).thenReturn(commandProperties);
 

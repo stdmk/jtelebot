@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.enums.BotSpeechTag;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
