@@ -12,7 +12,7 @@ import static org.telegram.bot.utils.FileUtils.checkPropertiesFileExists;
 @SpringBootApplication
 @EnableConfigurationProperties(PropertiesConfig.class)
 @EnableScheduling
-@EnableAsync()
+@EnableAsync
 public class BotApplication {
     public static void main(String[] args) {
         checkPropertiesFileExists();

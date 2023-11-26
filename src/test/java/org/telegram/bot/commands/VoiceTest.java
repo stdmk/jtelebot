@@ -10,11 +10,14 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.SpeechParseException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
 import org.telegram.bot.providers.sber.SpeechParser;
-import org.telegram.bot.providers.sber.SpeechSynthesizer;
+import org.telegram.bot.providers.sber.impl.SaluteSpeechSynthesizerImpl;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
@@ -33,15 +36,21 @@ import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class VoiceTest {
+    
+    private static final String DEFAULT_LANG = "en";
 
     @Mock
     private SpeechService speechService;
     @Mock
+    private CommandWaitingService commandWaitingService;
+    @Mock
     private NetworkUtils networkUtils;
     @Mock
-    private SpeechSynthesizer speechSynthesizer;
+    private SaluteSpeechSynthesizerImpl speechSynthesizer;
     @Mock
     private SpeechParser speechParser;
+    @Mock
+    private LanguageResolver languageResolver;
     @Mock
     private SendMessageExecutor sendMessageExecutor;
     @Mock
@@ -114,7 +123,22 @@ class VoiceTest {
 
     @Test
     void parseWithoutTextTest() {
+        final String expectedText = "${command.voice.commandwaitingstart}\n" +
+                "Наталья(ru)\n" +
+                "Борис(ru)\n" +
+                "Марфа(ru)\n" +
+                "Тарас(ru)\n" +
+                "Александра(ru)\n" +
+                "Сергей(ru)\n" +
+                "Kira(en)\n";
         Update updateFromGroup = getUpdateFromGroup();
+        BotException botException = assertThrows((BotException.class), () -> voice.parse(updateFromGroup));
+        assertEquals(expectedText, botException.getMessage());
+    }
+
+    @Test
+    void parseWithoutTextInRepliedMessageTest() {
+        Update updateFromGroup = getUpdateWithRepliedMessage("");
         assertThrows((BotException.class), () -> voice.parse(updateFromGroup));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
@@ -125,12 +149,13 @@ class VoiceTest {
         final String expectedText = "test";
         Update updateWithRepliedMessage = getUpdateWithRepliedMessage(expectedText);
 
-        when(speechSynthesizer.synthesize(expectedText)).thenThrow(new SpeechSynthesizeException(errorText));
+        when(languageResolver.getChatLanguageCode(updateWithRepliedMessage)).thenReturn(DEFAULT_LANG);
+        when(speechSynthesizer.synthesize(expectedText, DEFAULT_LANG)).thenThrow(new SpeechSynthesizeException(errorText));
 
         BotException botException = assertThrows((BotException.class), () -> voice.parse(updateWithRepliedMessage));
         assertEquals(errorText, botException.getMessage());
 
-        verify(speechSynthesizer).synthesize(expectedText);
+        verify(speechSynthesizer).synthesize(expectedText, DEFAULT_LANG);
     }
 
     @Test
@@ -138,7 +163,20 @@ class VoiceTest {
         final byte[] expectedFile = "test".getBytes();
         Update updateFromGroup = getUpdateFromGroup("voice test");
 
-        when(speechSynthesizer.synthesize(anyString())).thenReturn(expectedFile);
+        when(languageResolver.getChatLanguageCode(updateFromGroup)).thenReturn(DEFAULT_LANG);
+        when(speechSynthesizer.synthesize("test", DEFAULT_LANG)).thenReturn(expectedFile);
+
+        SendVoice method = voice.parse(updateFromGroup);
+        TestUtils.checkDefaultSendVoiceParams(method);
+    }
+
+    @Test
+    void parseWithVoiceParameterText() throws SpeechSynthesizeException {
+        final byte[] expectedFile = "test".getBytes();
+        Update updateFromGroup = getUpdateFromGroup("voice kira test");
+
+        when(languageResolver.getChatLanguageCode(updateFromGroup)).thenReturn(DEFAULT_LANG);
+        when(speechSynthesizer.synthesize("test", DEFAULT_LANG, SaluteSpeechVoice.KIN)).thenReturn(expectedFile);
 
         SendVoice method = voice.parse(updateFromGroup);
         TestUtils.checkDefaultSendVoiceParams(method);

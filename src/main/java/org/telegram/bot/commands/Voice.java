@@ -3,16 +3,21 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.TextAnalyzer;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.SpeechParseException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.SpeechSynthesizer;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
@@ -25,6 +30,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TelegramUtils.getMessage;
 
@@ -34,9 +41,11 @@ import static org.telegram.bot.utils.TelegramUtils.getMessage;
 public class Voice implements Command<SendVoice>, TextAnalyzer {
 
     private final SpeechService speechService;
+    private final CommandWaitingService commandWaitingService;
     private final NetworkUtils networkUtils;
     private final SpeechSynthesizer speechSynthesizer;
     private final SpeechParser speechParser;
+    private final LanguageResolver languageResolver;
     private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
     private final Bot bot;
@@ -45,7 +54,11 @@ public class Voice implements Command<SendVoice>, TextAnalyzer {
     public SendVoice parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+
+        String textMessage = commandWaitingService.getText(message);
+        if (textMessage == null) {
+            textMessage = cutCommandInText(message.getText());
+        }
         Integer messageIdToReply = message.getMessageId();
 
         if (textMessage == null) {
@@ -54,13 +67,36 @@ public class Voice implements Command<SendVoice>, TextAnalyzer {
                 textMessage = repliedMessage.getText();
                 messageIdToReply = repliedMessage.getMessageId();
             } else {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                log.debug("Empty request. Turning on command waiting");
+                commandWaitingService.add(message, this.getClass());
+                String responseText = "${command.voice.commandwaitingstart}\n";
+                String availableVoices = Arrays.stream(SaluteSpeechVoice.values())
+                        .map(saluteSpeechVoice -> saluteSpeechVoice.getName() + "(" + saluteSpeechVoice.getLangCode() + ")\n")
+                        .collect(Collectors.joining());
+                throw new BotException(responseText + availableVoices);
             }
+        }
+
+        if (!StringUtils.hasLength(textMessage)) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        String lang = languageResolver.getChatLanguageCode(update);
+
+        SaluteSpeechVoice saluteSpeechVoice = null;
+        String[] words = textMessage.split(" ");
+        if (words.length >= 2) {
+            saluteSpeechVoice = SaluteSpeechVoice.getByName(words[0]);
         }
 
         byte[] voice;
         try {
-            voice = speechSynthesizer.synthesize(textMessage);
+            if (saluteSpeechVoice == null) {
+                voice = speechSynthesizer.synthesize(textMessage, lang);
+            } else {
+                textMessage = textMessage.replaceFirst(words[0], "").trim();
+                voice = ((SaluteSpeechSynthesizer) speechSynthesizer).synthesize(textMessage, lang, saluteSpeechVoice);
+            }
         } catch (SpeechSynthesizeException e) {
             throw new BotException(e.getMessage());
         }

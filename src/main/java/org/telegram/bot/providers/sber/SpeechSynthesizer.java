@@ -2,7 +2,9 @@ package org.telegram.bot.providers.sber;
 
 import org.telegram.bot.exception.SpeechSynthesizeException;
 
+import javax.validation.constraints.NotNull;
+
 public interface SpeechSynthesizer {
 
-    byte[] synthesize(String text) throws SpeechSynthesizeException;
+    byte[] synthesize(String text, @NotNull String langCode) throws SpeechSynthesizeException;
 }

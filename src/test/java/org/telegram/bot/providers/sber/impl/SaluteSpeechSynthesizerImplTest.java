@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
@@ -22,7 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SaluteSpeechSynthesizerTest {
+class SaluteSpeechSynthesizerImplTest {
 
     @Mock
     private SberTokenProvider sberTokenProvider;
@@ -33,15 +34,25 @@ class SaluteSpeechSynthesizerTest {
     private ResponseEntity<byte[]> responseEntity;
 
     @InjectMocks
-    private SaluteSpeechSynthesizer saluteSpeechSynthesizer;
+    private SaluteSpeechSynthesizerImpl saluteSpeechSynthesizerImpl;
 
     @Test
-    void synthesizeTooLongText() {
+    void synthesizeTooLongTextTest() {
         final String expectedErrorText = "Too long text";
         String text = "1".repeat(4001);
 
         SpeechSynthesizeException sberAccessTokenException =
-                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizer.synthesize(text));
+                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
+        assertEquals(expectedErrorText, sberAccessTokenException.getMessage());
+    }
+
+    @Test
+    void synthesizeWithoutTextTest() {
+        final String expectedErrorText = "Empty text";
+        String text = "";
+
+        SpeechSynthesizeException sberAccessTokenException =
+                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
         assertEquals(expectedErrorText, sberAccessTokenException.getMessage());
     }
 
@@ -53,7 +64,7 @@ class SaluteSpeechSynthesizerTest {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenThrow(new GettingSberAccessTokenException(expectedErrorText));
 
         SpeechSynthesizeException speechSynthesizeException =
-                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizer.synthesize(text));
+                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
         assertEquals(expectedErrorText, speechSynthesizeException.getMessage());
     }
 
@@ -67,7 +78,7 @@ class SaluteSpeechSynthesizerTest {
                 .thenThrow(new RestClientException(expectedErrorText));
 
         SpeechSynthesizeException speechSynthesizeException =
-                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizer.synthesize(text));
+                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
         assertEquals(expectedErrorText, speechSynthesizeException.getMessage());
     }
 
@@ -79,7 +90,7 @@ class SaluteSpeechSynthesizerTest {
         when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
-        assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizer.synthesize(text));
+        assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
     }
 
     @Test
@@ -92,7 +103,49 @@ class SaluteSpeechSynthesizerTest {
         when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(responseEntity);
 
-        byte[] bytes = saluteSpeechSynthesizer.synthesize(text);
+        byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "en");
+
+        assertEquals(voice, bytes);
+    }
+
+    @Test
+    void synthesizeUnknownLangTest() throws GettingSberAccessTokenException, SpeechSynthesizeException {
+        String text = "text";
+        byte[] voice = text.getBytes();
+
+        when(responseEntity.getBody()).thenReturn(voice);
+        when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
+        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+                .thenReturn(responseEntity);
+
+        byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "aa");
+
+        assertEquals(voice, bytes);
+    }
+
+    @Test
+    void synthesizeWithSaluteSpeechVoiceWithGettingSberAccessTokenExceptionTest() throws GettingSberAccessTokenException {
+        final String expectedErrorText = "error";
+        String text = "text";
+
+        when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenThrow(new GettingSberAccessTokenException(expectedErrorText));
+
+        SpeechSynthesizeException speechSynthesizeException =
+                assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en", SaluteSpeechVoice.KIN));
+        assertEquals(expectedErrorText, speechSynthesizeException.getMessage());
+    }
+
+    @Test
+    void synthesizeWithSaluteSpeechVoiceTest() throws GettingSberAccessTokenException, SpeechSynthesizeException {
+        String text = "text";
+        byte[] voice = text.getBytes();
+
+        when(responseEntity.getBody()).thenReturn(voice);
+        when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
+        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+                .thenReturn(responseEntity);
+
+        byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "en", SaluteSpeechVoice.KIN);
 
         assertEquals(voice, bytes);
     }
