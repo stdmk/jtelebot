@@ -45,6 +45,7 @@ public class Top implements Command<SendMessage> {
     private final InternationalizationService internationalizationService;
 
     private final Map<String, Set<String>> topListParamValuesMap = new ConcurrentHashMap<>();
+    private String topListMonthlyParam;
 
     @PostConstruct
     private void postConstruct() {
@@ -63,6 +64,8 @@ public class Top implements Command<SendMessage> {
         topListParamValuesMap.put("getNumberOfCommands", internationalizationService.getAllTranslations("command.top.list.commands"));
         topListParamValuesMap.put("getNumberOfGoodness", internationalizationService.getAllTranslations("command.top.list.goodness"));
         topListParamValuesMap.put("getNumberOfWickedness", internationalizationService.getAllTranslations("command.top.list.wickedness"));
+
+        this.topListMonthlyParam = internationalizationService.internationalize("${command.top.list.monthly}", null);
     }
 
     @Override
@@ -106,13 +109,10 @@ public class Top implements Command<SendMessage> {
 
     public SendMessage getTopByChat(Chat chat) {
         SendMessage sendMessage = new SendMessage();
+
         sendMessage.setChatId(chat.getChatId().toString());
         sendMessage.enableHtml(true);
-        try {
-            sendMessage.setText(getTopListOfUsers(chat, "${command.top.list.monthly}") + "\n${command.top.monthlyclearcaption}");
-        } catch (BotException ignored) {
-
-        }
+        sendMessage.setText(getTopListOfUsers(chat, topListMonthlyParam) + "\n${command.top.monthlyclearcaption}");
 
         return sendMessage;
     }

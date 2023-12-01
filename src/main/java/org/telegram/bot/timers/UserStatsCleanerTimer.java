@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.commands.Top;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.services.ChatService;
@@ -57,6 +58,7 @@ public class UserStatsCleanerTimer extends TimerParent {
         }
     }
 
+    @Transactional
     private void checkMonthlyStats() {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
