@@ -14,6 +14,7 @@ import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.SpeechParseException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.exception.SpeechSynthesizeNoApiResponseException;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.impl.SaluteSpeechSynthesizerImpl;
 import org.telegram.bot.services.CommandWaitingService;
@@ -159,6 +160,20 @@ class VoiceTest {
     }
 
     @Test
+    void parseWithGettingSpeechSynthesizeNoApiResponseExceptionTest() throws SpeechSynthesizeException {
+        final String expectedText = "test";
+        Update update = getUpdateFromGroup("voice " + expectedText);
+
+        when(languageResolver.getChatLanguageCode(update)).thenReturn(DEFAULT_LANG);
+        when(speechSynthesizer.synthesize(expectedText, DEFAULT_LANG)).thenThrow(new SpeechSynthesizeNoApiResponseException("error"));
+
+        assertThrows((BotException.class), () -> voice.parse(update));
+
+        verify(speechSynthesizer).synthesize(expectedText, DEFAULT_LANG);
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
     void parseText() throws SpeechSynthesizeException {
         final byte[] expectedFile = "test".getBytes();
         Update updateFromGroup = getUpdateFromGroup("voice test");
@@ -180,6 +195,8 @@ class VoiceTest {
 
         SendVoice method = voice.parse(updateFromGroup);
         TestUtils.checkDefaultSendVoiceParams(method);
+
+        verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
 
 }

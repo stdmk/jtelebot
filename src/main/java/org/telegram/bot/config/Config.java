@@ -51,7 +51,7 @@ public class Config {
     }
 
     @Bean
-    public RestTemplate insecureRestTemplate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public RestTemplate sberRestTemplate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
                 .loadTrustMaterial(null, acceptingTrustStrategy)
@@ -63,6 +63,7 @@ public class Config {
         HttpComponentsClientHttpRequestFactory requestFactory =
                 new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
+        requestFactory.setReadTimeout(5000);
 
         return new RestTemplate(requestFactory);
     }

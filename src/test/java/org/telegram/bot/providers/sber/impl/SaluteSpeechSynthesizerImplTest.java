@@ -28,7 +28,7 @@ class SaluteSpeechSynthesizerImplTest {
     @Mock
     private SberTokenProvider sberTokenProvider;
     @Mock
-    private RestTemplate insecureRestTemplate;
+    private RestTemplate sberRestTemplate;
 
     @Mock
     private ResponseEntity<byte[]> responseEntity;
@@ -74,7 +74,7 @@ class SaluteSpeechSynthesizerImplTest {
         String text = "text";
 
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new RestClientException(expectedErrorText));
 
         SpeechSynthesizeException speechSynthesizeException =
@@ -87,7 +87,7 @@ class SaluteSpeechSynthesizerImplTest {
         String text = "text";
 
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
         assertThrows((SpeechSynthesizeException.class), () -> saluteSpeechSynthesizerImpl.synthesize(text, "en"));
@@ -100,7 +100,7 @@ class SaluteSpeechSynthesizerImplTest {
 
         when(responseEntity.getBody()).thenReturn(voice);
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(responseEntity);
 
         byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "en");
@@ -115,7 +115,7 @@ class SaluteSpeechSynthesizerImplTest {
 
         when(responseEntity.getBody()).thenReturn(voice);
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(responseEntity);
 
         byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "aa");
@@ -142,7 +142,7 @@ class SaluteSpeechSynthesizerImplTest {
 
         when(responseEntity.getBody()).thenReturn(voice);
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("token");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(responseEntity);
 
         byte[] bytes = saluteSpeechSynthesizerImpl.synthesize(text, "en", SaluteSpeechVoice.KIN);

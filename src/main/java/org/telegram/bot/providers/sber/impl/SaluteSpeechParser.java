@@ -31,7 +31,7 @@ public class SaluteSpeechParser implements SberApiProvider, SpeechParser {
     private static final String TELEGRAM_VOICE_CONTENT_TYPE = "audio/ogg;codecs=opus";
 
     private final SberTokenProvider sberTokenProvider;
-    private final RestTemplate insecureRestTemplate;
+    private final RestTemplate sberRestTemplate;
 
     @Override
     public SberScope getScope() {
@@ -67,7 +67,7 @@ public class SaluteSpeechParser implements SberApiProvider, SpeechParser {
 
         ResponseEntity<SpeechRecognizeResult> response;
         try {
-            response = insecureRestTemplate.postForEntity(SALUTE_SPEECH_API_URL, request, SpeechRecognizeResult.class);
+            response = sberRestTemplate.postForEntity(SALUTE_SPEECH_API_URL, request, SpeechRecognizeResult.class);
         } catch (RestClientException e) {
             log.error("Failed to get response from SaluteSpeech", e);
             throw new SpeechParseException(e.getMessage());

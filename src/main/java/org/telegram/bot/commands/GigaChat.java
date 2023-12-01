@@ -66,7 +66,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     private final GigaChatMessageService gigaChatMessageService;
     private final InternationalizationService internationalizationService;
     private final ObjectMapper objectMapper;
-    private final RestTemplate insecureRestTemplate;
+    private final RestTemplate sberRestTemplate;
     private final BotStats botStats;
 
     @PostConstruct
@@ -206,7 +206,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
 
         ResponseEntity<T> responseEntity;
         try {
-            responseEntity = insecureRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), dataType);
+            responseEntity = sberRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), dataType);
         } catch (HttpClientErrorException hce) {
             String jsonError = hce.getResponseBodyAsString();
 

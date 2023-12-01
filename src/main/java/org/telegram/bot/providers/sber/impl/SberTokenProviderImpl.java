@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SberTokenProviderImpl implements SberTokenProvider {
 
     private final PropertiesConfig propertiesConfig;
-    private final RestTemplate insecureRestTemplate;
+    private final RestTemplate sberRestTemplate;
 
     private final Map<SberScope, SberAccessTokenResponseDto> accessTokenMap = new ConcurrentHashMap<>();
 
@@ -50,11 +50,26 @@ public class SberTokenProviderImpl implements SberTokenProvider {
 
         if (isTokenExpired(accessToken)) {
             accessToken = getFromApi(sberScope);
+            accessTokenMap.put(sberScope, accessToken);
         }
 
         return Optional.of(accessToken)
                 .map(SberAccessTokenResponseDto::getAccessToken)
                 .orElseThrow(() -> new GettingSberAccessTokenException("empty sber token"));
+    }
+
+    @Override
+    public void updateTokens() {
+        accessTokenMap.forEach((sberScope, accessToken) -> {
+            if (isTokenExpired(accessToken)) {
+                try {
+                    accessToken = getFromApi(sberScope);
+                } catch (GettingSberAccessTokenException e) {
+                    log.error("Failed to update token for scope {}", sberScope);
+                }
+                accessTokenMap.put(sberScope, accessToken);
+            }
+        });
     }
 
     private boolean isTokenExpired(SberAccessTokenResponseDto accessToken) {
@@ -76,7 +91,7 @@ public class SberTokenProviderImpl implements SberTokenProvider {
 
         ResponseEntity<SberAccessTokenResponseDto> response;
         try {
-            response = insecureRestTemplate.postForEntity(GET_ACCESS_TOKEN_API_URL, request, SberAccessTokenResponseDto.class);
+            response = sberRestTemplate.postForEntity(GET_ACCESS_TOKEN_API_URL, request, SberAccessTokenResponseDto.class);
         } catch (RestClientException e) {
             log.error("Failed to get sber access token", e);
             throw new GettingSberAccessTokenException(e.getMessage());

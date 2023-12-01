@@ -31,7 +31,7 @@ class SaluteSpeechParserTest {
     @Mock
     private SberTokenProvider sberTokenProvider;
     @Mock
-    private RestTemplate insecureRestTemplate;
+    private RestTemplate sberRestTemplate;
 
     @Mock
     private ResponseEntity<SaluteSpeechParser.SpeechRecognizeResult> speechRecognizeResultResponseEntity;
@@ -58,7 +58,7 @@ class SaluteSpeechParserTest {
     @Test
     void recognizeWithRestClientExceptionTest() throws GettingSberAccessTokenException {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenThrow(new RestClientException("error"));
 
         assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 30));
@@ -67,7 +67,7 @@ class SaluteSpeechParserTest {
     @Test
     void recognizeWithEmptyResponseTest() throws GettingSberAccessTokenException {
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
         assertThrows(SpeechParseException.class, () -> saluteSpeechParser.parse(FILE, 30));
@@ -82,7 +82,7 @@ class SaluteSpeechParserTest {
 
         when(speechRecognizeResultResponseEntity.getBody()).thenReturn(speechRecognizeResult);
         when(sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS)).thenReturn("accessToken");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SaluteSpeechParser.SpeechRecognizeResult>>any()))
                 .thenReturn(speechRecognizeResultResponseEntity);
 
         String actualResult = saluteSpeechParser.parse(FILE, 30);

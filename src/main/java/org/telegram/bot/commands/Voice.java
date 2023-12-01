@@ -13,6 +13,7 @@ import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.SpeechParseException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.exception.SpeechSynthesizeNoApiResponseException;
 import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.SpeechSynthesizer;
@@ -97,6 +98,8 @@ public class Voice implements Command<SendVoice>, TextAnalyzer {
                 textMessage = textMessage.replaceFirst(words[0], "").trim();
                 voice = ((SaluteSpeechSynthesizer) speechSynthesizer).synthesize(textMessage, lang, saluteSpeechVoice);
             }
+        } catch (SpeechSynthesizeNoApiResponseException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         } catch (SpeechSynthesizeException e) {
             throw new BotException(e.getMessage());
         }

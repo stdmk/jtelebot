@@ -5,4 +5,5 @@ import org.telegram.bot.exception.GettingSberAccessTokenException;
 
 public interface SberTokenProvider {
     String getToken(SberScope sberScope) throws GettingSberAccessTokenException;
+    void updateTokens();
 }

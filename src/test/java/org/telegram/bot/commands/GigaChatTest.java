@@ -63,7 +63,7 @@ class GigaChatTest {
     @Mock
     private ObjectMapper objectMapper;
     @Mock
-    private RestTemplate insecureRestTemplate;
+    private RestTemplate sberRestTemplate;
     @Mock
     private BotStats botStats;
 
@@ -119,7 +119,7 @@ class GigaChatTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any())).thenThrow(new RestClientException("test"));
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any())).thenThrow(new RestClientException("test"));
 
         assertThrows(BotException.class, () -> gigaChat.parse(update));
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -143,7 +143,7 @@ class GigaChatTest {
         when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(objectMapper.readValue("", GigaChat.ErrorResponse.class)).thenReturn(errorResponse);
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         BotException botException = assertThrows(BotException.class, () -> gigaChat.parse(update));
@@ -160,7 +160,7 @@ class GigaChatTest {
         when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(objectMapper.readValue(anyString(), ArgumentMatchers.<Class<?>>any())).thenThrow(new JsonParseException(null, ""));
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "error".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
 
         assertThrows(BotException.class, () -> gigaChat.parse(update));
@@ -176,7 +176,7 @@ class GigaChatTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
 
         assertThrows(BotException.class, () -> gigaChat.parse(update));
@@ -201,7 +201,7 @@ class GigaChatTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = gigaChat.parse(update);
@@ -239,7 +239,7 @@ class GigaChatTest {
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(gigaChatMessageService.getMessages(any(User.class))).thenReturn(gigaChatMessages);
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         PartialBotApiMethod<?> method = gigaChat.parse(update);
@@ -274,7 +274,7 @@ class GigaChatTest {
         when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
         when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(insecureRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         Method postConstruct = GigaChat.class.getDeclaredMethod("postConstruct");

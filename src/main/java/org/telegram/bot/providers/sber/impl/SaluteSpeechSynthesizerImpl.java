@@ -12,6 +12,7 @@ import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.exception.SpeechSynthesizeNoApiResponseException;
 import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SberApiProvider;
 import org.telegram.bot.providers.sber.SberTokenProvider;
@@ -30,7 +31,7 @@ public class SaluteSpeechSynthesizerImpl implements SpeechSynthesizer, SaluteSpe
             "format=opus&voice=%s_24000";
 
     private final SberTokenProvider sberTokenProvider;
-    private final RestTemplate insecureRestTemplate;
+    private final RestTemplate sberRestTemplate;
 
     @Override
     public byte[] synthesize(String text, String langCode) throws SpeechSynthesizeException {
@@ -41,7 +42,7 @@ public class SaluteSpeechSynthesizerImpl implements SpeechSynthesizer, SaluteSpe
             accessToken = sberTokenProvider.getToken(getScope());
         } catch (GettingSberAccessTokenException e) {
             log.error("Error getting salute speech api token", e);
-            throw new SpeechSynthesizeException(e.getMessage());
+            throw new SpeechSynthesizeNoApiResponseException(e.getMessage());
         }
 
         SaluteSpeechVoice saluteSpeechVoice = SaluteSpeechVoice.getByLangCode(langCode);
@@ -85,16 +86,16 @@ public class SaluteSpeechSynthesizerImpl implements SpeechSynthesizer, SaluteSpe
         String url = String.format(SALUTE_SPEECH_API_URL_TEMPLATE, saluteSpeechVoice.getCode());
         ResponseEntity<byte[]> response;
         try {
-            response = insecureRestTemplate.postForEntity(url, request, byte[].class);
+            response = sberRestTemplate.postForEntity(url, request, byte[].class);
         } catch (RestClientException e) {
             log.error("Failed to get response from SaluteSpeech", e);
-            throw new SpeechSynthesizeException(e.getMessage());
+            throw new SpeechSynthesizeNoApiResponseException(e.getMessage());
         }
 
         byte[] voice = response.getBody();
         if (voice == null) {
             log.error("Failed to get response from SaluteSpeech: empty body");
-            throw new SpeechSynthesizeException("Failed to get response from SaluteSpeech: empty body");
+            throw new SpeechSynthesizeNoApiResponseException("Failed to get response from SaluteSpeech: empty body");
         }
 
         return voice;
