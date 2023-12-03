@@ -64,8 +64,8 @@ public class SberTokenProviderImpl implements SberTokenProvider {
             if (isTokenExpired(accessToken)) {
                 try {
                     accessToken = getFromApi(sberScope);
-                } catch (GettingSberAccessTokenException e) {
-                    log.error("Failed to update token for scope {}", sberScope);
+                } catch (Exception e) {
+                    log.error("Failed to update token for scope {}", sberScope, e);
                 }
                 accessTokenMap.put(sberScope, accessToken);
             }
