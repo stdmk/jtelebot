@@ -81,6 +81,8 @@ public class SendPhotoExecutor implements MethodExecutor {
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
 
+        internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
+
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {

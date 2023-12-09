@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.services.InternationalizationService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
@@ -23,6 +25,8 @@ public class SendMediaGroupExecutor implements MethodExecutor {
 
     private final Bot bot;
     private final BotStats botStats;
+    private final LanguageResolver languageResolver;
+    private final InternationalizationService internationalizationService;
 
     @Override
     public String getMethod() {
@@ -81,6 +85,8 @@ public class SendMediaGroupExecutor implements MethodExecutor {
             sendMessage.setChatId(sendMediaGroup.getChatId());
             sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
             sendMessage.setText("${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
+
+            internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 
             try {
                 bot.execute(sendMessage);
