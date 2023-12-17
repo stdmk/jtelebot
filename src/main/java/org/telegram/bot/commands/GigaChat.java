@@ -130,7 +130,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
                 }
 
                 responseText = getResponse(
-                        buildRequest(messagesHistory, textMessage, message.getFrom().getUserName()),
+                        buildRequest(messagesHistory, textMessage),
                         token);
 
                 messagesHistory.addAll(
@@ -166,15 +166,14 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         return sendMessage;
     }
 
-    private ChatRequest buildRequest(List<GigaChatMessage> gigaChatMessages, String text, String username) {
+    private ChatRequest buildRequest(List<GigaChatMessage> gigaChatMessages, String text) {
         List<Message> requestMessages = gigaChatMessages
                 .stream()
                 .map(gigaChatMessage -> new Message()
                         .setRole(gigaChatMessage.getRole().getName())
-                        .setContent(gigaChatMessage.getContent())
-                        .setName(gigaChatMessage.getUser().getUsername()))
+                        .setContent(gigaChatMessage.getContent()))
                 .collect(Collectors.toList());
-        requestMessages.add(new Message().setRole(GigaChatRole.USER.getName()).setContent(text).setName(username));
+        requestMessages.add(new Message().setRole(GigaChatRole.USER.getName()).setContent(text));
 
         return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
     }
@@ -312,6 +311,5 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     public static class Message {
         private String role;
         private String content;
-        private String name;
     }
 }
