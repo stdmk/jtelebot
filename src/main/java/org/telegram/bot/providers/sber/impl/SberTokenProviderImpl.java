@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.dto.SberAccessTokenResponseDto;
@@ -92,7 +91,7 @@ public class SberTokenProviderImpl implements SberTokenProvider {
         ResponseEntity<SberAccessTokenResponseDto> response;
         try {
             response = sberRestTemplate.postForEntity(GET_ACCESS_TOKEN_API_URL, request, SberAccessTokenResponseDto.class);
-        } catch (RestClientException e) {
+        } catch (Exception e) {
             log.error("Failed to get sber access token", e);
             throw new GettingSberAccessTokenException(e.getMessage());
         }
