@@ -13,6 +13,7 @@ import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -31,6 +32,7 @@ import static org.telegram.bot.utils.TextUtils.deleteWordsInText;
 public class Turn implements Command<SendMessage>, TextAnalyzer {
 
     private final Bot bot;
+    private final ObjectCopier objectCopier;
     private final SpeechService speechService;
     private final CommandPropertiesService commandPropertiesService;
     private final LanguageResolver languageResolver;
@@ -132,7 +134,7 @@ public class Turn implements Command<SendMessage>, TextAnalyzer {
             Matcher matcher = UNTURNED_WORD_SYMPTOM.matcher(textMessage);
             if (matcher.find()) {
                 String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
-                Update newUpdate = copyUpdate(update);
+                Update newUpdate = objectCopier.copyObject(update, Update.class);
 
                 if (newUpdate == null) {
                     return;

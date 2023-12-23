@@ -9,6 +9,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -25,6 +26,7 @@ import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class EchoTest {
+
     @Mock
     private SpeechService speechService;
     @Mock
@@ -37,6 +39,8 @@ class EchoTest {
     private TalkerDegreeService talkerDegreeService;
     @Mock
     private Bot bot;
+    @Mock
+    private ObjectCopier objectCopier;
 
     @InjectMocks
     private Echo echo;
@@ -181,6 +185,7 @@ class EchoTest {
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(objectCopier.copyObject(update, Update.class)).thenReturn(update);
 
         assertDoesNotThrow(() -> echo.analyze(update));
         verify(bot).sendTyping(update.getMessage().getChatId());

@@ -14,6 +14,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.services.LastCommandService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -25,6 +26,7 @@ public class Repeat implements TextAnalyzer, Command<PartialBotApiMethod<?>> {
 
     private final Bot bot;
     private final ApplicationContext context;
+    private final ObjectCopier objectCopier;
 
     private final UserService userService;
     private final UserStatsService userStatsService;
@@ -45,7 +47,7 @@ public class Repeat implements TextAnalyzer, Command<PartialBotApiMethod<?>> {
                 log.debug("Request to repeat Command {}", commandProperties);
 
                 if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
-                    Update newUpdate = copyUpdate(update);
+                    Update newUpdate = objectCopier.copyObject(update, Update.class);
                     if (newUpdate == null) {
                         return;
                     }

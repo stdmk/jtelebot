@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.*;
-import static org.telegram.bot.utils.TextUtils.isTextLengthIncludedInLimit;
 
 @Component
 @RequiredArgsConstructor
@@ -123,10 +122,6 @@ public class Tv implements Command<SendMessage> {
                     responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandName, zoneId);
                 }
             }
-        }
-
-        if (!isTextLengthIncludedInLimit(responseText)) {
-            responseText = "${command.tv.longresponse}";
         }
 
         SendMessage sendMessage = new SendMessage();

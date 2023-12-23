@@ -13,6 +13,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -30,6 +31,7 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
 
     private final ApplicationContext context;
     private final Bot bot;
+    private final ObjectCopier objectCopier;
 
     private final AliasService aliasService;
     private final UserService userService;
@@ -114,7 +116,7 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
         org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, message.getText());
 
         if (alias != null) {
-            Update newUpdate = copyUpdate(update);
+            Update newUpdate = objectCopier.copyObject(update, Update.class);
             if (newUpdate == null) {
                 log.error("Failed to get a copy of update");
                 return;

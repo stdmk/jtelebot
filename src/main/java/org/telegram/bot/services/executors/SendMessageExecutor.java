@@ -7,7 +7,9 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.bot.utils.TelegramUtils;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -23,6 +25,7 @@ public class SendMessageExecutor implements MethodExecutor {
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
+    private final ObjectCopier objectCopier;
 
     @Override
     public String getMethod() {
@@ -35,8 +38,24 @@ public class SendMessageExecutor implements MethodExecutor {
         String lang = languageResolver.getChatLanguageCode(update);
         SendMessage sendMessage = internationalizationService.internationalize((SendMessage) method, lang);
 
-        log.info("To " + message.getChatId() + ": " + sendMessage.getText());
+        String messageText = sendMessage.getText();
+        log.info("To " + message.getChatId() + ": " + messageText);
 
+        if (TextUtils.isNotTextLengthIncludedInLimit(messageText)) {
+            TextUtils.splitTextByTelegramMaxLength(messageText)
+                    .stream()
+                    .map(text -> {
+                        SendMessage splittedSendMessage = objectCopier.copyObject(sendMessage, SendMessage.class);
+                        splittedSendMessage.setText(text);
+                        return splittedSendMessage;
+                    })
+                    .forEach(splittedSendMessage -> sendMessage(splittedSendMessage, method, update));
+        } else {
+            sendMessage(sendMessage, method, update);
+        }
+    }
+
+    private void sendMessage(SendMessage sendMessage, PartialBotApiMethod<?> method, Update update) {
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {

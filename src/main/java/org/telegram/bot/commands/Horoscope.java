@@ -30,8 +30,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
 
-import static org.telegram.bot.utils.TextUtils.isTextLengthIncludedInLimit;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -78,10 +76,6 @@ public class Horoscope implements Command<SendMessage> {
             }
         } else {
             responseText = getResponseTextWithHoroscopeTypeList();
-        }
-
-        if (!isTextLengthIncludedInLimit(responseText)) {
-            responseText = "${command.horoscope.responseistoolong}";
         }
 
         SendMessage sendMessage = new SendMessage();

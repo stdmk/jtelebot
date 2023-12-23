@@ -16,6 +16,7 @@ import org.telegram.bot.services.TalkerDegreeService;
 import org.telegram.bot.services.TalkerPhraseService;
 import org.telegram.bot.services.TalkerWordService;
 import org.telegram.bot.utils.MathUtils;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class Echo implements Command<SendMessage>, TextAnalyzer {
 
     private final Bot bot;
+    private final ObjectCopier objectCopier;
     private final SpeechService speechService;
     private final TalkerWordService talkerWordService;
     private final TalkerPhraseService talkerPhraseService;
@@ -95,7 +97,7 @@ public class Echo implements Command<SendMessage>, TextAnalyzer {
         if (sendMessage) {
             bot.sendTyping(message.getChatId());
             String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
-            Update newUpdate = copyUpdate(update);
+            Update newUpdate = objectCopier.copyObject(update, Update.class);
 
             if (newUpdate == null) {
                 return;

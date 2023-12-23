@@ -6,6 +6,7 @@ import org.telegram.bot.domain.entities.User;
 import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class TextUtils {
 
+    private static final Integer TELEGRAM_MESSAGE_TEXT_MAX_LENGTH = 4096;
     public static final String BORDER = "-----------------------------\n";
 
     private static final Pattern COMMAND_PATTERN = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
@@ -76,8 +78,21 @@ public class TextUtils {
         return symbolsList.stream().anyMatch(text::startsWith);
     }
 
-    public static Boolean isTextLengthIncludedInLimit(String text) {
-        return text.length() < 4096;
+    public static boolean isNotTextLengthIncludedInLimit(String text) {
+        return text.length() > TELEGRAM_MESSAGE_TEXT_MAX_LENGTH;
+    }
+
+    public static List<String> splitTextByTelegramMaxLength(String text) {
+        List<String> result = new ArrayList<>();
+
+        while (text.length() > TELEGRAM_MESSAGE_TEXT_MAX_LENGTH) {
+            result.add(text.substring(0, TELEGRAM_MESSAGE_TEXT_MAX_LENGTH));
+            text = text.substring(TELEGRAM_MESSAGE_TEXT_MAX_LENGTH + 1);
+        }
+
+        result.add(text);
+
+        return result;
     }
 
     public static String cutIfLongerThan(String text, int limit) {

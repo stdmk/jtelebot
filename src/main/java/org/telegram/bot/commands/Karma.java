@@ -18,6 +18,7 @@ import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -35,6 +36,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 public class Karma implements Command<SendMessage>, TextAnalyzer {
 
     private final Bot bot;
+    private final ObjectCopier objectCopier;
     private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
     private final UserService userService;
@@ -178,7 +180,7 @@ public class Karma implements Command<SendMessage>, TextAnalyzer {
             CommandProperties commandProperties = commandPropertiesService.getCommand(this.getClass());
             AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getFrom().getId(), message.getChatId());
             if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-                Update newUpdate = copyUpdate(update);
+                Update newUpdate = objectCopier.copyObject(update, Update.class);
                 if (newUpdate == null) {
                     return;
                 }

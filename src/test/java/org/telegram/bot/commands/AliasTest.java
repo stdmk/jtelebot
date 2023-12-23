@@ -14,6 +14,7 @@ import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -44,6 +45,8 @@ class AliasTest {
     private SpeechService speechService;
     @Mock
     private Bot bot;
+    @Mock
+    private ObjectCopier objectCopier;
     @Mock
     private Echo echo;
 
@@ -93,6 +96,7 @@ class AliasTest {
 
     @Test
     void analyzeTest() {
+        Update update = getUpdateFromGroup();
         org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().get(0);
         CommandProperties commandProperties = new CommandProperties().setClassName("Echo").setAccessLevel(0);
 
@@ -107,8 +111,9 @@ class AliasTest {
         when(context.getBean(anyString())).thenReturn(echo);
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
+        when(objectCopier.copyObject(update, Update.class)).thenReturn(update);
 
-        assertDoesNotThrow(() -> alias.analyze(getUpdateFromGroup()));
+        assertDoesNotThrow(() -> alias.analyze(update));
 
         verify(userStatsService).incrementUserStatsCommands(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class));
         verify(context).getBean(anyString());
