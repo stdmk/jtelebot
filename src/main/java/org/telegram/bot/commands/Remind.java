@@ -210,7 +210,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         }
     }
 
-    private EditMessageText getReminderInfo(Message message, Chat chat, User user, String command) {
+    private PartialBotApiMethod<?> getReminderInfo(Message message, Chat chat, User user, String command) {
         long reminderId;
         try {
             reminderId = Long.parseLong(command.substring(INFO_REMINDER.length()));
@@ -221,7 +221,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         Reminder reminder = reminderService.get(chat, user, reminderId);
         if (reminder == null) {
-            return null;
+            return generateDeleteMessage(chat, message);
         }
 
         EditMessageText editMessage = new EditMessageText();
@@ -495,7 +495,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private EditMessageText setReminderByCallback(Message message, Chat chat, User user, String command) {
+    private PartialBotApiMethod<?> setReminderByCallback(Message message, Chat chat, User user, String command) {
         Reminder reminder;
 
         Matcher reminderIdMatcher = SET_ID_PATTERN.matcher(command);
@@ -509,7 +509,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
             reminder = reminderService.get(chat, user, reminderId);
             if (reminder == null) {
-                return null;
+                return generateDeleteMessage(chat, message);
             }
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
@@ -886,11 +886,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         Reminder reminder = reminderService.get(chat, user, reminderId);
         if (reminder == null) {
-            DeleteMessage deleteMessage = new DeleteMessage();
-            deleteMessage.setChatId(chat.getChatId());
-            deleteMessage.setMessageId(message.getMessageId());
-
-            return deleteMessage;
+            return generateDeleteMessage(chat, message);
         }
 
         try {
@@ -898,10 +894,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         } catch (Exception ignored) {}
 
         if (deleteReminderMessage) {
-            DeleteMessage deleteMessage = new DeleteMessage();
-            deleteMessage.setChatId(chat.getChatId());
-            deleteMessage.setMessageId(message.getMessageId());
-            return deleteMessage;
+            return generateDeleteMessage(chat, message);
         }
 
         return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false);
@@ -952,19 +945,22 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     }
 
     private DeleteMessage closeReminderMenu(Message message, Chat chat, User user, String command) {
-        Integer messageId = message.getMessageId();
-        log.debug("Request to close reminder menu by messageId {}", messageId);
+        log.debug("Request to close reminder menu by messageId {}", message.getMessageId());
 
         String userId = command.substring(CLOSE_REMINDER_MENU.length());
         if (user.getUserId().toString().equals(userId)) {
-            DeleteMessage deleteMessage = new DeleteMessage();
-            deleteMessage.setChatId(chat.getChatId());
-            deleteMessage.setMessageId(messageId);
-
-            return deleteMessage;
+            return generateDeleteMessage(chat, message);
         }
 
         return null;
+    }
+
+    private DeleteMessage generateDeleteMessage(Chat chat, Message message) {
+        DeleteMessage deleteMessage = new DeleteMessage();
+        deleteMessage.setChatId(chat.getChatId());
+        deleteMessage.setMessageId(message.getMessageId());
+
+        return deleteMessage;
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithRemindersForSetting(Page<Reminder> reminderList, int page) {
