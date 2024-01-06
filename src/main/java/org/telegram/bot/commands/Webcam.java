@@ -30,10 +30,10 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
     private final FileManagerTimer fileManagerTimer;
     private final CommandWaitingService commandWaitingService;
 
-    private final static String FILE_NAME_PREFIX = "file";
-    private final static String FILE_NAME_POSTFIX = ".mp4";
-    private final static int DEFAULT_VIDEO_DURATION_IN_SECONDS = 5;
-    private final static int MAX_VIDEO_DURATION_IN_SECONDS = 20;
+    private static final String FILE_NAME_PREFIX = "file";
+    private static final String FILE_NAME_POSTFIX = ".mp4";
+    private static final int DEFAULT_VIDEO_DURATION_IN_SECONDS = 5;
+    private static final int MAX_VIDEO_DURATION_IN_SECONDS = 20;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -81,6 +81,7 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
                 process.waitFor();
             } catch (IOException | InterruptedException e) {
                 log.error("Failed to call command {}: {}", command, e.getMessage());
+                Thread.currentThread().interrupt();
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 

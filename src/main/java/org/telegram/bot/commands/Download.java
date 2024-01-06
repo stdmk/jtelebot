@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -57,40 +58,12 @@ public class Download implements Command<PartialBotApiMethod<?>> {
             return sendMessage;
         } else {
             bot.sendUploadDocument(chatId);
-            String url;
-            String fileName;
 
-            int spaceIndex = textMessage.indexOf(" ");
-            if (spaceIndex > 0) {
-                String firstArg = textMessage.substring(0, spaceIndex);
-                String secondArg = textMessage.substring(spaceIndex + 1);
-
-                if (isThatUrl(firstArg)) {
-                    url = firstArg;
-                    fileName = secondArg;
-                } else {
-                    if (isThatUrl(secondArg)) {
-                        url = secondArg;
-                        fileName = firstArg;
-                    } else {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-                }
-            } else {
-                if (isThatUrl(textMessage)) {
-                    url = textMessage;
-                    fileName = TextUtils.getFileNameFromUrl(url);
-                    if (fileName == null) {
-                        fileName = DEFAULT_FILE_NAME;
-                    }
-                } else {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-            }
+            FileParams fileParams = getFileParams(textMessage);
 
             InputStream fileFromUrl;
             try {
-                fileFromUrl = networkUtils.getFileFromUrlWithLimit(url);
+                fileFromUrl = networkUtils.getFileFromUrlWithLimit(fileParams.getUrl());
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
             }
@@ -98,9 +71,50 @@ public class Download implements Command<PartialBotApiMethod<?>> {
             SendDocument sendDocument = new SendDocument();
             sendDocument.setChatId(chatId);
             sendDocument.setReplyToMessageId(message.getMessageId());
-            sendDocument.setDocument(new InputFile(fileFromUrl, fileName));
+            sendDocument.setDocument(new InputFile(fileFromUrl, fileParams.getName()));
 
             return sendDocument;
         }
+    }
+
+    private FileParams getFileParams(String text) {
+        String url;
+        String fileName;
+
+        int spaceIndex = text.indexOf(" ");
+        if (spaceIndex > 0) {
+            String firstArg = text.substring(0, spaceIndex);
+            String secondArg = text.substring(spaceIndex + 1);
+
+            if (isThatUrl(firstArg)) {
+                url = firstArg;
+                fileName = secondArg;
+            } else {
+                if (isThatUrl(secondArg)) {
+                    url = secondArg;
+                    fileName = firstArg;
+                } else {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
+            }
+        } else {
+            if (isThatUrl(text)) {
+                url = text;
+                fileName = TextUtils.getFileNameFromUrl(url);
+                if (fileName == null) {
+                    fileName = DEFAULT_FILE_NAME;
+                }
+            } else {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+        }
+
+        return new FileParams(url, fileName);
+    }
+
+    @Value
+    private static class FileParams {
+        String url;
+        String name;
     }
 }

@@ -61,30 +61,23 @@ public class Calculator implements Command<SendMessage> {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> request = new HttpEntity<>(expressionData.toString(), headers);
 
+            String result = "unavailable";
             try {
                 ResponseEntity<String> response = defaultRestTemplate.postForEntity(MATH_JS_URL, request, String.class);
                 if (response.getBody() == null) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
                 }
 
-                String result;
-                try {
-                    result = new JSONObject(response.getBody()).getString("result");
-                } catch (JSONException e) {
-                    botStats.incrementErrors(update, e, "service access error");
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                try {
-                    responseText =  new BigDecimal(result).toPlainString();
-                } catch (NumberFormatException e) {
-                    responseText = result;
-                }
-
-                responseText = "`" + responseText + "`";
+                result = new JSONObject(response.getBody()).getString("result");
+                responseText = "`" + new BigDecimal(result).toPlainString() + "`";
             } catch (HttpClientErrorException hce) {
                 log.error("Error from api:", hce);
                 responseText = new JSONObject(hce.getResponseBodyAsString()).getString("error");
+            } catch (JSONException e) {
+                botStats.incrementErrors(update, e, "service access error");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            } catch (NumberFormatException e) {
+                responseText = "`" + result + "`";
             }
         }
 

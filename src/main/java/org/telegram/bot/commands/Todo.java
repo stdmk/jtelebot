@@ -33,53 +33,15 @@ public class Todo implements Command<SendMessage> {
         String textMessage = cutCommandInText(message.getText());
         String responseText;
         if (textMessage == null) {
-            log.debug("Request to get all todo list");
-            final StringBuilder buf = new StringBuilder();
-
-            buf.append("${command.todo.caption}\n");
-            todoService.getList().forEach(todo -> buf.append(buildTodoStringLine(todo)));
-
-            responseText = buf.toString();
+            responseText = getTodoList();
         } else {
             if (textMessage.startsWith("-")) {
-                long todoId;
-                try {
-                    todoId = Long.parseLong(textMessage.substring(1));
-                } catch (NumberFormatException e) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-
-                log.debug("Request to delete Todo by id " + todoId);
-                if (!userService.isUserHaveAccessForCommand(
-                        userService.get(message.getFrom().getId()).getAccessLevel(),
-                        AccessLevel.ADMIN.getValue())) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
-                }
-
-                if (todoService.remove(todoId)) {
-                    responseText = "${command.todo.deleted}";
-                } else {
-                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-                }
+                responseText = removeTodoElement(message, textMessage.substring(1));
             } else {
                 try {
-                    Long todoId = Long.parseLong(textMessage);
-
-                    log.debug("Request to get Todo by id {}", todoId);
-                    org.telegram.bot.domain.entities.Todo todo = todoService.get(todoId);
-                    if (todo == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-
-                    responseText = buildTodoStringLine(todo);
+                    responseText = getTodoInfo(Long.parseLong(textMessage));
                 } catch (NumberFormatException e) {
-                    log.debug("Request to add new Todo");
-
-                    org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
-                    todo.setUser(new User().setUserId(message.getFrom().getId()));
-                    todo.setTodoText(textMessage);
-                    todoService.save(todo);
-
+                    addNewTodo(textMessage, message.getFrom().getId());
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 }
             }
@@ -92,6 +54,58 @@ public class Todo implements Command<SendMessage> {
         sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private String getTodoList() {
+        log.debug("Request to get all todo list");
+        final StringBuilder buf = new StringBuilder();
+
+        buf.append("${command.todo.caption}\n");
+        todoService.getList().forEach(todo -> buf.append(buildTodoStringLine(todo)));
+
+        return buf.toString();
+    }
+
+    private String removeTodoElement(Message message, String id) {
+        long todoId;
+        try {
+            todoId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to delete Todo by id " + todoId);
+        if (!userService.isUserHaveAccessForCommand(
+                userService.get(message.getFrom().getId()).getAccessLevel(),
+                AccessLevel.ADMIN.getValue())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
+        }
+
+        if (todoService.remove(todoId)) {
+            return "${command.todo.deleted}";
+        } else {
+            return speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        }
+    }
+
+    private String getTodoInfo(Long id) {
+        log.debug("Request to get Todo by id {}", id);
+        org.telegram.bot.domain.entities.Todo todo = todoService.get(id);
+        if (todo == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return buildTodoStringLine(todo);
+    }
+
+    private void addNewTodo(String todoText, Long userId) {
+        log.debug("Request to add new Todo");
+
+        org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
+        todo.setUser(new User().setUserId(userId));
+        todo.setTodoText(todoText);
+
+        todoService.save(todo);
     }
 
     private String buildTodoStringLine(org.telegram.bot.domain.entities.Todo todo) {

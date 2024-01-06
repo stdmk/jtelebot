@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.telegram.telegrambots.starter.TelegramBotInitializer;
 
 @SpringBootTest
-public class BotApplicationTest {
+class BotApplicationTest {
 
     @Autowired
     private ApplicationContext applicationContext;

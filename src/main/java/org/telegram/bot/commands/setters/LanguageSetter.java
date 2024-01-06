@@ -184,7 +184,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private PartialBotApiMethod<?> getLangSetterWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getLangSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         log.debug("Request to get language setter for chat {}", chat.getChatId());
 
         ChatLanguage chatLanguage = chatLanguageService.get(chat);
@@ -247,7 +247,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.language.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.language.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

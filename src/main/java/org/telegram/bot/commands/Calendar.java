@@ -311,11 +311,11 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
         final String command = "/calendar_";
 
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText("${command.calendar.backbutton}" + Emoji.LEFT_ARROW.getEmoji());
+        backButton.setText("${command.calendar.backbutton}" + Emoji.LEFT_ARROW.getSymbol());
         backButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.minusMonths(1)));
 
         InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-        forwardButton.setText("${command.calendar.forwardbutton}" + Emoji.RIGHT_ARROW.getEmoji());
+        forwardButton.setText("${command.calendar.forwardbutton}" + Emoji.RIGHT_ARROW.getSymbol());
         forwardButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.plusMonths(1)));
 
         return new InlineKeyboardMarkup(List.of(List.of(backButton, forwardButton)));

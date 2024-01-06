@@ -64,7 +64,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public Boolean remove(Chat chat, Long newsId) {
+    public boolean remove(Chat chat, Long newsId) {
         log.debug("Request to delete News by id {}", newsId);
 
         News news = get(chat, newsId);
@@ -77,7 +77,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public Boolean remove(Chat chat, String newsName) {
+    public boolean remove(Chat chat, String newsName) {
         log.debug("Request to delete News by name {}", newsName);
 
         News news = get(chat, newsName);

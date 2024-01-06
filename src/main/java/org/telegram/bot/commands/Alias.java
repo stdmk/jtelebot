@@ -127,11 +127,13 @@ public class Alias implements Command<SendMessage>, TextAnalyzer {
             newMessage.setText(aliasValue);
             CommandProperties commandProperties = commandPropertiesService.findCommandInText(aliasValue, bot.getBotUsername());
 
-            if (commandProperties != null) {
-                if (userService.isUserHaveAccessForCommand(userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(), commandProperties.getAccessLevel())) {
+            if (commandProperties != null &&
+                    (userService.isUserHaveAccessForCommand(
+                            userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(),
+                            commandProperties.getAccessLevel()))) {
                     userStatsService.incrementUserStatsCommands(chat, user);
                     bot.parseAsync(newUpdate, (Command<?>) context.getBean(commandProperties.getClassName()));
-                }
+
             }
             log.debug("The alias found is not a command");
         }

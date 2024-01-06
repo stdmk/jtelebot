@@ -119,14 +119,14 @@ public class Google implements Command<PartialBotApiMethod<?>> {
                     .map(googleSearchItem -> {
                         ImageUrl imageUrl = null;
 
-                        List<Src> srcList = Optional.ofNullable(googleSearchItem.getPagemap())
+                        List<CseImage> cseImageList = Optional.ofNullable(googleSearchItem.getPagemap())
                                 .map(Pagemap::getCseImage)
                                 .orElse(null);
 
-                        if (!CollectionUtils.isEmpty(srcList)) {
+                        if (!CollectionUtils.isEmpty(cseImageList)) {
                             imageUrl = imageUrlService.save(new ImageUrl()
                                     .setTitle(googleSearchItem.getTitle())
-                                    .setUrl(srcList.get(0).getSrc()));
+                                    .setUrl(cseImageList.get(0).getSrc()));
                         }
 
                         return new GoogleSearchResult()
@@ -218,12 +218,12 @@ public class Google implements Command<PartialBotApiMethod<?>> {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Pagemap {
         @JsonProperty("cse_image")
-        private List<Src> cseImage;
+        private List<CseImage> cseImage;
     }
 
     @Data
     @Accessors(chain = true)
-    public static class Src {
+    public static class CseImage {
         private String src;
     }
 }

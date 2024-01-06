@@ -46,33 +46,12 @@ public class News implements Command<PartialBotApiMethod<?>> {
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         Chat chat = new Chat().setChatId(message.getChatId());
+
         String responseText;
-
         if (textMessage == null) {
-            log.debug("Request to get last news for chat {}", chat.getChatId());
-            final StringBuilder buf = new StringBuilder();
-            buf.append("<b>${command.news.lastnews}:</b>\n\n");
-            newsService.getAll(chat)
-                    .forEach(news -> {
-                        NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
-                        if (newsMessage != null) {
-                            buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
-                        }
-                    });
-            responseText = buf.toString();
+            responseText = getLastNewsForChat(chat);
         } else if (textMessage.startsWith("_")) {
-            long newsId;
-            try {
-                newsId = Long.parseLong(textMessage.substring(1));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            log.debug("Request to get details of news by id {}", newsId);
-            NewsMessage newsMessage = newsMessageService.get(newsId);
-            if (newsMessage == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
+            NewsMessage newsMessage = getNewsById(textMessage.substring(1));
 
             responseText = newsMessageService.buildFullNewsMessageText(newsMessage);
             Integer messageId = newsMessage.getMessageId();
@@ -122,6 +101,37 @@ public class News implements Command<PartialBotApiMethod<?>> {
         sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private String getLastNewsForChat(Chat chat) {
+        log.debug("Request to get last news for chat {}", chat.getChatId());
+        final StringBuilder buf = new StringBuilder();
+        buf.append("<b>${command.news.lastnews}:</b>\n\n");
+        newsService.getAll(chat)
+                .forEach(news -> {
+                    NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
+                    if (newsMessage != null) {
+                        buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
+                    }
+                });
+        return buf.toString();
+    }
+
+    private NewsMessage getNewsById(String id) {
+        long newsId;
+        try {
+            newsId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to get details of news by id {}", newsId);
+        NewsMessage newsMessage = newsMessageService.get(newsId);
+        if (newsMessage == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return newsMessage;
     }
 
     /**

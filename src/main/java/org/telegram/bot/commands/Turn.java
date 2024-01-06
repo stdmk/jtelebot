@@ -104,7 +104,7 @@ public class Turn implements Command<SendMessage>, TextAnalyzer {
             try {
                 buf.append(toLayout.charAt(fromLayout.indexOf(textChar)));
             } catch (Exception ignored) {
-
+                // something wrong
             }
         }
 

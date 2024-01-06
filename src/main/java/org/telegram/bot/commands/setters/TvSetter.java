@@ -104,9 +104,6 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private EditMessageText selectTvByCallback(Message message, Chat chat, User user, String command) {
-//        String callbackCommand = getLocalizedCommand(command, CALLBACK_COMMAND);
-//        command = command.replace(callbackCommand, "");
-
         String selectTvCommand = getLocalizedCommand(command, SELECT_TV_COMMAND);
         if (command.equals(selectTvCommand)) {
             return getKeyboardWithSelectingTvChannels(message, 0);
@@ -165,7 +162,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${setter.tv.button.back}");
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.tv.button.back}");
             backButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page - 1));
 
             pagesRow.add(backButton);
@@ -173,7 +170,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         if (page < tvChannelList.getTotalPages()) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.tv.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${setter.tv.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
             forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -206,7 +203,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> tvChannelRow = new ArrayList<>();
 
             InlineKeyboardButton tvChannelButton = new InlineKeyboardButton();
-            tvChannelButton.setText(Emoji.DELETE.getEmoji() + userTv.getTvChannel().getName());
+            tvChannelButton.setText(Emoji.DELETE.getSymbol() + userTv.getTvChannel().getName());
             tvChannelButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND + " " + userTv.getId());
 
             tvChannelRow.add(tvChannelButton);
@@ -227,7 +224,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private PartialBotApiMethod<?> getUserTvListWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getUserTvListWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         log.debug("Request to list all user tv for chat {} and user {}", chat.getChatId(), user.getUserId());
         List<UserTv> userTvList = userTvService.get(chat, user);
 
@@ -337,25 +334,25 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.tv.button.select}");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.tv.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_TV_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.tv.button.remove}");
+        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.tv.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.tv.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.tv.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.tv.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.tv.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -383,25 +380,25 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.tv.button.remove}");
+        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.tv.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_TV_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NEW.getEmoji() + "${setter.tv.button.select}");
+        selectButton.setText(Emoji.NEW.getSymbol() + "${setter.tv.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_TV_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.tv.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.tv.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.tv.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.tv.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

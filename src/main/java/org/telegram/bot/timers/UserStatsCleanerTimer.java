@@ -2,6 +2,8 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,14 +32,19 @@ public class UserStatsCleanerTimer extends TimerParent {
     private final ChatService chatService;
     private final Top top;
 
+    @Autowired
+    @Lazy
+    private UserStatsCleanerTimer self;
+
     @Override
     @Scheduled(fixedRate = 10800000)
     public void execute() {
-        checkMonthlyStats();
-        checkDailyStats();
+        self.checkMonthlyStats();
+        self.checkDailyStats();
     }
 
-    private void checkDailyStats() {
+    @Transactional
+    public void checkDailyStats() {
         Timer timer = timerService.get("statsDailyCleanTimer");
         if (timer == null) {
             timer = new Timer()
@@ -59,7 +66,7 @@ public class UserStatsCleanerTimer extends TimerParent {
     }
 
     @Transactional
-    private void checkMonthlyStats() {
+    public void checkMonthlyStats() {
         Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
             timer = new Timer()

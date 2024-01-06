@@ -20,21 +20,21 @@ class TextUtilsTest {
         String textRussian = "Бот, как дела";
         String commonText = "погода Ростов-на-Дону";
 
-        assertEquals(getPotentialCommandInText(textWithSlash), "bot");
-        assertEquals(getPotentialCommandInText(textRussian), "бот");
-        assertEquals(getPotentialCommandInText(commonText), "погода");
+        assertEquals("bot", getPotentialCommandInText(textWithSlash));
+        assertEquals("бот", getPotentialCommandInText(textRussian));
+        assertEquals("погода", getPotentialCommandInText(commonText));
     }
 
     @Test
     void cutMarkdownSymbolsInTextTest() {
         String text = "*test1* _test2_ `test3` [test4](test5)";
-        assertEquals(cutMarkdownSymbolsInText(text), "test1 test2 test3 test4test5");
+        assertEquals("test1 test2 test3 test4test5", cutMarkdownSymbolsInText(text));
     }
 
     @Test
     void cutHtmlTagsTest() {
         String text = "<a href=\"example.com\">test</a>";
-        assertEquals(cutHtmlTags(text), "test");
+        assertEquals("test", cutHtmlTags(text));
     }
 
     @Test

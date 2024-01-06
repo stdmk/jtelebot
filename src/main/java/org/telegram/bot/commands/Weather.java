@@ -356,14 +356,14 @@ public class Weather implements Command<SendMessage> {
         }
 
         String[] directions = {
-                Emoji.DOWN_ARROW.getEmoji(), // с севера from north
-                Emoji.DOWN_LEFT_ARROW.getEmoji(),
-                Emoji.LEFT_ARROW.getEmoji(), //с востока from east
-                Emoji.UP_LEFT_ARROW.getEmoji(),
-                Emoji.UP_ARROW.getEmoji(), //с юга from south
-                Emoji.UP_RIGHT_ARROW.getEmoji(),
-                Emoji.RIGHT_ARROW.getEmoji(), //с запада from west
-                Emoji.DOWN_RIGHT_ARROW.getEmoji()
+                Emoji.DOWN_ARROW.getSymbol(), // с севера from north
+                Emoji.DOWN_LEFT_ARROW.getSymbol(),
+                Emoji.LEFT_ARROW.getSymbol(), //с востока from east
+                Emoji.UP_LEFT_ARROW.getSymbol(),
+                Emoji.UP_ARROW.getSymbol(), //с юга from south
+                Emoji.UP_RIGHT_ARROW.getSymbol(),
+                Emoji.RIGHT_ARROW.getSymbol(), //с запада from west
+                Emoji.DOWN_RIGHT_ARROW.getSymbol()
         };
 
         return directions[ (int)Math.round((  ((double) degree % 360) / 45)) % 8 ];
@@ -377,25 +377,25 @@ public class Weather implements Command<SendMessage> {
      */
     private String getWeatherEmoji(Integer weatherId) {
         if (weatherId >= 200 && weatherId < 300) {
-            return Emoji.ZAP.getEmoji();
+            return Emoji.ZAP.getSymbol();
         } else if (weatherId >= 300 && weatherId < 400) {
-            return Emoji.UMBRELLA.getEmoji();
+            return Emoji.UMBRELLA.getSymbol();
         } else if (weatherId >= 500 && weatherId < 600) {
-            return Emoji.UMBRELLA_WITH_RAIN_DROPS.getEmoji();
+            return Emoji.UMBRELLA_WITH_RAIN_DROPS.getSymbol();
         } else if (weatherId >= 600 && weatherId < 700) {
-            return Emoji.SNOWFLAKE.getEmoji();
+            return Emoji.SNOWFLAKE.getSymbol();
         } else if (weatherId.equals(701) || weatherId.equals(741)) {
             return "\uD83C\uDF2B";
         } else if (weatherId.equals(800)) {
-            return Emoji.SUNNY.getEmoji();
+            return Emoji.SUNNY.getSymbol();
         } else if (weatherId.equals(801)) {
-            return Emoji.WHITE_SUN_WITH_SMALL_CLOUD.getEmoji();
+            return Emoji.WHITE_SUN_WITH_SMALL_CLOUD.getSymbol();
         } else if (weatherId.equals(802)) {
-            return Emoji.SUN_BEHIND_CLOUD.getEmoji();
+            return Emoji.SUN_BEHIND_CLOUD.getSymbol();
         } else if (weatherId.equals(803)) {
-            return Emoji.SUN_BEHIND_LARGE_CLOUD.getEmoji();
+            return Emoji.SUN_BEHIND_LARGE_CLOUD.getSymbol();
         } else if (weatherId.equals(804)) {
-            return Emoji.CLOUD.getEmoji();
+            return Emoji.CLOUD.getSymbol();
         } else {
             return "";
         }
@@ -412,9 +412,9 @@ public class Weather implements Command<SendMessage> {
     private String getPrecipitations(Precipitations precipitations, Integer hours, boolean rain, String lang) {
         String emoji;
         if (rain) {
-            emoji = Emoji.DROPLET.getEmoji();
+            emoji = Emoji.DROPLET.getSymbol();
         } else {
-            emoji = Emoji.SNOWFLAKE.getEmoji();
+            emoji = Emoji.SNOWFLAKE.getSymbol();
         }
 
         if (hours.equals(1)) {

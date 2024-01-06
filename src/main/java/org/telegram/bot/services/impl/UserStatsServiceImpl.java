@@ -5,18 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.LastCommandService;
 import org.telegram.bot.services.LastMessageService;
-import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +30,6 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final UserService userService;
     private final ChatService chatService;
     private final LastMessageService lastMessageService;
-    private final SpeechService speechService;
     private final LastCommandService lastCommandService;
 
     @Override
@@ -94,16 +92,17 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    @Transactional
     public void clearMonthlyStats() {
         log.debug("Request to clear monthly stats of users");
         userStatsRepository.saveAll(getAllGroupStats()
                 .stream()
-                .peek(this::clearUserStatsFields)
+                .map(this::clearUserStatsFields)
                 .collect(Collectors.toList()));
     }
 
-    private void clearUserStatsFields(UserStats userStats) {
-        userStats.setNumberOfMessages(0)
+    private UserStats clearUserStatsFields(UserStats userStats) {
+        return userStats.setNumberOfMessages(0)
                 .setNumberOfPhotos(0)
                 .setNumberOfAnimations(0)
                 .setNumberOfAudio(0)
@@ -119,16 +118,17 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    @Transactional
     public void clearDailyStats() {
         log.debug("Request to clear daily stats of users");
         userStatsRepository.saveAll(getAllGroupStats()
                 .stream()
-                .peek(this::clearUserStatsPerDayFields)
+                .map(this::clearUserStatsPerDayFields)
                 .collect(Collectors.toList()));
     }
 
-    private void clearUserStatsPerDayFields(UserStats userStats) {
-        userStats.setNumberOfMessagesPerDay(0)
+    private UserStats clearUserStatsPerDayFields(UserStats userStats) {
+        return userStats.setNumberOfMessagesPerDay(0)
                 .setNumberOfPhotosPerDay(0)
                 .setNumberOfAnimationsPerDay(0)
                 .setNumberOfAudioPerDay(0)

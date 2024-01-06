@@ -157,7 +157,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> aliasesRow = new ArrayList<>();
 
             InlineKeyboardButton aliasButton = new InlineKeyboardButton();
-            aliasButton.setText(Emoji.DELETE.getEmoji() + alias.getName() + " — " + alias.getValue());
+            aliasButton.setText(Emoji.DELETE.getSymbol() + alias.getName() + " — " + alias.getValue());
             aliasButton.setCallbackData(CALLBACK_DELETE_ALIAS_COMMAND + " " + alias.getId());
 
             aliasesRow.add(aliasButton);
@@ -357,7 +357,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
                     if (containsAliasByNameAndValue(userAliasList, alias)) {
                         buttonText = alias.getName() + " — " + alias.getValue();
                     } else {
-                        buttonText = Emoji.CHECK_MARK_BUTTON.getEmoji() + alias.getName() + " — " + alias.getValue();
+                        buttonText = Emoji.CHECK_MARK_BUTTON.getSymbol() + alias.getName() + " — " + alias.getValue();
                     }
 
                     aliasButton.setText(buttonText);
@@ -387,7 +387,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
         String callbackSelectPageAliasList = callbackCommand + SELECT_PAGE;
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${setter.alias.button.back}");
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.alias.button.back}");
             backButton.setCallbackData(callbackSelectPageAliasList + (page - 1));
 
             pagesRow.add(backButton);
@@ -395,7 +395,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
         if (page + 1 < totalPages) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.alias.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${setter.alias.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
             forwardButton.setCallbackData(callbackSelectPageAliasList + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -405,24 +405,24 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${setter.alias.button.add}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${setter.alias.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_ALIAS_COMMAND);
         addButtonRow.add(addButton);
 
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.alias.button.select}");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.alias.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_ALIAS_COMMAND + SELECT_PAGE + FIRST_PAGE);
         addButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.alias.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.alias.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_ALIAS_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.alias.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.alias.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

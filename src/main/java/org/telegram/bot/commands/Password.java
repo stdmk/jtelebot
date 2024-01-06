@@ -65,10 +65,10 @@ public class Password implements Command<SendMessage> {
 
     private String generatePassword(int length) {
         StringBuilder buf = new StringBuilder();
-        int source_length = SYMBOLS_SOURCE.length();
+        int sourceLength = SYMBOLS_SOURCE.length();
 
         for (int i = 0; i < length; i++) {
-            Integer position = MathUtils.getRandomInRange(0, source_length);
+            Integer position = MathUtils.getRandomInRange(0, sourceLength);
             buf.append(SYMBOLS_SOURCE.charAt(position));
         }
 

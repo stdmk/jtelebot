@@ -70,8 +70,7 @@ public class Sql implements Command<SendMessage> {
                 int updated;
                 updated = entityManager.createNativeQuery(textMessage).executeUpdate();
                 responseText = "${command.sql.success}: " + updated;
-            }
-            else {
+            } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } catch (Exception e) {

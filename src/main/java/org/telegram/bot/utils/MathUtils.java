@@ -4,6 +4,9 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MathUtils {
+
+    //TODO
+
     public static Integer getRandomInRange(Integer from, Integer to) {
         return from + (int) (Math.random() * to);
     }

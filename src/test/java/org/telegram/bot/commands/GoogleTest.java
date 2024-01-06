@@ -205,7 +205,7 @@ class GoogleTest {
     void googleNotFoundedText() {
         Update update = TestUtils.getUpdateFromGroup("google test");
 
-        Google.Src src = new Google.Src().setSrc("src");
+        Google.CseImage cseImage = new Google.CseImage().setSrc("src");
         Google.GoogleSearchItem googleSearchItem = new Google.GoogleSearchItem()
                 .setTitle("title")
                 .setLink("link")
@@ -214,7 +214,7 @@ class GoogleTest {
                 .setFormattedUrl("formattedUrl")
                 .setPagemap(
                         new Google.Pagemap()
-                                .setCseImage(List.of(src)));
+                                .setCseImage(List.of(cseImage)));
         Google.GoogleSearchData googleSearchData = new Google.GoogleSearchData().setItems(List.of(googleSearchItem));
 
         GoogleSearchResult expectedGoogleSearchResult = new GoogleSearchResult()
@@ -227,7 +227,7 @@ class GoogleTest {
         when(response.getBody()).thenReturn(googleSearchData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
                 .thenReturn(response);
-        when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(src.getSrc()).setTitle("imageTitle"));
+        when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(cseImage.getSrc()).setTitle("imageTitle"));
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
         PartialBotApiMethod<?> method = google.parse(update);
@@ -248,7 +248,7 @@ class GoogleTest {
         ImageUrl imageUrl = imageUrlCaptor.getValue();
 
         assertNotNull(imageUrl);
-        assertEquals(src.getSrc(), imageUrl.getUrl());
+        assertEquals(cseImage.getSrc(), imageUrl.getUrl());
 
         verify(googleSearchResultService).save(googleSearchResultCaptor.capture());
         List<GoogleSearchResult> resultList = googleSearchResultCaptor.getValue();

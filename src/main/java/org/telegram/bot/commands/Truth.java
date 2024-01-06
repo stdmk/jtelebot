@@ -32,7 +32,7 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
         Integer messageIdToReply = message.getMessageId();
 
         Message repliedMessage = message.getReplyToMessage();
-        if (repliedMessage != null & textMessage == null) {
+        if (repliedMessage != null && textMessage == null) {
             messageIdToReply = repliedMessage.getMessageId();
         }
 

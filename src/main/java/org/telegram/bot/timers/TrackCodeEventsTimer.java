@@ -28,7 +28,7 @@ public class TrackCodeEventsTimer extends TimerParent {
     private final ParcelService parcelService;
     private final TrackCodeService trackCodeService;
 
-    public static final int FIXED_RATE_HOURS = 3;
+    public static final long FIXED_RATE_HOURS = 3;
 
     @Override
     @Scheduled(fixedRate = FIXED_RATE_HOURS * 60 * 60 * 1000)

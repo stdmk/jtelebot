@@ -89,9 +89,7 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectZodiacByCallback(Message message, Chat chat, User user, String command) throws BotException {
-//        command = command.replace(CALLBACK_COMMAND, "");
-
-        String selectZodiacCommand = getLocalizedCommand(command, SELECT_ZODIAC_COMMAND);
+        String selectZodiacCommand = getLocalizedCommand(command);
         if (command.equals(selectZodiacCommand)) {
             return getUserZodiacWithKeyboard(message, chat, user, false);
         }
@@ -115,7 +113,7 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     private PartialBotApiMethod<?> selectUserZodiac(Message message, Chat chat, User user, String command) throws BotException {
-        String selectZodiacCommand = getLocalizedCommand(command, SELECT_ZODIAC_COMMAND);
+        String selectZodiacCommand = getLocalizedCommand(command);
         log.debug("Request to select userTv");
 
         if (command.equals(selectZodiacCommand)) {
@@ -146,7 +144,7 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private PartialBotApiMethod<?> getUserZodiacWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getUserZodiacWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         UserZodiac userZodiac = userZodiacService.get(chat, user);
 
         String zodiacName;
@@ -191,13 +189,13 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.zodiac.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.zodiac.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_ZODIAC_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.zodiac.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.zodiac.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -210,9 +208,9 @@ public class ZodiacSetter implements Setter<PartialBotApiMethod<?>> {
         return inlineKeyboardMarkup;
     }
 
-    private String getLocalizedCommand(String text, String command) {
+    private String getLocalizedCommand(String text) {
         String localizedCommand = getStartsWith(
-                internationalizationService.internationalize(command),
+                internationalizationService.internationalize(ZodiacSetter.SELECT_ZODIAC_COMMAND),
                 text.toLowerCase());
 
         if (localizedCommand == null) {

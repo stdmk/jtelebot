@@ -124,13 +124,13 @@ public class GigaChatSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> resetCacheButtonRow = new ArrayList<>();
         InlineKeyboardButton resetCacheButton = new InlineKeyboardButton();
-        resetCacheButton.setText(Emoji.WASTEBASKET.getEmoji() + "${setter.gigachat.button.resetcache}");
+        resetCacheButton.setText(Emoji.WASTEBASKET.getSymbol() + "${setter.gigachat.button.resetcache}");
         resetCacheButton.setCallbackData(CALLBACK_RESET_CACHE_COMMAND);
         resetCacheButtonRow.add(resetCacheButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.gigachat.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.gigachat.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

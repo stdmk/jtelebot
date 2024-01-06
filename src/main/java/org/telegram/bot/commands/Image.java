@@ -89,7 +89,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setText("${command.image.failedtodownload}: " + imageUrl.getUrl() +
-                    "\n" + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) +
+                    "\n" + Emoji.LEFT_ARROW.getSymbol() + " /image_" + (imageId - 1) +
                     "\n\n" + getNextImageCommandText(imageId + 1));
             sendMessage.enableHtml(true);
             sendMessage.disableWebPagePreview();
@@ -101,7 +101,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
         String caption = "\n";
 
         if (imageId > 1) {
-            caption = caption + Emoji.LEFT_ARROW.getEmoji() + " /image_" + (imageId - 1) + "\n\n";
+            caption = caption + Emoji.LEFT_ARROW.getSymbol() + " /image_" + (imageId - 1) + "\n\n";
         }
         caption = caption + "/image_" + imageId + "\n\n" + getNextImageCommandText(imageId + 1);
 
@@ -115,7 +115,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
 
     private String getNextImageCommandText(Long imageId) {
         if (imageUrlService.isImageUrlExists(imageId)) {
-            return Emoji.RIGHT_ARROW.getEmoji() + " /image_" + imageId;
+            return Emoji.RIGHT_ARROW.getSymbol() + " /image_" + imageId;
         } else {
             return "";
         }

@@ -114,7 +114,7 @@ class FilesTest {
         assertEquals(1, pagesButtons.size());
 
         InlineKeyboardButton forwardButton = pagesButtons.get(0);
-        assertEquals(Emoji.RIGHT_ARROW.getEmoji(), forwardButton.getText());
+        assertEquals(Emoji.RIGHT_ARROW.getSymbol(), forwardButton.getText());
         assertNotNull(forwardButton.getCallbackData());
     }
 
@@ -139,7 +139,7 @@ class FilesTest {
         assertEquals(1, buttons.size());
 
         InlineKeyboardButton deleteButton = buttons.get(0);
-        assertTrue(deleteButton.getText().contains(Emoji.DELETE.getEmoji()));
+        assertTrue(deleteButton.getText().contains(Emoji.DELETE.getSymbol()));
         assertNotNull(deleteButton.getCallbackData());
     }
 

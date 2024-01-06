@@ -27,7 +27,9 @@ public class Bash implements Command<SendMessage> {
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
 
-    private final static String BASHORG_URL = "http://bashorg.org";
+    private static final String BASHORG_URL = "http://bashorg.org";
+    private static final String BASH_RANDOM_QUOT_URL = BASHORG_URL + "/casual";
+    private static final String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
 
     @Override
     public SendMessage parse(Update update) {
@@ -65,14 +67,12 @@ public class Bash implements Command<SendMessage> {
      * @return raw text of quot.
      */
     private String getRandomQuot() {
-        String BASH_RANDOM_QUOT_URL = BASHORG_URL + "/casual";
-
         String quot = getBashOrgRawData(BASH_RANDOM_QUOT_URL);
         checkForError(quot);
 
         String quoteNumber = quot.substring(quot.indexOf("<a href=\"/quote/") + 16);
         quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("\">"));
-        quoteNumber = quoteNumber.replaceAll("/bayan", "");
+        quoteNumber = quoteNumber.replace("/bayan", "");
 
         String date = quot.substring(quot.indexOf("</a>,-->") + 9);
         date = date.substring(0, date.indexOf("<a href"));
@@ -90,8 +90,6 @@ public class Bash implements Command<SendMessage> {
      * @return raw text of quot.
      */
     private String getDefineQuot(String quotNumber) {
-        String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
-
         String quot = getBashOrgRawData(BASH_DEFINITE_QUOT_URL + "/" + quotNumber);
         checkForError(quot);
 
@@ -115,7 +113,7 @@ public class Bash implements Command<SendMessage> {
 
     private void checkForError(String data) {
         final String errorText = "не имеют доступа для просмотра статей из данного раздела";
-        if (data.indexOf(errorText) > 0) {
+        if (data.contains(errorText)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
     }

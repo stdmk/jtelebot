@@ -46,7 +46,7 @@ public class Converter implements Command<SendMessage> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            BigDecimal value = new BigDecimal(matcher.group(1).replaceAll(",", "."));
+            BigDecimal value = new BigDecimal(matcher.group(1).replace(",", "."));
             String fromUnit = matcher.group(2);
             String toUnit = matcher.group(3);
 

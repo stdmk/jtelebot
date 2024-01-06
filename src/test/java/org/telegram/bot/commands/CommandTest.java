@@ -27,9 +27,9 @@ class CommandTest {
 
         Command<?> command = new Getid(bot, userService, speechService);
 
-        assertEquals(command.cutCommandInText(textWithSlash), "how are you?");
+        assertEquals("how are you?", command.cutCommandInText(textWithSlash));
         assertNull(command.cutCommandInText(textWithOnlyCommand));
-        assertEquals(command.cutCommandInText(textWithSlashAndBotUsername), "_1");
-        assertEquals(command.cutCommandInText(textCommon), "Ростов-на-Дону");
+        assertEquals("_1", command.cutCommandInText(textWithSlashAndBotUsername));
+        assertEquals("Ростов-на-Дону", command.cutCommandInText(textCommon));
     }
 }

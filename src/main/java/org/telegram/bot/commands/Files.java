@@ -2,9 +2,11 @@ package org.telegram.bot.commands;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -37,27 +39,30 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Files implements Command<PartialBotApiMethod<?>> {
 
     private final Bot bot;
+    private final BotStats botStats;
     private final FileService fileService;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
-    private final static String CALLBACK_COMMAND = "files ";
-    private final static String SELECT_FILE_COMMAND = "s";
-    private final static String SELECT_PAGE = "p";
-    private final static String CALLBACK_SELECT_FILE_COMMAND = CALLBACK_COMMAND + SELECT_FILE_COMMAND;
-    private final static String DELETE_FILE_COMMAND = "d";
-    private final static String CALLBACK_DELETE_FILE_COMMAND = CALLBACK_COMMAND + DELETE_FILE_COMMAND;
-    private final static String ADD_FILE_COMMAND = "a";
-    private final static String CALLBACK_ADD_FILE_COMMAND = CALLBACK_COMMAND + ADD_FILE_COMMAND;
-    private final static String OPEN_FILE_COMMAND = "o";
-    private final static String CALLBACK_OPEN_FILE_COMMAND = CALLBACK_COMMAND + OPEN_FILE_COMMAND;
-    private final static String MAKE_DIR_COMMAND = "m";
-    private final static String CALLBACK_MAKE_DIR_COMMAND = CALLBACK_COMMAND + MAKE_DIR_COMMAND;
+    private static final String EMPTY_COMMAND = "files";
+    private static final String CALLBACK_COMMAND = "files ";
+    private static final String SELECT_FILE_COMMAND = "s";
+    private static final String SELECT_PAGE = "p";
+    private static final String CALLBACK_SELECT_FILE_COMMAND = CALLBACK_COMMAND + SELECT_FILE_COMMAND;
+    private static final String DELETE_FILE_COMMAND = "d";
+    private static final String CALLBACK_DELETE_FILE_COMMAND = CALLBACK_COMMAND + DELETE_FILE_COMMAND;
+    private static final String ADD_FILE_COMMAND = "a";
+    private static final String CALLBACK_ADD_FILE_COMMAND = CALLBACK_COMMAND + ADD_FILE_COMMAND;
+    private static final String OPEN_FILE_COMMAND = "o";
+    private static final String CALLBACK_OPEN_FILE_COMMAND = CALLBACK_COMMAND + OPEN_FILE_COMMAND;
+    private static final String MAKE_DIR_COMMAND = "m";
+    private static final String CALLBACK_MAKE_DIR_COMMAND = CALLBACK_COMMAND + MAKE_DIR_COMMAND;
 
-    private final Long ROOT_DIR_ID = 0L;
+    private static final Long ROOT_DIR_ID = 0L;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -65,7 +70,6 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;
-        String EMPTY_COMMAND = "files";
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
 
@@ -87,31 +91,46 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         }
 
         if (callback) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
-            if (textMessage.equals(EMPTY_COMMAND)) {
-                bot.sendTyping(message.getChatId());
-                return selectDirectory(message, chat, false, 0, null);
-            } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
-                bot.sendTyping(message.getChatId());
-                commandWaitingService.remove(commandWaiting);
-                return selectFileByCallback(message, chat, textMessage);
-            } else if (textMessage.startsWith(DELETE_FILE_COMMAND)) {
-                bot.sendTyping(message.getChatId());
-                return deleteFileByCallback(message, chat, user, textMessage);
-            } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
-                bot.sendTyping(message.getChatId());
-                return addFileByCallback(message, chat, user, textMessage);
-            } else if (textMessage.startsWith(OPEN_FILE_COMMAND)) {
-                bot.sendUploadDocument(message.getChatId());
-                return sendFile(chat, textMessage);
-            } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
-                bot.sendTyping(message.getChatId());
-                return makeDirByCallback(message, chat, user, textMessage);
-            }
+            return getResponseForCallback(update, message, commandWaiting, textMessage);
         }
 
+        return getResponse(message, commandWaiting, textMessage);
+    }
+
+    private PartialBotApiMethod<?> getResponseForCallback(Update update, Message message, CommandWaiting commandWaiting, String textMessage) {
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
+
+        if (textMessage.equals(EMPTY_COMMAND)) {
+            bot.sendTyping(message.getChatId());
+            return selectDirectory(message, chat, false, 0, null);
+        } else if (textMessage.startsWith(SELECT_FILE_COMMAND)) {
+            bot.sendTyping(message.getChatId());
+            commandWaitingService.remove(commandWaiting);
+            return selectFileByCallback(message, chat, textMessage);
+        } else if (textMessage.startsWith(DELETE_FILE_COMMAND)) {
+            bot.sendTyping(message.getChatId());
+            return deleteFileByCallback(message, chat, user, textMessage);
+        } else if (textMessage.startsWith(ADD_FILE_COMMAND)) {
+            bot.sendTyping(message.getChatId());
+            return addFileByCallback(message, chat, user, textMessage);
+        } else if (textMessage.startsWith(OPEN_FILE_COMMAND)) {
+            bot.sendUploadDocument(message.getChatId());
+            return sendFile(chat, textMessage);
+        } else if (textMessage.startsWith(MAKE_DIR_COMMAND)) {
+            bot.sendTyping(message.getChatId());
+            return makeDirByCallback(message, chat, user, textMessage);
+        }
+
+        log.error("Unexpected callback request " + textMessage);
+        botStats.incrementErrors(update, "Unexpected callback request " + textMessage);
+        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+    }
+
+    private PartialBotApiMethod<?> getResponse(Message message, CommandWaiting commandWaiting, String textMessage) {
         bot.sendTyping(message.getChatId());
+
+        Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
             return selectDirectory(message,  chat, true, 0, null);
@@ -313,15 +332,15 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> managingRow = new ArrayList<>();
 
         InlineKeyboardButton downloadButton = new InlineKeyboardButton();
-        downloadButton.setText(Emoji.DOWN_ARROW.getEmoji());
+        downloadButton.setText(Emoji.DOWN_ARROW.getSymbol());
         downloadButton.setCallbackData(CALLBACK_OPEN_FILE_COMMAND + file.getId());
 
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji());
+        deleteButton.setText(Emoji.DELETE.getSymbol());
         deleteButton.setCallbackData(CALLBACK_DELETE_FILE_COMMAND + file.getId());
 
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji());
+        backButton.setText(Emoji.BACK.getSymbol());
         backButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + file.getParentId());
 
         managingRow.add(downloadButton);
@@ -351,7 +370,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> fileRow = new ArrayList<>();
 
             InlineKeyboardButton deleteEmptyDirButton = new InlineKeyboardButton();
-            deleteEmptyDirButton.setText(Emoji.DELETE.getEmoji() + "${command.files.folder.remove}");
+            deleteEmptyDirButton.setText(Emoji.DELETE.getSymbol() + "${command.files.folder.remove}");
             deleteEmptyDirButton.setCallbackData(CALLBACK_DELETE_FILE_COMMAND + directory.getId());
 
             fileRow.add(deleteEmptyDirButton);
@@ -374,7 +393,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> pagesRow = new ArrayList<>();
             if (page > 0) {
                 InlineKeyboardButton backButton = new InlineKeyboardButton();
-                backButton.setText(Emoji.LEFT_ARROW.getEmoji());
+                backButton.setText(Emoji.LEFT_ARROW.getSymbol());
                 backButton.setCallbackData(CALLBACK_COMMAND + SELECT_FILE_COMMAND + directory.getId() + " " + SELECT_PAGE + (page - 1));
 
                 pagesRow.add(backButton);
@@ -383,7 +402,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
             int totalPages = fileList.getTotalPages();
             if (page + 1 < totalPages && totalPages > 1) {
                 InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-                forwardButton.setText(Emoji.RIGHT_ARROW.getEmoji());
+                forwardButton.setText(Emoji.RIGHT_ARROW.getSymbol());
                 forwardButton.setCallbackData(CALLBACK_COMMAND + SELECT_FILE_COMMAND + directory.getId() + " " + SELECT_PAGE + (page + 1));
 
                 pagesRow.add(forwardButton);
@@ -420,11 +439,11 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
 
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${command.files.file.caption}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${command.files.file.caption}");
         addButton.setCallbackData(CALLBACK_ADD_FILE_COMMAND + parent.getId());
 
         InlineKeyboardButton newDirButton = new InlineKeyboardButton();
-        newDirButton.setText(Emoji.NEW.getEmoji() + "${command.files.folder.caption}");
+        newDirButton.setText(Emoji.NEW.getSymbol() + "${command.files.folder.caption}");
         newDirButton.setCallbackData(CALLBACK_MAKE_DIR_COMMAND + parent.getId());
 
         addButtonRow.add(addButton);
@@ -433,12 +452,12 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> managingRow = new ArrayList<>();
 
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${command.files.button.reload}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${command.files.button.reload}");
         updateButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parent.getId());
 
         if (!parent.getId().equals(ROOT_DIR_ID)) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.BACK.getEmoji() + "${command.files.button.up}");
+            backButton.setText(Emoji.BACK.getSymbol() + "${command.files.button.up}");
             backButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parent.getParentId());
             managingRow.add(backButton);
         }
@@ -459,7 +478,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> cancelRow = new ArrayList<>();
 
         InlineKeyboardButton cancelButton = new InlineKeyboardButton();
-        cancelButton.setText(Emoji.CHECK_MARK.getEmoji() + "${command.files.button.done}");
+        cancelButton.setText(Emoji.CHECK_MARK.getSymbol() + "${command.files.button.done}");
         cancelButton.setCallbackData(CALLBACK_SELECT_FILE_COMMAND + parentId);
 
         cancelRow.add(cancelButton);
@@ -518,7 +537,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
 
         public static String getEmojiByType(String mimeType) {
             if (mimeType == null) {
-                return Emoji.FOLDER.getEmoji();
+                return Emoji.FOLDER.getSymbol();
             }
 
             return Arrays.stream(EmojiMimeType.values())
@@ -526,7 +545,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
                     .findFirst()
                     .orElse(UNKNOWN)
                     .getEmoji()
-                    .getEmoji();
+                    .getSymbol();
         }
     }
 }

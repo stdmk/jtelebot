@@ -413,13 +413,13 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         private String code2A;
 
         @XmlElement(name = "Code3A")
-        private String Code3A;
+        private String code3a;
 
         @XmlElement(name = "NameRU")
-        private String NameRu;
+        private String nameRu;
 
         @XmlElement(name = "NameEN")
-        private String NameEn;
+        private String nameEn;
     }
 
     @Data

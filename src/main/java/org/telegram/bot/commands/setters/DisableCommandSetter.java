@@ -185,7 +185,7 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
                     List<InlineKeyboardButton> disableCommandRow = new ArrayList<>();
 
                     InlineKeyboardButton disableCommandButton = new InlineKeyboardButton();
-                    disableCommandButton.setText(Emoji.CHECK_MARK.getEmoji() + disableCommand.getCommandProperties().getRussifiedName());
+                    disableCommandButton.setText(Emoji.CHECK_MARK.getSymbol() + disableCommand.getCommandProperties().getRussifiedName());
                     disableCommandButton.setCallbackData(CALLBACK_ENABLE_COMMAND + " " + disableCommand.getId());
 
                     disableCommandRow.add(disableCommandButton);
@@ -304,7 +304,7 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${setter.disablecommand.button.back}");
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.disablecommand.button.back}");
             backButton.setCallbackData(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page - 1));
 
             pagesRow.add(backButton);
@@ -312,7 +312,7 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
 
         if (page < commandPropertiesList.getTotalPages()) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.disablecommand.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${setter.disablecommand.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
             forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -344,25 +344,25 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.CHECK_MARK.getEmoji() + "${setter.disablecommand.button.enable}");
+        deleteButton.setText(Emoji.CHECK_MARK.getSymbol() + "${setter.disablecommand.button.enable}");
         deleteButton.setCallbackData(CALLBACK_ENABLE_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NO_ENTRY_SIGN.getEmoji() + "${setter.disablecommand.button.disable}");
+        selectButton.setText(Emoji.NO_ENTRY_SIGN.getSymbol() + "${setter.disablecommand.button.disable}");
         selectButton.setCallbackData(CALLBACK_DISABLE_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.disablecommand.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.disablecommand.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_COMMAND_LIST);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.disablecommand.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.disablecommand.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

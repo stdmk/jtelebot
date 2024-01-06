@@ -75,7 +75,7 @@ public interface NewsService {
      * @param newsId of News to remove.
      * @return true if remove.
      */
-    Boolean remove(Chat chat, Long newsId);
+    boolean remove(Chat chat, Long newsId);
 
     /**
      * Remove a News.
@@ -84,7 +84,7 @@ public interface NewsService {
      * @param newsName of News to remove.
      * @return true if remove.
      */
-    Boolean remove(Chat chat, String newsName);
+    boolean remove(Chat chat, String newsName);
 
     /**
      * Remove a News.

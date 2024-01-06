@@ -36,7 +36,7 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Boolean remove(Long todoId) {
+    public boolean remove(Long todoId) {
         log.debug("Request to remove Todo by id {}", todoId);
 
         Optional<Todo> optionalTodo = todoRepository.findById(todoId);

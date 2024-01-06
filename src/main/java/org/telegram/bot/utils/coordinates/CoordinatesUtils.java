@@ -68,7 +68,7 @@ public class CoordinatesUtils {
     }
 
     private Double getCoordinateFromPattern3(Matcher matcher) {
-        return Double.parseDouble(matcher.group(1).replaceAll(",", "."));
+        return Double.parseDouble(matcher.group(1).replace(",", "."));
     }
 
     private Coordinates getCoordinateFromPattern4(Matcher matcher) {
@@ -78,7 +78,7 @@ public class CoordinatesUtils {
     }
 
     private String replaceComma(String text) {
-        return text.replaceAll(",", ".");
+        return text.replace(",", ".");
     }
     
 }

@@ -3,17 +3,12 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
+import org.telegram.bot.repositories.DbBackuper;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import java.io.File;
 
 @Component
 @RequiredArgsConstructor
@@ -21,36 +16,28 @@ import java.io.File;
 public class Backup implements Command<SendDocument> {
 
     private final Bot bot;
-
-    @PersistenceContext
-    EntityManager entityManager;
+    private final DbBackuper dbBackuper;
 
     @Override
-    @Transactional
     public SendDocument parse(Update update) {
+        String chatId = update.getMessage().getFrom().getId().toString();
+        log.debug("Request to send backup to {}", chatId);
+
         bot.sendUploadDocument(update);
+
         if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
             return null;
         }
-        return getDbBackup(update.getMessage().getFrom().getId().toString());
-    }
 
-    /**
-     * Creating backup of database and sending file to chat.
-     *
-     * @param chatId сhat where the file will be sent.
-     * @return document sending object.
-     */
-    @Transactional
-    public SendDocument getDbBackup(String chatId) {
-        log.debug("Request to send backup to {}", chatId);
-        entityManager.createNativeQuery("BACKUP TO 'backup.zip'").executeUpdate();
+        InputFile dbBackup = dbBackuper.getDbBackup();
 
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(chatId);
-        sendDocument.setDocument(new InputFile(new File("backup.zip")));
+        sendDocument.setDocument(dbBackup);
         sendDocument.setDisableNotification(true);
 
         return sendDocument;
     }
+
+
 }

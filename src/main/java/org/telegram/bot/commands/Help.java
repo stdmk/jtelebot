@@ -112,7 +112,7 @@ public class Help implements Command<SendMessage> {
      *
      * @param userId user id to check.
      */
-    private Boolean checkIsThatAdmin(Long userId) {
+    private boolean checkIsThatAdmin(Long userId) {
         Long adminId = propertiesConfig.getAdminId();
 
         User user = userService.get(userId);

@@ -40,7 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +89,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, TextAnalyzer {
     }
 
     private InputStream generateQrFromText(String text) {
-        Map<EncodeHintType, Object> map = new HashMap<>();
+        Map<EncodeHintType, Object> map = new EnumMap<>(EncodeHintType.class);
         map.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8);
 
         BitMatrix matrix;

@@ -25,7 +25,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.*;
 
@@ -42,6 +41,7 @@ public class Tv implements Command<SendMessage> {
     private final UserCityService userCityService;
     private final SpeechService speechService;
 
+    private static final String COMMAND_NAME = "tv";
     private static final int HOURS_NUMBER_SHORT = 3;
     private static final int HOURS_NUMBER_DEFAULT = 6;
     private static final int HOURS_NUMBER_LONG = 12;
@@ -54,74 +54,22 @@ public class Tv implements Command<SendMessage> {
         String responseText;
 
         ZoneId zoneId = getUserZoneId(message);
-        String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
 
         if (textMessage == null) {
-            Chat chat = new Chat().setChatId(message.getChatId());
-            User user = new User().setUserId(message.getFrom().getId());
-            log.debug("Request to get tv-program for user {} and chat {}", user, chat);
-
-            List<UserTv> userTvList = userTvService.get(chat, user);
-            if (userTvList.isEmpty()) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.SETTING_REQUIRED));
-            }
-
-            responseText = buildResponseTextWithShortProgramsToChannels(
-                    userTvList.stream().map(UserTv::getTvChannel).collect(Collectors.toList()),
-                    zoneId,
-                    commandName);
+            responseText = buildResponseTextWithShortProgramsToChannels(message, zoneId);
         } else if (textMessage.startsWith("_ch")) {
-            int tvChannelId = parseEntityId(textMessage);
-
-            log.debug("Request to get tv-program by channel with id {}", tvChannelId);
-            TvChannel tvChannel = tvChannelService.get(tvChannelId);
-            if (tvChannel == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
             responseText = buildResponseTextWithProgramsToChannel(
-                    tvChannel,
+                    getTvChannel(textMessage),
                     getUserZoneId(message),
                     commandPropertiesService.getCommand(this.getClass()).getCommandName(),
                     HOURS_NUMBER_LONG);
         } else if (textMessage.startsWith("_pr")) {
-            int tvProgramId = parseEntityId(textMessage);
-
-            log.debug("Request to get details for tv-program with id {}", tvProgramId);
-            TvProgram tvProgram = tvProgramService.get(tvProgramId);
-            if (tvProgram == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
             responseText = buildResponseTextWithProgramDetails(
-                    tvProgram,
+                    getTvProgram(textMessage),
                     getUserZoneId(message),
                     commandPropertiesService.getCommand(this.getClass()).getCommandName());
         } else {
-            log.debug("Request to search in tv-channels and tv-programs by text {}", textMessage);
-            List<TvChannel> tvChannelList = tvChannelService.get(textMessage);
-            if (tvChannelList.size() == 1) {
-                TvChannel tvChannel = tvChannelList.get(0);
-                responseText = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName, HOURS_NUMBER_LONG);
-            } else {
-                TvChannel tvChannel = tvChannelList
-                        .stream()
-                        .filter(channel -> channel.getName().equalsIgnoreCase(textMessage))
-                        .findFirst()
-                        .orElse(null);
-                if (tvChannel != null) {
-                    responseText = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName, HOURS_NUMBER_LONG);
-                } else {
-                    List<TvProgram> tvProgramList = tvProgramService.get(
-                            textMessage,
-                            ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(),
-                            HOURS_NUMBER_DEFAULT);
-                    if (tvChannelList.isEmpty() && tvProgramList.isEmpty()) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-                    }
-                    responseText = buildResponseTextWithSearchResults(tvChannelList, tvProgramList, commandName, zoneId);
-                }
-            }
+            responseText = searchForChannelsAndPrograms(textMessage, zoneId);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -133,21 +81,47 @@ public class Tv implements Command<SendMessage> {
         return sendMessage;
     }
 
+    private String searchForChannelsAndPrograms(String searchText, ZoneId zoneId) {
+        log.debug("Request to search in tv-channels and tv-programs by text {}", searchText);
+        List<TvChannel> tvChannelList = tvChannelService.get(searchText);
+        if (tvChannelList.size() == 1) {
+            TvChannel tvChannel = tvChannelList.get(0);
+            return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_LONG);
+        } else {
+            TvChannel tvChannel = tvChannelList
+                    .stream()
+                    .filter(channel -> channel.getName().equalsIgnoreCase(searchText))
+                    .findFirst()
+                    .orElse(null);
+            if (tvChannel != null) {
+                return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_LONG);
+            } else {
+                List<TvProgram> tvProgramList = tvProgramService.get(
+                        searchText,
+                        ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(),
+                        HOURS_NUMBER_DEFAULT);
+                if (tvChannelList.isEmpty() && tvProgramList.isEmpty()) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+                }
+                return buildResponseTextWithSearchResults(tvChannelList, tvProgramList, zoneId);
+            }
+        }
+    }
+
     /**
      * Building response text for search results.
      *
      * @param tvChannelList list of TvChannel entities.
      * @param tvProgramList list of TvProgram entities.
-     * @param commandName name of tv command.
-     * @param zoneId time-zone ID.
+     * @param zoneId        time-zone ID.
      * @return formatted string with search results.
      */
-    private String buildResponseTextWithSearchResults(List<TvChannel> tvChannelList, List<TvProgram> tvProgramList, String commandName, ZoneId zoneId) {
+    private String buildResponseTextWithSearchResults(List<TvChannel> tvChannelList, List<TvProgram> tvProgramList, ZoneId zoneId) {
         StringBuilder buf = new StringBuilder();
 
         buf.append("<u>${command.tv.foundchannels}:</u>\n");
         tvChannelList
-                .forEach(tvChannel -> buf.append(tvChannel.getName()).append(" - /").append(commandName).append("_ch").append(tvChannel.getId()).append("\n"));
+                .forEach(tvChannel -> buf.append(tvChannel.getName()).append(" - /").append(Tv.COMMAND_NAME).append("_ch").append(tvChannel.getId()).append("\n"));
 
         if (!tvProgramList.isEmpty()) {
             buf.append("\n<u>${command.tv.foundprograms}:</u>\n");
@@ -157,7 +131,7 @@ public class Tv implements Command<SendMessage> {
                     .append(" ").append(getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), zoneId.getRules().getOffset(LocalDateTime.now())))
                     .append("\n")
                     .append("(<b>").append(tvProgram.getChannel().getName()).append("</b>)\n")
-                    .append(formatTvDateTime(tvProgram.getStart(), zoneId)).append("\n/").append(commandName)
+                    .append(formatTvDateTime(tvProgram.getStart(), zoneId)).append("\n/").append(Tv.COMMAND_NAME)
                     .append("_pr").append(tvProgram.getId()).append("\n\n"));
         }
 
@@ -235,17 +209,23 @@ public class Tv implements Command<SendMessage> {
         return buf.toString();
     }
 
-    /**
-     * Building short response text with tv-programs for channels.
-     *
-     * @param tvChannelList list of TvChannel entity.
-     * @param zoneId time-zone ID.
-     * @param commandName name of tv command.
-     * @return formatted strings with short list of tv-program.
-     */
-    private String buildResponseTextWithShortProgramsToChannels(List<TvChannel> tvChannelList, ZoneId zoneId, String commandName) {
+    private String buildResponseTextWithShortProgramsToChannels(Message message, ZoneId zoneId) {
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(message.getFrom().getId());
+        log.debug("Request to get tv-program for user {} and chat {}", user, chat);
+
+        List<UserTv> userTvList = userTvService.get(chat, user);
+        if (userTvList.isEmpty()) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.SETTING_REQUIRED));
+        }
+
         StringBuilder buf = new StringBuilder();
-        tvChannelList.forEach(tvChannel -> buf.append(buildResponseTextWithProgramsToChannel(tvChannel, zoneId, commandName, HOURS_NUMBER_SHORT)).append("\n"));
+        userTvList
+                .stream()
+                .map(UserTv::getTvChannel)
+                .forEach(tvChannel ->
+                        buf.append(buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_SHORT)).append("\n"));
+
         return buf.toString();
     }
 
@@ -283,6 +263,29 @@ public class Tv implements Command<SendMessage> {
         return "(" + String.format("%.0f%%", buf * 100) + ")";
     }
 
+    private TvChannel getTvChannel(String text) {
+        int tvChannelId = parseEntityId(text);
+
+        log.debug("Request to get tv-program by channel with id {}", tvChannelId);
+        TvChannel tvChannel = tvChannelService.get(tvChannelId);
+        if (tvChannel == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return tvChannel;
+    }
+
+    private TvProgram getTvProgram(String text) {
+        int tvProgramId = parseEntityId(text);
+
+        log.debug("Request to get details for tv-program with id {}", tvProgramId);
+        TvProgram tvProgram = tvProgramService.get(tvProgramId);
+        if (tvProgram == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return tvProgram;
+    }
 
     /**
      * Trying to get entity id from text.

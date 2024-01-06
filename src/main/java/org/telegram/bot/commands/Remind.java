@@ -76,14 +76,15 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2})");
     private static final Pattern AFTER_HOURS_TIME_PATTERN = Pattern.compile("\\d+");
-    private Pattern AFTER_MINUTES_PATTERN;
-    private Pattern AFTER_HOURS_PATTERN ;
-    private Pattern AFTER_DAYS_PATTERN;
     private static final Pattern ID_PATTERN = Pattern.compile("s\\d+");
     private static final Pattern SET_ID_PATTERN = Pattern.compile(SET_REMINDER + "\\d+");
     private static final Pattern SET_NOTIFIED_PATTERN = Pattern.compile(SET_REMINDER + "\\d+" + SET_NOTIFIED);
     private static final Pattern SET_REPEATABLE_PATTERN = Pattern.compile(SET_REMINDER + "\\d+" + SET_REPEATABLE);
     private static final Pattern POSTPONE_PATTERN = Pattern.compile("P(?!$)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?");
+
+    private Pattern afterMinutesPattern;
+    private Pattern afterHoursPattern;
+    private Pattern afterDaysPattern;
 
     private final Bot bot;
     private final ReminderService reminderService;
@@ -106,9 +107,9 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         String hoursBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.hours"));
         String daysBlock = translationsSetToTemporaryUnitsPatternBlock(internationalizationService.getAllTranslations("command.remind.days"));
 
-        AFTER_MINUTES_PATTERN = Pattern.compile(String.format(template, blockIn, minutesBlock));
-        AFTER_HOURS_PATTERN = Pattern.compile(String.format(template, blockIn, hoursBlock));
-        AFTER_DAYS_PATTERN = Pattern.compile(String.format(template, blockIn, daysBlock));
+        afterMinutesPattern = Pattern.compile(String.format(template, blockIn, minutesBlock));
+        afterHoursPattern = Pattern.compile(String.format(template, blockIn, hoursBlock));
+        afterDaysPattern = Pattern.compile(String.format(template, blockIn, daysBlock));
 
         dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.today")), LocalDate::now);
         dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.aftertomorrow")), () -> LocalDate.now().plusDays(2));
@@ -253,6 +254,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                 try {
                     reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()), LocalDate.now().getYear());
                 } catch (Exception ignored) {
+                    // date not found
                 }
             }
         }
@@ -378,7 +380,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Matcher matcher = AFTER_MINUTES_PATTERN.matcher(text);
+        Matcher matcher = afterMinutesPattern.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -392,7 +394,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Matcher matcher = AFTER_HOURS_PATTERN.matcher(text);
+        Matcher matcher = afterHoursPattern.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -406,7 +408,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             return null;
         }
 
-        Matcher matcher = AFTER_DAYS_PATTERN.matcher(text);
+        Matcher matcher = afterDaysPattern.matcher(text);
 
         if (matcher.find()) {
             return text.substring(matcher.start(), matcher.end());
@@ -443,6 +445,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                         user,
                         Long.parseLong(command.substring(matcher.start() + SET_REMINDER.length(), matcher.end())));
             } catch (NumberFormatException ignored) {
+                // reminder not found
             }
 
             if (reminder != null) {
@@ -523,7 +526,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         Matcher setTimeMatcher = SET_TIME_PATTERN.matcher(command);
 
         if (setNotifiedMatcher.find()) {
-            if (reminder.getNotified()) {
+            if (Boolean.TRUE.equals(reminder.getNotified())) {
                 if (!StringUtils.isEmpty(reminder.getRepeatability())) {
                     LocalDateTime nextAlarmDateTime = reminderService.getNextAlarmDateTime(reminder);
                     reminder.setDate(nextAlarmDateTime.toLocalDate())
@@ -644,11 +647,12 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         String deltaDates = deltaDatesToString(reminderDateTime, dateTimeNow);
         String leftToRun;
-        if (dateTimeNow.isAfter(reminderDateTime) && reminder.getNotified()) {
+        boolean notified = Boolean.TRUE.equals(reminder.getNotified());
+        if (dateTimeNow.isAfter(reminderDateTime) && notified) {
             leftToRun = "${command.remind.worked}: <b>" + deltaDates + "</b>${command.remind.ago}\n";
-        } else if (dateTimeNow.isAfter(reminderDateTime) && !reminder.getNotified()) {
+        } else if (dateTimeNow.isAfter(reminderDateTime) && !notified) {
             leftToRun = "${command.remind.beforetriggering}: <b> ${command.remind.almostthere} </b>\n";
-        } else if (dateTimeNow.isBefore(reminderDateTime) && reminder.getNotified()) {
+        } else if (dateTimeNow.isBefore(reminderDateTime) && notified) {
             leftToRun = "${command.remind.disabled}\n";
         } else {
             leftToRun = "${command.remind.beforetriggering}: <b>" + deltaDates + "</b>\n";
@@ -891,7 +895,9 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         try {
             reminderService.remove(reminder);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // failed to delete (mb not owner)
+        }
 
         if (deleteReminderMessage) {
             return generateDeleteMessage(chat, message);
@@ -935,7 +941,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                 .stream()
                 .map(reminder -> {
                     LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime());
-                    String additionally = StringUtils.isEmpty(reminder.getRepeatability()) ? "" : Emoji.CALENDAR.getEmoji();
+                    String additionally = StringUtils.isEmpty(reminder.getRepeatability()) ? "" : Emoji.CALENDAR.getSymbol();
                     additionally = " " + getConditionalEmoji(reminder) + additionally;
 
                     return DateUtils.formatShortDateTime(reminderDateTime) + " (" + getDayOfWeek(reminderDateTime, lang) + " )" +
@@ -994,10 +1000,10 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     }
 
     private String getConditionalEmoji(Reminder reminder) {
-        if (reminder.getNotified()) {
-            return Emoji.NO_BELL.getEmoji();
+        if (Boolean.TRUE.equals(reminder.getNotified())) {
+            return Emoji.NO_BELL.getSymbol();
         } else {
-            return Emoji.BELL.getEmoji();
+            return Emoji.BELL.getSymbol();
         }
     }
 
@@ -1006,7 +1012,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${command.remind.button.back}");
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.remind.button.back}");
             backButton.setCallbackData(CALLBACK_COMMAND + SELECT_PAGE + (page - 1));
 
             pagesRow.add(backButton);
@@ -1014,7 +1020,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         if (page + 1 < totalPages) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${command.remind.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${command.remind.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
             forwardButton.setCallbackData(CALLBACK_COMMAND + SELECT_PAGE + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -1024,13 +1030,13 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${command.remind.button.add}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${command.remind.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_COMMAND);
         addButtonRow.add(addButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${command.remind.button.reload}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${command.remind.button.reload}");
         updateButton.setCallbackData(CALLBACK_UPDATE_COMMAND);
         updateButtonRow.add(updateButton);
 
@@ -1112,7 +1118,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         Long reminderId = reminder.getId();
 
         InlineKeyboardButton setReminderButton = new InlineKeyboardButton();
-        setReminderButton.setText(Emoji.SETTINGS.getEmoji());
+        setReminderButton.setText(Emoji.SETTINGS.getSymbol());
         setReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId);
 
         String deleteCommand = CALLBACK_DELETE_COMMAND + reminderId;
@@ -1120,14 +1126,14 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             deleteCommand = deleteCommand + CLOSE_REMINDER_MENU;
         }
         InlineKeyboardButton deleteReminderButton = new InlineKeyboardButton();
-        deleteReminderButton.setText(Emoji.DELETE.getEmoji());
+        deleteReminderButton.setText(Emoji.DELETE.getSymbol());
         deleteReminderButton.setCallbackData(deleteCommand);
 
         String notifiedCaption;
-        if (reminder.getNotified()) {
-            notifiedCaption = Emoji.PLAY_BUTTON.getEmoji();
+        if (Boolean.TRUE.equals(reminder.getNotified())) {
+            notifiedCaption = Emoji.PLAY_BUTTON.getSymbol();
         } else {
-            notifiedCaption = Emoji.STOP_BUTTON.getEmoji();
+            notifiedCaption = Emoji.STOP_BUTTON.getSymbol();
         }
         InlineKeyboardButton disableReminderButton = new InlineKeyboardButton();
         disableReminderButton.setText(notifiedCaption);
@@ -1135,15 +1141,15 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
 
         String repeatability = reminder.getRepeatability() == null ? "" : reminder.getRepeatability();
         InlineKeyboardButton repeatReminderButton = new InlineKeyboardButton();
-        repeatReminderButton.setText(Emoji.CALENDAR.getEmoji());
+        repeatReminderButton.setText(Emoji.CALENDAR.getSymbol());
         repeatReminderButton.setCallbackData(CALLBACK_SET_REMINDER + reminderId + SET_REPEATABLE + repeatability);
 
         InlineKeyboardButton updateReminderButton = new InlineKeyboardButton();
-        updateReminderButton.setText(Emoji.UPDATE.getEmoji());
+        updateReminderButton.setText(Emoji.UPDATE.getSymbol());
         updateReminderButton.setCallbackData(CALLBACK_INFO_REMINDER + reminderId);
 
         InlineKeyboardButton okButton = new InlineKeyboardButton();
-        okButton.setText(Emoji.CHECK_MARK_BUTTON.getEmoji());
+        okButton.setText(Emoji.CHECK_MARK_BUTTON.getSymbol());
         okButton.setCallbackData(CALLBACK_CLOSE_REMINDER_MENU + reminder.getUser().getUserId());
 
         rows.add(
@@ -1156,7 +1162,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                         okButton));
 
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${command.remind.button.back}");
+        backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.remind.button.back}");
         backButton.setCallbackData(CALLBACK_COMMAND);
         rows.add(List.of(backButton));
     }

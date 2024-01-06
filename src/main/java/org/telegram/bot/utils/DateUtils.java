@@ -30,7 +30,7 @@ public class DateUtils {
     public static final Pattern FULL_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
     public static final Pattern SHORT_TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2})");
 
-    public static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
+    public final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_STRING);
     public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_STRING);
     public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_STRING);

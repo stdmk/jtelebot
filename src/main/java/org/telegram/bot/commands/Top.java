@@ -135,24 +135,24 @@ public class Top implements Command<SendMessage> {
 
         String karmaEmoji;
         if (userStats.getNumberOfKarma() >= 0) {
-            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getSymbol();
         } else {
-            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getSymbol();
         }
 
-        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "${command.top.userstats.messages}", userStats.getNumberOfMessages().toString());
+        fieldsOfStats.put(Emoji.EMAIL.getSymbol() + "${command.top.userstats.messages}", userStats.getNumberOfMessages().toString());
         fieldsOfStats.put(karmaEmoji + "${command.top.userstats.karma}", userStats.getNumberOfKarma().toString());
-        fieldsOfStats.put(Emoji.RED_HEART.getEmoji() + "${command.top.userstats.kindness}", userStats.getNumberOfGoodness().toString());
-        fieldsOfStats.put(Emoji.BROKEN_HEART.getEmoji() + "${command.top.userstats.wickedness}", userStats.getNumberOfWickedness().toString());
-        fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "${command.top.userstats.stickers}", userStats.getNumberOfStickers().toString());
-        fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "${command.top.userstats.images}", userStats.getNumberOfPhotos().toString());
-        fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "${command.top.userstats.animations}", userStats.getNumberOfAnimations().toString());
-        fieldsOfStats.put(Emoji.MUSIC.getEmoji() + "${command.top.userstats.music}", userStats.getNumberOfAudio().toString());
-        fieldsOfStats.put(Emoji.DOCUMENT.getEmoji() + "${command.top.userstats.documents}", userStats.getNumberOfDocuments().toString());
-        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getEmoji() + "${command.top.userstats.videos}", userStats.getNumberOfVideos().toString());
-        fieldsOfStats.put(Emoji.VHS.getEmoji() + "${command.top.userstats.videomessages}", userStats.getNumberOfVideoNotes().toString());
-        fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "${command.top.userstats.voices}", userStats.getNumberOfVoices().toString());
-        fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "${command.top.userstats.commands}", userStats.getNumberOfCommands().toString());
+        fieldsOfStats.put(Emoji.RED_HEART.getSymbol() + "${command.top.userstats.kindness}", userStats.getNumberOfGoodness().toString());
+        fieldsOfStats.put(Emoji.BROKEN_HEART.getSymbol() + "${command.top.userstats.wickedness}", userStats.getNumberOfWickedness().toString());
+        fieldsOfStats.put(Emoji.PICTURE.getSymbol() + "${command.top.userstats.stickers}", userStats.getNumberOfStickers().toString());
+        fieldsOfStats.put(Emoji.CAMERA.getSymbol() + "${command.top.userstats.images}", userStats.getNumberOfPhotos().toString());
+        fieldsOfStats.put(Emoji.FILM_FRAMES.getSymbol() + "${command.top.userstats.animations}", userStats.getNumberOfAnimations().toString());
+        fieldsOfStats.put(Emoji.MUSIC.getSymbol() + "${command.top.userstats.music}", userStats.getNumberOfAudio().toString());
+        fieldsOfStats.put(Emoji.DOCUMENT.getSymbol() + "${command.top.userstats.documents}", userStats.getNumberOfDocuments().toString());
+        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getSymbol() + "${command.top.userstats.videos}", userStats.getNumberOfVideos().toString());
+        fieldsOfStats.put(Emoji.VHS.getSymbol() + "${command.top.userstats.videomessages}", userStats.getNumberOfVideoNotes().toString());
+        fieldsOfStats.put(Emoji.PLAY_BUTTON.getSymbol() + "${command.top.userstats.voices}", userStats.getNumberOfVoices().toString());
+        fieldsOfStats.put(Emoji.ROBOT.getSymbol() + "${command.top.userstats.commands}", userStats.getNumberOfCommands().toString());
 
         buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n").append("<u>${command.top.permonth}:</u>\n");
         fieldsOfStats.forEach((key, value) -> {
@@ -166,24 +166,24 @@ public class Top implements Command<SendMessage> {
         buf.append("<u>${command.top.userstats.total}:</u>\n");
 
         if (userStats.getNumberOfAllKarma() >= 0) {
-            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getSymbol();
         } else {
-            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getSymbol();
         }
 
-        fieldsOfStats.put(Emoji.EMAIL.getEmoji() + "${command.top.userstats.messages}", userStats.getNumberOfAllMessages().toString());
+        fieldsOfStats.put(Emoji.EMAIL.getSymbol() + "${command.top.userstats.messages}", userStats.getNumberOfAllMessages().toString());
         fieldsOfStats.put(karmaEmoji + "${command.top.userstats.karma}", userStats.getNumberOfAllKarma().toString());
-        fieldsOfStats.put(Emoji.RED_HEART.getEmoji() + "${command.top.userstats.kindness}", userStats.getNumberOfAllGoodness().toString());
-        fieldsOfStats.put(Emoji.BROKEN_HEART.getEmoji() + "${command.top.userstats.wickedness}", userStats.getNumberOfAllWickedness().toString());
-        fieldsOfStats.put(Emoji.PICTURE.getEmoji() + "${command.top.userstats.stickers}", userStats.getNumberOfAllStickers().toString());
-        fieldsOfStats.put(Emoji.CAMERA.getEmoji() + "${command.top.userstats.images}", userStats.getNumberOfAllPhotos().toString());
-        fieldsOfStats.put(Emoji.FILM_FRAMES.getEmoji() + "${command.top.userstats.animations}", userStats.getNumberOfAllAnimations().toString());
-        fieldsOfStats.put(Emoji.MUSIC.getEmoji() + "${command.top.userstats.music}", userStats.getNumberOfAllAudio().toString());
-        fieldsOfStats.put(Emoji.DOCUMENT.getEmoji() + "${command.top.userstats.documents}", userStats.getNumberOfAllDocuments().toString());
-        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getEmoji() + "${command.top.userstats.videos}", userStats.getNumberOfAllVideos().toString());
-        fieldsOfStats.put(Emoji.VHS.getEmoji() + "${command.top.userstats.videomessages}", userStats.getNumberOfAllVideoNotes().toString());
-        fieldsOfStats.put(Emoji.PLAY_BUTTON.getEmoji() + "${command.top.userstats.voices}", userStats.getNumberOfAllVoices().toString());
-        fieldsOfStats.put(Emoji.ROBOT.getEmoji() + "${command.top.userstats.commands}", userStats.getNumberOfAllCommands().toString());
+        fieldsOfStats.put(Emoji.RED_HEART.getSymbol() + "${command.top.userstats.kindness}", userStats.getNumberOfAllGoodness().toString());
+        fieldsOfStats.put(Emoji.BROKEN_HEART.getSymbol() + "${command.top.userstats.wickedness}", userStats.getNumberOfAllWickedness().toString());
+        fieldsOfStats.put(Emoji.PICTURE.getSymbol() + "${command.top.userstats.stickers}", userStats.getNumberOfAllStickers().toString());
+        fieldsOfStats.put(Emoji.CAMERA.getSymbol() + "${command.top.userstats.images}", userStats.getNumberOfAllPhotos().toString());
+        fieldsOfStats.put(Emoji.FILM_FRAMES.getSymbol() + "${command.top.userstats.animations}", userStats.getNumberOfAllAnimations().toString());
+        fieldsOfStats.put(Emoji.MUSIC.getSymbol() + "${command.top.userstats.music}", userStats.getNumberOfAllAudio().toString());
+        fieldsOfStats.put(Emoji.DOCUMENT.getSymbol() + "${command.top.userstats.documents}", userStats.getNumberOfAllDocuments().toString());
+        fieldsOfStats.put(Emoji.MOVIE_CAMERA.getSymbol() + "${command.top.userstats.videos}", userStats.getNumberOfAllVideos().toString());
+        fieldsOfStats.put(Emoji.VHS.getSymbol() + "${command.top.userstats.videomessages}", userStats.getNumberOfAllVideoNotes().toString());
+        fieldsOfStats.put(Emoji.PLAY_BUTTON.getSymbol() + "${command.top.userstats.voices}", userStats.getNumberOfAllVoices().toString());
+        fieldsOfStats.put(Emoji.ROBOT.getSymbol() + "${command.top.userstats.commands}", userStats.getNumberOfAllCommands().toString());
 
         fieldsOfStats.forEach((key, value) -> {
             if (!value.equals(valueForSkip)) {

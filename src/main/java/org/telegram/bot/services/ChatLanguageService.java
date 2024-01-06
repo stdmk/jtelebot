@@ -2,7 +2,6 @@ package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
-import org.telegram.bot.domain.entities.User;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.ChatLanguage}.

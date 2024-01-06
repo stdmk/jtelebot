@@ -34,54 +34,27 @@ public class Level implements Command<SendMessage> {
         String responseText;
 
         if (textMessage == null) {
-            Long chatId = message.getChatId();
-            log.debug("Request to get level of chat with id {}", chatId);
-
-            if (chatId > 0) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            responseText = "${command.level.grouplevel} - " + chatService.getChatAccessLevel(chatId);
+            responseText = getLevelOfChat(message.getChatId());
         } else {
             int i = textMessage.indexOf(" ");
-            int level;
-
             if (i < 0) {
                 try {
-                    level = Integer.parseInt(textMessage);
-                    org.telegram.bot.domain.entities.Chat chatToUpdate = chatService.get(message.getChatId());
-
-                    log.debug("Request to change level of chat {} from {} to {}", chatToUpdate.getChatId(), chatToUpdate.getAccessLevel(), level);
-                    chatToUpdate.setAccessLevel(level);
-
-                    chatService.save(chatToUpdate);
+                    changeChatLevel(message.getChatId(), Integer.parseInt(textMessage));
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 } catch (NumberFormatException e) {
-                    log.debug("Request to get level of user with username {}", textMessage);
-                    User user = userService.get(textMessage);
-                    if (user == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-
-                    responseText = "${command.level.userlevel} " + TextUtils.getLinkToUser(user, false) + " - " + user.getAccessLevel();
+                    responseText = getLevelOfUser(textMessage);
                 }
             } else {
                 String username = textMessage.substring(0, i);
+                int level;
                 try {
                     level = Integer.parseInt(textMessage.substring(i + 1));
                 } catch (NumberFormatException e) {
                     log.debug("Cannot parse level in {}", textMessage);
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-                User userToUpdate = userService.get(username);
-                if (userToUpdate == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
 
-                log.debug("Request to change level of user {} from {} to {}", username, userToUpdate.getAccessLevel(), level);
-                userToUpdate.setAccessLevel(level);
-
-                userService.save(userToUpdate);
+                changeUserLevel(username, level);
                 responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             }
         }
@@ -94,4 +67,46 @@ public class Level implements Command<SendMessage> {
 
         return sendMessage;
     }
+
+    private String getLevelOfChat(Long chatId) {
+        log.debug("Request to get level of chat with id {}", chatId);
+
+        if (chatId > 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return "${command.level.grouplevel} - " + chatService.getChatAccessLevel(chatId);
+    }
+
+    private void changeChatLevel(Long chatId, int level) {
+        org.telegram.bot.domain.entities.Chat chatToUpdate = chatService.get(chatId);
+
+        log.debug("Request to change level of chat {} from {} to {}", chatToUpdate.getChatId(), chatToUpdate.getAccessLevel(), level);
+        chatToUpdate.setAccessLevel(level);
+
+        chatService.save(chatToUpdate);
+    }
+
+    private String getLevelOfUser(String username) {
+        log.debug("Request to get level of user with username {}", username);
+        User user = userService.get(username);
+        if (user == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return "${command.level.userlevel} " + TextUtils.getLinkToUser(user, false) + " - " + user.getAccessLevel();
+    }
+
+    private void changeUserLevel(String username, int level) {
+        User userToUpdate = userService.get(username);
+        if (userToUpdate == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to change level of user {} from {} to {}", username, userToUpdate.getAccessLevel(), level);
+        userToUpdate.setAccessLevel(level);
+
+        userService.save(userToUpdate);
+    }
+
 }

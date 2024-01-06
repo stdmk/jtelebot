@@ -42,10 +42,8 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,6 +61,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
 
     private static final String USD_ID = "R01235";
     private static final String EUR_ID = "R01239";
+    private static final String CB_RF_DATE_FORMAT = "dd/MM/yyyy";
     private static final Integer DEFAULT_CHART_WIDTH = 1350;
     private static final Integer DEFAULT_CHART_HEIGHT = 950;
     private static final Pattern VALUTE_TO_RUB_PATTERN = Pattern.compile("^(\\d+[.,]*\\d*)\\s?([a-zA-Zа-яА-Я]+)$");
@@ -182,12 +181,24 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
     }
 
     private String buildExchangeRates(List<Valute> valuteList, List<Valute> valuteListYesterday, String cursDate) {
-        Float usdCurrent = getValuteByCode(valuteList, "USD").getValuteValue();
-        Float usdBefore = getValuteByCode(valuteListYesterday, "USD").getValuteValue();
-        Float eurCurrent = getValuteByCode(valuteList, "EUR").getValuteValue();
-        Float eurBefore = getValuteByCode(valuteListYesterday, "EUR").getValuteValue();
-        Float cnyCurrent = getValuteByCode(valuteList, "CNY").getValuteValue();
-        Float cnyBefore = getValuteByCode(valuteListYesterday, "CNY").getValuteValue();
+        Valute usdCurrentValute = getValuteByCode(valuteList, "USD");
+        Valute usdBeforeValute = getValuteByCode(valuteListYesterday, "USD");
+        Valute eurCurrentValute = getValuteByCode(valuteList, "EUR");
+        Valute eurBeforeValute = getValuteByCode(valuteListYesterday, "EUR");
+        Valute cnyCurrentValute = getValuteByCode(valuteList, "CNY");
+        Valute cnyBeforeValute = getValuteByCode(valuteListYesterday, "CNY");
+
+        if (Stream.of(usdCurrentValute, usdBeforeValute, eurCurrentValute, eurBeforeValute, cnyCurrentValute, cnyBeforeValute)
+                .anyMatch(Objects::isNull)) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        float usdCurrent = usdCurrentValute.getValuteValue();
+        float usdBefore = usdBeforeValute.getValuteValue();
+        float eurCurrent = eurCurrentValute.getValuteValue();
+        float eurBefore = eurBeforeValute.getValuteValue();
+        float cnyCurrent = cnyCurrentValute.getValuteValue();
+        float cnyBefore = cnyBeforeValute.getValuteValue();
 
         return "<b>${command.exchange.commoncaption}:</b>\n" +
                 "$ USD = " + formatFloatValue(usdCurrent) + " RUB " + getDynamicsForValuteValue(usdCurrent, usdBefore) + "\n" +
@@ -210,7 +221,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
         } else {
             float exchangeRate = getReversExchangeRate(valute);
             return "<b>" + valute.getName() + " ${command.exchange.intorub}</b>\n" +
-                    String.valueOf(amount).replaceAll("\\.", ",") + " " + valute.getCharCode() + " = " + formatFloatValue(amount / exchangeRate) + " ₽";
+                    String.valueOf(amount).replace("\\.", ",") + " " + valute.getCharCode() + " = " + formatFloatValue(amount / exchangeRate) + " ₽";
         }
     }
 
@@ -230,7 +241,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
         } else {
             float exchangeRate = getReversExchangeRate(valute);
             return "<b>" + "${command.exchange.fromrub} " + valute.getName() + "</b>\n" +
-                    String.valueOf(amount).replaceAll("\\.", ",") + " ₽ = " + formatFloatValue(amount * exchangeRate) + " " + valute.getCharCode();
+                    String.valueOf(amount).replace("\\.", ",") + " ₽ = " + formatFloatValue(amount * exchangeRate) + " " + valute.getCharCode();
         }
     }
 
@@ -381,9 +392,9 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
 
         String emoji;
         if (compareResult > 0) {
-            emoji = Emoji.UP_ARROW.getEmoji();
+            emoji = Emoji.UP_ARROW.getSymbol();
         } else if (compareResult < 0) {
-            emoji = Emoji.DOWN_ARROW.getEmoji();
+            emoji = Emoji.DOWN_ARROW.getSymbol();
         } else {
             emoji = "";
         }
@@ -468,7 +479,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
     private ValCurs getValCursDataFromApi(@Nullable LocalDate date) {
         String xmlUrl = "http://www.cbr.ru/scripts/XML_daily.asp";
         if (date != null) {
-            xmlUrl = xmlUrl + "?date_req=" + DateTimeFormatter.ofPattern("dd/MM/yyyy").format(date);
+            xmlUrl = xmlUrl + "?date_req=" + DateTimeFormatter.ofPattern(CB_RF_DATE_FORMAT).format(date);
         }
 
         String response;
@@ -492,8 +503,8 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
     }
 
     private DynamicValCurs getValCursDataFromApi(LocalDate from, LocalDate to, String valuteId) {
-        String dateFrom = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(from);
-        String dateTo = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(to);
+        String dateFrom = DateTimeFormatter.ofPattern(CB_RF_DATE_FORMAT).format(from);
+        String dateTo = DateTimeFormatter.ofPattern(CB_RF_DATE_FORMAT).format(to);
 
         String xmlUrl = "https://www.cbr.ru/scripts/XML_dynamic.asp?date_req1="
                 + dateFrom + "&date_req2=" + dateTo + "&VAL_NM_RQ=" + valuteId;

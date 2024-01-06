@@ -30,6 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Set implements Command<PartialBotApiMethod<?>> {
 
+    //TODO брать из интернациолизации
+    private static final String EMPTY_COMMAND = "установить ";
+
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final UserService userService;
@@ -107,79 +110,79 @@ public class Set implements Command<PartialBotApiMethod<?>> {
 
     private InlineKeyboardMarkup buildMainKeyboard() {
         InlineKeyboardButton newsButton = new InlineKeyboardButton();
-        String SET = "установить ";
-        newsButton.setText(SET + "${setter.set.news}");
-        newsButton.setCallbackData(SET + "${setter.set.news}");
+
+        newsButton.setText(EMPTY_COMMAND + "${setter.set.news}");
+        newsButton.setCallbackData(EMPTY_COMMAND + "${setter.set.news}");
 
         List<InlineKeyboardButton> newsRow = new ArrayList<>();
         newsRow.add(newsButton);
 
         InlineKeyboardButton cityButton = new InlineKeyboardButton();
-        cityButton.setText(SET + "${setter.set.city}");
-        cityButton.setCallbackData(SET + "${setter.set.city}");
+        cityButton.setText(EMPTY_COMMAND + "${setter.set.city}");
+        cityButton.setCallbackData(EMPTY_COMMAND + "${setter.set.city}");
 
         List<InlineKeyboardButton> cityRow = new ArrayList<>();
         cityRow.add(cityButton);
 
         InlineKeyboardButton aliasButton = new InlineKeyboardButton();
-        aliasButton.setText(SET + "${setter.set.alias}");
-        aliasButton.setCallbackData(SET + "${setter.set.alias}");
+        aliasButton.setText(EMPTY_COMMAND + "${setter.set.alias}");
+        aliasButton.setCallbackData(EMPTY_COMMAND + "${setter.set.alias}");
 
         List<InlineKeyboardButton> aliasRow = new ArrayList<>();
         aliasRow.add(aliasButton);
 
         InlineKeyboardButton tvButton = new InlineKeyboardButton();
-        tvButton.setText(SET + "${setter.set.tv}");
-        tvButton.setCallbackData(SET + "${setter.set.tv}");
+        tvButton.setText(EMPTY_COMMAND + "${setter.set.tv}");
+        tvButton.setCallbackData(EMPTY_COMMAND + "${setter.set.tv}");
 
         List<InlineKeyboardButton> tvRow = new ArrayList<>();
         tvRow.add(tvButton);
 
         InlineKeyboardButton holidayButton = new InlineKeyboardButton();
-        holidayButton.setText(SET + "${setter.set.holiday}");
-        holidayButton.setCallbackData(SET + "${setter.set.holiday}");
+        holidayButton.setText(EMPTY_COMMAND + "${setter.set.holiday}");
+        holidayButton.setCallbackData(EMPTY_COMMAND + "${setter.set.holiday}");
 
         List<InlineKeyboardButton> holidayRow = new ArrayList<>();
         holidayRow.add(holidayButton);
 
         InlineKeyboardButton commandButton = new InlineKeyboardButton();
-        commandButton.setText(SET + "${setter.set.command}");
-        commandButton.setCallbackData(SET + "${setter.set.command}");
+        commandButton.setText(EMPTY_COMMAND + "${setter.set.command}");
+        commandButton.setCallbackData(EMPTY_COMMAND + "${setter.set.command}");
 
         List<InlineKeyboardButton> commandRow = new ArrayList<>();
         commandRow.add(commandButton);
 
         InlineKeyboardButton talkerButton = new InlineKeyboardButton();
-        talkerButton.setText(SET + "${setter.set.talker}");
-        talkerButton.setCallbackData(SET + "${setter.set.talker}");
+        talkerButton.setText(EMPTY_COMMAND + "${setter.set.talker}");
+        talkerButton.setCallbackData(EMPTY_COMMAND + "${setter.set.talker}");
 
         List<InlineKeyboardButton> talkerRow = new ArrayList<>();
         talkerRow.add(talkerButton);
 
         InlineKeyboardButton zodiacButton = new InlineKeyboardButton();
-        zodiacButton.setText(SET + "${setter.set.zodiac}");
-        zodiacButton.setCallbackData(SET + "${setter.set.zodiac}");
+        zodiacButton.setText(EMPTY_COMMAND + "${setter.set.zodiac}");
+        zodiacButton.setCallbackData(EMPTY_COMMAND + "${setter.set.zodiac}");
 
         List<InlineKeyboardButton> zodiacRow = new ArrayList<>();
         zodiacRow.add(zodiacButton);
 
         InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(SET + "${setter.set.trainings}");
-        trainingButton.setCallbackData(SET + "${setter.set.trainings}");
+        trainingButton.setText(EMPTY_COMMAND + "${setter.set.trainings}");
+        trainingButton.setCallbackData(EMPTY_COMMAND + "${setter.set.trainings}");
 
         List<InlineKeyboardButton> trainingRow = new ArrayList<>();
         trainingRow.add(trainingButton);
 
         InlineKeyboardButton chatGPTButton = new InlineKeyboardButton();
-        chatGPTButton.setText(SET + "${setter.set.chatgpt}");
-        chatGPTButton.setCallbackData(SET + "${setter.set.chatgpt}");
+        chatGPTButton.setText(EMPTY_COMMAND + "${setter.set.chatgpt}");
+        chatGPTButton.setCallbackData(EMPTY_COMMAND + "${setter.set.chatgpt}");
 
         List<InlineKeyboardButton> chatGPTRow = new ArrayList<>();
         chatGPTRow.add(chatGPTButton);
 
         InlineKeyboardButton langButton = new InlineKeyboardButton();
-        langButton.setText(SET + "${setter.set.lang}");
-        langButton.setCallbackData(SET + "${setter.set.lang}");
+        langButton.setText(EMPTY_COMMAND + "${setter.set.lang}");
+        langButton.setCallbackData(EMPTY_COMMAND + "${setter.set.lang}");
 
         List<InlineKeyboardButton> langRow = new ArrayList<>();
         langRow.add(langButton);

@@ -136,7 +136,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
 
             InlineKeyboardButton parcelButton = new InlineKeyboardButton();
 
-            String parcelName = Emoji.DELETE.getEmoji() + parcel.getName();
+            String parcelName = Emoji.DELETE.getSymbol() + parcel.getName();
             if (parcelName.length() > 30) {
                 parcelName = parcelName.substring(0, 30) + "...";
             }
@@ -150,13 +150,13 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${command.parcel.button.add}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${command.parcel.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_PARCEL_COMMAND);
         addRow.add(addButton);
 
         List<InlineKeyboardButton> reloadRows = new ArrayList<>();
         InlineKeyboardButton reloadButton = new InlineKeyboardButton();
-        reloadButton.setText(Emoji.UPDATE.getEmoji() + "${command.parcel.button.reload}");
+        reloadButton.setText(Emoji.UPDATE.getSymbol() + "${command.parcel.button.reload}");
         reloadButton.setCallbackData(CALLBACK_COMMAND);
         reloadRows.add(reloadButton);
 
@@ -266,7 +266,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
     private void checkFreeTrackCodeSlots(long occupiedSlots) {
         final int requestsLimit = propertiesConfig.getRussianPostRequestsLimit();
 
-        int availableSlots = requestsLimit / (24 / TrackCodeEventsTimer.FIXED_RATE_HOURS);
+        long availableSlots = requestsLimit / (24 / TrackCodeEventsTimer.FIXED_RATE_HOURS);
 
         if (occupiedSlots >= availableSlots) {
             throw new BotException("${command.parcel.noslots}");
@@ -319,7 +319,9 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         Long parcelId = null;
         try {
             parcelId = Long.parseLong(command.substring(1));
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+            // it means it's not a number
+        }
 
         org.telegram.bot.domain.entities.Parcel parcel;
         if (parcelId != null) {
@@ -478,7 +480,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         StringBuilder buf = new StringBuilder();
 
         Instant nextAutomaticUpdate = Instant.ofEpochMilli(botStats.getLastTracksUpdate())
-                .plusSeconds(TrackCodeEventsTimer.FIXED_RATE_HOURS * 60 * 60);
+                .plusSeconds(TrackCodeEventsTimer.FIXED_RATE_HOURS * 60L * 60L);
 
         buf.append("${command.parcel.lastupdate}: <b>").append(formatShortDateTime(lastUpdateDateTime)).append("</b>\n")
                 .append("${command.parcel.nextupdate}: <b>").append(formatShortDateTime(nextAutomaticUpdate)).append("</b>\n");

@@ -52,10 +52,9 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
 
     private static final Pattern YEAR_PARAM = Pattern.compile("\\((\\d{4})\\)");
     private static final String API_URL = "https://api.kinopoisk.dev/v1.3/movie";
-    private static final String KINOPOISK_URL = "https://www.kinopoisk.ru";
+    private static final String KINOPOISK_URL = "https://www.kinopoisk.ru/";
     private static final String SEARCH_PATH = "?";
-    private static final String GET_BY_ID_PATH = "/";
-    private static final String RANDOM_MOVIE_PATH = "/random";
+    private static final String RANDOM_MOVIE_PATH = "random";
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) {
@@ -153,7 +152,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     private Pair<String, InputFile> getMovieById(String token, Long id) {
-        Movie movie = getData(API_URL + GET_BY_ID_PATH + id, token, Movie.class);
+        Movie movie = getData(API_URL + id, token, Movie.class);
         return getResponseTextAndPhotoFromMovie(movie);
     }
 
@@ -194,9 +193,9 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
                 buf.append("${command.kinopoisk.movieinfo.duration}: <b>").append(movieLength).append(" ${command.kinopoisk.movieinfo.minute}.</b> (")
                         .append(DateUtils.durationToString(movieLength * 60 * 1000)).append(")\n"));
         ifPresentAndNotEmpty(movie.getTop10(), top10 ->
-                buf.append(Emoji.TROPHY.getEmoji()).append(" ${command.kinopoisk.movieinfo.top10} (").append(top10).append(")\n"));
+                buf.append(Emoji.TROPHY.getSymbol()).append(" ${command.kinopoisk.movieinfo.top10} (").append(top10).append(")\n"));
         ifPresentAndNotEmpty(movie.getTop250(), top250 ->
-                buf.append(Emoji.TROPHY.getEmoji()).append(" ${command.kinopoisk.movieinfo.top250} (").append(top250).append(")\n"));
+                buf.append(Emoji.TROPHY.getSymbol()).append(" ${command.kinopoisk.movieinfo.top250} (").append(top250).append(")\n"));
         ifPresentAndNotEmpty(movie.getRating(), rating -> {
             ifPresentAndNotEmpty(rating.getKp(), kp -> buf.append("${command.kinopoisk.movieinfo.kinopoiskrating}: <b>").append(kp).append("</b> "));
             ifPresentAndNotEmpty(rating.getImdb(), imdb -> buf.append("${command.kinopoisk.movieinfo.imdbrating}: <b>").append(imdb).append("</b> "));

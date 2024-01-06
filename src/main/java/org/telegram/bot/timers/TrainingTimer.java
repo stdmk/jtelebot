@@ -89,7 +89,7 @@ public class TrainingTimer extends TimerParent {
 
         List<InlineKeyboardButton> cancelTrainingRow = new ArrayList<>();
         InlineKeyboardButton cancelButton = new InlineKeyboardButton();
-        cancelButton.setText(Emoji.CANCELLATION.getEmoji() + "Отменить");
+        cancelButton.setText(Emoji.CANCELLATION.getSymbol() + "Отменить");
         cancelButton.setCallbackData(COMMAND_NAME + "_c" + eventId);
         cancelTrainingRow.add(cancelButton);
 
@@ -102,14 +102,7 @@ public class TrainingTimer extends TimerParent {
     }
 
     private TrainSubscription getUserSubscription(Map<User, TrainSubscription> userTrainSubscriptionMap, User user) {
-        TrainSubscription trainSubscription = userTrainSubscriptionMap.get(user);
-
-        if (trainSubscription == null) {
-            trainSubscription = trainSubscriptionService.getFirstActive(user);
-            userTrainSubscriptionMap.put(user, trainSubscription);
-        }
-
-        return trainSubscription;
+        return userTrainSubscriptionMap.computeIfAbsent(user, trainSubscriptionService::getFirstActive);
     }
 
     private LocalTime getUserTime(Map<User, ZoneId> userZoneIdMap, User user) {

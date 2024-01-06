@@ -47,7 +47,7 @@ public class TextUtils {
     }
 
     public static String cutMarkdownSymbolsInText(String text) {
-        return text.replaceAll("[*_`\\[\\]()]", "").replaceAll("<.*?>","");
+        return text.replaceAll("[*_`\\[\\]()]", "").replace("<.*?>","");
     }
 
     public static String reduceSpaces(String text) {
@@ -55,7 +55,7 @@ public class TextUtils {
             text = text.replaceAll(" +", " ");
         }
         while (text.contains("\n\n")) {
-            text = text.replaceAll("\n\n", "\n");
+            text = text.replace("\n\n", "\n");
         }
 
         return text.trim();
@@ -63,7 +63,7 @@ public class TextUtils {
 
     public static String cutHtmlTags(String text) {
         text = text.replaceAll("<.*?>","");
-        return text.replaceAll("<", "");
+        return text.replace("<", "");
     }
 
     public static String withCapital(String text) {
@@ -74,7 +74,7 @@ public class TextUtils {
         return text.substring(0, 1).toLowerCase() + text.substring(1);
     }
 
-    public static Boolean startsWithElementInList(String text, List<String> symbolsList) {
+    public static boolean startsWithElementInList(String text, List<String> symbolsList) {
         return symbolsList.stream().anyMatch(text::startsWith);
     }
 

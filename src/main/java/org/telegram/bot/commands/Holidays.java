@@ -64,23 +64,12 @@ public class Holidays implements Command<SendMessage> {
 
             responseText = getHolidayDetails(holiday, languageCode);
         } else {
-            int i = textMessage.indexOf(".");
-            if (i < 0) {
+            int dotIndex = textMessage.indexOf(".");
+            if (dotIndex < 0) {
                 log.debug("Request to search holidays by text: {}", textMessage);
                 responseText = findHolidaysByText(new Chat().setChatId(message.getChatId()), textMessage, languageCode);
             } else {
-                LocalDate requestedDate;
-                try {
-                    requestedDate = LocalDate.of(
-                            LocalDate.now(clock).getYear(),
-                            Integer.parseInt(textMessage.substring(i + 1)),
-                            Integer.parseInt(textMessage.substring(0, i)));
-                } catch (NumberFormatException e) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-
-                log.debug("Request to get holidays for date: {}", formatDate(requestedDate));
-                responseText = getHolidaysForDate(new Chat().setChatId(message.getChatId()), requestedDate, languageCode);
+                responseText = getHolidaysForTextRequest(textMessage, dotIndex, new Chat().setChatId(message.getChatId()), languageCode);
                 if (responseText == null) {
                     responseText = "${command.holidays.noholidays}";
                 }
@@ -116,6 +105,21 @@ public class Holidays implements Command<SendMessage> {
                 .forEach(holiday -> buf.append(buildStringOfHoliday(holiday, true, lang)));
 
         return buf.toString();
+    }
+
+    public String getHolidaysForTextRequest(String textMessage, int dotIndex, Chat chat, String lang) {
+        LocalDate requestedDate;
+        try {
+            requestedDate = LocalDate.of(
+                    LocalDate.now(clock).getYear(),
+                    Integer.parseInt(textMessage.substring(dotIndex + 1)),
+                    Integer.parseInt(textMessage.substring(0, dotIndex)));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to get holidays for date: {}", formatDate(requestedDate));
+        return getHolidaysForDate(chat, requestedDate, lang);
     }
 
     /**
@@ -192,7 +196,7 @@ public class Holidays implements Command<SendMessage> {
      * @return formatted string with short info about Holiday
      * @see Holiday
      */
-    private String buildStringOfHoliday(Holiday holiday, Boolean withDayOfWeek, String lang) {
+    private String buildStringOfHoliday(Holiday holiday, boolean withDayOfWeek, String lang) {
         LocalDate storedDate = holiday.getDate();
         LocalDate dateOfHoliday = getDateOfHoliday(storedDate);
         String dayOfWeek;

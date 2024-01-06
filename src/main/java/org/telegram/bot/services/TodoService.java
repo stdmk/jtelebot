@@ -37,5 +37,5 @@ public interface TodoService {
      * @param todoId of Todo to remove.
      * @return true if remove.
      */
-    Boolean remove(Long todoId);
+    boolean remove(Long todoId);
 }

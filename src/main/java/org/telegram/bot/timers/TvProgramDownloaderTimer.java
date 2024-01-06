@@ -204,6 +204,8 @@ public class TvProgramDownloaderTimer extends TimerParent {
                         }
                         break;
                     }
+                    default:
+                        break;
                 }
             }
             if (nextEvent.isEndElement()) {

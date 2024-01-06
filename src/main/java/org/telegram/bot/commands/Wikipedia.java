@@ -60,20 +60,7 @@ public class Wikipedia implements Command<SendMessage> {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.wikipedia.commandwaitingstart}";
         } else if (textMessage.startsWith("_")) {
-            int wikiPageId;
-            try {
-                wikiPageId = Integer.parseInt(textMessage.substring(1));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            log.debug("Request to get wiki details by pageId {}", wikiPageId);
-            Wiki wiki = wikiService.get(wikiPageId);
-            if (wiki == null) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            responseText = getWikiPageDetails(wiki);
+            responseText = getWikiTextById(textMessage.substring(1));
         } else {
             log.debug("Request to search wiki pages by text {}", textMessage);
 
@@ -83,20 +70,7 @@ public class Wikipedia implements Command<SendMessage> {
             if (wiki != null && !wiki.getText().equals("")) {
                 responseText = getWikiPageDetails(wiki);
             } else {
-                List<String> titles = searchPageTitles(textMessage, lang);
-
-                if (titles.isEmpty()) {
-                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
-                } else if (titles.size() == 1) {
-                    Wiki wiki1 = getWiki(titles.get(0), lang);
-                    if (wiki1 == null || wiki1.getText().equals("")) {
-                        responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
-                    } else {
-                        responseText = getWikiPageDetails(wiki1);
-                    }
-                } else {
-                    responseText = "<b>${command.wikipedia.searchresults} " + textMessage + "</b>\n" + buildSearchResponseText(titles, lang);
-                }
+                responseText = searchWiki(textMessage, lang);
             }
         }
 
@@ -110,6 +84,40 @@ public class Wikipedia implements Command<SendMessage> {
         return sendMessage;
     }
 
+    private String getWikiTextById(String id) {
+        int wikiPageId;
+        try {
+            wikiPageId = Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to get wiki details by pageId {}", wikiPageId);
+        Wiki wiki = wikiService.get(wikiPageId);
+        if (wiki == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return getWikiPageDetails(wiki);
+    }
+
+    private String searchWiki(String searchText, String lang) {
+        List<String> titles = searchPageTitles(searchText, lang);
+
+        if (titles.isEmpty()) {
+            return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
+        } else if (titles.size() == 1) {
+            Wiki wiki1 = getWiki(titles.get(0), lang);
+            if (wiki1 == null || wiki1.getText().equals("")) {
+                return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
+            } else {
+                return getWikiPageDetails(wiki1);
+            }
+        } else {
+            return "<b>${command.wikipedia.searchresults} " + searchText + "</b>\n" + buildSearchResponseText(titles, lang);
+        }
+    }
+
     /**
      * Getting wiki page details.
      *
@@ -120,7 +128,7 @@ public class Wikipedia implements Command<SendMessage> {
         return "<b>" + wiki.getTitle() + "</b>\n" +
                 wiki.getText() + "\n" +
                 "<a href='https://ru.wikipedia.org/wiki/" + URLEncoder.encode(wiki.getTitle(), StandardCharsets.UTF_8)
-                    .replaceAll("\\+", "_") + "'>${command.wikipedia.articlelink}</a>\n";
+                    .replace("\\+", "_") + "'>${command.wikipedia.articlelink}</a>\n";
     }
 
     /**
@@ -163,7 +171,7 @@ public class Wikipedia implements Command<SendMessage> {
         if (responseBody[1] instanceof List) {
             titles = ((List<?>) responseBody[1])
                     .stream()
-                    .map(item -> (String) item)
+                    .map(String.class::cast)
                     .collect(Collectors.toList());
         }
 

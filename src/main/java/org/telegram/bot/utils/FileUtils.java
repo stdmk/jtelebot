@@ -19,8 +19,8 @@ public class FileUtils {
             properties.setProperty("googleToken", "");
             properties.setProperty("screenshotMachineToken", "");
             properties.setProperty("wolframAlphaToken", "");
-            try {
-                properties.store(new FileOutputStream(f), null);
+            try (FileOutputStream fos = new FileOutputStream(f)) {
+                properties.store(fos, null);
             } catch (IOException fileNotFoundException) {
                 fileNotFoundException.printStackTrace();
             }

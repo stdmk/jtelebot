@@ -128,7 +128,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         String name;
         URL url;
-        if (!params.startsWith("http") && !params.substring(i + 1).startsWith("http")) {
+        if (!params.startsWith("http") && !params.startsWith("http", i + 1)) {
             commandWaitingService.remove(commandWaitingService.get(chat, user));
             return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -228,7 +228,9 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         try {
             newsService.remove(Long.valueOf(command.substring(deleteNewsCommand.length() + 1)));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // maybe a non-administrator is trying to delete
+        }
 
         return getNewsSourcesListForChatWithKeyboard(message, chat);
     }
@@ -278,7 +280,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> newsRow = new ArrayList<>();
 
             InlineKeyboardButton newsButton = new InlineKeyboardButton();
-            newsButton.setText(Emoji.DELETE.getEmoji() + news.getName());
+            newsButton.setText(Emoji.DELETE.getSymbol() + news.getName());
             newsButton.setCallbackData(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId());
 
             newsRow.add(newsButton);
@@ -288,19 +290,19 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${setter.news.button.add}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${setter.news.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_NEWS_COMMAND);
         addButtonRow.add(addButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.news.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.news.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_NEWS_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.news.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.news.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

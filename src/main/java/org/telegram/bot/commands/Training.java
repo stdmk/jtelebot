@@ -110,6 +110,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                 try {
                     trainingId = Long.parseLong(textMessage.substring(ADD_COMMAND.length()));
                 } catch (NumberFormatException ignored) {
+                    // not training id
                 }
 
                 LocalDateTime dateTimeNow = LocalDateTime.now();
@@ -220,6 +221,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     try {
                         page = Integer.parseInt(textMessage.substring(REPORT_COMMAND.length()));
                     } catch (NumberFormatException ignored) {
+                        // not page
                     }
 
                     responseText = "<b>${command.training.choosereport}:</b>\n";
@@ -537,7 +539,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                 .forEach(training -> {
                     List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                     InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                    trainingButton.setText(Emoji.NEW.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
+                    trainingButton.setText(Emoji.NEW.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
                     trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND + training.getId());
                     buttonRow.add(trainingButton);
 
@@ -573,7 +575,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
         List<InlineKeyboardButton> pagesRow = new ArrayList<>();
         if (page > 0) {
             InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "${command.training.button.back}");
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.training.button.back}");
             backButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page - 1));
 
             pagesRow.add(backButton);
@@ -581,7 +583,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
 
         if (page + 1 < trainSubscriptionPage.getTotalPages()) {
             InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${command.training.button.forward}" + Emoji.RIGHT_ARROW.getEmoji());
+            forwardButton.setText("${command.training.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
             forwardButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page + 1));
 
             pagesRow.add(forwardButton);
@@ -592,7 +594,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
         if (reportDownloadCommand != null) {
             List<InlineKeyboardButton> downloadReportTrainingRow = new ArrayList<>();
             InlineKeyboardButton downloadReportButton = new InlineKeyboardButton();
-            downloadReportButton.setText(Emoji.DOWN_ARROW.getEmoji() + "${command.training.button.download}");
+            downloadReportButton.setText(Emoji.DOWN_ARROW.getSymbol() + "${command.training.button.download}");
             downloadReportButton.setCallbackData(reportDownloadCommand);
             downloadReportTrainingRow.add(downloadReportButton);
 
@@ -631,7 +633,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
     private List<InlineKeyboardButton> getTrainingMainInfoButtonRow() {
         List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
         InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "${command.training.button.trainings}");
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getSymbol() + "${command.training.button.trainings}");
         infoButton.setCallbackData(COMMAND_NAME);
         infoButtonRow.add(infoButton);
 
@@ -643,19 +645,19 @@ public class Training implements Command<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addTrainingRow = new ArrayList<>();
         InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(Emoji.NEW.getEmoji() + "${command.training.button.unplannedtraining}");
+        trainingButton.setText(Emoji.NEW.getSymbol() + "${command.training.button.unplannedtraining}");
         trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND);
         addTrainingRow.add(trainingButton);
 
         List<InlineKeyboardButton> reportTrainingRow = new ArrayList<>();
         InlineKeyboardButton reportButton = new InlineKeyboardButton();
-        reportButton.setText(Emoji.MEMO.getEmoji() + "${command.training.button.reports}");
+        reportButton.setText(Emoji.MEMO.getSymbol() + "${command.training.button.reports}");
         reportButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND);
         reportTrainingRow.add(reportButton);
 
         List<InlineKeyboardButton> settingsRow = new ArrayList<>();
         InlineKeyboardButton settingsButton = new InlineKeyboardButton();
-        settingsButton.setText(Emoji.GEAR.getEmoji() + "${command.training.button.settings}");
+        settingsButton.setText(Emoji.GEAR.getSymbol() + "${command.training.button.settings}");
         settingsButton.setCallbackData("${setter.command} ${setter.set.trainings}");
         settingsRow.add(settingsButton);
 

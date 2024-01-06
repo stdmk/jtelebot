@@ -129,7 +129,7 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private PartialBotApiMethod<?> getTalkerSetterWithKeyboard(Message message, Chat chat, Boolean newMessage) {
+    private PartialBotApiMethod<?> getTalkerSetterWithKeyboard(Message message, Chat chat, boolean newMessage) {
         log.debug("Request to get talker setter for chat {}", chat.getChatId());
 
         TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
@@ -246,13 +246,13 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> setIdleRow = new ArrayList<>();
         InlineKeyboardButton setIdleButton = new InlineKeyboardButton();
-        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getEmoji() + "${setter.talker.button.downtime}");
+        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getSymbol() + "${setter.talker.button.downtime}");
         setIdleButton.setCallbackData(CALLBACK_SET_IDLE_MINUTES_COMMAND);
         setIdleRow.add(setIdleButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.talker.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.talker.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

@@ -73,7 +73,6 @@ public class Bot extends TelegramLongPollingBot {
         User user;
         String textOfMessage;
         boolean editedMessage = false;
-        Boolean spyMode = propertiesConfig.getSpyMode();
 
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -102,12 +101,12 @@ public class Bot extends TelegramLongPollingBot {
 
         botStats.incrementReceivedMessages();
 
+        logReceivedMessage(message, user, textOfMessage);
+
         Long chatId = message.getChatId();
         Long userId = user.getId();
-        log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
-        if (chatId > 0 && spyMode != null && spyMode) {
-            reportToAdmin(user, textOfMessage);
-        }
+        Chat chatEntity = new Chat().setChatId(chatId);
+        org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);
 
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
         if (userAccessLevel.equals(AccessLevel.BANNED)) {
@@ -119,30 +118,12 @@ public class Bot extends TelegramLongPollingBot {
 
         textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(update));
 
-        Chat chatEntity = new Chat().setChatId(chatId);
-        org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);
-
-        CommandProperties commandProperties;
-        CommandWaiting commandWaiting = commandWaitingService.get(chatEntity, userEntity);
-        if (commandWaiting != null) {
-            commandProperties = commandPropertiesService.getCommand(commandWaiting.getCommandName());
-        } else if (textOfMessage != null) {
-            commandProperties = commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
-        } else {
-            return;
-        }
-
+        CommandProperties commandProperties = getCommandProperties(chatEntity, userEntity, textOfMessage);
         if (commandProperties == null || disableCommandService.get(chatEntity, commandProperties) != null) {
             return;
         }
 
-        Command<?> command = null;
-        try {
-            command = (Command<?>) context.getBean(commandProperties.getClassName());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-
+        Command<?> command = getCommand(commandProperties);
         if (command == null) {
             return;
         }
@@ -151,7 +132,37 @@ public class Bot extends TelegramLongPollingBot {
             userStatsService.incrementUserStatsCommands(chatEntity, userEntity, commandProperties);
             parseAsync(update, command);
         }
+    }
 
+    private void logReceivedMessage(Message message, User user, String textOfMessage) {
+        Boolean spyMode = propertiesConfig.getSpyMode();
+        Long chatId = message.getChatId();
+        Long userId = user.getId();
+        log.info("From " + chatId + " (" + user.getUserName() + "-" + userId + "): " + textOfMessage);
+        if (chatId > 0 && spyMode != null && spyMode) {
+            reportToAdmin(user, textOfMessage);
+        }
+    }
+
+    private CommandProperties getCommandProperties(Chat chat, org.telegram.bot.domain.entities.User user, String textOfMessage) {
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
+        if (commandWaiting != null) {
+            return commandPropertiesService.getCommand(commandWaiting.getCommandName());
+        } else if (textOfMessage != null) {
+            return commandPropertiesService.findCommandInText(textOfMessage, this.getBotUsername());
+        } else {
+            return null;
+        }
+    }
+
+    private Command<?> getCommand(CommandProperties commandProperties) {
+        try {
+            return (Command<?>) context.getBean(commandProperties.getClassName());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return null;
     }
 
     @Override

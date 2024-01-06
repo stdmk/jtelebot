@@ -324,12 +324,12 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton subscriptionDeleteButton = new InlineKeyboardButton();
-                subscriptionDeleteButton.setText(Emoji.DELETE.getEmoji() + subscription.getStartDate() + " " + subscription.getCount());
+                subscriptionDeleteButton.setText(Emoji.DELETE.getSymbol() + subscription.getStartDate() + " " + subscription.getCount());
                 subscriptionDeleteButton.setCallbackData(CALLBACK_DELETE_SUBSCRIPTION_COMMAND + subscription.getId());
                 buttonRow.add(subscriptionDeleteButton);
 
                 InlineKeyboardButton subscriptionUpdateButton = new InlineKeyboardButton();
-                subscriptionUpdateButton.setText(Emoji.GEAR.getEmoji() + formatDate(subscription.getStartDate().plus(subscription.getPeriod())));
+                subscriptionUpdateButton.setText(Emoji.GEAR.getSymbol() + formatDate(subscription.getStartDate().plus(subscription.getPeriod())));
                 subscriptionUpdateButton.setCallbackData(CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscription.getId());
                 buttonRow.add(subscriptionUpdateButton);
 
@@ -339,7 +339,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addRow = new ArrayList<>();
         InlineKeyboardButton addSubscriptionButton = new InlineKeyboardButton();
-        addSubscriptionButton.setText(Emoji.NEW.getEmoji() + "${setter.training.subscr.button.add}");
+        addSubscriptionButton.setText(Emoji.NEW.getSymbol() + "${setter.training.subscr.button.add}");
         addSubscriptionButton.setCallbackData(CALLBACK_ADD_SUBSCRIPTION_COMMAND);
         addRow.add(addSubscriptionButton);
 
@@ -372,7 +372,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private PartialBotApiMethod<?> setTraining(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
-        command = command.replaceAll(",", ".");
+        command = command.replace(",", ".");
 
         Matcher setTrainingMatcher = SET_TRAINING_PATTERN.matcher(command);
         Matcher setTrainingAddMatcher = SET_TRAINING_ADD_PATTERN.matcher(command);
@@ -476,7 +476,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                trainingButton.setText(Emoji.DELETE.getEmoji() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
+                trainingButton.setText(Emoji.DELETE.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
                 trainingButton.setCallbackData(CALLBACK_DELETE_TRAINING_COMMAND + training.getId());
                 buttonRow.add(trainingButton);
 
@@ -486,7 +486,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> addRow = new ArrayList<>();
         InlineKeyboardButton addTrainingButton = new InlineKeyboardButton();
-        addTrainingButton.setText(Emoji.NEW.getEmoji() + "${setter.training.training.button.add}");
+        addTrainingButton.setText(Emoji.NEW.getSymbol() + "${setter.training.training.button.add}");
         addTrainingButton.setCallbackData(CALLBACK_ADD_TRAINING_COMMAND);
         addRow.add(addTrainingButton);
 
@@ -609,9 +609,9 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
         String caption;
         if (scheduleStopped) {
-            caption = Emoji.CHECK_MARK_BUTTON.getEmoji() + "${setter.training.schedule.start}";
+            caption = Emoji.CHECK_MARK_BUTTON.getSymbol() + "${setter.training.schedule.start}";
         } else {
-            caption = Emoji.NO_ENTRY_SIGN.getEmoji() + "${setter.training.schedule.stop}";
+            caption = Emoji.NO_ENTRY_SIGN.getSymbol() + "${setter.training.schedule.stop}";
         }
 
         List<InlineKeyboardButton> stopRow = new ArrayList<>();
@@ -658,7 +658,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
                 List<InlineKeyboardButton> buttonRow = new ArrayList<>();
                 InlineKeyboardButton removeButton = new InlineKeyboardButton();
-                removeButton.setText(Emoji.DELETE.getEmoji() + caption);
+                removeButton.setText(Emoji.DELETE.getSymbol() + caption);
                 removeButton.setCallbackData(selectDayOfWeekCallback + DELETE_SCHEDULE_COMMAND + training.getId());
                 buttonRow.add(removeButton);
 
@@ -675,7 +675,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
 
             List<InlineKeyboardButton> buttonRow = new ArrayList<>();
             InlineKeyboardButton addButton = new InlineKeyboardButton();
-            addButton.setText(Emoji.NEW.getEmoji() + training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")");
+            addButton.setText(Emoji.NEW.getSymbol() + training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")");
             addButton.setCallbackData(selectDayOfWeekCallback + ADD_SCHEDULE_COMMAND + training.getId());
             buttonRow.add(addButton);
             rows.add(buttonRow);
@@ -725,31 +725,31 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     private List<List<InlineKeyboardButton>> getSetterMainMenuButtons(List<List<InlineKeyboardButton>> rows) {
         List<InlineKeyboardButton> subscriptionButtonRow = new ArrayList<>();
         InlineKeyboardButton subscriptionButton = new InlineKeyboardButton();
-        subscriptionButton.setText(Emoji.TICKET.getEmoji() + "${setter.training.button.subscr}");
+        subscriptionButton.setText(Emoji.TICKET.getSymbol() + "${setter.training.button.subscr}");
         subscriptionButton.setCallbackData(CALLBACK_SET_COMMAND + SUBSCRIPTION_COMMAND);
         subscriptionButtonRow.add(subscriptionButton);
 
         List<InlineKeyboardButton> trainingButtonRow = new ArrayList<>();
         InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(Emoji.GREEN_BOOK.getEmoji() + "${setter.training.button.nomenclature}");
+        trainingButton.setText(Emoji.GREEN_BOOK.getSymbol() + "${setter.training.button.nomenclature}");
         trainingButton.setCallbackData(CALLBACK_SET_COMMAND + TRAINING_COMMAND);
         trainingButtonRow.add(trainingButton);
 
         List<InlineKeyboardButton> scheduleButtonRow = new ArrayList<>();
         InlineKeyboardButton scheduleButton = new InlineKeyboardButton();
-        scheduleButton.setText(Emoji.DATE.getEmoji() + "${setter.training.button.schedule}");
+        scheduleButton.setText(Emoji.DATE.getSymbol() + "${setter.training.button.schedule}");
         scheduleButton.setCallbackData(CALLBACK_SET_COMMAND + SCHEDULE_COMMAND);
         scheduleButtonRow.add(scheduleButton);
 
         List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
         InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getEmoji() + "${setter.training.button.trainings}");
-        infoButton.setCallbackData("training");
+        infoButton.setText(Emoji.WEIGHT_LIFTER.getSymbol() + "${setter.training.button.trainings}");
+        infoButton.setCallbackData(EMPTY_SET_COMMAND);
         infoButtonRow.add(infoButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.training.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.training.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

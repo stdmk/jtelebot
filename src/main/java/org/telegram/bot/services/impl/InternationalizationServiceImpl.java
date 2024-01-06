@@ -50,14 +50,13 @@ public class InternationalizationServiceImpl implements InternationalizationServ
     }
 
     private void internationalize(ReplyKeyboard replyMarkup, String lang) {
-        if (replyMarkup != null) {
-            if (replyMarkup instanceof InlineKeyboardMarkup) {
-                ((InlineKeyboardMarkup) replyMarkup).getKeyboard().forEach(buttons ->
-                        buttons.forEach(button -> {
-                            button.setText(this.internationalize(button.getText(), lang));
-                            button.setCallbackData(this.internationalize(button.getCallbackData(), lang));
-                        }));
-            }
+        if (replyMarkup instanceof InlineKeyboardMarkup) {
+            ((InlineKeyboardMarkup) replyMarkup).getKeyboard().forEach(buttons ->
+                    buttons.forEach(button -> {
+                        button.setText(this.internationalize(button.getText(), lang));
+                        button.setCallbackData(this.internationalize(button.getCallbackData(), lang));
+                    }));
+
         }
     }
 

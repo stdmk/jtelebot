@@ -73,5 +73,5 @@ public enum Emoji {
     WASTEBASKET("\uD83D\uDDD1️"),
     ;
 
-    private final String emoji;
+    private final String symbol;
 }

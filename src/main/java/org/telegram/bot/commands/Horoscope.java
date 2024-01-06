@@ -35,7 +35,7 @@ import java.util.Locale;
 @Slf4j
 public class Horoscope implements Command<SendMessage> {
 
-    private final String HOROSCOPE_DATA_URL = "https://ignio.com/r/daily/";
+    private static final String HOROSCOPE_DATA_URL = "https://ignio.com/r/daily/";
 
     private final Bot bot;
     private final UserZodiacService userZodiacService;

@@ -117,7 +117,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> holidayRow = new ArrayList<>();
 
             InlineKeyboardButton holidayButton = new InlineKeyboardButton();
-            holidayButton.setText(Emoji.DELETE.getEmoji() + limitStringLength(holiday.getName()));
+            holidayButton.setText(Emoji.DELETE.getSymbol() + limitStringLength(holiday.getName()));
             holidayButton.setCallbackData(CALLBACK_DELETE_HOLIDAY_COMMAND + " " + holiday.getId());
 
             holidayRow.add(holidayButton);
@@ -129,7 +129,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
             List<InlineKeyboardButton> pagesRow = new ArrayList<>();
             if (page > 0) {
                 InlineKeyboardButton backButton = new InlineKeyboardButton();
-                backButton.setText(Emoji.LEFT_ARROW.getEmoji() + "Назад");
+                backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "Назад");
                 backButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page - 1));
 
                 pagesRow.add(backButton);
@@ -137,7 +137,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
 
             if (page < holidayList.getTotalPages()) {
                 InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-                forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getEmoji());
+                forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getSymbol());
                 forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page + 1));
 
                 pagesRow.add(forwardButton);
@@ -308,7 +308,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private PartialBotApiMethod<?> getHolidayListWithKeyboard(Message message, Chat chat, User user, Boolean newMessage) {
+    private PartialBotApiMethod<?> getHolidayListWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         log.debug("Request to list all user tv for chat {} and user {}", chat.getChatId(), user.getUserId());
         List<Holiday> holidayList = holidayService.get(chat, user);
 
@@ -451,25 +451,25 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
     private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.holiday.button.delete}");
+        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.holiday.button.delete}");
         deleteButton.setCallbackData(CALLBACK_DELETE_HOLIDAY_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NEW.getEmoji() + "${setter.holiday.button.add}");
+        selectButton.setText(Emoji.NEW.getSymbol() + "${setter.holiday.button.add}");
         selectButton.setCallbackData(CALLBACK_ADD_HOLIDAY_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.holiday.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.holiday.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.holiday.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.holiday.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 
@@ -481,7 +481,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return rows;
     }
 
-    private PartialBotApiMethod<?> buildMessageWithKeyboard(Message message, InlineKeyboardMarkup keyboard, String text, Boolean newMessage) {
+    private PartialBotApiMethod<?> buildMessageWithKeyboard(Message message, InlineKeyboardMarkup keyboard, String text, boolean newMessage) {
         if (newMessage) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(message.getChatId().toString());
@@ -502,7 +502,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private PartialBotApiMethod<?> buildMessage(Message message, String text, Boolean newMessage) {
+    private PartialBotApiMethod<?> buildMessage(Message message, String text, boolean newMessage) {
         if (newMessage) {
             buildSendMessageWithText(message, text);
         }

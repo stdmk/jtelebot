@@ -276,9 +276,8 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.DATA_BASE_INTEGRITY));
         }
 
-        try {
-            cityService.remove(city);
-        } catch (Exception ignored) {}
+
+        cityService.remove(city);
 
         return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
     }
@@ -290,7 +289,7 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         if (callbackCommand.equals(CALLBACK_DELETE_CITY_COMMAND)) {
             title = "${setter.city.owncitiescaption}";
-            emoji = Emoji.DELETE.getEmoji();
+            emoji = Emoji.DELETE.getSymbol();
             cities = cityService.getAll(user);
         } else {
             title = "${setter.city.selectoradd}";
@@ -365,31 +364,31 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
         InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getEmoji() + "${setter.city.button.select}");
+        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.city.button.select}");
         selectButton.setCallbackData(CALLBACK_SELECT_CITY_COMMAND);
         selectButtonRow.add(selectButton);
 
         List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
         InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getEmoji() + "${setter.city.button.add}");
+        addButton.setText(Emoji.NEW.getSymbol() + "${setter.city.button.add}");
         addButton.setCallbackData(CALLBACK_ADD_CITY_COMMAND);
         addButtonRow.add(addButton);
 
         List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getEmoji() + "${setter.city.button.remove}");
+        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.city.button.remove}");
         deleteButton.setCallbackData(CALLBACK_DELETE_CITY_COMMAND);
         deleteButtonRow.add(deleteButton);
 
         List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
         InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getEmoji() + "${setter.city.button.update}");
+        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.city.button.update}");
         updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_CITY_COMMAND);
         updateButtonRow.add(updateButton);
 
         List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
         InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getEmoji() + "${setter.city.button.settings}");
+        backButton.setText(Emoji.BACK.getSymbol() + "${setter.city.button.settings}");
         backButton.setCallbackData(CALLBACK_COMMAND + "back");
         backButtonRow.add(backButton);
 

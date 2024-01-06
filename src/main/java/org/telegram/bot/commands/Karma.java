@@ -54,97 +54,104 @@ public class Karma implements Command<SendMessage>, TextAnalyzer {
 
         bot.sendTyping(message.getChatId());
 
-        StringBuilder buf = new StringBuilder();
         String textMessage = cutCommandInText(message.getText());
+        String responseText;
 
         if (textMessage == null) {
-            Chat chat = new Chat().setChatId(message.getChatId());
-            User user;
-            UserStats userStats;
-            Message repliedMessage = message.getReplyToMessage();
-
-
-            user = new User().setUserId(Objects.requireNonNullElse(repliedMessage, message).getFrom().getId());
-
-            log.debug("Request to get karma info for user {} and chat {}", user, chat);
-            userStats = userStatsService.get(chat, user);
-
-            String karmaEmoji;
-            if (userStats.getNumberOfKarma() >= 0) {
-                karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getEmoji();
-            } else {
-                karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getEmoji();
-            }
-
-            buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n")
-                .append(karmaEmoji).append("${command.karma.caption}: <b>").append(userStats.getNumberOfKarma()).append("</b> (").append(userStats.getNumberOfAllKarma()).append(")").append("\n")
-                .append(Emoji.RED_HEART.getEmoji()).append("${command.karma.kindness}: <b>").append(userStats.getNumberOfGoodness()).append("</b> (").append(userStats.getNumberOfAllGoodness()).append(")").append("\n")
-                .append(Emoji.BROKEN_HEART.getEmoji()).append("${command.karma.wickedness}: <b>").append(userStats.getNumberOfWickedness()).append("</b> (").append(userStats.getNumberOfAllWickedness()).append(")").append("\n");
+            responseText = getKarmaStatsOfUser(message);
         } else {
-            int i = textMessage.indexOf(" ");
-            if (i < 0) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            int value;
-            try {
-                value = Integer.parseInt(textMessage.substring(i + 1));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            if (value != 1 && value != -1) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            User anotherUser;
-            try {
-                anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
-            } catch (NumberFormatException e) {
-                anotherUser = userService.get(textMessage.substring(0, i));
-            }
-
-            if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
-
-            log.debug("Request to change karma {} of user {} ", value, anotherUser);
-            Chat chat = new Chat().setChatId(message.getChatId());
-            UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
-            anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value)
-                    .setNumberOfKarmaPerDay(anotherUserStats.getNumberOfKarmaPerDay() + value)
-                    .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
-
-            User user = new User().setUserId(message.getFrom().getId());
-            UserStats userStats = userStatsService.get(chat, user);
-            if (value > 0) {
-                userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)
-                        .setNumberOfGoodnessPerDay(userStats.getNumberOfGoodnessPerDay() + 1)
-                        .setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
-            } else {
-                userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1)
-                        .setNumberOfWickednessPerDay(userStats.getNumberOfWickednessPerDay() + 1)
-                        .setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
-            }
-
-            userStatsService.save(Arrays.asList(anotherUserStats, userStats));
-
-            buf = new StringBuilder("${command.karma.userskarma} <b>" + getLinkToUser(anotherUser, true) + "</b> ");
-            if (value < 0) {
-                buf.append("${command.karma.reduced} ").append(Emoji.THUMBS_DOWN.getEmoji());
-            } else {
-                buf.append("${command.karma.increased} ").append(Emoji.THUMBS_UP.getEmoji());
-            }
-            buf.append(" ${command.karma.changedto} <b>").append(anotherUserStats.getNumberOfKarma()).append("</b>");
+            responseText = changeKarmaOfUser(message, textMessage);
         }
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
-        sendMessage.setText(buf.toString());
+        sendMessage.setText(responseText);
 
         return sendMessage;
+    }
+
+    private String getKarmaStatsOfUser(Message message) {
+        Message repliedMessage = message.getReplyToMessage();
+        Chat chat = new Chat().setChatId(message.getChatId());
+        User user = new User().setUserId(Objects.requireNonNullElse(repliedMessage, message).getFrom().getId());
+
+        log.debug("Request to get karma info for user {} and chat {}", user, chat);
+        UserStats userStats = userStatsService.get(chat, user);
+
+        String karmaEmoji;
+        if (userStats.getNumberOfKarma() >= 0) {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HALO.getSymbol();
+        } else {
+            karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getSymbol();
+        }
+
+        return "<b>" + getLinkToUser(userStats.getUser(), true) + "</b>\n" +
+                karmaEmoji + "${command.karma.caption}: <b>" + userStats.getNumberOfKarma() + "</b> (" + userStats.getNumberOfAllKarma() + ")" + "\n" +
+                Emoji.RED_HEART.getSymbol() + "${command.karma.kindness}: <b>" + userStats.getNumberOfGoodness() + "</b> (" + userStats.getNumberOfAllGoodness() + ")" + "\n" +
+                Emoji.BROKEN_HEART.getSymbol() + "${command.karma.wickedness}: <b>" + userStats.getNumberOfWickedness() + "</b> (" + userStats.getNumberOfAllWickedness() + ")" + "\n";
+    }
+
+    private String changeKarmaOfUser(Message message, String textMessage) {
+        int i = textMessage.indexOf(" ");
+        if (i < 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        int value;
+        try {
+            value = Integer.parseInt(textMessage.substring(i + 1));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        if (value != 1 && value != -1) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        User anotherUser;
+        try {
+            anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
+        } catch (NumberFormatException e) {
+            anotherUser = userService.get(textMessage.substring(0, i));
+        }
+
+        if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        log.debug("Request to change karma {} of user {} ", value, anotherUser);
+        Chat chat = new Chat().setChatId(message.getChatId());
+        UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
+        anotherUserStats.setNumberOfKarma(anotherUserStats.getNumberOfKarma() + value)
+                .setNumberOfKarmaPerDay(anotherUserStats.getNumberOfKarmaPerDay() + value)
+                .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
+
+        User user = new User().setUserId(message.getFrom().getId());
+        UserStats userStats = userStatsService.get(chat, user);
+        if (value > 0) {
+            userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)
+                    .setNumberOfGoodnessPerDay(userStats.getNumberOfGoodnessPerDay() + 1)
+                    .setNumberOfAllGoodness(userStats.getNumberOfAllGoodness() + 1);
+        } else {
+            userStats.setNumberOfWickedness(userStats.getNumberOfWickedness() + 1)
+                    .setNumberOfWickednessPerDay(userStats.getNumberOfWickednessPerDay() + 1)
+                    .setNumberOfAllWickedness(userStats.getNumberOfAllWickedness() + 1);
+        }
+
+        userStatsService.save(Arrays.asList(anotherUserStats, userStats));
+
+
+        StringBuilder buf = new StringBuilder("${command.karma.userskarma} <b>" + getLinkToUser(anotherUser, true) + "</b> ");
+        if (value < 0) {
+            buf.append("${command.karma.reduced} ").append(Emoji.THUMBS_DOWN.getSymbol());
+        } else {
+            buf.append("${command.karma.increased} ").append(Emoji.THUMBS_UP.getSymbol());
+        }
+        buf.append(" ${command.karma.changedto} <b>").append(anotherUserStats.getNumberOfKarma()).append("</b>");
+
+        return buf.toString();
     }
 
     @Override

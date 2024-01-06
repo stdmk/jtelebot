@@ -51,55 +51,55 @@ public class Metadata implements Command<SendMessage> {
             textMessage = cutCommandInText(message.getText());
         }
 
+        if (textMessage != null) {
+            return null;
+        }
+
         String responseText;
         Integer repliedMessageId;
-        if (textMessage == null) {
-            bot.sendTyping(chatId);
+        bot.sendTyping(chatId);
 
-            Message messageWithFile = null;
-            if (!hasAnyFile(message)) {
-                Message replyToMessage = message.getReplyToMessage();
-                if (replyToMessage != null && hasAnyFile(replyToMessage)) {
-                    messageWithFile = replyToMessage;
-                }
-            } else {
-                messageWithFile = message;
-            }
-
-            if (messageWithFile == null) {
-                repliedMessageId = message.getMessageId();
-                log.debug("Empty request. Turning on command waiting");
-                commandWaitingService.add(message, this.getClass());
-                responseText = "${command.metadata.commandwaitingstart}";
-            } else {
-                repliedMessageId = messageWithFile.getMessageId();
-
-                InputStream file;
-                try {
-                    file = getFileFromMessage(messageWithFile);
-                } catch (TelegramApiException e) {
-                    log.error("Failed to get file from telegram", e);
-                    botStats.incrementErrors(update, e, "Failed to get file from telegram");
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                try {
-                    responseText = getMetadata(file);
-                } catch (IOException | ImageProcessingException e) {
-                    log.error("Failed to get metadata from file", e);
-                    botStats.incrementErrors(update, e, "Failed to get metadata from file");
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                } finally {
-                    try {
-                        file.close();
-                    } catch (IOException e) {
-                        log.error("Failed to close inputstream of file", e);
-                        botStats.incrementErrors(update, e, "Failed to close inputstream of file");
-                    }
-                }
+        Message messageWithFile = null;
+        if (!hasAnyFile(message)) {
+            Message replyToMessage = message.getReplyToMessage();
+            if (replyToMessage != null && hasAnyFile(replyToMessage)) {
+                messageWithFile = replyToMessage;
             }
         } else {
-            return null;
+            messageWithFile = message;
+        }
+
+        if (messageWithFile == null) {
+            repliedMessageId = message.getMessageId();
+            log.debug("Empty request. Turning on command waiting");
+            commandWaitingService.add(message, this.getClass());
+            responseText = "${command.metadata.commandwaitingstart}";
+        } else {
+            repliedMessageId = messageWithFile.getMessageId();
+
+            InputStream file;
+            try {
+                file = getFileFromMessage(messageWithFile);
+            } catch (TelegramApiException e) {
+                log.error("Failed to get file from telegram", e);
+                botStats.incrementErrors(update, e, "Failed to get file from telegram");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            try {
+                responseText = getMetadata(file);
+            } catch (IOException | ImageProcessingException e) {
+                log.error("Failed to get metadata from file", e);
+                botStats.incrementErrors(update, e, "Failed to get metadata from file");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            } finally {
+                try {
+                    file.close();
+                } catch (IOException e) {
+                    log.error("Failed to close inputstream of file", e);
+                    botStats.incrementErrors(update, e, "Failed to close inputstream of file");
+                }
+            }
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -201,7 +201,7 @@ public class Metadata implements Command<SendMessage> {
     }
 
     private String formatCoordinateForCommand(Double coordinate) {
-        return String.format("%.4f", coordinate).replaceAll("\\.", "_").replaceAll(",", "_");
+        return String.format("%.4f", coordinate).replace("\\.", "_").replace(",", "_");
     }
 
 }
