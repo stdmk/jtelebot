@@ -2,17 +2,25 @@ package org.telegram.bot.utils;
 
 import lombok.experimental.UtilityClass;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 @UtilityClass
 public class MathUtils {
 
-    //TODO
+    public static Integer getRandomInRange(int from, int to) {
+        if (from == to) {
+            return from;
+        }
 
-    public static Integer getRandomInRange(Integer from, Integer to) {
-        return from + (int) (Math.random() * to);
+        return ThreadLocalRandom.current().nextInt(from, to);
     }
 
-    public static Long getRandomInRange(Long from, Long to) {
-        return from + (long) (Math.random() * to);
+    public static Long getRandomInRange(long from, long to) {
+        if (from == to) {
+            return from;
+        }
+
+        return ThreadLocalRandom.current().nextLong(from, to);
     }
 
     public static String getPercentValue(long value, long count) {
