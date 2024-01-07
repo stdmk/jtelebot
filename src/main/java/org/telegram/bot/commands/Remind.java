@@ -242,6 +242,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         String reminderText;
         LocalDate reminderDate = null;
         LocalTime reminderTime = null;
+        LocalDate dateNow = LocalDate.now();
 
         Pattern datePattern = FULL_DATE_PATTERN;
         Matcher matcher = datePattern.matcher(command);
@@ -252,7 +253,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             matcher = datePattern.matcher(command);
             if (matcher.find()) {
                 try {
-                    reminderDate = getDateFromText(command.substring(matcher.start(), matcher.end()), LocalDate.now().getYear());
+                    reminderDate = getDateFromTextWithoutYear(command.substring(matcher.start(), matcher.end()), dateNow);
                 } catch (Exception ignored) {
                     // date not found
                 }
@@ -307,7 +308,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             if (afterDaysPhrase != null) {
                 Integer days = getValueFromAfterTimePhrase(afterDaysPhrase);
                 if (days != null) {
-                    reminderDate = LocalDate.now().plusDays(days);
+                    reminderDate = dateNow.plusDays(days);
                     command = command.replaceFirst(afterDaysPhrase, "").trim();
                 }
             }
@@ -321,7 +322,6 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             }
 
             if (reminderDate == null) {
-                LocalDate dateNow = LocalDate.now();
                 if (reminderTime == null || LocalTime.now().isAfter(reminderTime)) {
                     reminderDate = dateNow.plusDays(1);
                 } else {
@@ -455,7 +455,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                 } else {
                     matcher = SET_SHORT_DATE_PATTERN.matcher(command);
                     if (matcher.find()) {
-                        reminder.setDate(getDateFromText(command.substring(matcher.start() + 1, matcher.end()), LocalDate.now().getYear()));
+                        reminder.setDate(getDateFromTextWithoutYear(command.substring(matcher.start() + 1, matcher.end()), LocalDate.now()));
                     } else {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
@@ -606,8 +606,14 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         return editMessageText;
     }
 
-    private LocalDate getDateFromText(String text, int year) {
-        return getDateFromText(text + "." + year);
+    private LocalDate getDateFromTextWithoutYear(String text, LocalDate dateNow) {
+        LocalDate dateFromText = getDateFromText(text + "." + dateNow.getYear());
+
+        if (dateFromText.isBefore(dateNow)) {
+            return dateFromText.plusYears(1);
+        }
+
+        return dateFromText;
     }
 
     private LocalDate getDateFromText(String text) {
