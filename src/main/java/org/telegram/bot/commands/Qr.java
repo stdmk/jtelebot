@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -47,7 +47,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Qr implements Command<PartialBotApiMethod<?>>, TextAnalyzer {
+public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -30,7 +30,7 @@ import static org.telegram.bot.utils.TelegramUtils.isThatAnOldMessage;
 @Slf4j
 public class Bot extends TelegramLongPollingBot {
 
-    private final List<TextAnalyzer> textAnalyzerList;
+    private final List<MessageAnalyzer> messageAnalyzerList;
     private final ApplicationContext context;
     private final BotStats botStats;
 
@@ -43,7 +43,7 @@ public class Bot extends TelegramLongPollingBot {
     private final SpyModeService spyModeService;
     private final Parser parser;
 
-    public Bot(@Lazy List<TextAnalyzer> textAnalyzerList,
+    public Bot(@Lazy List<MessageAnalyzer> messageAnalyzerList,
                ApplicationContext context,
                BotStats botStats,
                PropertiesConfig propertiesConfig,
@@ -54,7 +54,7 @@ public class Bot extends TelegramLongPollingBot {
                SpyModeService spyModeService,
                @Value("${telegramBotApiToken}") String botToken, Parser parser) {
         super(botToken);
-        this.textAnalyzerList = textAnalyzerList;
+        this.messageAnalyzerList = messageAnalyzerList;
         this.context = context;
         this.botStats = botStats;
         this.propertiesConfig = propertiesConfig;
@@ -116,7 +116,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        textAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(update));
+        messageAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(update));
 
         CommandProperties commandProperties = getCommandProperties(chatEntity, userEntity, textOfMessage);
         if (commandProperties == null || disableCommandService.get(chatEntity, commandProperties) != null) {

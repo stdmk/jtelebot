@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
@@ -29,7 +29,7 @@ import static org.telegram.bot.utils.TextUtils.deleteWordsInText;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Turn implements Command<SendMessage>, TextAnalyzer {
+public class Turn implements Command<SendMessage>, MessageAnalyzer {
 
     private final Bot bot;
     private final ObjectCopier objectCopier;

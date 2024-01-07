@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -33,7 +33,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Karma implements Command<SendMessage>, TextAnalyzer {
+public class Karma implements Command<SendMessage>, MessageAnalyzer {
 
     private final Bot bot;
     private final ObjectCopier objectCopier;

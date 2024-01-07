@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Alias implements Command<SendMessage>, TextAnalyzer {
+public class Alias implements Command<SendMessage>, MessageAnalyzer {
 
     private final ApplicationContext context;
     private final Bot bot;

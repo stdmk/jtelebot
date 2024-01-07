@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.LastCommand;
@@ -22,7 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Repeat implements TextAnalyzer, Command<PartialBotApiMethod<?>> {
+public class Repeat implements MessageAnalyzer, Command<PartialBotApiMethod<?>> {
 
     private final Bot bot;
     private final ApplicationContext context;

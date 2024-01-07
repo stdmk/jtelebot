@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.TextAnalyzer;
+import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
@@ -39,7 +39,7 @@ import static org.telegram.bot.utils.TelegramUtils.getMessage;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class Voice implements Command<SendVoice>, TextAnalyzer {
+public class Voice implements Command<SendVoice>, MessageAnalyzer {
 
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
