@@ -6,25 +6,24 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
-import java.util.List;
 
 /**
- * Todo entity.
+ * TodoTag entity.
  */
 @Entity
 @Getter
 @Setter
 @Accessors(chain = true)
 @ToString
-@Table(name = "todo", schema = "bot")
-public class Todo {
+@Table(name = "todotag", schema = "bot")
+public class TodoTag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "todotext")
-    private String todoText;
+    @Column(name = "tag", nullable = false)
+    private String tag;
 
     @ManyToOne
     @JoinColumn(name = "userid", nullable = false)
@@ -34,6 +33,7 @@ public class Todo {
     @JoinColumn(name = "chatid", nullable = false)
     private Chat chat;
 
-    @OneToMany(mappedBy = "todo", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<TodoTag> tags;
+    @ManyToOne
+    @JoinColumn(name = "todoid", nullable = false)
+    private Todo todo;
 }

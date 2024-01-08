@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20240108105800-1" author="stdmk">
+        <addColumn schemaName="bot"
+                   tableName="todo">
+            <column name="chatid" type="bigint"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20240108105800-2" author="stdmk">
+        <sql>
+            UPDATE BOT.TODO SET chatid = userid;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240108105800-3" author="stdmk">
+        <addNotNullConstraint columnName="chatid" schemaName="bot" tableName="todo"/>
+    </changeSet>
+
+</databaseChangeLog>

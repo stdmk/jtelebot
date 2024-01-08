@@ -3,70 +3,85 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.TodoTag;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.TodoService;
-import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.*;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class Todo implements Command<SendMessage> {
 
+    private static final Pattern TAGS_PATTERN = Pattern.compile("(^|\\B)#(?![0-9_]+\\b)([a-zA-Zа-яА-Я0-9_]{1,30})(\\b|\\r)");
+    private static final String TAG_SYMBOL = "#";
+
     private final Bot bot;
-    private final TodoService todoService;
-    private final UserService userService;
     private final SpeechService speechService;
+    private final TodoService todoService;
+    private final TodoTagService todoTagService;
 
     @Override
-    public SendMessage parse(Update update) throws BotException {
+    public SendMessage parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        Long chatId = message.getChatId();
+
+        bot.sendTyping(chatId);
+
+        Chat chat = new Chat().setChatId(chatId);
+        User user = new User().setUserId(message.getFrom().getId());
         String responseText;
+
+        String textMessage = cutCommandInText(message.getText());
         if (textMessage == null) {
-            responseText = getTodoList();
+            responseText = getTodoList(chat, user);
         } else {
-            if (textMessage.startsWith("-")) {
-                responseText = removeTodoElement(message, textMessage.substring(1));
+            if (textMessage.startsWith("_del")) {
+                removeTodo(chat, user, textMessage.substring(4));
+                responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             } else {
-                try {
-                    responseText = getTodoInfo(Long.parseLong(textMessage));
-                } catch (NumberFormatException e) {
-                    addNewTodo(textMessage, message.getFrom().getId());
+                List<String> tags = getTags(textMessage);
+                String todoText = getDescription(tags, textMessage);
+
+                if (!StringUtils.hasText(todoText)) {
+                    responseText = searchTodosByTags(chat, user, tags);
+                } else {
+                    addNewTodo(chat, user, tags, todoText);
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 }
             }
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
         return sendMessage;
     }
 
-    private String getTodoList() {
-        log.debug("Request to get all todo list");
-        final StringBuilder buf = new StringBuilder();
-
-        buf.append("${command.todo.caption}\n");
-        todoService.getList().forEach(todo -> buf.append(buildTodoStringLine(todo)));
-
-        return buf.toString();
+    private String getTodoList(Chat chat, User user) {
+        return "<b>${command.todo.alllistcaption}:</b>\n" + todoListToString(todoService.get(chat, user));
     }
 
-    private String removeTodoElement(Message message, String id) {
+    private void removeTodo(Chat chat, User user, String id) {
         long todoId;
         try {
             todoId = Long.parseLong(id);
@@ -74,41 +89,91 @@ public class Todo implements Command<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        log.debug("Request to delete Todo by id " + todoId);
-        if (!userService.isUserHaveAccessForCommand(
-                userService.get(message.getFrom().getId()).getAccessLevel(),
-                AccessLevel.ADMIN.getValue())) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
-        }
-
-        if (todoService.remove(todoId)) {
-            return "${command.todo.deleted}";
-        } else {
-            return speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        }
-    }
-
-    private String getTodoInfo(Long id) {
-        log.debug("Request to get Todo by id {}", id);
-        org.telegram.bot.domain.entities.Todo todo = todoService.get(id);
+        org.telegram.bot.domain.entities.Todo todo = todoService.get(chat, todoId);
         if (todo == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        return buildTodoStringLine(todo);
+        if (!todo.getUser().getUserId().equals(user.getUserId())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
+        }
+
+        todoService.remove(todoId);
     }
 
-    private void addNewTodo(String todoText, Long userId) {
-        log.debug("Request to add new Todo");
+    private List<String> getTags(String text) {
+        ArrayList<String> tags = new ArrayList<>();
 
-        org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo();
-        todo.setUser(new User().setUserId(userId));
-        todo.setTodoText(todoText);
+        Matcher matcher = TAGS_PATTERN.matcher(text);
+        while (matcher.find()) {
+            tags.add(matcher.group(2));
+        }
+
+        return tags;
+    }
+
+    private String getDescription(List<String> tags, String text) {
+        String textWithoutTags = text;
+        for (String tag : tags) {
+            textWithoutTags = textWithoutTags.replace(TAG_SYMBOL + tag, "");
+        }
+
+        return TextUtils.reduceSpaces(textWithoutTags);
+    }
+
+    private String searchTodosByTags(Chat chat, User user, List<String> tags) {
+        List<org.telegram.bot.domain.entities.Todo> deduplicatedTodoList = new ArrayList<>();
+
+        todoTagService.get(chat, user, tags)
+                .stream()
+                .map(TodoTag::getTodo)
+                .forEach(todo -> {
+                    if (!deduplicatedTodoList.contains(todo)) {
+                        deduplicatedTodoList.add(todo);
+                    }
+                });
+
+        return "<b>${command.todo.foundlistcaption}:</b>\n"
+                + todoListToString(deduplicatedTodoList);
+    }
+
+    private void addNewTodo(Chat chat, User user, List<String> tags, String text) {
+        org.telegram.bot.domain.entities.Todo todo = new org.telegram.bot.domain.entities.Todo()
+                .setChat(chat)
+                .setUser(user)
+                .setTodoText(text);
+        List<TodoTag> todoTags = tags
+                .stream().map(tag -> new TodoTag()
+                        .setChat(chat)
+                        .setUser(user)
+                        .setTag(tag)
+                        .setTodo(todo))
+                .collect(Collectors.toList());
+        todo.setTags(todoTags);
 
         todoService.save(todo);
     }
 
-    private String buildTodoStringLine(org.telegram.bot.domain.entities.Todo todo) {
-        return todo.getId() + ") " + todo.getTodoText() + " (" + todo.getUser().getUsername() + ")\n";
+    private String todoListToString(List<org.telegram.bot.domain.entities.Todo> todoSet) {
+        return todoSet
+                .stream()
+                .map(this::buildTodoString)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String buildTodoString(org.telegram.bot.domain.entities.Todo todo) {
+        return todo.getTodoText() + "\n" + tagListToString(todo.getTags()) + "/todo_del" + todo.getId() + "\n";
+    }
+
+    private String tagListToString(List<TodoTag> tags) {
+        if (tags.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder buf = new StringBuilder();
+        tags.forEach(tag -> buf.append(TAG_SYMBOL).append(tag.getTag()).append(" "));
+        buf.append("\n");
+
+        return buf.toString();
     }
 }
