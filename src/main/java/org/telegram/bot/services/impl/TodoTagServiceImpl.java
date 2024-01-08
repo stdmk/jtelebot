@@ -21,6 +21,6 @@ public class TodoTagServiceImpl implements TodoTagService {
     @Override
     public List<TodoTag> get(Chat chat, User user, List<String> tags) {
         log.debug("Request to get TodoTags for Chat {} and User {} by strings {}", chat, user, tags);
-        return todoTagRepository.findByChatAndUserAndTagIn(tags);
+        return todoTagRepository.findByChatAndUserAndTagIn(chat, user, tags);
     }
 }

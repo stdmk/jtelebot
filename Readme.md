@@ -22,7 +22,7 @@ Java Telegram Bot (Spring)
 
 /bash — bash.org.ru site quotes.
 
-/todo — developer task list.
+/todo — todo-list.
 
 /news — news from rss feeds.
 
