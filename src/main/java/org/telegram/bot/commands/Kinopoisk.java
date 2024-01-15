@@ -152,7 +152,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     private Pair<String, InputFile> getMovieById(String token, Long id) {
-        Movie movie = getData(API_URL + id, token, Movie.class);
+        Movie movie = getData(API_URL + "/" + id, token, Movie.class);
         return getResponseTextAndPhotoFromMovie(movie);
     }
 
