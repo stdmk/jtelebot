@@ -282,6 +282,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
 
             throw new BotException("${command.kinopoisk.errorfromapi}: " + errorText);
         } catch (RestClientException e) {
+            log.error("Unable to get kinopoisk result", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
@@ -290,6 +291,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
         T value = responseEntity.getBody();
 
         if (value == null) {
+            log.error("Empty response body from kinopoisk");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
