@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.commands.Set;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.enums.AccessLevel;
@@ -24,10 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -317,13 +313,7 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
         String aliasName = params.substring(0, i).toLowerCase(Locale.ROOT);
         String aliasValue = params.substring(i + 1);
 
-        CommandProperties setProperties = commandPropertiesService.getCommand(Set.class);
-        if (aliasValue.startsWith(setProperties.getCommandName()) ||
-                aliasValue.startsWith(setProperties.getEnRuName()) ||
-                aliasValue.startsWith(setProperties.getRussifiedName())) {
-            commandWaitingService.remove(commandWaitingService.get(chat, user));
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+        validateAliasValue(aliasValue);
 
         Alias alias = aliasService.get(chat, user, aliasName);
         if (alias != null) {
@@ -344,6 +334,15 @@ public class AliasSetter implements Setter<PartialBotApiMethod<?>> {
         }
 
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+    }
+
+    private void validateAliasValue(String aliasValue) {
+        if (aliasValue.startsWith("{")) {
+            String[] values = aliasValue.substring(1, aliasValue.length() - 1).split(";");
+            if (values.length > org.telegram.bot.commands.Alias.MAX_COMMANDS_IN_ALIAS) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+        }
     }
 
     private InlineKeyboardMarkup prepareKeyboardWithAliasesForSelect(Page<Alias> chatAliasList, List<Alias> userAliasList, int page) {
