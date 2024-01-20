@@ -134,7 +134,7 @@ class ChatGPTTest {
     @Test
     void requestWithHttpClientErrorExceptionTest() throws JsonProcessingException {
         final String errorMessage = "error";
-        final String expectedErrorText = "Ответ от ChatGPT: " + errorMessage;
+        final String expectedErrorText = "${command.chatgpt.apiresponse}: " + errorMessage;
         ChatGPT.ErrorResponse errorResponse = new ChatGPT.ErrorResponse()
                 .setError(new ChatGPT.Error()
                         .setCode("")

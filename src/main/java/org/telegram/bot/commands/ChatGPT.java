@@ -217,7 +217,7 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
-            throw new BotException("Ответ от ChatGPT: " + errorResponse.getError().getMessage());
+            throw new BotException("${command.chatgpt.apiresponse}: " + errorResponse.getError().getMessage());
         } catch (RestClientException e) {
             log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
