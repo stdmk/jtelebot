@@ -124,23 +124,17 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
 
         org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, aliasName);
         if (alias != null) {
-            Update newUpdate = objectCopier.copyObject(update, Update.class);
-            if (newUpdate == null) {
-                log.error("Failed to get a copy of update");
-                return;
-            }
-
             List<String> aliasValueList = getAliasValueList(alias.getValue());
             if (aliasValueList.size() > 1) {
                 for (String aliasValue : aliasValueList) {
                     if (argument == null) {
-                        processUpdate(newUpdate, chat, user, aliasValue);
+                        processUpdate(update, chat, user, aliasValue);
                     } else {
-                        processUpdate(newUpdate, chat, user, aliasValue + argument);
+                        processUpdate(update, chat, user, aliasValue + argument);
                     }
                 }
             } else {
-                processUpdate(newUpdate, chat, user, alias.getValue());
+                processUpdate(update, chat, user, alias.getValue());
             }
         }
     }
@@ -157,16 +151,22 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
     }
 
     private void processUpdate(Update update, Chat chat, User user, String messageText) {
+        Update newUpdate = objectCopier.copyObject(update, Update.class);
+        if (newUpdate == null) {
+            log.error("Failed to get a copy of update");
+            return;
+        }
+
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(messageText, bot.getBotUsername());
 
         if (commandProperties != null &&
                 (userService.isUserHaveAccessForCommand(
                         userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(),
                         commandProperties.getAccessLevel()))) {
-            Message newMessage = getMessageFromUpdate(update);
+            Message newMessage = getMessageFromUpdate(newUpdate);
             newMessage.setText(messageText);
             userStatsService.incrementUserStatsCommands(chat, user);
-            bot.parseAsync(update, (Command<?>) context.getBean(commandProperties.getClassName()));
+            bot.parseAsync(newUpdate, (Command<?>) context.getBean(commandProperties.getClassName()));
         }
     }
 
