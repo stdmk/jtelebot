@@ -1,6 +1,5 @@
 package org.telegram.bot.commands;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,10 +7,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -40,14 +36,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
+import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.telegram.bot.utils.TextUtils.containsStartWith;
-import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
 @Component
 @RequiredArgsConstructor
@@ -55,9 +48,10 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>> {
 
     private static final String GIGA_CHAT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1/";
+    private static final String COMPLETIONS_PATH = "chat/completions";
+    private static final String FILES_PATH = "files/%s/content";
     private static final String DEFAULT_MODEL = "GigaChat:latest";
-
-    private final Set<String> imageCommands = new HashSet<>();
+    private static final Pattern IMAGE_TAG_PATTERN = Pattern.compile("<img\\ssrc=\"([^\"]+)(?=\")");
 
     private final Bot bot;
     private final SberTokenProvider sberTokenProvider;
@@ -68,11 +62,6 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     private final ObjectMapper objectMapper;
     private final RestTemplate sberRestTemplate;
     private final BotStats botStats;
-
-    @PostConstruct
-    private void postConstruct() {
-        imageCommands.addAll(internationalizationService.getAllTranslations("command.gigachat.imagecommand"));
-    }
 
     @Override
     public SberScope getScope() {
@@ -98,57 +87,43 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             textMessage = cutCommandInText(message.getText());
         }
 
-        String imageUrl = null;
-
+        bot.sendTyping(chatId);
+        byte[] image = null;
         if (textMessage != null) {
-            String lowerTextMessage = textMessage.toLowerCase();
+            Chat chat = new Chat().setChatId(chatId);
+            User user = new User().setUserId(message.getFrom().getId());
+            List<GigaChatMessage> messagesHistory;
 
-            if (containsStartWith(imageCommands, lowerTextMessage)) {
-                bot.sendUploadPhoto(chatId);
-
-                String imageCommand = getStartsWith(
-                        internationalizationService.internationalize("${command.gigachat.imagecommand}"),
-                        lowerTextMessage);
-                if (imageCommand == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                textMessage = textMessage.substring(imageCommand.length() + 1);
-                responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
-
-                imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
+            if (chatId < 0) {
+                messagesHistory = gigaChatMessageService.getMessages(chat);
             } else {
-                bot.sendTyping(chatId);
-                Chat chat = new Chat().setChatId(chatId);
-                User user = new User().setUserId(message.getFrom().getId());
-                List<GigaChatMessage> messagesHistory;
-
-                if (chatId < 0) {
-                    messagesHistory = gigaChatMessageService.getMessages(chat);
-                } else {
-                    messagesHistory = gigaChatMessageService.getMessages(user);
-                }
-
-                responseText = getResponse(
-                        buildRequest(messagesHistory, textMessage),
-                        token);
-
-                messagesHistory.addAll(
-                        List.of(
-                                new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.USER).setContent(textMessage),
-                                new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.ASSISTANT).setContent(responseText)));
-                gigaChatMessageService.update(messagesHistory);
+                messagesHistory = gigaChatMessageService.getMessages(user);
             }
+
+            responseText = getResponse(
+                    buildRequest(messagesHistory, textMessage),
+                    token);
+
+            image = getImage(responseText, token);
+            if (image != null) {
+                bot.sendUploadPhoto(chatId);
+                responseText = TextUtils.cutHtmlTags(responseText);
+            }
+
+            messagesHistory.addAll(
+                    List.of(
+                            new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.USER).setContent(textMessage),
+                            new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.ASSISTANT).setContent(responseText)));
+            gigaChatMessageService.update(messagesHistory);
         } else {
-            bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.gigachat.commandwaitingstart}";
         }
 
-        if (imageUrl != null) {
+        if (image != null) {
             SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(imageUrl));
+            sendPhoto.setPhoto(new InputFile(new ByteArrayInputStream(image), "image"));
             sendPhoto.setCaption(responseText);
             sendPhoto.setParseMode("HTML");
             sendPhoto.setReplyToMessageId(message.getMessageId());
@@ -178,19 +153,22 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
     }
 
-    private String getResponse(CreateImageRequest request, String token) {
-        String url = GIGA_CHAT_API_URL + "images/generations";
-        CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
-        return response.getData().get(0).getUrl();
-    }
-
     private String getResponse(ChatRequest request, String token) {
-        String url = GIGA_CHAT_API_URL + "chat/completions";
-        ChatResponse response = getResponse(request, url, token, ChatResponse.class);
+        String url = GIGA_CHAT_API_URL + COMPLETIONS_PATH;
+        ChatResponse response = getResponse(request, url, token);
         return response.getChoices().get(0).getMessage().getContent();
     }
 
-    private synchronized <T> T getResponse(Object request, String url, String token, Class<T> dataType) {
+    private byte[] getImage(String text, String token) {
+        Matcher matcher = IMAGE_TAG_PATTERN.matcher(text);
+        if (matcher.find()) {
+            return getFile(token, matcher.group(1));
+        }
+
+        return null;
+    }
+
+    private synchronized ChatResponse getResponse(Object request, String url, String token) {
         String json;
         try {
             json = objectMapper.writeValueAsString(request);
@@ -203,9 +181,9 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
 
-        ResponseEntity<T> responseEntity;
+        ResponseEntity<ChatResponse> responseEntity;
         try {
-            responseEntity = sberRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), dataType);
+            responseEntity = sberRestTemplate.postForEntity(url, new HttpEntity<>(json, headers), ChatResponse.class);
         } catch (HttpClientErrorException hce) {
             String jsonError = hce.getResponseBodyAsString();
 
@@ -223,7 +201,44 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        T response = responseEntity.getBody();
+        ChatResponse response = responseEntity.getBody();
+        if (response == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        return response;
+    }
+
+    private synchronized byte[] getFile(String token, String fileId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        ResponseEntity<byte[]> responseEntity;
+        try {
+            responseEntity = sberRestTemplate.exchange(
+                    GIGA_CHAT_API_URL + String.format(FILES_PATH, fileId),
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    byte[].class);
+        } catch (HttpClientErrorException hce) {
+            String jsonError = hce.getResponseBodyAsString();
+
+            ErrorResponse errorResponse;
+            try {
+                errorResponse = objectMapper.readValue(jsonError, ErrorResponse.class);
+            } catch (JsonProcessingException e) {
+                log.error("Failed to map {} to Error", jsonError);
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+            }
+
+            throw new BotException("Ответ от GigaChat: " + errorResponse.getError().getMessage());
+        } catch (RestClientException e) {
+            log.error("Error from gigachat: ", e);
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        byte[] response = responseEntity.getBody();
         if (response == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
@@ -244,26 +259,6 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         private String type;
         private String param;
         private String code;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class CreateImageRequest {
-        private String prompt;
-        private Integer n;
-        private String size;
-    }
-
-    @Data
-    public static class CreateImageResponse {
-        private Integer created;
-        private List<ImageUrl> data;
-    }
-
-    @Data
-    public static class ImageUrl {
-        String url;
     }
 
     @Data

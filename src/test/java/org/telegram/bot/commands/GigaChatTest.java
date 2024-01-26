@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -34,12 +35,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -185,6 +183,35 @@ class GigaChatTest {
     }
 
     @Test
+    void requestWithImgInResponse() throws GettingSberAccessTokenException, JsonProcessingException {
+        final String expectedResponseText = "hello";
+        Update update = getUpdateFromGroup("gigachat picture cat");
+
+        GigaChat.Message message = new GigaChat.Message();
+        message.setContent(expectedResponseText + "<img src=\"abv\">");
+        GigaChat.Choice choice = new GigaChat.Choice();
+        choice.setMessage(message);
+        GigaChat.ChatResponse response = new GigaChat.ChatResponse();
+        response.setChoices(List.of(choice));
+
+        when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
+        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
+        when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+        when(sberRestTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
+                .thenReturn(new ResponseEntity<>("response".getBytes(StandardCharsets.UTF_8), HttpStatus.OK));
+
+        PartialBotApiMethod<?> method = gigaChat.parse(update);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
+        assertEquals(expectedResponseText, sendPhoto.getCaption());
+
+        verify(bot).sendUploadPhoto(DEFAULT_CHAT_ID);
+    }
+
+    @Test
     void messageFromChatWithEmptyHistoryTest() throws JsonProcessingException, GettingSberAccessTokenException {
         final String expectedRequestText = "say hello";
         final String expectedResponseText = "hello";
@@ -255,37 +282,6 @@ class GigaChatTest {
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.ASSISTANT.equals(gigaChatMessage.getRole())));
 
         assertEquals(expectedResponseText, sendMessage.getText());
-    }
-
-    @Test
-    void messageFromChatWithCreateImageRequestTest() throws JsonProcessingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, GettingSberAccessTokenException {
-        final String expectedUrl = "url";
-        Update update = getUpdateFromGroup("gigachat iMaGe say hello");
-
-        GigaChat.ImageUrl imageUrl = new GigaChat.ImageUrl();
-        imageUrl.setUrl(expectedUrl);
-        GigaChat.CreateImageResponse response = new GigaChat.CreateImageResponse();
-        response.setCreated(1);
-        response.setData(List.of(imageUrl));
-
-        Set<String> imageCommands = Set.of("image");
-        when(internationalizationService.getAllTranslations("command.gigachat.imagecommand")).thenReturn(imageCommands);
-        when(internationalizationService.internationalize("${command.gigachat.imagecommand}")).thenReturn(imageCommands);
-        when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
-        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
-        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
-                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
-
-        Method postConstruct = GigaChat.class.getDeclaredMethod("postConstruct");
-        postConstruct.setAccessible(true);
-        postConstruct.invoke(gigaChat);
-
-        PartialBotApiMethod<?> method = gigaChat.parse(update);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
-
-        assertEquals(expectedUrl, sendPhoto.getPhoto().getAttachName());
     }
 
 }
