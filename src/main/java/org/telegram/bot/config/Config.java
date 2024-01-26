@@ -63,6 +63,7 @@ public class Config {
         HttpComponentsClientHttpRequestFactory requestFactory =
                 new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
+        requestFactory.setReadTimeout(60000);
 
         return new RestTemplate(requestFactory);
     }
