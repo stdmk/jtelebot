@@ -13,6 +13,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -100,23 +101,8 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
     }
 
     private URL findFirstUrlInText(String text) {
-        String stringUrl;
-
-        int i = text.indexOf("http");
-        if (i < 0) {
-            stringUrl = "http://" + text;
-        } else {
-            text = text.substring(i);
-            int spaceIndex = text.indexOf(" ");
-            if (spaceIndex < 0) {
-                stringUrl = text;
-            } else {
-                stringUrl = text.substring(0, spaceIndex);
-            }
-        }
-
         try {
-            return new URL(stringUrl);
+            return TextUtils.findFirstUrlInText(text);
         } catch (MalformedURLException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }

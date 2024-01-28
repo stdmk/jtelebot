@@ -1,6 +1,6 @@
 package org.telegram.bot.providers.sber;
 
-import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 
 import javax.validation.constraints.NotNull;
 

@@ -1,4 +1,4 @@
-package org.telegram.bot.exception;
+package org.telegram.bot.exception.speech;
 
 public class SpeechSynthesizeException extends Exception {
     public SpeechSynthesizeException(String message) {

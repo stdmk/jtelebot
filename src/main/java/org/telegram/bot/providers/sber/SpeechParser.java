@@ -1,6 +1,6 @@
 package org.telegram.bot.providers.sber;
 
-import org.telegram.bot.exception.SpeechParseException;
+import org.telegram.bot.exception.speech.SpeechParseException;
 
 public interface SpeechParser {
 

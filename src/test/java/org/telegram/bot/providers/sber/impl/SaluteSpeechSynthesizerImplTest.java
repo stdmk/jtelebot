@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
-import org.telegram.bot.exception.SpeechSynthesizeException;
+import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
