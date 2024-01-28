@@ -116,7 +116,7 @@ public class Bot extends TelegramLongPollingBot {
 
         userStatsService.updateEntitiesInfo(message, editedMessage);
 
-        messageAnalyzerList.forEach(textAnalyzer -> textAnalyzer.analyze(update));
+        analyzeMessage(update, userAccessLevel);
 
         CommandProperties commandProperties = getCommandProperties(chatEntity, userEntity, textOfMessage);
         if (commandProperties == null || disableCommandService.get(chatEntity, commandProperties) != null) {
@@ -142,6 +142,16 @@ public class Bot extends TelegramLongPollingBot {
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(user, textOfMessage);
         }
+    }
+
+    private void analyzeMessage(Update update, AccessLevel userAccessLevel) {
+        messageAnalyzerList.forEach(messageAnalyzer -> {
+            CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
+            if ((analyzerCommandProperties == null)
+                    || (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel()))) {
+                messageAnalyzer.analyze(update);
+            }
+        });
     }
 
     private CommandProperties getCommandProperties(Chat chat, org.telegram.bot.domain.entities.User user, String textOfMessage) {
