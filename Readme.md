@@ -237,6 +237,10 @@ To get a secret go to: https://developers.sber.ru/docs/ru/salutespeech/integrati
 Gigachat API access secret.
 To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get/gigachat-api
 
+**virusTotalApiKey**  
+Virus Total API key  
+To get a key go to: https://www.virustotal.com/
+
 ### System
 To use the /webcam command, you need to install ffmpeg on your system
 
