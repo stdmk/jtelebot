@@ -926,7 +926,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             sendMessage.enableHtml(true);
             sendMessage.disableWebPagePreview();
             sendMessage.setText(caption);
-            sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
+            sendMessage.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page, languageCode));
 
             return sendMessage;
         }
@@ -937,7 +937,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         editMessageText.enableHtml(true);
         editMessageText.disableWebPagePreview();
         editMessageText.setText(caption);
-        editMessageText.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page));
+        editMessageText.setReplyMarkup(prepareKeyboardWithRemindersForSetting(reminderList, page, languageCode));
 
         return editMessageText;
     }
@@ -975,13 +975,13 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         return deleteMessage;
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithRemindersForSetting(Page<Reminder> reminderList, int page) {
+    private InlineKeyboardMarkup prepareKeyboardWithRemindersForSetting(Page<Reminder> reminderList, int page, String lang) {
         final int maxButtonTextLength = 14;
 
         List<List<InlineKeyboardButton>> rows = reminderList.stream().map(reminder -> {
             List<InlineKeyboardButton> remindersRow = new ArrayList<>();
 
-            String reminderText = reminder.getText();
+            String reminderText = internationalizationService.internationalize(reminder.getText(), lang);
             if (reminderText.length() > 14) {
                 reminderText = reminderText.substring(0, maxButtonTextLength - 3) + "...";
             }

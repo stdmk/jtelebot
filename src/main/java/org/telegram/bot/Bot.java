@@ -147,8 +147,8 @@ public class Bot extends TelegramLongPollingBot {
     private void analyzeMessage(Update update, AccessLevel userAccessLevel) {
         messageAnalyzerList.forEach(messageAnalyzer -> {
             CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
-            if ((analyzerCommandProperties == null)
-                    || (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel()))) {
+            if (analyzerCommandProperties == null
+                    || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
                 messageAnalyzer.analyze(update);
             }
         });
