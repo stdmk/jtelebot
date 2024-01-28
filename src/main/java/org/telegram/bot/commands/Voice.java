@@ -14,6 +14,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.speech.SpeechParseException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeNoApiResponseException;
+import org.telegram.bot.exception.speech.TooLongSpeechException;
 import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.SpeechSynthesizer;
@@ -134,6 +135,12 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
             String response;
             try {
                 response = speechParser.parse(file, voice.getDuration());
+            } catch (TooLongSpeechException tle) {
+                if (message.getChatId().equals(message.getFrom().getId())) {
+                    response = "${command.voice.speechistoolong}";
+                } else {
+                    return;
+                }
             } catch (SpeechParseException e) {
                 log.error("Failed to parse voice file", e);
                 botStats.incrementErrors(update, e, "Failed to parse voice file");

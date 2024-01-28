@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.speech.SpeechParseException;
+import org.telegram.bot.exception.speech.TooLongSpeechException;
 import org.telegram.bot.providers.sber.SberApiProvider;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 import org.telegram.bot.providers.sber.SpeechParser;
@@ -46,7 +47,7 @@ public class SaluteSpeechParser implements SberApiProvider, SpeechParser {
 
     private void checkSpeechDuration(Integer duration) throws SpeechParseException {
         if (duration == null || duration > SPEECH_DURATION_LIMIT) {
-            throw new SpeechParseException("Too long speech");
+            throw new TooLongSpeechException("Too long speech");
         }
     }
 
