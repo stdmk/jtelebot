@@ -13,7 +13,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
-import org.telegram.bot.exception.SpeechParseException;
+import org.telegram.bot.exception.speech.SpeechParseException;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 
 import java.util.List;

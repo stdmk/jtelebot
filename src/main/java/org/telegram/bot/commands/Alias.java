@@ -109,6 +109,10 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
     public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
+        if (textMessage == null) {
+            return;
+        }
+
         Chat chat = new Chat().setChatId(message.getChatId());
         User user = new User().setUserId(message.getFrom().getId());
 

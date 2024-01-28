@@ -34,6 +34,7 @@ public class PropertiesConfig {
     private String xmlTvFileUrl;
     private String saluteSpeechSecret;
     private String gigaChatSecret;
+    private String virusTotalApiKey;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {

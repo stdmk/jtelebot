@@ -253,4 +253,23 @@ public class TextUtils {
         return stringSet.stream().filter(text::startsWith).findFirst().orElse(null);
     }
 
+    public URL findFirstUrlInText(String text) throws MalformedURLException {
+        String stringUrl;
+
+        int i = text.indexOf("http");
+        if (i < 0) {
+            stringUrl = "http://" + text;
+        } else {
+            text = text.substring(i);
+            int spaceIndex = text.indexOf(" ");
+            if (spaceIndex < 0) {
+                stringUrl = text;
+            } else {
+                stringUrl = text.substring(0, spaceIndex);
+            }
+        }
+
+        return new URL(stringUrl);
+    }
+
 }
