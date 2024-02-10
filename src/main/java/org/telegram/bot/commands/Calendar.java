@@ -1,8 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.providers.daysoff.DaysOffProvider;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
@@ -50,19 +50,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Calendar implements Command<PartialBotApiMethod<?>> {
 
+    private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
+    private static final Pattern MONTH_YEAR_PATTERN = Pattern.compile("\\d{2}.\\d{4}");
+    private static final Pattern MONTH_NAME_YEAR_PATTERN = Pattern.compile("([а-яА-Яa-zA-Z]+)\\s(\\d{4})", Pattern.UNICODE_CHARACTER_CLASS);
+
+    private final Map<Integer, Pair<LocalDate, List<PublicHoliday>>> holidaysData = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<String>> monthValueNamesMap = new ConcurrentHashMap<>();
+
     private final Bot bot;
     private final UserCityService userCityService;
     private final InternationalizationService internationalizationService;
     private final SpeechService speechService;
     private final LanguageResolver languageResolver;
     private final RestTemplate botRestTemplate;
-    private final Map<Integer, Pair<LocalDate, List<PublicHoliday>>> holidaysData = new ConcurrentHashMap<>(new ConcurrentHashMap<>());
-    private final Map<Integer, Set<String>> monthValueNamesMap = new ConcurrentHashMap<>();
+    private final List<DaysOffProvider> daysOffProviderList;
+
     private final Clock clock;
 
-    private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
-    private static final Pattern MONTH_YEAR_PATTERN = Pattern.compile("\\d{2}.\\d{4}");
-    private static final Pattern MONTH_NAME_YEAR_PATTERN = Pattern.compile("([а-яА-Яa-zA-Z]+)\\s(\\d{4})", Pattern.UNICODE_CHARACTER_CLASS);
 
     @PostConstruct
     private void postConstruct() {
@@ -232,14 +236,9 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
 
         int daysInMonth = zonedDateTime.toLocalDate().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
         int firstDayOfWeek = zonedDateTime.getDayOfWeek().getValue();
-        List<Integer> holidaysInMonth = publicHolidays
-                .stream()
-                .map(PublicHoliday::getDate)
-                .filter(dateOfHoliday -> monthOfDate.equals(dateOfHoliday.getMonthValue()))
-                .map(LocalDate::getDayOfMonth)
-                .collect(Collectors.toList());
+        List<Integer> daysOfInMonth = getDaysOfInMonth(publicHolidays, date.getYear(), monthOfDate, locale);
 
-        String calendar = printCalendar(firstDayOfWeek, daysInMonth, holidaysInMonth);
+        String calendar = printCalendar(firstDayOfWeek, daysInMonth, daysOfInMonth);
 
         return caption + calendar + holidays;
     }
@@ -248,7 +247,28 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
         return "<b>" + DateUtils.formatDate(publicHoliday.getDate()) + "</b> — " + publicHoliday.getLocalName() + ".";
     }
 
-    private String printCalendar(int firstDayOfWeek, int daysInMonth, List<Integer> holidaysInMonth) {
+    private List<Integer> getDaysOfInMonth(List<PublicHoliday> publicHolidays, int year, int month, Locale locale) {
+        DaysOffProvider daysOffProvider = daysOffProviderList
+                .stream()
+                .filter(provider -> locale.equals(provider.getLocale()))
+                .findFirst()
+                .orElse(null);
+        if (daysOffProvider != null) {
+            List<Integer> daysOffInMonth = daysOffProvider.getDaysOffInMonth(year, month);
+            if (!daysOffInMonth.isEmpty()) {
+                return daysOffInMonth;
+            }
+        }
+
+        return publicHolidays
+                .stream()
+                .map(Calendar.PublicHoliday::getDate)
+                .filter(dateOfHoliday -> month == dateOfHoliday.getMonthValue())
+                .map(LocalDate::getDayOfMonth)
+                .collect(Collectors.toList());
+    }
+
+    private String printCalendar(int firstDayOfWeek, int daysInMonth, List<Integer> daysOffInMonth) {
         StringBuilder buf = new StringBuilder();
 
         buf.append("${command.calendar.daysofweekstring}\n");
@@ -260,7 +280,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
             while (j <= 7 && i <= daysInMonth) {
                 buf.append(String.format("%2d", i));
 
-                if (holidaysInMonth.contains(i)) {
+                if (j != 6 && j != 7 && daysOffInMonth.contains(i)) {
                     buf.append("* ");
                 } else {
                     buf.append("  ");
