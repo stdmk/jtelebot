@@ -6,4 +6,5 @@
     <include file="db/changelog/2024/20240108105700_added_entity_TodoTag.xml"/>
     <include file="db/changelog/2024/20240108105800_update_entity_Todo.xml"/>
     <include file="db/changelog/2024/20240127092100_added_command_Virus.xml"/>
+    <include file="db/changelog/2024/20240211101800_added_command_Length.xml"/>
 </databaseChangeLog>
