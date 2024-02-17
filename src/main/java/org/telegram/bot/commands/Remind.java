@@ -49,7 +49,8 @@ import static org.telegram.bot.utils.DateUtils.*;
 @Slf4j
 public class Remind implements Command<PartialBotApiMethod<?>> {
 
-    private static final String CALLBACK_COMMAND = "remind ";
+    private static final String EMPTY_COMMAND = "remind";
+    private static final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
     private static final String DELETE_COMMAND = "del";
     private static final String CALLBACK_DELETE_COMMAND = CALLBACK_COMMAND + DELETE_COMMAND;
     private static final String ADD_COMMAND = "add";
@@ -156,7 +157,6 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
         boolean callback = false;
-        String emptyCommand = "remind";
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
 
@@ -202,7 +202,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
         }
 
         User user = userService.get(message.getFrom().getId());
-        if (textMessage == null || textMessage.equals(emptyCommand)) {
+        if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
             return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, true);
         } else if (textMessage.startsWith(SET_REMINDER) && commandWaiting != null) {
             return manualReminderEdit(message, chat, user, textMessage);
@@ -220,7 +220,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        Reminder reminder = reminderService.get(chat, user, reminderId);
+        Reminder reminder = reminderService.get(reminderId);
         if (reminder == null) {
             return generateDeleteMessage(chat, message);
         }
@@ -510,9 +510,11 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
 
-            reminder = reminderService.get(chat, user, reminderId);
+            reminder = reminderService.get(reminderId);
             if (reminder == null) {
                 return generateDeleteMessage(chat, message);
+            } else if (!reminder.getUser().getUserId().equals(user.getUserId())) {
+                return null;
             }
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
@@ -894,16 +896,14 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        Reminder reminder = reminderService.get(chat, user, reminderId);
+        Reminder reminder = reminderService.get(reminderId);
         if (reminder == null) {
             return generateDeleteMessage(chat, message);
+        } else if (!reminder.getUser().getUserId().equals(user.getUserId())) {
+            return null;
         }
 
-        try {
-            reminderService.remove(reminder);
-        } catch (Exception ignored) {
-            // failed to delete (mb not owner)
-        }
+        reminderService.remove(reminder);
 
         if (deleteReminderMessage) {
             return generateDeleteMessage(chat, message);
@@ -1167,10 +1167,12 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
                         updateReminderButton,
                         okButton));
 
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.remind.button.back}");
-        backButton.setCallbackData(CALLBACK_COMMAND);
-        rows.add(List.of(backButton));
+        if (!fromPostponeMenu) {
+            InlineKeyboardButton backButton = new InlineKeyboardButton();
+            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.remind.button.back}");
+            backButton.setCallbackData(CALLBACK_COMMAND);
+            rows.add(List.of(backButton));
+        }
     }
 
 }

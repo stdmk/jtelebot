@@ -33,6 +33,11 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
+    public Reminder get(Long reminderId) {
+        return reminderRepository.findById(reminderId).orElse(null);
+    }
+
+    @Override
     public List<Reminder> getAllNotNotifiedByDate(LocalDate date) {
         log.debug("Request to get all not notified Reminders by date {}", date);
         return reminderRepository.findAllByDateBetweenAndNotified(

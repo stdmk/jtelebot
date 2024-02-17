@@ -13,6 +13,7 @@ import java.util.List;
  * Service Interface for managing {@link org.telegram.bot.domain.entities.Reminder}.
  */
 public interface ReminderService {
+
     /**
      * Get a Reminder.
      *
@@ -21,6 +22,14 @@ public interface ReminderService {
      * @return the persisted entity.
      */
     Reminder get(Chat chat, User user, Long reminderId);
+
+    /**
+     * Get a Reminder.
+     *
+     * @param reminderId of Reminder to get.
+     * @return the persisted entity.
+     */
+    Reminder get(Long reminderId);
 
     /**
      * Get all not notified Reminders by date.
