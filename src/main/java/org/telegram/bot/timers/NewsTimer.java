@@ -30,6 +30,7 @@ public class NewsTimer extends TimerParent {
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
+    private final org.telegram.bot.commands.News newsCommand;
     private final NetworkUtils networkUtils;
 
     @Override
@@ -57,7 +58,7 @@ public class NewsTimer extends TimerParent {
             }
 
             syndFeed.getEntries().forEach(syndEntry -> {
-                NewsMessage newsMessage = newsMessageService.buildNewsMessageFromSyndEntry(syndEntry);
+                NewsMessage newsMessage = newsCommand.buildNewsMessageFromSyndEntry(syndEntry);
 
                 if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().before(newsMessage.getPubDate())) {
                     newsMessage = newsMessageService.save(newsMessage);
@@ -71,7 +72,7 @@ public class NewsTimer extends TimerParent {
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
                                     sendMessage.disableWebPagePreview();
-                                    sendMessage.setText(newsMessageService.buildShortNewsMessageText(finalNewsMessage, news.getName()));
+                                    sendMessage.setText(newsCommand.buildShortNewsMessageText(finalNewsMessage, news.getName()));
 
                                     sendMessageExecutor.executeMethod(sendMessage);
                             });

@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
@@ -26,13 +27,22 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.DateUtils.formatDate;
+import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
+import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class News implements Command<PartialBotApiMethod<?>> {
+
+    private static final int DEFAULT_NEWS_LIMIT = 10;
 
     private final Bot bot;
     private final NewsService newsService;
@@ -53,7 +63,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
         } else if (textMessage.startsWith("_")) {
             NewsMessage newsMessage = getNewsById(textMessage.substring(1));
 
-            responseText = newsMessageService.buildFullNewsMessageText(newsMessage);
+            responseText = buildFullNewsMessageText(newsMessage);
             Integer messageId = newsMessage.getMessageId();
             if (messageId == null) {
                 messageId = message.getMessageId();
@@ -79,18 +89,32 @@ public class News implements Command<PartialBotApiMethod<?>> {
             return sendPhoto;
         } else {
             log.debug("Request to get news from {}", textMessage);
+
             org.telegram.bot.domain.entities.News news = newsService.get(chat, textMessage);
+
             String url;
+            int count;
             if (news != null) {
                 url = news.getNewsSource().getUrl();
+                count = DEFAULT_NEWS_LIMIT;
             } else {
-                try {
-                    url = new URL(textMessage).toString();
-                } catch (MalformedURLException e) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                int spaceIndex = textMessage.indexOf(" ");
+                if (spaceIndex > 0) {
+                    url = textMessage.substring(0, spaceIndex);
+                    try {
+                        count = Integer.parseInt(textMessage.substring(spaceIndex + 1));
+                    } catch (NumberFormatException e) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                } else {
+                    url = textMessage;
+                    count = DEFAULT_NEWS_LIMIT;
                 }
             }
-            responseText = getAllNews(url);
+
+            checkUrl(url);
+            checkNewsCount(count);
+            responseText = getAllNews(url, count);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -103,6 +127,20 @@ public class News implements Command<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
+    private void checkUrl(String text) {
+        try {
+             new URL(text);
+        } catch (MalformedURLException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
+    private void checkNewsCount(int newsCount) {
+        if (newsCount < 1) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
     private String getLastNewsForChat(Chat chat) {
         log.debug("Request to get last news for chat {}", chat.getChatId());
         final StringBuilder buf = new StringBuilder();
@@ -111,7 +149,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 .forEach(news -> {
                     NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
                     if (newsMessage != null) {
-                        buf.append(newsMessageService.buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
+                        buf.append(buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
                     }
                 });
         return buf.toString();
@@ -138,9 +176,10 @@ public class News implements Command<PartialBotApiMethod<?>> {
      * Getting formatted list of news from url.
      *
      * @param url url of rss resource.
+     * @param newsCount requested news count.
      * @return formatted news.
      */
-    private String getAllNews(String url) {
+    private String getAllNews(String url, int newsCount) {
         SyndFeed syndFeed;
         try {
             syndFeed = networkUtils.getRssFeedFromUrl(url);
@@ -155,9 +194,11 @@ public class News implements Command<PartialBotApiMethod<?>> {
             return speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
         }
 
-        final int newsLimit = 10;
+        if (newsCount > 1) {
+            return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsCount).collect(Collectors.toList()));
+        }
 
-        return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsLimit).collect(Collectors.toList()));
+        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndFeed.getEntries().get(0)));
     }
 
     /**
@@ -169,14 +210,109 @@ public class News implements Command<PartialBotApiMethod<?>> {
     private String buildListOfNewsMessageText(List<SyndEntry> entries) {
         List<NewsMessage> newsMessages = entries
                 .stream()
-                .map(newsMessageService::buildNewsMessageFromSyndEntry)
+                .map(this::buildNewsMessageFromSyndEntry)
                 .collect(Collectors.toList());
 
         newsMessages = newsMessageService.save(newsMessages);
 
         StringBuilder buf = new StringBuilder();
-        newsMessages.forEach(newsMessage -> buf.append(newsMessageService.buildShortNewsMessageText(newsMessage)));
+        newsMessages.forEach(newsMessage -> buf.append(buildShortNewsMessageText(newsMessage)));
 
         return buf.toString();
     }
+
+    public String buildShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
+        return "<b>" + newsMessage.getTitle() + "</b> <a href='" + newsMessage.getLink() + "'>(" + sourceName + ")</a>\n<i>" +
+                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
+    }
+
+    private String buildShortNewsMessageText(NewsMessage newsMessage) {
+        return "<b>" + newsMessage.getTitle() + "</b>\n<i>" +
+                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
+    }
+
+    public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
+        String title = reduceSpaces(cutHtmlTags(syndEntry.getTitle()));
+        if (title.length() > 255) {
+            int i = title.indexOf(".");
+            if (i < 0 || i > 255) {
+                title = title.substring(0, 50) + "...";
+            } else {
+                title = title.substring(0, i);
+            }
+        }
+
+        String description;
+        if (syndEntry.getDescription() == null) {
+            description = "";
+        } else {
+            description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
+            if (description.length() > 768) {
+                description = description.substring(0, 767) + "...";
+            }
+        }
+
+        Date publishedDate = syndEntry.getPublishedDate();
+        if (publishedDate == null) {
+            publishedDate = syndEntry.getUpdatedDate();
+            if (publishedDate == null) {
+                publishedDate = Date.from(Instant.now());
+            }
+        }
+
+        return new NewsMessage()
+                .setLink(syndEntry.getLink())
+                .setTitle(title)
+                .setDescription(description)
+                .setPubDate(publishedDate)
+                .setAttachUrl(getAttachUrl(syndEntry));
+    }
+
+    private String buildFullNewsMessageText(NewsMessage newsMessage) {
+        return "<b>" + newsMessage.getTitle() + "</b>\n" +
+                "<i>" + formatDate(newsMessage.getPubDate()) + "</i>\n" +
+                newsMessage.getDescription() +
+                "\n<a href=\"" + newsMessage.getLink() + "\">Читать полностью</a>";
+    }
+
+    private String getAttachUrl(SyndEntry syndEntry) {
+        if (!syndEntry.getEnclosures().isEmpty()) {
+            return syndEntry.getEnclosures().get(0).getUrl();
+        }
+
+        Optional<String> optionalDesc = Optional.of(syndEntry).map(SyndEntry::getDescription).map(SyndContent::getValue);
+        if (optionalDesc.isPresent()) {
+            String description = optionalDesc.get();
+            int a = description.indexOf("<img");
+            if (a >= 0) {
+                String buf = description.substring(a);
+                int b = buf.indexOf("/>");
+                if (b < 0) {
+                    b = buf.indexOf("/img>");
+                    if (b < 0) {
+                        b = buf.indexOf(">");
+                        if (b < 0) {
+                            return null;
+                        }
+                    }
+                }
+                String imageTag = buf.substring(4, b);
+
+                a = imageTag.indexOf("src=");
+                if (a < 0) {
+                    return null;
+                }
+                buf = imageTag.substring(a + 5);
+                b = buf.indexOf("\"");
+                if (b < 0) {
+                    return null;
+                }
+
+                return buf.substring(0, b);
+            }
+        }
+
+        return null;
+    }
+
 }

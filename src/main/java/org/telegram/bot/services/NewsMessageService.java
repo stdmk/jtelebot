@@ -1,6 +1,5 @@
 package org.telegram.bot.services;
 
-import com.rometools.rome.feed.synd.SyndEntry;
 import org.telegram.bot.domain.entities.NewsMessage;
 
 import java.util.List;
@@ -33,36 +32,4 @@ public interface NewsMessageService {
      */
     List<NewsMessage> save(List<NewsMessage> newsMessageList);
 
-    /**
-     * Build short text message from NewsMessage with News.
-     *
-     * @param newsMessage News entity.
-     * @param sourceName NewsSource entity
-     * @return short text of news message.
-     */
-    String buildShortNewsMessageText(NewsMessage newsMessage, String sourceName);
-
-    /**
-     * Build short text message from NewsMessage.
-     *
-     * @param newsMessage NewsMessage entity.
-     * @return short text of news message.
-     */
-    String buildShortNewsMessageText(NewsMessage newsMessage);
-
-    /**
-     * Build short text message from NewsMessage.
-     *
-     * @param syndEntry - rss entry
-     * @return the persisted entities.
-     */
-    NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry);
-
-    /**
-     * Build full text message from NewsMessage.
-     *
-     * @param newsMessage NewsMessage entity.
-     * @return the persisted entities.
-     */
-    String buildFullNewsMessageText(NewsMessage newsMessage);
 }
