@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -27,7 +28,6 @@ import org.telegram.bot.providers.sber.SberApiProvider;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.GigaChatMessageService;
-import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -58,7 +58,6 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final GigaChatMessageService gigaChatMessageService;
-    private final InternationalizationService internationalizationService;
     private final ObjectMapper objectMapper;
     private final RestTemplate sberRestTemplate;
     private final BotStats botStats;
@@ -156,7 +155,14 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     private String getResponse(ChatRequest request, String token) {
         String url = GIGA_CHAT_API_URL + COMPLETIONS_PATH;
         ChatResponse response = getResponse(request, url, token);
-        return response.getChoices().get(0).getMessage().getContent();
+
+        return response.getChoices()
+                .stream()
+                .map(Choice::getMessage)
+                .map(Message::getContent)
+                .filter(StringUtils::hasText)
+                .findFirst()
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
     }
 
     private byte[] getImage(String text, String token) {

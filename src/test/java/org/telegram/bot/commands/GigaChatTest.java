@@ -27,7 +27,6 @@ import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.GigaChatMessageService;
-import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -56,8 +55,6 @@ class GigaChatTest {
     private CommandWaitingService commandWaitingService;
     @Mock
     private GigaChatMessageService gigaChatMessageService;
-    @Mock
-    private InternationalizationService internationalizationService;
     @Mock
     private ObjectMapper objectMapper;
     @Mock
@@ -176,6 +173,29 @@ class GigaChatTest {
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        assertThrows(BotException.class, () -> gigaChat.parse(update));
+        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
+    void requestWithNoTextInResponseTest() throws JsonProcessingException, GettingSberAccessTokenException {
+        final String expectedResponseText = "\n";
+        Update update = getUpdateFromGroup("gigachat say hello");
+        GigaChat.Message message = new GigaChat.Message();
+        message.setContent(expectedResponseText);
+        GigaChat.Choice choice = new GigaChat.Choice();
+        choice.setMessage(message);
+        GigaChat.ChatResponse response = new GigaChat.ChatResponse();
+        response.setChoices(List.of(choice));
+
+        when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
+        when(commandWaitingService.getText(any(Message.class))).thenReturn(null);
+        when(gigaChatMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
         assertThrows(BotException.class, () -> gigaChat.parse(update));
         verify(bot).sendTyping(update.getMessage().getChatId());
