@@ -17,19 +17,19 @@ public interface NewsMessageService {
     NewsMessage get(Long newsId);
 
     /**
-     * Save a NewsMessage.
-     *
-     * @param newsMessage the entity to save.
-     * @return the persisted entity.
-     */
-    NewsMessage save(NewsMessage newsMessage);
-
-    /**
      * Save a list of NewsMessage.
      *
      * @param newsMessageList a list the entities to save.
      * @return the persisted entities.
      */
     List<NewsMessage> save(List<NewsMessage> newsMessageList);
+
+    /**
+     * Save a NewsMessage.
+     *
+     * @param newsMessage the entity to save.
+     * @return the persisted entity.
+     */
+    NewsMessage save(NewsMessage newsMessage);
 
 }

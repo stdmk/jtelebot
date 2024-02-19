@@ -7,4 +7,5 @@ import org.telegram.bot.domain.entities.NewsMessage;
  * Spring Data repository for the NewsMessage entity.
  */
 public interface NewsMessageRepository extends JpaRepository<NewsMessage, Long> {
+    NewsMessage findByDescHash(String descHash);
 }

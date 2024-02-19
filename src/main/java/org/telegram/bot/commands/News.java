@@ -6,6 +6,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
@@ -32,7 +33,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Instant;
 import java.util.*;
-import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
@@ -44,6 +45,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 public class News implements Command<PartialBotApiMethod<?>> {
 
     private static final int DEFAULT_NEWS_LIMIT = 10;
+    private static final String WORD_PATTERN_TEMPLATE = "\\b(?:%s)\\b";
 
     private final Bot bot;
     private final NewsService newsService;
@@ -61,6 +63,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
         Chat chat = new Chat().setChatId(message.getChatId());
 
         String responseText;
+        Integer receivedMessageId = message.getMessageId();
         if (textMessage == null) {
             responseText = getLastNewsForChat(chat);
         } else if (textMessage.startsWith("_")) {
@@ -69,7 +72,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
             responseText = buildFullNewsMessageText(newsMessage);
             Integer messageId = newsMessage.getMessageId();
             if (messageId == null) {
-                messageId = message.getMessageId();
+                messageId = receivedMessageId;
             }
             if (newsMessage.getAttachUrl() == null) {
                 SendMessage sendMessage = new SendMessage();
@@ -104,10 +107,11 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 int spaceIndex = textMessage.indexOf(" ");
                 if (spaceIndex > 0) {
                     url = textMessage.substring(0, spaceIndex);
-                    try {
-                        count = Integer.parseInt(textMessage.substring(spaceIndex + 1));
-                    } catch (NumberFormatException e) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    String potentialCount = textMessage.substring(spaceIndex + 1);
+                    if (isThatInteger(potentialCount)) {
+                        count = Integer.parseInt(potentialCount);
+                    } else {
+                        count = DEFAULT_NEWS_LIMIT;
                     }
                 } else {
                     url = textMessage;
@@ -117,9 +121,9 @@ public class News implements Command<PartialBotApiMethod<?>> {
 
             if (isThatUrl(url)) {
                 checkNewsCount(count);
-                responseText = getAllNews(url, count);
+                responseText = getAllNews(url, count, receivedMessageId);
             } else {
-                responseText = searchForNews(textMessage);
+                responseText = searchForNews(textMessage, receivedMessageId);
             }
         }
 
@@ -131,7 +135,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
+        sendMessage.setReplyToMessageId(receivedMessageId);
         sendMessage.setText(responseText);
 
         return sendMessage;
@@ -143,17 +147,19 @@ public class News implements Command<PartialBotApiMethod<?>> {
         }
     }
 
-    private String searchForNews(String text) {
-        Set<String> searchWords = Arrays.stream(text.split(" ")).collect(Collectors.toSet());
+    private String searchForNews(String text, Integer messageId) {
+        String words = Arrays.stream(text.split(" ")).collect(Collectors.joining("|", "", ""));
+        Pattern wordsPattern = Pattern.compile(String.format(WORD_PATTERN_TEMPLATE, words), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
+
         return newsSourceService.getAll()
                 .stream()
-                .map(newsSource -> searchNewsInNewsSource(newsSource, searchWords))
+                .map(newsSource -> searchNewsInNewsSource(newsSource, wordsPattern, messageId))
                 .filter(Objects::nonNull)
                 .filter(StringUtils::hasText)
                 .collect(Collectors.joining());
     }
 
-    private String searchNewsInNewsSource(NewsSource newsSource, Set<String> searchWords) {
+    private String searchNewsInNewsSource(NewsSource newsSource, Pattern pattern, Integer messageId) {
         String url = newsSource.getUrl();
         SyndFeed syndFeed;
         try {
@@ -172,25 +178,24 @@ public class News implements Command<PartialBotApiMethod<?>> {
             return null;
         }
 
-
         List<NewsMessage> newsMessageList = syndFeed.getEntries()
                 .stream()
-                .filter(syndEntry -> entryHasAnyWords(syndEntry, searchWords))
-                .map(this::buildNewsMessageFromSyndEntry)
+                .filter(syndEntry -> entryMatchesPattern(syndEntry, pattern))
+                .map(syndEntry -> buildNewsMessageFromSyndEntry(syndEntry, messageId))
                 .collect(Collectors.toList());
 
         return newsMessageService.save(newsMessageList)
                 .stream()
                 .map(newsMessage -> buildShortNewsMessageText(newsMessage, newsSource.getName()))
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining());
     }
 
-    private boolean entryHasAnyWords(SyndEntry syndEntry, Set<String> words) {
+    private boolean entryMatchesPattern(SyndEntry syndEntry, Pattern pattern) {
         String title = syndEntry.getTitle();
         String description = Optional.ofNullable(syndEntry.getDescription()).map(SyndContent::getValue).orElse(null);
 
-        return (title != null && words.stream().anyMatch(word -> title.toLowerCase().contains(word)))
-                || (description != null && words.stream().anyMatch(word -> description.toLowerCase().contains(word)));
+        return (title != null && pattern.matcher(title).find())
+                || (description != null && pattern.matcher(description).find());
     }
 
     private String getLastNewsForChat(Chat chat) {
@@ -231,7 +236,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
      * @param newsCount requested news count.
      * @return formatted news.
      */
-    private String getAllNews(String url, int newsCount) {
+    private String getAllNews(String url, int newsCount, Integer messageId) {
         SyndFeed syndFeed;
         try {
             syndFeed = networkUtils.getRssFeedFromUrl(url);
@@ -247,10 +252,10 @@ public class News implements Command<PartialBotApiMethod<?>> {
         }
 
         if (newsCount > 1) {
-            return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsCount).collect(Collectors.toList()));
+            return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsCount).collect(Collectors.toList()), messageId);
         }
 
-        return buildFullNewsMessageText(syndFeed.getEntries().get(0));
+        return buildFullNewsMessageText(syndFeed.getEntries().get(0), messageId);
     }
 
     /**
@@ -259,10 +264,10 @@ public class News implements Command<PartialBotApiMethod<?>> {
      * @param entries feeds of news.
      * @return formatted news.
      */
-    private String buildListOfNewsMessageText(List<SyndEntry> entries) {
+    private String buildListOfNewsMessageText(List<SyndEntry> entries, Integer messageId) {
         List<NewsMessage> newsMessages = entries
                 .stream()
-                .map(this::buildNewsMessageFromSyndEntry)
+                .map(syndEntry -> buildNewsMessageFromSyndEntry(syndEntry, messageId))
                 .collect(Collectors.toList());
 
         newsMessages = newsMessageService.save(newsMessages);
@@ -283,7 +288,15 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }
 
+    private String buildFullNewsMessageText(SyndEntry syndEntry, Integer messageId) {
+        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndEntry, messageId));
+    }
+
     public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
+        return buildNewsMessageFromSyndEntry(syndEntry, null);
+    }
+
+    private NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry, Integer messageId) {
         String title = reduceSpaces(cutHtmlTags(syndEntry.getTitle()));
         if (title.length() > 255) {
             int i = title.indexOf(".");
@@ -294,14 +307,17 @@ public class News implements Command<PartialBotApiMethod<?>> {
             }
         }
 
+        String descHash;
         String description;
         if (syndEntry.getDescription() == null) {
             description = "";
+            descHash = DigestUtils.sha256Hex(title);
         } else {
             description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
             if (description.length() > 768) {
                 description = description.substring(0, 767) + "...";
             }
+            descHash = DigestUtils.sha256Hex(description);
         }
 
         Date publishedDate = syndEntry.getPublishedDate();
@@ -317,11 +333,9 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 .setTitle(title)
                 .setDescription(description)
                 .setPubDate(publishedDate)
-                .setAttachUrl(getAttachUrl(syndEntry));
-    }
-
-    private String buildFullNewsMessageText(SyndEntry syndEntry) {
-        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndEntry));
+                .setAttachUrl(getAttachUrl(syndEntry))
+                .setMessageId(messageId)
+                .setDescHash(descHash);
     }
 
     private String buildFullNewsMessageText(NewsMessage newsMessage) {

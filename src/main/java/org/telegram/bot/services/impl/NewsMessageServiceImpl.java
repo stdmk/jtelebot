@@ -2,12 +2,15 @@ package org.telegram.bot.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
 import org.telegram.bot.services.NewsMessageService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +26,31 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     }
 
     @Override
-    public NewsMessage save(NewsMessage newsMessage) {
-        log.debug("Request to save News {} ", newsMessage);
-        return newsMessageRepository.save(newsMessage);
+    public List<NewsMessage> save(List<NewsMessage> newsMessageList) {
+        log.debug("Request to save News {} ", newsMessageList);
+        return newsMessageList.stream().map(this::save).collect(Collectors.toList());
     }
 
     @Override
-    public List<NewsMessage> save(List<NewsMessage> newsMessageList) {
-        log.debug("Request to save News {} ", newsMessageList);
-        return newsMessageRepository.saveAll(newsMessageList);
+    public NewsMessage save(NewsMessage newsMessage) {
+        log.debug("Request to save News {} ", newsMessage);
+
+        String descHash;
+
+        String description = newsMessage.getDescription();
+        if (StringUtils.hasText(description)) {
+            descHash = DigestUtils.sha256Hex(description);
+        } else {
+            descHash = DigestUtils.sha256Hex(newsMessage.getTitle());
+        }
+
+        NewsMessage alreadyStoredNewsMessage = newsMessageRepository.findByDescHash(descHash);
+        if (alreadyStoredNewsMessage != null) {
+            log.debug("NewsMessage with this description already saved");
+            return alreadyStoredNewsMessage;
+        }
+
+        return newsMessageRepository.save(newsMessage);
     }
 
 }

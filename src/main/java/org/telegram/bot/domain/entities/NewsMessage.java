@@ -45,4 +45,8 @@ public class NewsMessage {
 
     @Column(name = "messageid")
     private Integer messageId;
+
+    @Column(name = "deschash")
+    private String descHash;
+
 }
