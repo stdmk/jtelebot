@@ -7,14 +7,18 @@ import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
+import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
+import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -26,16 +30,13 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
-import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
-import static org.telegram.bot.utils.TextUtils.reduceSpaces;
+import static org.telegram.bot.utils.TextUtils.*;
 
 @Component
 @RequiredArgsConstructor
@@ -46,9 +47,11 @@ public class News implements Command<PartialBotApiMethod<?>> {
 
     private final Bot bot;
     private final NewsService newsService;
+    private final NewsSourceService newsSourceService;
     private final NewsMessageService newsMessageService;
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
+    private final BotStats botStats;
 
     @Override
     public PartialBotApiMethod<?> parse(Update update) throws BotException {
@@ -112,9 +115,16 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 }
             }
 
-            checkUrl(url);
-            checkNewsCount(count);
-            responseText = getAllNews(url, count);
+            if (isThatUrl(url)) {
+                checkNewsCount(count);
+                responseText = getAllNews(url, count);
+            } else {
+                responseText = searchForNews(textMessage);
+            }
+        }
+
+        if (responseText.isEmpty()) {
+            responseText = speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -127,18 +137,60 @@ public class News implements Command<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private void checkUrl(String text) {
-        try {
-             new URL(text);
-        } catch (MalformedURLException e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-    }
-
     private void checkNewsCount(int newsCount) {
         if (newsCount < 1) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
+    }
+
+    private String searchForNews(String text) {
+        Set<String> searchWords = Arrays.stream(text.split(" ")).collect(Collectors.toSet());
+        return newsSourceService.getAll()
+                .stream()
+                .map(newsSource -> searchNewsInNewsSource(newsSource, searchWords))
+                .filter(Objects::nonNull)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.joining());
+    }
+
+    private String searchNewsInNewsSource(NewsSource newsSource, Set<String> searchWords) {
+        String url = newsSource.getUrl();
+        SyndFeed syndFeed;
+        try {
+            syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
+        } catch (FeedException e) {
+            log.error("Failed to parse news from url: {}: {}", url, e.getMessage());
+            botStats.incrementErrors(url, e, "Failed to parse news from url");
+            return null;
+        } catch (MalformedURLException e) {
+            log.error("Malformed URL: {}", url);
+            botStats.incrementErrors(url, e, "Malformed URL");
+            return null;
+        } catch (IOException e) {
+            log.error("Failed to connect to url: {}: {}", url, e.getMessage());
+            botStats.incrementErrors(url, e, "Failed to connect to ur");
+            return null;
+        }
+
+
+        List<NewsMessage> newsMessageList = syndFeed.getEntries()
+                .stream()
+                .filter(syndEntry -> entryHasAnyWords(syndEntry, searchWords))
+                .map(this::buildNewsMessageFromSyndEntry)
+                .collect(Collectors.toList());
+
+        return newsMessageService.save(newsMessageList)
+                .stream()
+                .map(newsMessage -> buildShortNewsMessageText(newsMessage, newsSource.getName()))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private boolean entryHasAnyWords(SyndEntry syndEntry, Set<String> words) {
+        String title = syndEntry.getTitle();
+        String description = Optional.ofNullable(syndEntry.getDescription()).map(SyndContent::getValue).orElse(null);
+
+        return (title != null && words.stream().anyMatch(word -> title.toLowerCase().contains(word)))
+                || (description != null && words.stream().anyMatch(word -> description.toLowerCase().contains(word)));
     }
 
     private String getLastNewsForChat(Chat chat) {
@@ -149,7 +201,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 .forEach(news -> {
                     NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
                     if (newsMessage != null) {
-                        buf.append(buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getName()));
+                        buf.append(buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getNewsSource().getName()));
                     }
                 });
         return buf.toString();
@@ -198,7 +250,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
             return buildListOfNewsMessageText(syndFeed.getEntries().stream().limit(newsCount).collect(Collectors.toList()));
         }
 
-        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndFeed.getEntries().get(0)));
+        return buildFullNewsMessageText(syndFeed.getEntries().get(0));
     }
 
     /**
@@ -266,6 +318,10 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 .setDescription(description)
                 .setPubDate(publishedDate)
                 .setAttachUrl(getAttachUrl(syndEntry));
+    }
+
+    private String buildFullNewsMessageText(SyndEntry syndEntry) {
+        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndEntry));
     }
 
     private String buildFullNewsMessageText(NewsMessage newsMessage) {

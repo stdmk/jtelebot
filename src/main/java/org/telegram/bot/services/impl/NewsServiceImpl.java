@@ -27,7 +27,13 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public News get(Chat chat, String newsName) {
         log.debug("Request to get News by its name: {}  for Chat {}", newsName, chat.getChatId());
-        return newsRepository.findByChatAndNameIgnoreCase(chat, newsName);
+        return newsRepository.findByChatAndNewsSourceNameIgnoreCase(chat, newsName);
+    }
+
+    @Override
+    public News get(Chat chat, NewsSource newsSource) {
+        log.debug("Request to get News by its source {} for Chat {}", newsSource, chat.getChatId());
+        return newsRepository.findByChatAndNewsSource(chat, newsSource);
     }
 
     @Override
@@ -35,7 +41,7 @@ public class NewsServiceImpl implements NewsService {
         log.debug("Request to get News by its name {} or url {} for Chat {}", newsName, newsSource.getUrl(), chat.getChatId());
         return getAll(chat)
                 .stream()
-                .filter(news -> news.getName().equals(newsName) || news.getNewsSource().equals(newsSource))
+                .filter(news -> news.getNewsSource().getName().equals(newsName) || news.getNewsSource().equals(newsSource))
                 .findFirst()
                 .orElse(null);
     }

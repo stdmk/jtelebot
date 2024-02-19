@@ -10,6 +10,7 @@ import java.util.List;
  * Service Interface for managing {@link News}.
  */
 public interface NewsService {
+
     /**
      * Get a News.
      *
@@ -27,6 +28,15 @@ public interface NewsService {
      * @return the persisted entity.
      */
     News get(Chat chat, String newsName);
+
+    /**
+     * Get a News by Chat and NewsSource.
+     *
+     * @param chat entity for which gets News
+     * @param newsSource NewsSource of News to get.
+     * @return the persisted entity.
+     */
+    News get(Chat chat, NewsSource newsSource);
 
     /**
      * Get a News by Name or Url.

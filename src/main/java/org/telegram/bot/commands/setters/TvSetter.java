@@ -284,7 +284,7 @@ public class TvSetter implements Setter<PartialBotApiMethod<?>> {
         return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private PartialBotApiMethod<?> selectUserTv(Message message, Chat chat, User user, String command) throws BotException {
+    private PartialBotApiMethod<?> selectUserTv(Message message, Chat chat, User user, String command) {
         String selectTvCommand = getLocalizedCommand(command, SELECT_TV_COMMAND);
         log.debug("Request to select userTv");
 

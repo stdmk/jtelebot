@@ -29,9 +29,6 @@ public class News {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
-    private String name;
-
     @ManyToOne
     @JoinColumn(name = "newssourceid", nullable = false)
     private NewsSource newsSource;

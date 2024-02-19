@@ -25,11 +25,13 @@ import javax.validation.constraints.NotNull;
 @ToString
 @Table(name = "newssource", schema = "bot")
 public class NewsSource {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    @Column(name = "name")
+    private String name;
 
     @NotNull
     @Column(name = "url")

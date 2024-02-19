@@ -72,7 +72,7 @@ public class NewsTimer extends TimerParent {
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
                                     sendMessage.disableWebPagePreview();
-                                    sendMessage.setText(newsCommand.buildShortNewsMessageText(finalNewsMessage, news.getName()));
+                                    sendMessage.setText(newsCommand.buildShortNewsMessageText(finalNewsMessage, news.getNewsSource().getName()));
 
                                     sendMessageExecutor.executeMethod(sendMessage);
                             });
