@@ -4,11 +4,17 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
 
 public interface Command<T extends PartialBotApiMethod<?>> {
 
-    T parse(Update update);
+    List<T> parse(Update update);
+
+    default List<T> returnOneResult(T method) {
+        return List.of(method);
+    }
 
     default Message getMessageFromUpdate(Update update) {
         if (update.hasMessage()) {
@@ -46,7 +52,7 @@ public interface Command<T extends PartialBotApiMethod<?>> {
                 text = text.substring(0, i);
             }
             text = text.substring(cuttedText.length());
-            if (text.equals("")) {
+            if (text.isEmpty()) {
                 return null;
             }
             if (text.startsWith("_")) {

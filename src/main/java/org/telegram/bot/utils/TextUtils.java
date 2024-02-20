@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class TextUtils {
 
-    private static final Integer TELEGRAM_MESSAGE_TEXT_MAX_LENGTH = 4096;
+    public static final Integer TELEGRAM_MESSAGE_TEXT_MAX_LENGTH = 4096;
     public static final String BORDER = "-----------------------------\n";
 
     private static final Pattern COMMAND_PATTERN = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);

@@ -40,7 +40,7 @@ public class Set implements Command<PartialBotApiMethod<?>> {
     private final List<Setter<?>> setters;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         Long userId = message.getFrom().getId();
@@ -61,9 +61,9 @@ public class Set implements Command<PartialBotApiMethod<?>> {
 
         if (textMessage == null || textMessage.toLowerCase().startsWith("back")) {
             if (update.hasCallbackQuery()) {
-                return buildMainPageWithCallback(message);
+                return returnOneResult(buildMainPageWithCallback(message));
             } else {
-                return buildMainPage(message);
+                return returnOneResult(buildMainPage(message));
             }
         } else {
             String lowerCasedTextMessage = textMessage.toLowerCase();
@@ -73,12 +73,12 @@ public class Set implements Command<PartialBotApiMethod<?>> {
                     .findFirst()
                     .orElseThrow(() -> {
                         commandWaitingService.remove(commandWaiting);
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                        return new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     });
 
             AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, message.getChatId());
             if (userService.isUserHaveAccessForCommand(userAccessLevel, setter.getAccessLevel())) {
-                return setter.set(update, textMessage);
+                return returnOneResult(setter.set(update, textMessage));
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
             }

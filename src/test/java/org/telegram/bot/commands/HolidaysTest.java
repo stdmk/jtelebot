@@ -61,7 +61,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update);
+        SendMessage sendMessage = holidays.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -102,7 +102,7 @@ class HolidaysTest {
                         .setUser(TestUtils.getUser()));
         when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update);
+        SendMessage sendMessage = holidays.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -125,7 +125,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update);
+        SendMessage sendMessage = holidays.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -155,7 +155,7 @@ class HolidaysTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
-        SendMessage sendMessage = holidays.parse(update);
+        SendMessage sendMessage = holidays.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -178,7 +178,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update);
+        SendMessage sendMessage = holidays.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);

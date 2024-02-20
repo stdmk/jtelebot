@@ -64,7 +64,7 @@ class GooglePicsTest {
     void googlePicsWithEmptyTextMessageTest() {
         Update update = TestUtils.getUpdateFromGroup("picture");
 
-        PartialBotApiMethod<?> method = googlePics.parse(update);
+        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
@@ -111,7 +111,7 @@ class GooglePicsTest {
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url).setTitle("title"));
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(Mockito.mock(InputStream.class));
 
-        PartialBotApiMethod<?> method = googlePics.parse(update);
+        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         TestUtils.checkDefaultSendPhotoParams(method);
     }
@@ -174,7 +174,7 @@ class GooglePicsTest {
                 List.of(
                         new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle())));
 
-        PartialBotApiMethod<?> method = googlePics.parse(update);
+        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         SendMediaGroup sendMediaGroup = TestUtils.checkDefaultSendMediaGroupParams(method);
 

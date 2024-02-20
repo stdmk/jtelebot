@@ -10,14 +10,16 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 public class Ping implements Command<SendMessage> {
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         ZoneId zoneId = ZoneId.of("UTC");
@@ -33,6 +35,6 @@ public class Ping implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText("${command.ping.caption}: " + diff + " ${command.ping.seconds}.");
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

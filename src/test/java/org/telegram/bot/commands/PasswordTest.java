@@ -46,7 +46,7 @@ class PasswordTest {
     @ValueSource(strings = {"", "4", "4096"})
     void parseTest(String input) {
         Update update = TestUtils.getUpdateFromGroup("password" + input);
-        SendMessage sendMessage = password.parse(update);
+        SendMessage sendMessage = password.parse(update).get(0);
         verify(bot).sendTyping(update);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
     }

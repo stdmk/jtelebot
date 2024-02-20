@@ -37,7 +37,7 @@ class DogsTest {
     @Test
     void parseWithParamsTest() {
         Update update = TestUtils.getUpdateFromGroup("dogs test");
-        PartialBotApiMethod<?> method = dogs.parse(update);
+        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
         assertNull(method);
         verify(bot, never()).sendUploadPhoto(anyLong());
     }
@@ -71,7 +71,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        PartialBotApiMethod<?> method = dogs.parse(update);
+        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         TestUtils.checkDefaultSendPhotoParams(method);
     }
@@ -84,7 +84,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        PartialBotApiMethod<?> method = dogs.parse(update);
+        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         TestUtils.checkDefaultSendPhotoParams(method);
     }
@@ -97,7 +97,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        PartialBotApiMethod<?> method = dogs.parse(update);
+        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
         verify(bot).sendUploadVideo(update.getMessage().getChatId());
         TestUtils.checkDefaultSendVideoParams(method);
     }
@@ -110,7 +110,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        PartialBotApiMethod<?> method = dogs.parse(update);
+        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
         verify(bot).sendUploadDocument(update.getMessage().getChatId());
         TestUtils.checkDefaultSendDocumentParams(method);
     }

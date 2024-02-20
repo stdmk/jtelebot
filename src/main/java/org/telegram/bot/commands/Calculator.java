@@ -23,6 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class Calculator implements Command<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
@@ -87,6 +88,6 @@ public class Calculator implements Command<SendMessage> {
         sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

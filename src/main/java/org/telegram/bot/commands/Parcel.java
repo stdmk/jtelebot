@@ -58,7 +58,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
     private static final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
@@ -88,23 +88,23 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
             User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
 
             if (textMessage.isEmpty()) {
-                return getMainMenu(message, user, false);
+                return returnOneResult(getMainMenu(message, user, false));
             } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND)) {
-                return deleteParcelByCallback(message, user, textMessage);
+                return returnOneResult(deleteParcelByCallback(message, user, textMessage));
             } else if (textMessage.startsWith(ADD_PARCEL_COMMAND)) {
-                return addParcelByCallback(message, chat, user, textMessage);
+                return returnOneResult(addParcelByCallback(message, chat, user, textMessage));
             }
         }
 
         User user = new User().setUserId(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
-            return getMainMenu(message,  user, true);
+            return returnOneResult(getMainMenu(message,  user, true));
         } else if (textMessage.startsWith(ADD_PARCEL_COMMAND)) {
-            return addParcel(message, user, textMessage, commandWaiting);
+            return returnOneResult(addParcel(message, user, textMessage, commandWaiting));
         } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND) || (textMessage.startsWith(SHORT_DELETE_PARCEL_COMMAND))) {
-            return deleteParcel(message, user, textMessage);
+            return returnOneResult(deleteParcel(message, user, textMessage));
         } else {
-            return getTrackCodeData(message, user, textMessage);
+            return returnOneResult(getTrackCodeData(message, user, textMessage));
         }
     }
 

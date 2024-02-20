@@ -76,7 +76,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
     private static final String CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_ALL_TIME_COMMAND;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         Long userId;
@@ -273,7 +273,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                 sendDocument.setCaption(caption);
                 sendDocument.setDocument(inputFile);
 
-                return sendDocument;
+                return returnOneResult(sendDocument);
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -290,7 +290,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
             editMessageText.setText(responseText);
             editMessageText.setReplyMarkup(inlineKeyboardMarkup);
 
-            return editMessageText;
+            return returnOneResult(editMessageText);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -301,7 +301,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
         sendMessage.setReplyMarkup(inlineKeyboardMarkup);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private InputFile getReportFile(List<TrainingEvent> trainingEventList, String fileName, String lang) {

@@ -45,7 +45,7 @@ class ErrorsTest {
 
         when(errorService.getAll()).thenReturn(errorList);
 
-        PartialBotApiMethod<?> method = errors.parse(update);
+        PartialBotApiMethod<?> method = errors.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
     }
@@ -57,7 +57,7 @@ class ErrorsTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
-        PartialBotApiMethod<?> method = errors.parse(update);
+        PartialBotApiMethod<?> method = errors.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(errorService).clear();
@@ -94,7 +94,7 @@ class ErrorsTest {
     @Test
     void getErrorDataWithUnexpectedArgument() {
         Update update = getUpdateFromGroup("errors abv");
-        PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update));
+        PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update).get(0));
         verify(bot).sendTyping(update.getMessage().getChatId());
         assertNull(method);
     }
@@ -113,7 +113,7 @@ class ErrorsTest {
 
         when(errorService.get(errorId)).thenReturn(error);
 
-        PartialBotApiMethod<?> method = errors.parse(update);
+        PartialBotApiMethod<?> method = errors.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendDocumentParams(method);
     }

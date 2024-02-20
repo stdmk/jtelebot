@@ -151,7 +151,7 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
@@ -185,29 +185,29 @@ public class Remind implements Command<PartialBotApiMethod<?>> {
             User user = userService.get(update.getCallbackQuery().getFrom().getId());
 
             if (StringUtils.isEmpty(textMessage) || UPDATE_COMMAND.equals(textMessage)) {
-                return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false);
+                return returnOneResult(getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false));
             } else if (textMessage.equals(ADD_COMMAND)) {
-                return addReminderByCallback(message, chat, user);
+                return returnOneResult(addReminderByCallback(message, chat, user));
             } else if (textMessage.startsWith(INFO_REMINDER)) {
-                return getReminderInfo(message, chat, user, textMessage);
+                return returnOneResult(getReminderInfo(message, chat, user, textMessage));
             } else if (textMessage.startsWith(SET_REMINDER)) {
-                return setReminderByCallback(message, chat, user, textMessage);
+                return returnOneResult(setReminderByCallback(message, chat, user, textMessage));
             } else if (textMessage.startsWith(DELETE_COMMAND)) {
-                return deleteReminderByCallback(message, chat, user, textMessage);
+                return returnOneResult(deleteReminderByCallback(message, chat, user, textMessage));
             } else if (textMessage.startsWith(SELECT_PAGE)) {
-                return getReminderListWithKeyboard(message, chat, user, getPageNumberFromCommand(textMessage), false);
+                return returnOneResult(getReminderListWithKeyboard(message, chat, user, getPageNumberFromCommand(textMessage), false));
             } else if (textMessage.startsWith(CLOSE_REMINDER_MENU)) {
-                return closeReminderMenu(message, chat, user, textMessage);
+                return returnOneResult(closeReminderMenu(message, chat, user, textMessage));
             }
         }
 
         User user = userService.get(message.getFrom().getId());
         if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
-            return getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, true);
+            return returnOneResult(getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, true));
         } else if (textMessage.startsWith(SET_REMINDER) && commandWaiting != null) {
-            return manualReminderEdit(message, chat, user, textMessage);
+            return returnOneResult(manualReminderEdit(message, chat, user, textMessage));
         } else {
-            return addReminder(message, chat, user, textMessage);
+            return returnOneResult(addReminder(message, chat, user, textMessage));
         }
     }
 

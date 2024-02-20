@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
     private static final String TIMEOUT_MS = "5000";
     private static final String API_URL = "https://api.screenshotmachine.com?" +
             "device=desktop" +
-            "&dimension=" + DIMENSION + "" +
+            "&dimension=" + DIMENSION +
             "&format=png" +
             "&cacheLimit=0" +
             "&timeout=" + TIMEOUT_MS;
@@ -48,7 +49,7 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         String token = propertiesConfig.getScreenshotMachineToken();
         if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
@@ -70,11 +71,11 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
                     url = findFirstUrlInText(replyToMessage.getText());
                 } else {
                     commandWaitingService.add(message, this.getClass());
-                    return getResponseForEmptyMessage(message);
+                    return returnOneResult(getResponseForEmptyMessage(message));
                 }
             } else {
                 commandWaitingService.add(message, this.getClass());
-                return getResponseForEmptyMessage(message);
+                return returnOneResult(getResponseForEmptyMessage(message));
             }
         } else {
             url = findFirstUrlInText(textMessage);
@@ -97,7 +98,7 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
 
-        return sendPhoto;
+        return returnOneResult(sendPhoto);
     }
 
     private URL findFirstUrlInText(String text) {

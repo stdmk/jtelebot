@@ -52,7 +52,7 @@ class EchoTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = echo.parse(update);
+        SendMessage sendMessage = echo.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 
@@ -96,7 +96,7 @@ class EchoTest {
 
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
-        SendMessage sendMessage = echo.parse(update);
+        SendMessage sendMessage = echo.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 
@@ -123,7 +123,7 @@ class EchoTest {
 
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
-        SendMessage sendMessage = echo.parse(update);
+        SendMessage sendMessage = echo.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
 

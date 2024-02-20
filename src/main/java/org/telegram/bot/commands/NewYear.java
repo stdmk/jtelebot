@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.durationToString;
 
@@ -27,10 +29,10 @@ public class NewYear implements Command<SendMessage> {
     private final UserCityService userCityService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
         bot.sendTyping(message.getChatId());
 
@@ -54,6 +56,6 @@ public class NewYear implements Command<SendMessage> {
         sendMessage.setText("${command.newyear.caption}: *" + durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
                             "* (" + userTimeZone + ")");
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

@@ -46,7 +46,7 @@ public class Wikipedia implements Command<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String responseText;
@@ -67,7 +67,7 @@ public class Wikipedia implements Command<SendMessage> {
             String lang = languageResolver.getChatLanguageCode(update);
             Wiki wiki = getWiki(textMessage, lang);
 
-            if (wiki != null && !wiki.getText().equals("")) {
+            if (wiki != null && !wiki.getText().isEmpty()) {
                 responseText = getWikiPageDetails(wiki);
             } else {
                 responseText = searchWiki(textMessage, lang);
@@ -81,7 +81,7 @@ public class Wikipedia implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String getWikiTextById(String id) {
@@ -108,7 +108,7 @@ public class Wikipedia implements Command<SendMessage> {
             return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         } else if (titles.size() == 1) {
             Wiki wiki1 = getWiki(titles.get(0), lang);
-            if (wiki1 == null || wiki1.getText().equals("")) {
+            if (wiki1 == null || wiki1.getText().isEmpty()) {
                 return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
             } else {
                 return getWikiPageDetails(wiki1);

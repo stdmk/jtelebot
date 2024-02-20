@@ -92,7 +92,7 @@ class LengthTest {
 
         when(networkUtils.getFileFromTelegram(anyString())).thenReturn(fileContent.getBytes());
 
-        SendMessage sendMessage = length.parse(update);
+        SendMessage sendMessage = length.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponse, sendMessage.getText());
         verify(commandWaitingService).getText(any(Message.class));
@@ -105,7 +105,7 @@ class LengthTest {
         final String expectedResponse = "${command.length.responselength} <b>" + textParam.length() + "</b> ${command.length.symbols}";
         Update update = TestUtils.getUpdateFromGroup("length " + textParam);
 
-        SendMessage sendMessage = length.parse(update);
+        SendMessage sendMessage = length.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponse, sendMessage.getText());
         verify(commandWaitingService).getText(any(Message.class));

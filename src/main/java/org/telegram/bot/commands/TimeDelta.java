@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -32,7 +33,7 @@ public class TimeDelta implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
@@ -65,7 +66,7 @@ public class TimeDelta implements Command<SendMessage> {
         sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String getDateByLocalDateTimeFormat(String text, LocalDateTime dateTimeNow) {

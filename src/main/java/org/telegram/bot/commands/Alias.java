@@ -39,7 +39,7 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
 
@@ -77,7 +77,7 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

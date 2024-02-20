@@ -93,7 +93,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML);
 
@@ -127,7 +127,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -157,7 +157,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -192,7 +192,7 @@ class CalendarTest {
         when(responseEntity.getBody()).thenReturn(null);
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -255,7 +255,7 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -271,7 +271,7 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        PartialBotApiMethod<?> method = calendar.parse(update);
+        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
         verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);

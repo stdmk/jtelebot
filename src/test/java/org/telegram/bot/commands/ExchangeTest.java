@@ -130,7 +130,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
@@ -197,7 +197,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursUsd());
         when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot, never()).sendTyping(update.getMessage().getChatId());
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(method);
@@ -222,7 +222,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -241,7 +241,7 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
@@ -265,7 +265,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -284,7 +284,7 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());
@@ -307,7 +307,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -331,7 +331,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
-        PartialBotApiMethod<?> method = exchange.parse(update);
+        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
 //        assertEquals(expectedResponseText, sendMessage.getText());

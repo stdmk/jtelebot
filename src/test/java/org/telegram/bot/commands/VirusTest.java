@@ -112,7 +112,7 @@ class VirusTest {
         final String expectedResponseText = "${command.virus.commandwaitingstart}";
         Update update = TestUtils.getUpdateFromGroup("virus");
 
-        SendMessage sendMessage = virus.parse(update);
+        SendMessage sendMessage = virus.parse(update).get(0);
 
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
@@ -127,7 +127,7 @@ class VirusTest {
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update);
+        SendMessage sendMessage = virus.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
@@ -144,7 +144,7 @@ class VirusTest {
         when(networkUtils.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
         when(virusScanner.scan(any(InputStream.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update);
+        SendMessage sendMessage = virus.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
@@ -157,7 +157,7 @@ class VirusTest {
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update);
+        SendMessage sendMessage = virus.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);

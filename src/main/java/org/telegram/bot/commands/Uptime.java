@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.formatFileSize;
@@ -28,14 +30,14 @@ public class Uptime implements Command<SendMessage> {
     private final TalkerPhraseRepository talkerPhraseRepository;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
         StringBuilder buf = new StringBuilder();
 
         if (textMessage != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         LocalDateTime dateTimeNow = LocalDateTime.now();
@@ -72,6 +74,6 @@ public class Uptime implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(buf.toString());
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

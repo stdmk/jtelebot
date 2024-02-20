@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText;
@@ -35,12 +36,12 @@ public class Sql implements Command<SendMessage> {
 
     @Override
     @Transactional
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String responseText;
         String textMessage = cutCommandInText(message.getText());
         if (StringUtils.isEmpty(textMessage)) {
-            return null;
+            return Collections.emptyList();
         }
 
         bot.sendTyping(message.getChatId());
@@ -84,7 +85,7 @@ public class Sql implements Command<SendMessage> {
         sendMessage.enableMarkdown(true);
         sendMessage.setText("`" + responseText + "`");
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private void sendErrorMessage(Message message, String responseText) {

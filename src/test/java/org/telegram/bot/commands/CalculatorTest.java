@@ -51,7 +51,7 @@ class CalculatorTest {
         final String expectedText = "${command.calculator.commandwaitingstart}";
         Update update = getUpdateFromGroup();
 
-        SendMessage sendMessage = calculator.parse(update);
+        SendMessage sendMessage = calculator.parse(update).get(0);
         assertNotNull(sendMessage);
 
         String actualText = sendMessage.getText();
@@ -84,7 +84,7 @@ class CalculatorTest {
                                 ("{\"error\":\"" + expectedErrorText + "\"}").getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        SendMessage sendMessage = calculator.parse(update);
+        SendMessage sendMessage = calculator.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 
@@ -102,7 +102,7 @@ class CalculatorTest {
                 .thenReturn(response);
         when(response.getBody()).thenReturn("{\"result\":\"" + expressionResult + "\"}");
 
-        SendMessage sendMessage = calculator.parse(update);
+        SendMessage sendMessage = calculator.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
 

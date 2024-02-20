@@ -209,7 +209,7 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        PartialBotApiMethod<?> method = chatGPT.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
@@ -247,7 +247,7 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        PartialBotApiMethod<?> method = chatGPT.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
@@ -286,7 +286,7 @@ class ChatGPTTest {
         postConstruct.setAccessible(true);
         postConstruct.invoke(chatGPT);
 
-        PartialBotApiMethod<?> method = chatGPT.parse(update);
+        PartialBotApiMethod<?> method = chatGPT.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
 

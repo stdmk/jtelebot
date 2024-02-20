@@ -73,7 +73,7 @@ class AliasTest {
 
         when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), anyString())).thenReturn(aliasEntityList);
 
-        SendMessage sendMessage = alias.parse(update);
+        SendMessage sendMessage = alias.parse(update).get(0);
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();
@@ -88,7 +88,7 @@ class AliasTest {
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(aliasEntityList);
 
-        SendMessage sendMessage = alias.parse(getUpdateFromGroup());
+        SendMessage sendMessage = alias.parse(getUpdateFromGroup()).get(0);
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 
         String actualResponseText = sendMessage.getText();

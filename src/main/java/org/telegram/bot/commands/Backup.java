@@ -10,6 +10,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -19,14 +22,14 @@ public class Backup implements Command<SendDocument> {
     private final DbBackuper dbBackuper;
 
     @Override
-    public SendDocument parse(Update update) {
+    public List<SendDocument> parse(Update update) {
         String chatId = update.getMessage().getFrom().getId().toString();
         log.debug("Request to send backup to {}", chatId);
 
         bot.sendUploadDocument(update);
 
         if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         InputFile dbBackup = dbBackuper.getDbBackup();
@@ -36,7 +39,7 @@ public class Backup implements Command<SendDocument> {
         sendDocument.setDocument(dbBackup);
         sendDocument.setDisableNotification(true);
 
-        return sendDocument;
+        return returnOneResult(sendDocument);
     }
 
 

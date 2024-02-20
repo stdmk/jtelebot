@@ -38,7 +38,7 @@ public class Holidays implements Command<SendMessage> {
     private final Clock clock;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -83,7 +83,7 @@ public class Holidays implements Command<SendMessage> {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

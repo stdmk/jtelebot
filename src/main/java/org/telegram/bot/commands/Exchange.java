@@ -78,7 +78,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
     private final Map<LocalDate, ValCurs> valCursDataMap = new ConcurrentHashMap<>();
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
@@ -145,7 +145,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -154,7 +154,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

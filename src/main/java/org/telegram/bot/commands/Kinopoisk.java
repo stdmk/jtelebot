@@ -57,7 +57,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     private static final String RANDOM_MOVIE_PATH = "random";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         String token = propertiesConfig.getKinopoiskToken();
         if (StringUtils.isEmpty(token)) {
             log.error("Unable to find kinopoisk token");
@@ -91,7 +91,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId.toString());
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -101,7 +101,7 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private Pair<String, InputFile> getMovieSearchResult(String token, String textMessage) {

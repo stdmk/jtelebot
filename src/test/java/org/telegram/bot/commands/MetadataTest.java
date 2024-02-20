@@ -46,7 +46,7 @@ class MetadataTest {
     @Test
     void parseWithParamsTest() {
         Update update = TestUtils.getUpdateFromGroup("metadata test");
-        SendMessage sendMessage = metadata.parse(update);
+        SendMessage sendMessage = metadata.parse(update).get(0);
         assertNull(sendMessage);
     }
 
@@ -54,7 +54,7 @@ class MetadataTest {
     void parseWithoutFilesTest() {
         Update update = TestUtils.getUpdateFromGroup("metadata");
 
-        SendMessage sendMessage = metadata.parse(update);
+        SendMessage sendMessage = metadata.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
@@ -123,7 +123,7 @@ class MetadataTest {
 
         when(networkUtils.getInputStreamFromTelegramFile(photoSize.getFileId())).thenReturn(file);
 
-        SendMessage sendMessage = metadata.parse(update);
+        SendMessage sendMessage = metadata.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);

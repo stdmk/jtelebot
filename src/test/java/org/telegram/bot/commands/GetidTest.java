@@ -54,7 +54,7 @@ class GetidTest {
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
 
-        SendMessage method = getid.parse(update);
+        SendMessage method = getid.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
@@ -71,7 +71,7 @@ class GetidTest {
 
         when(userService.get(anyLong())).thenReturn(TestUtils.getUser());
 
-        SendMessage method = getid.parse(update);
+        SendMessage method = getid.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
@@ -85,7 +85,7 @@ class GetidTest {
                 "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateFromGroup("getid");
 
-        SendMessage method = getid.parse(update);
+        SendMessage method = getid.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
@@ -98,7 +98,7 @@ class GetidTest {
         final String responseText = "${command.getid.yourid}: `1`";
         Update update = TestUtils.getUpdateFromPrivate("getid");
 
-        SendMessage method = getid.parse(update);
+        SendMessage method = getid.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);

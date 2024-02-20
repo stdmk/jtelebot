@@ -11,6 +11,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -20,10 +22,10 @@ public class Logs implements Command<SendDocument> {
     private final Bot bot;
 
     @Override
-    public SendDocument parse(Update update) {
+    public List<SendDocument> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
         bot.sendUploadDocument(message.getChatId());
 
@@ -40,6 +42,6 @@ public class Logs implements Command<SendDocument> {
         sendDocument.setReplyToMessageId(message.getMessageId());
         sendDocument.setDocument(new InputFile(logs, "logs.log"));
 
-        return sendDocument;
+        return returnOneResult(sendDocument);
     }
 }

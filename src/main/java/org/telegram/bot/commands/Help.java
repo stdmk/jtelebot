@@ -35,7 +35,7 @@ public class Help implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -95,7 +95,7 @@ public class Help implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String formatHelpText(String commandName, Integer level) {

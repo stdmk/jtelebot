@@ -39,7 +39,7 @@ class GreatAdviceTest {
     @Test
     void adviceWithNotEmptyMessageTextTest() {
         Update update = TestUtils.getUpdateFromGroup("advice test");
-        SendMessage sendMessage = greatAdvice.parse(update);
+        SendMessage sendMessage = greatAdvice.parse(update).get(0);
         verify(bot, never()).sendTyping(update.getMessage().getChatId());
         assertNull(sendMessage);
     }
@@ -80,7 +80,7 @@ class GreatAdviceTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GreatAdvice.FuckingGreatAdvice>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = greatAdvice.parse(update);
+        SendMessage sendMessage = greatAdvice.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);

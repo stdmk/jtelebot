@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,7 +52,7 @@ public class TimeDownloading implements Command<SendMessage> {
     }
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = commandWaitingService.getText(message);
@@ -122,7 +123,7 @@ public class TimeDownloading implements Command<SendMessage> {
         sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private int getNextSpaceIndex(String text) {

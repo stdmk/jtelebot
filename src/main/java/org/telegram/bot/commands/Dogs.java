@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Collections;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -41,13 +42,13 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         String imageUrl = getDogsImageUrl();
@@ -62,7 +63,7 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
         } else if (isVideo(imageUrl)) {
             bot.sendUploadVideo(chatId);
 
@@ -72,7 +73,7 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
             sendVideo.setReplyToMessageId(message.getMessageId());
             sendVideo.setChatId(chatId);
 
-            return sendVideo;
+            return returnOneResult(sendVideo);
         }
 
         bot.sendUploadDocument(chatId);
@@ -83,7 +84,7 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
         sendDocument.setReplyToMessageId(message.getMessageId());
         sendDocument.setDocument(inputFile);
 
-        return sendDocument;
+        return returnOneResult(sendDocument);
     }
 
     private boolean isPhoto(String url) {

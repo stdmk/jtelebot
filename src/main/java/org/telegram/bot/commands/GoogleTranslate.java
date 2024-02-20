@@ -21,6 +21,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class GoogleTranslate implements Command<SendMessage> {
             "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu");
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Integer replyToMessage;
         String responseText;
 
@@ -99,7 +100,7 @@ public class GoogleTranslate implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

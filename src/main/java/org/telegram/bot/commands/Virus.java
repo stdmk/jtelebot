@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -37,7 +38,7 @@ public class Virus implements Command<SendMessage> {
     private final VirusScanner virusScanner;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         Integer messageIdToReply;
@@ -91,7 +92,7 @@ public class Virus implements Command<SendMessage> {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String sendFileToScan(Document document) {

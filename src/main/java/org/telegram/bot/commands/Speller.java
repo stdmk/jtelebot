@@ -33,7 +33,7 @@ public class Speller implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         Integer replyToMessage;
@@ -77,7 +77,7 @@ public class Speller implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

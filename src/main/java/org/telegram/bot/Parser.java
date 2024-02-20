@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.telegram.bot.utils.TelegramUtils.getMessage;
@@ -31,13 +32,16 @@ public class Parser {
 
     @Async
     public void parseAsync(Update update, Command<?> command) {
-        PartialBotApiMethod<?> method = null;
+        List<PartialBotApiMethod<?>> methods = new ArrayList<>(1);
         try {
-            method = command.parse(update);
+            methods.addAll(command.parse(update));
         } catch (Exception e) {
-            method = handleException(update, e);
+            PartialBotApiMethod<?> method = handleException(update, e);
+            if (method != null) {
+                methods.add(method);
+            }
         } finally {
-            executeMethod(update, method);
+            executeMethod(update, methods);
         }
     }
 
@@ -63,18 +67,18 @@ public class Parser {
         return sendMessage;
     }
 
-    private void executeMethod(Update update, PartialBotApiMethod<?> method) {
-        if (method == null) {
+    private void executeMethod(Update update, List<PartialBotApiMethod<?>> methods) {
+        if (methods == null) {
             return;
         }
 
-        methodExecutors
+        methods.forEach(method -> methodExecutors
                 .stream()
                 .filter(methodExecutor -> methodExecutor.getMethod().equals(method.getMethod()))
                 .findFirst()
                 .ifPresentOrElse(
                         methodExecutor -> methodExecutor.executeMethod(method, update),
-                        () -> log.error("Missing executor for {}", method.getMethod()));
+                        () -> log.error("Missing executor for {}", method.getMethod())));
 
         botStats.incrementCommandsProcessed();
     }

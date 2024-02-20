@@ -17,6 +17,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -29,9 +32,9 @@ public class GreatAdvice implements Command<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         if (getTextMessage(update) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         Message message = getMessageFromUpdate(update);
@@ -58,7 +61,7 @@ public class GreatAdvice implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()));
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     @Data

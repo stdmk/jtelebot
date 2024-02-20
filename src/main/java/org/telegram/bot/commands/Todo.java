@@ -37,7 +37,7 @@ public class Todo implements Command<SendMessage> {
     private final TodoTagService todoTagService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
 
@@ -74,7 +74,7 @@ public class Todo implements Command<SendMessage> {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String getTodoList(Chat chat, User user) {

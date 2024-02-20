@@ -19,6 +19,9 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -63,7 +66,7 @@ public class Repeat implements MessageAnalyzer, Command<PartialBotApiMethod<?>> 
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
-        return null;
+    public List<PartialBotApiMethod<?>> parse(Update update) {
+        return Collections.emptyList();
     }
 }

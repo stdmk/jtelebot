@@ -30,7 +30,7 @@ class LocationTest {
     @Test
     void parseWithoutCoordinatesTest() {
         Update update = TestUtils.getUpdateFromGroup("location");
-        SendLocation sendLocation = location.parse(update);
+        SendLocation sendLocation = location.parse(update).get(0);
         assertNull(sendLocation);
     }
 
@@ -49,7 +49,7 @@ class LocationTest {
 
         Update update = TestUtils.getUpdateFromGroup("location 56.83417 35,90604");
 
-        SendLocation sendLocation = location.parse(update);
+        SendLocation sendLocation = location.parse(update).get(0);
         verify(bot).sendLocation(update.getMessage().getChatId());
         TestUtils.checkDefaultSendLocationParams(sendLocation);
         assertEquals(expectedLatitude, sendLocation.getLatitude());

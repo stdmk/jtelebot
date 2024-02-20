@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
@@ -26,7 +28,7 @@ public class Getid implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) throws BotException {
+    public List<SendMessage> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
@@ -63,6 +65,6 @@ public class Getid implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText.toString());
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

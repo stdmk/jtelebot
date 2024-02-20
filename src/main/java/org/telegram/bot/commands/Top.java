@@ -69,7 +69,7 @@ public class Top implements Command<SendMessage> {
     }
 
     @Override
-    public SendMessage parse(Update update) throws BotException {
+    public List<SendMessage> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -104,7 +104,7 @@ public class Top implements Command<SendMessage> {
         sendMessage.setText(responseText);
         sendMessage.setDisableNotification(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     public SendMessage getTopByChat(Chat chat) {

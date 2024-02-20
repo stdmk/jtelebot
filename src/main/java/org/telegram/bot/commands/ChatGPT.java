@@ -81,7 +81,7 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         String token = propertiesConfig.getChatGPTToken();
         if (StringUtils.isEmpty(token)) {
             log.error("Unable to find google token");
@@ -153,7 +153,7 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            return sendPhoto;
+            returnOneResult(sendPhoto);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -162,7 +162,7 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
         sendMessage.setText(responseText);
         sendMessage.enableMarkdown(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username) {

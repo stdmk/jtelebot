@@ -32,7 +32,7 @@ class BackupTest {
         Update update = getUpdateFromGroup();
         when(dbBackuper.getDbBackup()).thenReturn(new InputFile());
 
-        SendDocument sendDocument = backup.parse(update);
+        SendDocument sendDocument = backup.parse(update).get(0);
         verify(bot).sendUploadDocument(update);
 
         assertNotNull(sendDocument);

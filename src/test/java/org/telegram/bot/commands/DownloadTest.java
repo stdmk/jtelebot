@@ -53,7 +53,7 @@ class DownloadTest {
     void parseWithEmptyArgumentTest() {
         Update update = getUpdateFromGroup("download");
 
-        PartialBotApiMethod<?> method = download.parse(update);
+        PartialBotApiMethod<?> method = download.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(method);
         Mockito.verify(commandWaitingService).add(update.getMessage(), Download.class);
@@ -74,7 +74,7 @@ class DownloadTest {
 
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update);
+        PartialBotApiMethod<?> method = download.parse(update).get(0);
         verify(bot).sendUploadDocument(update.getMessage().getChatId());
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 
@@ -96,7 +96,7 @@ class DownloadTest {
 
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update);
+        PartialBotApiMethod<?> method = download.parse(update).get(0);
         verify(bot).sendUploadDocument(update.getMessage().getChatId());
         assertNotNull(method);
         assertTrue(method instanceof SendDocument);
@@ -112,7 +112,7 @@ class DownloadTest {
 
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update);
+        PartialBotApiMethod<?> method = download.parse(update).get(0);
         verify(bot).sendUploadDocument(update.getMessage().getChatId());
         SendDocument sendDocument = checkDefaultSendDocumentParams(method);
 

@@ -61,7 +61,7 @@ class HelpTest {
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
                 .thenReturn(List.of(new CommandProperties().setClassName("className")));
 
-        SendMessage sendMessage = help.parse(update);
+        SendMessage sendMessage = help.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -82,7 +82,7 @@ class HelpTest {
                 .thenReturn(new User().setUserId(DEFAULT_USER_ID).setAccessLevel(AccessLevel.NEWCOMER.getValue()));
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.TRUSTED.getValue());
 
-        SendMessage sendMessage = help.parse(update);
+        SendMessage sendMessage = help.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -115,7 +115,7 @@ class HelpTest {
 
         when(commandPropertiesService.getCommand(anyString())).thenReturn(commandProperties);
 
-        SendMessage sendMessage = help.parse(update);
+        SendMessage sendMessage = help.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);

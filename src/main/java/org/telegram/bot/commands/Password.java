@@ -12,6 +12,8 @@ import org.telegram.bot.utils.MathUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -28,7 +30,7 @@ public class Password implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         bot.sendTyping(update);
 
         int passwordLength;
@@ -60,7 +62,7 @@ public class Password implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
         sendMessage.enableMarkdown(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String generatePassword(int length) {

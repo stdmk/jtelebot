@@ -33,6 +33,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TelegramUtils.getMessage;
@@ -53,7 +54,7 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
     private final Bot bot;
 
     @Override
-    public SendVoice parse(Update update) {
+    public List<SendVoice> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
 
@@ -110,7 +111,7 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
         sendVoice.setReplyToMessageId(messageIdToReply);
         sendVoice.setVoice(new InputFile(new ByteArrayInputStream(voice), "voice"));
 
-        return sendVoice;
+        return returnOneResult(sendVoice);
     }
 
     @Override

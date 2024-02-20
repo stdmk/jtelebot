@@ -22,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
     private final GooglePics googlePics;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
@@ -94,7 +95,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
             sendMessage.enableHtml(true);
             sendMessage.disableWebPagePreview();
 
-            return sendMessage;
+            return returnOneResult(sendMessage);
         }
 
         SendPhoto sendPhoto = new SendPhoto();
@@ -110,7 +111,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(message.getChatId().toString());
 
-        return sendPhoto;
+        return returnOneResult(sendPhoto);
     }
 
     private String getNextImageCommandText(Long imageId) {

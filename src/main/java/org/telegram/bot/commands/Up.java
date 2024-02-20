@@ -6,13 +6,16 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class Up implements Command<SendMessage> {
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -20,6 +23,6 @@ public class Up implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(".\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${command.up.caption}");
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

@@ -56,7 +56,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
     private final NetworkUtils networkUtils;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
         String textMessage = commandWaitingService.getText(message);
@@ -75,7 +75,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
             sendMessage.setChatId(chatId);
             sendMessage.setText("${command.qr.commandwaitingstart}");
 
-            return sendMessage;
+            return returnOneResult(sendMessage);
         } else {
             bot.sendUploadPhoto(chatId);
             SendPhoto sendPhoto = new SendPhoto();
@@ -84,7 +84,7 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
         }
     }
 

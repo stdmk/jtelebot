@@ -39,7 +39,7 @@ class CmdTest {
     @Test
     void parseWrongCommandTest() {
         Update update = TestUtils.getUpdateFromGroup("cmd test");
-        SendMessage sendMessage = cmd.parse(update);
+        SendMessage sendMessage = cmd.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
     }
@@ -47,7 +47,7 @@ class CmdTest {
     @Test
     void parseTest() {
         Update update = TestUtils.getUpdateFromGroup("cmd help");
-        SendMessage sendMessage = cmd.parse(update);
+        SendMessage sendMessage = cmd.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage);
     }

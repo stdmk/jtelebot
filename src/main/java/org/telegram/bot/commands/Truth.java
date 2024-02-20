@@ -15,6 +15,8 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
@@ -25,7 +27,7 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = getTextMessage(update);
@@ -48,7 +50,7 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(gif);
 
-            return sendDocument;
+            return returnOneResult(sendDocument);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -57,7 +59,7 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
         sendMessage.enableMarkdown(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String buildResponseMessage(int prob) {

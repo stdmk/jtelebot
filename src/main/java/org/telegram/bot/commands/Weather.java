@@ -63,7 +63,7 @@ public class Weather implements Command<SendMessage> {
     private final LanguageResolver languageResolver;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         String token = propertiesConfig.getOpenweathermapId();
         if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
@@ -93,7 +93,7 @@ public class Weather implements Command<SendMessage> {
                 sendMessage.setReplyToMessageId(message.getMessageId());
                 sendMessage.setText("${command.weather.commandwaitingstart}");
 
-                return sendMessage;
+                return returnOneResult(sendMessage);
             } else {
                 cityName = userCity.getCity().getNameEn();
             }
@@ -119,7 +119,7 @@ public class Weather implements Command<SendMessage> {
         sendMessage.setDisableWebPagePreview(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

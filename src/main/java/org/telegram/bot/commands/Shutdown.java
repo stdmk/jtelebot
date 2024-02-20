@@ -13,6 +13,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -25,11 +28,11 @@ public class Shutdown implements Command<SendMessage> {
     private final FileManagerTimer fileManagerTimer;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         bot.sendTyping(update);
@@ -52,6 +55,6 @@ public class Shutdown implements Command<SendMessage> {
         configurableApplicationContext.close();
         System.exit(0);
 
-        return null;
+        return Collections.emptyList();
     }
 }

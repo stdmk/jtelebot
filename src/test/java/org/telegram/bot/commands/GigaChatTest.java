@@ -223,7 +223,7 @@ class GigaChatTest {
         when(sberRestTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(new ResponseEntity<>("response".getBytes(StandardCharsets.UTF_8), HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = gigaChat.parse(update);
+        PartialBotApiMethod<?> method = gigaChat.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendPhoto sendPhoto = checkDefaultSendPhotoParams(method);
         assertEquals(expectedResponseText, sendPhoto.getCaption());
@@ -251,7 +251,7 @@ class GigaChatTest {
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = gigaChat.parse(update);
+        PartialBotApiMethod<?> method = gigaChat.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 
@@ -289,7 +289,7 @@ class GigaChatTest {
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = gigaChat.parse(update);
+        PartialBotApiMethod<?> method = gigaChat.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = checkDefaultSendMessageParams(method);
 

@@ -23,6 +23,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -41,7 +43,7 @@ public class Metadata implements Command<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
 
         Long chatId = message.getChatId();
@@ -52,7 +54,7 @@ public class Metadata implements Command<SendMessage> {
         }
 
         if (textMessage != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         String responseText;
@@ -108,7 +110,7 @@ public class Metadata implements Command<SendMessage> {
         sendMessage.setText(responseText);
         sendMessage.enableHtml(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private boolean hasAnyFile(Message message) {

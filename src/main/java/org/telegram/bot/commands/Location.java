@@ -14,6 +14,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
+
 @RequiredArgsConstructor
 @Component
 @Slf4j
@@ -23,13 +26,13 @@ public class Location implements Command<SendLocation> {
     private final SpeechService speechService;
 
     @Override
-    public SendLocation parse(Update update) {
+    public List<SendLocation> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage == null) {
-            return null;
+            return Collections.emptyList();
         }
         bot.sendLocation(chatId);
 
@@ -44,7 +47,7 @@ public class Location implements Command<SendLocation> {
         sendLocation.setLatitude(coordinates.getLatitude());
         sendLocation.setLongitude(coordinates.getLongitude());
 
-        return sendLocation;
+        return returnOneResult(sendLocation);
     }
 
 }

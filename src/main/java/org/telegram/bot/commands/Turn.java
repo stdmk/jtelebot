@@ -20,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class Turn implements Command<SendMessage>, MessageAnalyzer {
     }
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -78,7 +79,7 @@ public class Turn implements Command<SendMessage>, MessageAnalyzer {
         sendMessage.setReplyToMessageId(messageIdToReply);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String convert(String text, String lang) {

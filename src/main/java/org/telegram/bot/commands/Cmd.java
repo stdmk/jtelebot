@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -27,11 +28,11 @@ public class Cmd implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
-        if (textMessage == null || textMessage.equals("")) {
+        if (textMessage == null || textMessage.isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
         String responseText;
@@ -59,6 +60,6 @@ public class Cmd implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText("`" + responseText + "`");
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

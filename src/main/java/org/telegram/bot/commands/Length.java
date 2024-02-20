@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -32,7 +33,7 @@ public class Length implements Command<SendMessage> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
@@ -61,7 +62,7 @@ public class Length implements Command<SendMessage> {
         sendMessage.setText("${command.length.responselength} <b>" + length + "</b> ${command.length.symbols}");
 
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private int getFileLength(Document document) {

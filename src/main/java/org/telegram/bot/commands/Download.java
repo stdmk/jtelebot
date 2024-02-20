@@ -20,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.InputStream;
+import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.isThatUrl;
 
@@ -36,7 +37,7 @@ public class Download implements Command<PartialBotApiMethod<?>> {
     private static final String DEFAULT_FILE_NAME = "file";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
 
@@ -55,7 +56,7 @@ public class Download implements Command<PartialBotApiMethod<?>> {
             sendMessage.setChatId(chatId.toString());
             sendMessage.setText("${command.download.commandwaitingstart}");
 
-            return sendMessage;
+            return returnOneResult(sendMessage);
         } else {
             bot.sendUploadDocument(chatId);
 
@@ -73,7 +74,7 @@ public class Download implements Command<PartialBotApiMethod<?>> {
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(new InputFile(fileFromUrl, fileParams.getName()));
 
-            return sendDocument;
+            return returnOneResult(sendDocument);
         }
     }
 

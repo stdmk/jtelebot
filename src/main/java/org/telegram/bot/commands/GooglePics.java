@@ -50,7 +50,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
 
@@ -69,7 +69,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
             sendMessage.setReplyToMessageId(message.getMessageId());
             sendMessage.setText("${command.googlepics.commandwaitingstart}");
 
-            return sendMessage;
+            return returnOneResult(sendMessage);
         } else if (textMessage.startsWith("_")) {
             bot.sendUploadPhoto(chatId);
             long imageId;
@@ -100,7 +100,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId.toString());
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
 
         } else {
             bot.sendUploadPhoto(chatId);
@@ -121,7 +121,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
             sendMediaGroup.setReplyToMessageId(message.getMessageId());
             sendMediaGroup.setChatId(chatId.toString());
 
-            return sendMediaGroup;
+            return returnOneResult(sendMediaGroup);
         }
     }
 
@@ -134,7 +134,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
      */
     public List<ImageUrl> searchImagesOnGoogle(String text) {
         String googleToken = propertiesConfig.getGoogleToken();
-        if (googleToken == null || googleToken.equals("")) {
+        if (googleToken == null || googleToken.isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 

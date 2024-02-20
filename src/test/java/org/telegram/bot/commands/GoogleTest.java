@@ -77,7 +77,7 @@ class GoogleTest {
 
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
 
-        PartialBotApiMethod<?> method = google.parse(update);
+        PartialBotApiMethod<?> method = google.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
@@ -120,7 +120,7 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        PartialBotApiMethod<?> method = google.parse(update);
+        PartialBotApiMethod<?> method = google.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
@@ -151,7 +151,7 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        PartialBotApiMethod<?> method = google.parse(update);
+        PartialBotApiMethod<?> method = google.parse(update).get(0);
 
 
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -230,7 +230,7 @@ class GoogleTest {
         when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(cseImage.getSrc()).setTitle("imageTitle"));
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
-        PartialBotApiMethod<?> method = google.parse(update);
+        PartialBotApiMethod<?> method = google.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);

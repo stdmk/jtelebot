@@ -49,7 +49,7 @@ class ConverterTest {
         when(unitsConverter.getInfo()).thenReturn(expectedInfo);
         Converter converter2 = new Converter(List.of(unitsConverter), bot, speechService);
 
-        SendMessage sendMessage = converter2.parse(updateFromGroup);
+        SendMessage sendMessage = converter2.parse(updateFromGroup).get(0);
         verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -68,7 +68,7 @@ class ConverterTest {
         when(unitsConverter2.getInfo()).thenReturn(expectedResult2);
         Converter converter2 = new Converter(List.of(unitsConverter1, unitsConverter2), bot, speechService);
 
-        SendMessage sendMessage = converter2.parse(updateFromGroup);
+        SendMessage sendMessage = converter2.parse(updateFromGroup).get(0);
         verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage);

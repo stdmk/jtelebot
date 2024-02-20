@@ -18,6 +18,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
@@ -33,10 +35,10 @@ public class Boobs implements Command<SendPhoto> {
     private static final String BOOBS_API_URL = "http://api.oboobs.ru/boobs/";
     private static final String BOOBS_IMAGE_URL = "http://media.oboobs.ru/boobs/";
 
-    public SendPhoto parse(Update update) throws BotException {
+    public List<SendPhoto> parse(Update update) throws BotException {
         Message message = getMessageFromUpdate(update);
         if (cutCommandInText(message.getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         bot.sendUploadPhoto(message.getChatId());
@@ -66,7 +68,7 @@ public class Boobs implements Command<SendPhoto> {
         sendPhoto.setChatId(message.getChatId().toString());
         sendPhoto.setHasSpoiler(true);
 
-        return sendPhoto;
+        return returnOneResult(sendPhoto);
     }
 
     @Data

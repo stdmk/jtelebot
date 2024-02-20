@@ -65,7 +65,7 @@ public class Files implements Command<PartialBotApiMethod<?>> {
     private static final Long ROOT_DIR_ID = 0L;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Chat chat = new Chat().setChatId(message.getChatId());
         String textMessage;
@@ -91,10 +91,10 @@ public class Files implements Command<PartialBotApiMethod<?>> {
         }
 
         if (callback) {
-            return getResponseForCallback(update, message, commandWaiting, textMessage);
+            return returnOneResult(getResponseForCallback(update, message, commandWaiting, textMessage));
         }
 
-        return getResponse(message, commandWaiting, textMessage);
+        return returnOneResult(getResponse(message, commandWaiting, textMessage));
     }
 
     private PartialBotApiMethod<?> getResponseForCallback(Update update, Message message, CommandWaiting commandWaiting, String textMessage) {

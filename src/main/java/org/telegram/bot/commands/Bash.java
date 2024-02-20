@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 
@@ -32,7 +33,7 @@ public class Bash implements Command<SendMessage> {
     private static final String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -58,7 +59,7 @@ public class Bash implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(quot);
 
-        return sendMessage;
+        return List.of(sendMessage);
     }
 
     /**

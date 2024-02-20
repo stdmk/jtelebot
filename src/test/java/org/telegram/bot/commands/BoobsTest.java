@@ -67,7 +67,7 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsCountArray);
 
-        SendPhoto sendPhoto = boobs.parse(update);
+        SendPhoto sendPhoto = boobs.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(sendPhoto, true);
     }

@@ -44,7 +44,7 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
     private static final Pattern PHRASES_PATTERN = Pattern.compile("([^.!?),]+[.!?]?)", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = message.getText();
@@ -60,7 +60,7 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     @Override

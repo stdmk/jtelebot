@@ -94,7 +94,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = googleTranslate.parse(update);
+        SendMessage sendMessage = googleTranslate.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -112,7 +112,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = googleTranslate.parse(update);
+        SendMessage sendMessage = googleTranslate.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -123,7 +123,7 @@ class GoogleTranslateTest {
     void translateWithEmptyCommandTest() {
         Update update = TestUtils.getUpdateFromGroup("translate");
 
-        SendMessage sendMessage = googleTranslate.parse(update);
+        SendMessage sendMessage = googleTranslate.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -153,7 +153,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = googleTranslate.parse(update);
+        SendMessage sendMessage = googleTranslate.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);
@@ -173,7 +173,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = googleTranslate.parse(update);
+        SendMessage sendMessage = googleTranslate.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage);

@@ -68,7 +68,7 @@ class ButtsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(buttsCountArray);
 
-        SendPhoto sendPhoto = butts.parse(update);
+        SendPhoto sendPhoto = butts.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(sendPhoto, true);
     }

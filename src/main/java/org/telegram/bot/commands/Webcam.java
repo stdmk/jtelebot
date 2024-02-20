@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.*;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
     private static final int MAX_VIDEO_DURATION_IN_SECONDS = 20;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = commandWaitingService.getText(message);
 
@@ -53,7 +54,7 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
             sendMessage.setChatId(message.getChatId().toString());
             sendMessage.setText("${command.webcam.commandwaitingstart}");
 
-            return sendMessage;
+            return returnOneResult(sendMessage);
         } else {
             bot.sendUploadVideo(message.getChatId());
             String duration;
@@ -97,7 +98,7 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
             sendVideo.setReplyToMessageId(message.getMessageId());
             sendVideo.setVideo(new InputFile(videoFile));
 
-            return sendVideo;
+            return returnOneResult(sendVideo);
         }
     }
 }

@@ -39,7 +39,7 @@ class CatsTest {
     @Test
     void parseWithArgumentsTest() {
         Update update = getUpdateFromGroup("cats test");
-        PartialBotApiMethod<?> method = cats.parse(update);
+        PartialBotApiMethod<?> method = cats.parse(update).get(0);
         verify(bot, never()).sendUploadPhoto(update.getMessage().getChatId());
         assertNull(method);
     }
@@ -74,7 +74,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(update);
+        PartialBotApiMethod<?> method = cats.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendDocumentParams(method);
     }
@@ -89,7 +89,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(update);
+        PartialBotApiMethod<?> method = cats.parse(update).get(0);
         verify(bot).sendUploadPhoto(update.getMessage().getChatId());
         checkDefaultSendPhotoParams(method);
     }

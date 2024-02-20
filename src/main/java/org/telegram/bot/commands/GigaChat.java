@@ -68,7 +68,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         String token;
         try {
             token = sberTokenProvider.getToken(getScope());
@@ -104,7 +104,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
                     token);
 
             image = getImage(responseText, token);
-            if (image != null) {
+            if (image.length > 0) {
                 bot.sendUploadPhoto(chatId);
                 responseText = TextUtils.cutHtmlTags(responseText);
             }
@@ -128,7 +128,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            return sendPhoto;
+            return returnOneResult(sendPhoto);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -137,7 +137,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         sendMessage.setText(responseText);
         sendMessage.enableMarkdown(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private ChatRequest buildRequest(List<GigaChatMessage> gigaChatMessages, String text) {
@@ -171,7 +171,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             return getFile(token, matcher.group(1));
         }
 
-        return null;
+        return new byte[0];
     }
 
     private synchronized ChatResponse getResponse(Object request, String url, String token) {

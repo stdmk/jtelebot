@@ -94,7 +94,7 @@ class FilesTest {
                                 PageRequest.of(1, 10),
                                 100));
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -126,7 +126,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(new File().setId(1L).setName(dirName));
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
@@ -167,7 +167,7 @@ class FilesTest {
 
         when(fileService.get(anyLong())).thenReturn(getFile());
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
         verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         EditMessageText editMessageText = TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
 
@@ -186,7 +186,7 @@ class FilesTest {
                                 PageRequest.of(3, 10),
                                 100));
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
         verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         EditMessageText editMessageText = TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
 
@@ -256,7 +256,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(getFile().setParentId(1L));
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
         verify(fileService).remove(any(Chat.class), any(File.class));
@@ -374,7 +374,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(dir);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
@@ -407,7 +407,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(dir);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);
@@ -455,7 +455,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(parentFile);
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        PartialBotApiMethod<?> method = files.parse(update);
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(method);

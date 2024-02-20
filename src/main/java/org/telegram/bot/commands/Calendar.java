@@ -85,7 +85,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
@@ -126,7 +126,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
             editMessage.setText(responseText);
             editMessage.setReplyMarkup(getKeyboard(date));
 
-            return editMessage;
+            return returnOneResult(editMessage);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -136,7 +136,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
         sendMessage.setReplyMarkup(getKeyboard(date));
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private Locale getUserLocale(Message message, User user) {

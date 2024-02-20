@@ -21,6 +21,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
@@ -38,7 +40,7 @@ public class Where implements Command<SendMessage> {
     private final CommandWaitingService commandWaitingService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
@@ -60,7 +62,7 @@ public class Where implements Command<SendMessage> {
             Chat chat = new Chat().setChatId(message.getChatId());
 
             if (user == null) {
-                return null;
+                return Collections.emptyList();
             }
 
             bot.sendTyping(message.getChatId());
@@ -83,6 +85,6 @@ public class Where implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

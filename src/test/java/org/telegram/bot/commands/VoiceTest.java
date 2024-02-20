@@ -181,7 +181,7 @@ class VoiceTest {
         when(languageResolver.getChatLanguageCode(updateFromGroup)).thenReturn(DEFAULT_LANG);
         when(speechSynthesizer.synthesize("test", DEFAULT_LANG)).thenReturn(expectedFile);
 
-        SendVoice method = voice.parse(updateFromGroup);
+        SendVoice method = voice.parse(updateFromGroup).get(0);
         TestUtils.checkDefaultSendVoiceParams(method);
     }
 
@@ -193,7 +193,7 @@ class VoiceTest {
         when(languageResolver.getChatLanguageCode(updateFromGroup)).thenReturn(DEFAULT_LANG);
         when(speechSynthesizer.synthesize("test", DEFAULT_LANG, SaluteSpeechVoice.KIN)).thenReturn(expectedFile);
 
-        SendVoice method = voice.parse(updateFromGroup);
+        SendVoice method = voice.parse(updateFromGroup).get(0);
         TestUtils.checkDefaultSendVoiceParams(method);
 
         verify(bot).sendTyping(DEFAULT_CHAT_ID);

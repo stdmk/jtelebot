@@ -7,6 +7,8 @@ import org.telegram.bot.domain.Command;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -16,9 +18,9 @@ import java.util.UUID;
 public class Uuid implements Command<SendMessage> {
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
-            return null;
+            return Collections.emptyList();
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -28,6 +30,6 @@ public class Uuid implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
         sendMessage.enableMarkdown(true);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

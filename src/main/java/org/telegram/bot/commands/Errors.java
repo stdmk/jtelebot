@@ -22,6 +22,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -38,7 +40,7 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
     private static final String CLEAR_ERRORS_COMMAND = "_clear";
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -66,9 +68,9 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
                 sendDocument.setReplyToMessageId(message.getMessageId());
                 sendDocument.setDocument(getDataFromError(error));
 
-                return sendDocument;
+                return returnOneResult(sendDocument);
             } else {
-                return null;
+                return Collections.emptyList();
             }
         } else {
             log.debug("Request to get list of errors");
@@ -88,7 +90,7 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private InputFile getDataFromError(Error error) {

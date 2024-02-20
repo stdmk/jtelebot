@@ -43,6 +43,10 @@ public class NewsMessage {
     @Column(name = "attachurl")
     private String attachUrl;
 
+    /**
+     * @deprecated use is not suitable, since the news may belong to different chats.
+     */
+    @Deprecated
     @Column(name = "messageid")
     private Integer messageId;
 

@@ -71,7 +71,7 @@ class HoroscopeTest {
                 "Мобильный — /horoscope_mob\n";
         Update update = TestUtils.getUpdateFromGroup("horoscope_abv");
 
-        SendMessage sendMessage = horoscope.parse(update);
+        SendMessage sendMessage = horoscope.parse(update).get(0);
 
         verify(bot).sendTyping(update.getMessage().getChatId());
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
@@ -101,7 +101,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update);
+        SendMessage sendMessage = horoscope.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
@@ -131,7 +131,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update);
+        SendMessage sendMessage = horoscope.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
@@ -150,7 +150,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update);
+        SendMessage sendMessage = horoscope.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
 
         TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);

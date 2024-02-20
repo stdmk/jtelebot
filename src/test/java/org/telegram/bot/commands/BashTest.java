@@ -51,7 +51,7 @@ class BashTest {
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
 
-        SendMessage sendMessage = bash.parse(update);
+        SendMessage sendMessage = bash.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
         String actualText = sendMessage.getText();
@@ -80,7 +80,7 @@ class BashTest {
 
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
 
-        SendMessage sendMessage = bash.parse(update);
+        SendMessage sendMessage = bash.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
         checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
 

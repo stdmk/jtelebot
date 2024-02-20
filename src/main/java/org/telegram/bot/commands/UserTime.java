@@ -18,6 +18,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -33,7 +35,7 @@ public class UserTime implements Command<SendMessage> {
     private final CityService cityService;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -59,7 +61,7 @@ public class UserTime implements Command<SendMessage> {
             if (city == null) {
                 if (user == null) {
                     log.debug("Unable to find user or city {}", textMessage);
-                    return null;
+                    return Collections.emptyList();
                 }
                 responseText = "У " + getLinkToUser(user, false) + " ${command.usertime.citynotset}";
             } else {
@@ -85,6 +87,6 @@ public class UserTime implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 }

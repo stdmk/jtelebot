@@ -52,7 +52,7 @@ public class Google implements Command<PartialBotApiMethod<?>> {
     private final BotStats botStats;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
 
@@ -103,7 +103,7 @@ public class Google implements Command<PartialBotApiMethod<?>> {
                 sendPhoto.setReplyToMessageId(message.getMessageId());
                 sendPhoto.setChatId(chatId.toString());
 
-                return sendPhoto;
+                return returnOneResult(sendPhoto);
             }
         } else {
             bot.sendTyping(chatId);
@@ -156,7 +156,7 @@ public class Google implements Command<PartialBotApiMethod<?>> {
         sendMessage.disableWebPagePreview();
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

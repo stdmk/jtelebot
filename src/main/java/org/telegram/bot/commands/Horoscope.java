@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -43,7 +44,7 @@ public class Horoscope implements Command<SendMessage> {
     private final XmlMapper xmlMapper;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -84,7 +85,7 @@ public class Horoscope implements Command<SendMessage> {
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String getResponseTextWithHoroscopeTypeList() {

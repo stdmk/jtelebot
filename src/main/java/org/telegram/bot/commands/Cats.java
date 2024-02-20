@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Collections;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -34,13 +36,13 @@ public class Cats implements Command<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public PartialBotApiMethod<?> parse(Update update) {
+    public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         Long chatId = message.getChatId();
         String textMessage = cutCommandInText(message.getText());
 
         if (textMessage != null) {
-            return null;
+            return Collections.emptyList();
         }
         bot.sendUploadPhoto(chatId);
 
@@ -69,7 +71,7 @@ public class Cats implements Command<PartialBotApiMethod<?>> {
             sendDocument.setReplyToMessageId(message.getMessageId());
             sendDocument.setDocument(new InputFile(url));
 
-            return sendDocument;
+            return returnOneResult(sendDocument);
         }
 
         SendPhoto sendPhoto = new SendPhoto();
@@ -78,7 +80,7 @@ public class Cats implements Command<PartialBotApiMethod<?>> {
         sendPhoto.setReplyToMessageId(message.getMessageId());
         sendPhoto.setChatId(chatId.toString());
 
-        return sendPhoto;
+        return returnOneResult(sendPhoto);
     }
 
     @Data

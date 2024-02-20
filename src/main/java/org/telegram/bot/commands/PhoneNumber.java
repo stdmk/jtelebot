@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class PhoneNumber implements Command<SendMessage> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         String responseText;
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
@@ -59,7 +60,7 @@ public class PhoneNumber implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private PhoneInfo getPhoneInfo(String text) {

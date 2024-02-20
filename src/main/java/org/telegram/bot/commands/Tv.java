@@ -47,7 +47,7 @@ public class Tv implements Command<SendMessage> {
     private static final int HOURS_NUMBER_LONG = 12;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
@@ -78,7 +78,7 @@ public class Tv implements Command<SendMessage> {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String searchForChannelsAndPrograms(String searchText, ZoneId zoneId) {

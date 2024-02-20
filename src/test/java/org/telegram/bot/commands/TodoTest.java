@@ -63,7 +63,7 @@ class TodoTest {
 
         when(todoService.get(any(Chat.class), any(User.class))).thenReturn(getSomeTodos());
 
-        SendMessage sendMessage = todo.parse(update);
+        SendMessage sendMessage = todo.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponse, sendMessage.getText());
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
@@ -111,7 +111,7 @@ class TodoTest {
                         .setUser(TestUtils.getUser(TestUtils.DEFAULT_USER_ID)));
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update);
+        SendMessage sendMessage = todo.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
 
@@ -127,7 +127,7 @@ class TodoTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update);
+        SendMessage sendMessage = todo.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
 
@@ -153,7 +153,7 @@ class TodoTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update);
+        SendMessage sendMessage = todo.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
 
@@ -201,7 +201,7 @@ class TodoTest {
 
         when(todoTagService.get(any(Chat.class), any(User.class), anyList())).thenReturn(todoTagsList);
 
-        SendMessage sendMessage = todo.parse(update);
+        SendMessage sendMessage = todo.parse(update).get(0);
         TestUtils.checkDefaultSendMessageParams(sendMessage);
         assertEquals(expectedResponseText, sendMessage.getText());
         verify(bot).sendTyping(DEFAULT_CHAT_ID);

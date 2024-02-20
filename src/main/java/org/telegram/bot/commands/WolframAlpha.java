@@ -38,7 +38,7 @@ public class WolframAlpha implements Command<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String responseText;
@@ -62,7 +62,7 @@ public class WolframAlpha implements Command<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     /**

@@ -46,7 +46,7 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
     private final List<String> decreaseSymbols = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
 
     @Override
-    public SendMessage parse(Update update) {
+    public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
@@ -69,7 +69,7 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
         sendMessage.enableHtml(true);
         sendMessage.setText(responseText);
 
-        return sendMessage;
+        return returnOneResult(sendMessage);
     }
 
     private String getKarmaStatsOfUser(Message message) {
