@@ -4,6 +4,7 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.getPotentialCommandInText;
@@ -13,6 +14,9 @@ public interface Command<T extends PartialBotApiMethod<?>> {
     List<T> parse(Update update);
 
     default List<T> returnOneResult(T method) {
+        if (method == null) {
+            return Collections.emptyList();
+        }
         return List.of(method);
     }
 

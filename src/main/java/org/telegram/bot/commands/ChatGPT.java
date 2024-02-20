@@ -153,7 +153,7 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
             sendPhoto.setReplyToMessageId(message.getMessageId());
             sendPhoto.setChatId(chatId);
 
-            returnOneResult(sendPhoto);
+            return returnOneResult(sendPhoto);
         }
 
         SendMessage sendMessage = new SendMessage();

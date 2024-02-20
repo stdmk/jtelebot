@@ -17,6 +17,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -39,9 +41,9 @@ class GreatAdviceTest {
     @Test
     void adviceWithNotEmptyMessageTextTest() {
         Update update = TestUtils.getUpdateFromGroup("advice test");
-        SendMessage sendMessage = greatAdvice.parse(update).get(0);
+        List<SendMessage> methods = greatAdvice.parse(update);
         verify(bot, never()).sendTyping(update.getMessage().getChatId());
-        assertNull(sendMessage);
+        assertTrue(methods.isEmpty());
     }
 
     @Test

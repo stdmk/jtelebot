@@ -46,8 +46,8 @@ class MetadataTest {
     @Test
     void parseWithParamsTest() {
         Update update = TestUtils.getUpdateFromGroup("metadata test");
-        SendMessage sendMessage = metadata.parse(update).get(0);
-        assertNull(sendMessage);
+        List<SendMessage> methods = metadata.parse(update);
+        assertTrue(methods.isEmpty());
     }
 
     @Test

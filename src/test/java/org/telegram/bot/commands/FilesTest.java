@@ -324,7 +324,8 @@ class FilesTest {
         when(commandWaitingService.get(any(Chat.class), any(User.class)))
                 .thenReturn(new CommandWaiting().setTextMessage("files a"));
 
-        assertNull(files.parse(update));
+        List<PartialBotApiMethod<?>> methods = files.parse(update);
+        assertTrue(methods.isEmpty());
         verify(bot).sendTyping(update.getMessage().getChatId());
         verify(commandWaitingService).remove(any(CommandWaiting.class));
     }

@@ -104,7 +104,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
                     token);
 
             image = getImage(responseText, token);
-            if (image.length > 0) {
+            if (image != null) {
                 bot.sendUploadPhoto(chatId);
                 responseText = TextUtils.cutHtmlTags(responseText);
             }
@@ -171,7 +171,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             return getFile(token, matcher.group(1));
         }
 
-        return new byte[0];
+        return null;
     }
 
     private synchronized ChatResponse getResponse(Object request, String url, String token) {

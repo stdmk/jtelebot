@@ -18,6 +18,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -37,8 +39,8 @@ class DogsTest {
     @Test
     void parseWithParamsTest() {
         Update update = TestUtils.getUpdateFromGroup("dogs test");
-        PartialBotApiMethod<?> method = dogs.parse(update).get(0);
-        assertNull(method);
+        List<PartialBotApiMethod<?>> methods = dogs.parse(update);
+        assertTrue(methods.isEmpty());
         verify(bot, never()).sendUploadPhoto(anyLong());
     }
 

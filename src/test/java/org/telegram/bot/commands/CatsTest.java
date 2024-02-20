@@ -15,6 +15,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,9 +41,9 @@ class CatsTest {
     @Test
     void parseWithArgumentsTest() {
         Update update = getUpdateFromGroup("cats test");
-        PartialBotApiMethod<?> method = cats.parse(update).get(0);
+        List<PartialBotApiMethod<?>> methods = cats.parse(update);
         verify(bot, never()).sendUploadPhoto(update.getMessage().getChatId());
-        assertNull(method);
+        assertTrue(methods.isEmpty());
     }
 
     @Test

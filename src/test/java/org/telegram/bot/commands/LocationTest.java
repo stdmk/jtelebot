@@ -13,6 +13,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
@@ -30,8 +32,8 @@ class LocationTest {
     @Test
     void parseWithoutCoordinatesTest() {
         Update update = TestUtils.getUpdateFromGroup("location");
-        SendLocation sendLocation = location.parse(update).get(0);
-        assertNull(sendLocation);
+        List<SendLocation> methods = location.parse(update);
+        assertTrue(methods.isEmpty());
     }
 
     @Test

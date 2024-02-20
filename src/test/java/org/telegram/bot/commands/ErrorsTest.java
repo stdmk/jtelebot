@@ -94,9 +94,9 @@ class ErrorsTest {
     @Test
     void getErrorDataWithUnexpectedArgument() {
         Update update = getUpdateFromGroup("errors abv");
-        PartialBotApiMethod<?> method = assertDoesNotThrow(() -> errors.parse(update).get(0));
+        List<PartialBotApiMethod<?>> methods = errors.parse(update);
         verify(bot).sendTyping(update.getMessage().getChatId());
-        assertNull(method);
+        assertTrue(methods.isEmpty());
     }
 
     @Test
