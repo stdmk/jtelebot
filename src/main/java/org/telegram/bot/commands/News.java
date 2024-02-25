@@ -131,37 +131,6 @@ public class News implements Command<PartialBotApiMethod<?>> {
         return mapToSendMessages(responseTextList, message.getChatId(), messageId);
     }
 
-    private List<PartialBotApiMethod<?>> mapToSendMessages(List<String> responseTextList, Long chatId, Integer replyToMessageId) {
-        List<PartialBotApiMethod<?>> result = new ArrayList<>();
-
-        StringBuilder buf = new StringBuilder();
-        for (String responseText : responseTextList) {
-            if (buf.length() + responseText.length() > TELEGRAM_MESSAGE_TEXT_MAX_LENGTH) {
-                result.add(buildSendMessage(buf.toString(), chatId, replyToMessageId));
-                buf = new StringBuilder();
-            }
-
-            buf.append(responseText);
-        }
-
-        if (buf.length() != 0) {
-            result.add(buildSendMessage(buf.toString(), chatId, replyToMessageId));
-        }
-
-        return result;
-    }
-
-    private SendMessage buildSendMessage(String text, Long chatId, Integer replyToMessageId) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(replyToMessageId);
-        sendMessage.setText(text);
-
-        return sendMessage;
-    }
-
     private void checkNewsCount(Integer newsCount) {
         if (newsCount == null) {
             return;

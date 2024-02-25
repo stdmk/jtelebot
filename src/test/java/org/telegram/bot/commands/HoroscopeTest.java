@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,6 +110,22 @@ class HoroscopeTest {
     }
 
     @Test
+    void parseWithoutHoroscopeWithBigDataTest() throws IOException {
+        Horoscope.HoroscopeData data = getHoroscopeBigData();
+        Update update = TestUtils.getUpdateFromGroup("horoscope");
+
+        when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
+                .thenReturn(data);
+
+        List<SendMessage> methods = horoscope.parse(update);
+        assertEquals(12, methods.size());
+        SendMessage sendMessage = methods.get(0);
+        verify(bot).sendTyping(update.getMessage().getChatId());
+
+        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
+    }
+
+    @Test
     void parseKnownHoroscopeTest() throws IOException {
         final String expectedResponseText = "${command.horoscope.caption} <b>Анти</b>\n" +
                 "(today)\n" +
@@ -173,6 +190,24 @@ class HoroscopeTest {
                 .setCapricorn(new Horoscope.HoroscopeElement().setToday("capricorn"))
                 .setAquarius(new Horoscope.HoroscopeElement().setToday("aquarius"))
                 .setPisces(new Horoscope.HoroscopeElement().setToday("pisces"));
+    }
+
+    private Horoscope.HoroscopeData getHoroscopeBigData() {
+        return new Horoscope.HoroscopeData()
+                .setDate(new Horoscope.Date()
+                        .setToday("today"))
+                .setAries(new Horoscope.HoroscopeElement().setToday("aries".repeat(500)))
+                .setTaurus(new Horoscope.HoroscopeElement().setToday("taurus".repeat(500)))
+                .setGemini(new Horoscope.HoroscopeElement().setToday("gemini".repeat(500)))
+                .setCancer(new Horoscope.HoroscopeElement().setToday("cancer".repeat(500)))
+                .setLeo(new Horoscope.HoroscopeElement().setToday("leo".repeat(500)))
+                .setVirgo(new Horoscope.HoroscopeElement().setToday("virgo".repeat(500)))
+                .setLibra(new Horoscope.HoroscopeElement().setToday("libra".repeat(500)))
+                .setScorpio(new Horoscope.HoroscopeElement().setToday("scorpio".repeat(500)))
+                .setSagittarius(new Horoscope.HoroscopeElement().setToday("sagittarius".repeat(500)))
+                .setCapricorn(new Horoscope.HoroscopeElement().setToday("capricorn".repeat(500)))
+                .setAquarius(new Horoscope.HoroscopeElement().setToday("aquarius".repeat(500)))
+                .setPisces(new Horoscope.HoroscopeElement().setToday("pisces".repeat(500)));
     }
 
 }

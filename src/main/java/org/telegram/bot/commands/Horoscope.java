@@ -27,9 +27,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -46,10 +48,11 @@ public class Horoscope implements Command<SendMessage> {
     @Override
     public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        bot.sendTyping(message.getChatId());
+        Long chatId = message.getChatId();
+        bot.sendTyping(chatId);
         String textMessage = cutCommandInText(message.getText());
         String responseText;
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Chat chat = new Chat().setChatId(chatId);
         User user = new User().setUserId(message.getFrom().getId());
 
         org.telegram.bot.enums.Horoscope horoscopeType;
@@ -70,7 +73,7 @@ public class Horoscope implements Command<SendMessage> {
             UserZodiac userZodiac = userZodiacService.get(chat, user);
             if (userZodiac == null || Zodiac.NOT_CHOSEN.equals(userZodiac.getZodiac())) {
                 log.debug("Request to {} horoscope for all zodiacs", horoscopeType);
-                responseText = getHoroscopeForAllZodiacs(horoscopeType);
+                return mapToSendMessages(getHoroscopeForAllZodiacs(horoscopeType), chatId, message.getMessageId());
             } else {
                 log.debug("Request to get {} horoscope for {}", horoscopeType, userZodiac);
                 responseText = getHoroscopeForZodiacs(horoscopeType, userZodiac.getZodiac());
@@ -80,7 +83,7 @@ public class Horoscope implements Command<SendMessage> {
         }
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
+        sendMessage.setChatId(chatId);
         sendMessage.enableHtml(true);
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.setText(responseText);
@@ -103,24 +106,18 @@ public class Horoscope implements Command<SendMessage> {
         return buf.toString();
     }
 
-    private String getHoroscopeForAllZodiacs(org.telegram.bot.enums.Horoscope horoscope) {
+    private List<String> getHoroscopeForAllZodiacs(org.telegram.bot.enums.Horoscope horoscope) {
         HoroscopeData horoscopeData = getHoroByHoroscopeType(horoscope);
+        List<String> result = new ArrayList<>(13);
 
-        StringBuilder buf = new StringBuilder("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n");
-        buf.append("(").append(horoscopeData.getDate().getToday()).append(")\n\n");
+        result.add("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n(" + horoscopeData.getDate().getToday() + ")\n\n");
+        result.addAll(Arrays.stream(Zodiac.values())
+                .filter(zodiac -> !Zodiac.NOT_CHOSEN.equals(zodiac))
+                .map(zodiac -> "<u><a href=\"" + HOROSCOPE_DATA_URL + "\">" + zodiac.getEmoji() + zodiac.getName() + "</a></u>"
+                        + getHoroscopeElementByZodiacName(horoscopeData, zodiac).getToday() + "\n")
+                .collect(Collectors.toList()));
 
-        Arrays.stream(Zodiac.values()).forEach(zodiac -> {
-            if (Zodiac.NOT_CHOSEN.equals(zodiac)) {
-                return;
-            }
-
-            HoroscopeElement horoscopeElement = getHoroscopeElementByZodiacName(horoscopeData, zodiac);
-
-            buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
-            buf.append(horoscopeElement.getToday()).append("\n");
-        });
-
-        return buf.toString();
+        return result;
     }
 
     private String getHoroscopeForZodiacs(org.telegram.bot.enums.Horoscope horoscope, Zodiac zodiac) {
