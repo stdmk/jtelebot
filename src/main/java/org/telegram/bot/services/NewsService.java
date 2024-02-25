@@ -102,4 +102,12 @@ public interface NewsService {
      * @param newsId id of News entity
      */
     void remove(Long newsId);
+
+
+    /**
+     * Remove News by NewsSource.
+     *
+     * @param newsSource NewsSource entity.
+     */
+    void remove(NewsSource newsSource);
 }

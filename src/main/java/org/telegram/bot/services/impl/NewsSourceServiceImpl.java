@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.NewsSource;
 import org.telegram.bot.repositories.NewsSourceRepository;
+import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 public class NewsSourceServiceImpl implements NewsSourceService {
 
     private final NewsSourceRepository newsSourceRepository;
+    private final NewsService newsService;
 
     @Override
     public NewsSource get(Long newsSourceId) {
@@ -49,8 +52,10 @@ public class NewsSourceServiceImpl implements NewsSourceService {
     }
 
     @Override
+    @Transactional
     public void remove(NewsSource newsSource) {
         log.debug("Request to remove NewsSource {}", newsSource);
+        newsService.remove(newsSource);
         newsSourceRepository.delete(newsSource);
     }
 }

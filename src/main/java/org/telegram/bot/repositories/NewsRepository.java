@@ -16,4 +16,5 @@ public interface NewsRepository extends JpaRepository<News, Long> {
     List<News> findByChat(Chat chat);
     List<News> findByNewsSource(NewsSource newsSource);
     News findByChatAndNewsSource(Chat chat, NewsSource newsSource);
+    void deleteByNewsSource(NewsSource newsSource);
 }
