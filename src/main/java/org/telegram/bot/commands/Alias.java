@@ -137,7 +137,7 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
                         processUpdate(update, chat, user, aliasValue + argument);
                     }
                 }
-            } else {
+            } else if (argument == null) {
                 processUpdate(update, chat, user, alias.getValue());
             }
         }
