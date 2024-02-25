@@ -134,6 +134,10 @@ Java Telegram Bot (Spring)
 
 /voice — speech synthesis (and recognizing).
 
+/virus — checking files and links for malware.
+
+/length — counting the number of characters in a text or text file
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
