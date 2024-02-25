@@ -12,6 +12,7 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.timers.TrackCodeEventsTimer;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -22,7 +23,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -44,6 +44,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final Bot bot;
+    private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
 
@@ -104,7 +105,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND) || (textMessage.startsWith(SHORT_DELETE_PARCEL_COMMAND))) {
             return returnOneResult(deleteParcel(message, user, textMessage));
         } else {
-            return returnOneResult(getTrackCodeData(message, user, textMessage));
+            return getTrackCodeData(message, user, textMessage);
         }
     }
 
@@ -315,7 +316,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         return sendMessage;
     }
 
-    private SendMessage getTrackCodeData(Message message, User user, String command) {
+    private List<PartialBotApiMethod<?>> getTrackCodeData(Message message, User user, String command) {
         Long parcelId = null;
         try {
             parcelId = Long.parseLong(command.substring(1));
@@ -357,19 +358,15 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
                 .sorted(Comparator.comparing(TrackCodeEvent::getEventDateTime))
                 .collect(Collectors.toList());
 
-        StringBuilder buf = new StringBuilder();
-        trackCodeEventList.forEach(trackCodeEvent -> buf.append(buildStringEventMessage(trackCodeEvent)).append(BORDER));
+        List<String> response = trackCodeEventList
+                .stream()
+                .map(trackCodeEvent -> buildStringEventMessage(trackCodeEvent) + BORDER)
+                .collect(Collectors.toList());
 
-        buf.append(buildGeneralInformation(trackCode.getBarcode(), trackCodeEventList));
-        buf.append(lastUpdatesTimeInfo);
+        response.add(buildGeneralInformation(trackCode.getBarcode(), trackCodeEventList));
+        response.add(lastUpdatesTimeInfo);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(buf.toString());
-
-        return sendMessage;
+        return mapToSendMessages(response, message);
     }
 
     private void notifyOtherUsers(TrackCode trackCode, User user, LocalDateTime lastEventUpdateDateTime) {
@@ -385,20 +382,16 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         trackCode.getEvents()
                 .stream()
                 .filter(event -> event.getEventDateTime().isAfter(lastEventUpdateDateTime))
-                .forEach(newEvent -> parcelsOfTrackCode.forEach(parcel -> {
+                .flatMap(newEvent -> parcelsOfTrackCode.stream().map(parcel -> {
                     String messageText = Parcel.buildStringEventMessage(parcel, newEvent);
+                    SendMessage sendMessage = new SendMessage();
+                    sendMessage.setChatId(parcel.getUser().getUserId());
+                    sendMessage.enableHtml(true);
+                    sendMessage.setText(messageText);
 
-                    try {
-                        SendMessage sendMessage = new SendMessage();
-                        sendMessage.setChatId(parcel.getUser().getUserId());
-                        sendMessage.enableHtml(true);
-                        sendMessage.setText(messageText);
-
-                        bot.execute(sendMessage);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
-                }));
+                    return sendMessage;
+                }))
+                .forEach(sendMessageExecutor::executeMethod);
     }
 
     public static String buildStringEventMessage(org.telegram.bot.domain.entities.Parcel parcel, TrackCodeEvent trackCodeEvent) {
