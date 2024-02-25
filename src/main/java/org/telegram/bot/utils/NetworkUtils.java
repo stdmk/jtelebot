@@ -64,6 +64,8 @@ public class NetworkUtils {
     }
 
     public SyndFeed getRssFeedFromUrl(String url) throws IOException, FeedException {
-        return new SyndFeedInput().build(new XmlReader(new URL(url)));
+        SyndFeedInput syndFeedInput = new SyndFeedInput();
+        syndFeedInput.setAllowDoctypes(true);
+        return syndFeedInput.build(new XmlReader(new URL(url)));
     }
 }

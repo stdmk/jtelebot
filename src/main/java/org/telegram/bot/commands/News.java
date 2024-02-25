@@ -286,13 +286,13 @@ public class News implements Command<PartialBotApiMethod<?>> {
         try {
             syndFeed = networkUtils.getRssFeedFromUrl(url);
         } catch (FeedException e) {
-            log.debug("Failed to parse news from url: {}: {}", url, e.getMessage());
+            log.error("Failed to parse news from url: {}: {}", url, e.getMessage());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         } catch (MalformedURLException e) {
-            log.debug("Malformed URL: {}", url);
+            log.error("Malformed URL: {}", url);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         } catch (IOException e) {
-            log.debug("Failed to connect to url: {}: {}", url, e.getMessage());
+            log.error("Failed to connect to url: {}: {}", url, e.getMessage());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
