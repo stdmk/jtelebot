@@ -73,7 +73,7 @@ public class Horoscope implements Command<SendMessage> {
             UserZodiac userZodiac = userZodiacService.get(chat, user);
             if (userZodiac == null || Zodiac.NOT_CHOSEN.equals(userZodiac.getZodiac())) {
                 log.debug("Request to {} horoscope for all zodiacs", horoscopeType);
-                return mapToSendMessages(getHoroscopeForAllZodiacs(horoscopeType), chatId, message.getMessageId());
+                return mapToSendMessages(getHoroscopeForAllZodiacs(horoscopeType), message);
             } else {
                 log.debug("Request to get {} horoscope for {}", horoscopeType, userZodiac);
                 responseText = getHoroscopeForZodiacs(horoscopeType, userZodiac.getZodiac());

@@ -23,6 +23,10 @@ public interface Command<T extends PartialBotApiMethod<?>> {
         return List.of(method);
     }
 
+    default List<T> mapToSendMessages(List<String> responseTextList, Message message) {
+        return mapToSendMessages(responseTextList, message.getChatId(), message.getMessageId());
+    }
+
     default List<T> mapToSendMessages(List<String> responseTextList, Long chatId, Integer replyToMessageId) {
         List<T> result = new ArrayList<>();
 
