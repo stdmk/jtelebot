@@ -233,6 +233,9 @@ Default language code for the bot. Currently supported: `en`, `ru`. Default `en`
 **xmlTvFileUrl**  
 URL to a TV program file in XMLTV (gz) format. For /tv command.
 
+**sberApiRequestTimeoutSeconds**
+Waiting time for response from sber API.  
+
 **saluteSpeechSecret**  
 Secret for access for Salute Speech services (synthesis and recognize speech).  
 To get a secret go to: https://developers.sber.ru/docs/ru/salutespeech/integration

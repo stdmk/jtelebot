@@ -10,6 +10,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -37,6 +38,9 @@ import java.util.Locale;
 @Configuration
 public class Config {
 
+    @Value("${sberApiRequestTimeoutSeconds:60}")
+    private Integer sberApiRequestTimeoutSeconds;
+
     @Bean
     public RestTemplate botRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
@@ -63,7 +67,7 @@ public class Config {
         HttpComponentsClientHttpRequestFactory requestFactory =
                 new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
-        requestFactory.setReadTimeout(60000);
+        requestFactory.setReadTimeout(sberApiRequestTimeoutSeconds);
 
         return new RestTemplate(requestFactory);
     }
