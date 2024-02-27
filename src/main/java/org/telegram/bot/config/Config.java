@@ -67,7 +67,7 @@ public class Config {
         HttpComponentsClientHttpRequestFactory requestFactory =
                 new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
-        requestFactory.setReadTimeout(sberApiRequestTimeoutSeconds);
+        requestFactory.setReadTimeout(sberApiRequestTimeoutSeconds * 1000);
 
         return new RestTemplate(requestFactory);
     }
