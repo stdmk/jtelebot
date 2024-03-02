@@ -1,0 +1,394 @@
+
+<!doctype html>
+<html theme="light" lang="ru" data-controller="index" aside="true">
+<head>
+    <meta charset="utf-8">
+    <title>Цитата # – Цитатник Рунета</title>
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f5f4f2">
+    <meta name="viewport" id="view" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"/>
+    <link rel="preload" as="style" href="/3.0/bor.css?54e9492e3e49b12224457e7671125ac4">
+    <link rel="preload" as="script" href="/3.0/bor.js?54e9492e3e49b12224457e7671125ac4">
+
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com/" crossorigin>
+    <link rel="dns-prefetch" href="https://mc.yandex.ru/" crossorigin>
+
+
+
+
+
+
+    <link rel="stylesheet" href="/3.0/bor.css?54e9492e3e49b12224457e7671125ac4">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="shortcut" href="/favicon.ico">
+    <link rel="mask-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/favicon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/favicon-167x167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
+    <link rel="alternate" title="Комиксы – башорг.рф" href="/rss/comics.xml" type="application/rss+xml">
+    <link rel="alternate" title="Цитатник Рунета – башорг.рф" href="/rss/" type="application/rss+xml">
+    <script>
+        var nextTheme = {
+            light: 'dark',
+            dark: 'light'
+        };
+        var colors = {
+            light:'#f5f4f2',
+            dark: '#252323'
+        };
+        var tokens = ['aside', 'theme'];
+        var meta = document.querySelector('[name="theme-color"]');
+        for (var i = 0; i < tokens.length; i++) {
+            var name = tokens[i];
+            var value = localStorage.getItem(name);
+            if (value != null) {
+                document.documentElement.setAttribute(name, value);
+                name === 'theme' && meta.setAttribute('content', colors[value]);
+            }
+        }
+    </script>
+</head>
+<body data-turbolinks-suppress-warning>
+<header class="header">
+
+    <div class="header__projects">
+    </div>
+
+    <div class="header__wrap">
+        <div class="header__title">
+            <a class="header__title_item info " href="/faq" aria-label="О проекте">
+                <svg class="header__title_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 40" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                    <path d="M20 26a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 1a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm1-10a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 7v-5h-2v5h2z"/>
+                </svg>
+            </a>
+            <h1 class="header__title_wrap">
+                <a href="/" class="header__title_link">                    <span class="header__title_name">Башорг.рф&nbsp;— Цитатник Рунета</span>
+                    <svg class="header__shell" viewbox="0 0 253 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M195.944 11.656L200.12.88h-.864l-4.176 10.776h.864z" fill="currentColor"/>
+                        <path d="M.924 10h5.172v-.816h-2.4V6.508c0-.96.636-1.74 1.848-1.74h1.164v-.96h-.864c-1.296 0-1.848.744-2.088 1.56h-.06v-1.56H.924v.816h1.812v4.56H.924V10zM10.195 10.144c1.74 0 2.808-1.272 2.808-3.24 0-1.968-1.068-3.24-2.808-3.24-1.74 0-2.808 1.272-2.808 3.24 0 1.968 1.068 3.24 2.808 3.24zm0-.828c-1.068 0-1.788-.636-1.788-1.968V6.46c0-1.332.72-1.968 1.788-1.968s1.788.636 1.788 1.968v.888c0 1.332-.72 1.968-1.788 1.968zM16.79 10.144c1.74 0 2.809-1.272 2.809-3.24 0-1.968-1.068-3.24-2.808-3.24-1.74 0-2.808 1.272-2.808 3.24 0 1.968 1.068 3.24 2.808 3.24zm0-.828c-1.067 0-1.787-.636-1.787-1.968V6.46c0-1.332.72-1.968 1.788-1.968s1.788.636 1.788 1.968v.888c0 1.332-.72 1.968-1.788 1.968zM26.098 10v-.816h-2.82v-4.56h2.82v-.816h-2.82V1.624h-.924v1.62c0 .42-.156.564-.564.564h-1.536v.816h2.064v3.96c0 .828.432 1.416 1.368 1.416h2.412z" fill="#D33682"/>
+                        <path d="M39.212 10l2.22-6.192h-.948L39.596 6.4l-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972L37.988 10h1.224zM42.735 12.4h.96V8.992h.048c.396.756 1.044 1.152 1.908 1.152 1.512 0 2.424-1.212 2.424-3.24 0-2.028-.912-3.24-2.424-3.24-.864 0-1.512.396-1.908 1.152h-.048V3.808h-.96V12.4zm2.544-3.108c-.852 0-1.584-.444-1.584-1.272V5.788c0-.828.732-1.272 1.584-1.272 1.116 0 1.764.744 1.764 1.86v1.056c0 1.116-.648 1.86-1.764 1.86zM53.255 10h.96V3.808h-.96v4.296c0 .816-.768 1.188-1.536 1.188-.948 0-1.464-.552-1.464-1.68V3.808h-.96V7.78c0 1.5.852 2.364 2.148 2.364 1.02 0 1.5-.54 1.764-1.152h.048V10zM55.926 12.4h.96V8.992h.048c.396.756 1.044 1.152 1.908 1.152 1.512 0 2.424-1.212 2.424-3.24 0-2.028-.912-3.24-2.424-3.24-.864 0-1.512.396-1.908 1.152h-.048V3.808h-.96V12.4zm2.544-3.108c-.852 0-1.584-.444-1.584-1.272V5.788c0-.828.732-1.272 1.584-1.272 1.116 0 1.764.744 1.764 1.86v1.056c0 1.116-.648 1.86-1.764 1.86zM62.641 10h.96V7.756l1.068-.972L67.081 10h1.188l-2.868-3.768 2.568-2.424h-1.176L64.73 5.704l-1.08 1.02h-.048V1.12h-.96V10zM71.96 2.44c.553 0 .757-.264.757-.612v-.192c0-.348-.204-.612-.757-.612-.551 0-.755.264-.755.612v.192c0 .348.204.612.755.612zM69.25 10h5.28v-.816H72.44V3.808h-3.192v.816h2.232v4.56h-2.232V10zM76.708 10V5.704c0-.816.768-1.188 1.536-1.188.948 0 1.464.552 1.464 1.68V10h.96V6.028c0-1.5-.852-2.364-2.148-2.364-1.02 0-1.5.54-1.764 1.152h-.048V3.808h-.96V10h.96z" fill="#859900"/>
+                        <path d="M84.128 10h.876l1.476-8.376h-.876l-.456 2.592h-1.716v.792h1.572l-.276 1.608H83v.792h1.584L84.128 10zm2.208 0h.876l.456-2.592h1.716v-.792h-1.572l.276-1.608h1.728v-.792h-1.584l.456-2.592h-.876L86.336 10zM99.815 10.144c1.236 0 2.016-.612 2.376-1.44l-.684-.468c-.312.672-.852 1.08-1.68 1.08-1.164 0-1.788-.792-1.788-1.884V6.376c0-1.092.636-1.884 1.764-1.884.768 0 1.296.372 1.524 1.008l.768-.408c-.348-.84-1.092-1.428-2.292-1.428-1.752 0-2.796 1.272-2.796 3.24 0 1.956 1.032 3.24 2.808 3.24zM109.194 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM115.501 10v-.816h-2.82v-4.56h2.82v-.816h-2.82V1.624h-.924v1.62c0 .42-.156.564-.564.564h-1.536v.816h2.064v3.96c0 .828.432 1.416 1.368 1.416h2.412zM124.324 11.656L128.5.88h-.864l-4.176 10.776h.864zM134.075 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM139.278 10.144c1.224 0 2.113-.6 2.485-1.428l-.708-.48c-.324.672-.949 1.08-1.777 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.843 1.272-2.843 3.252 0 1.956 1.127 3.228 2.903 3.228zm-.06-5.688c1.02 0 1.717.744 1.717 1.836v.132h-3.553V6.34c0-1.08.78-1.884 1.836-1.884zM146.378 10l2.22-6.192h-.948l-.888 2.592-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972l2.22 6.192h1.224zM150.705 11.656L154.881.88h-.864l-4.176 10.776h.864zM161.956 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM165.624 10.144c1.584 0 2.616-.708 2.616-1.932 0-1.344-1.236-1.584-2.124-1.716l-.972-.144c-.552-.084-1.092-.252-1.092-.9 0-.636.54-.984 1.512-.984 1.092 0 1.644.432 1.932.78l.624-.588c-.588-.624-1.404-.996-2.52-.996-1.44 0-2.496.612-2.496 1.848 0 1.344 1.248 1.584 2.124 1.716l.972.144c.564.084 1.092.252 1.092.9 0 .732-.684 1.068-1.644 1.068-.984 0-1.656-.348-2.244-.972l-.648.564c.648.732 1.572 1.212 2.868 1.212zM172.219 10.144c1.584 0 2.616-.708 2.616-1.932 0-1.344-1.236-1.584-2.124-1.716l-.972-.144c-.552-.084-1.092-.252-1.092-.9 0-.636.54-.984 1.512-.984 1.092 0 1.644.432 1.932.78l.624-.588c-.588-.624-1.404-.996-2.52-.996-1.44 0-2.496.612-2.496 1.848 0 1.344 1.248 1.584 2.124 1.716l.972.144c.564.084 1.092.252 1.092.9 0 .732-.684 1.068-1.644 1.068-.984 0-1.656-.348-2.244-.972l-.648.564c.648.732 1.572 1.212 2.868 1.212zM182.758 9.808l5.16-2.988v-.96l-5.16-2.988v1.02l4.26 2.412V6.4l-4.26 2.412v.996zM205.028 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM210.232 10.144c1.224 0 2.112-.6 2.484-1.428l-.708-.48c-.324.672-.948 1.08-1.776 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.844 1.272-2.844 3.252 0 1.956 1.128 3.228 2.904 3.228zm-.06-5.688c1.02 0 1.716.744 1.716 1.836v.132h-3.552V6.34c0-1.08.78-1.884 1.836-1.884zM217.331 10l2.22-6.192h-.948l-.888 2.592-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972l2.22 6.192h1.224zM221.658 11.656L225.834.88h-.864l-4.176 10.776h.864zM227.486 10h.96V5.704c0-.816.768-1.188 1.536-1.188.948 0 1.464.552 1.464 1.68V10h.96V6.028c0-1.5-.852-2.364-2.148-2.364-1.02 0-1.5.54-1.764 1.152h-.048V1.12h-.96V10zM236.613 10.144c1.224 0 2.112-.6 2.484-1.428l-.708-.48c-.324.672-.948 1.08-1.776 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.844 1.272-2.844 3.252 0 1.956 1.128 3.228 2.904 3.228zm-.06-5.688c1.02 0 1.716.744 1.716 1.836v.132h-3.552V6.34c0-1.08.78-1.884 1.836-1.884zM246.1 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM251.196 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM33.448 10.576h-1.476c-1.908 0-2.328-1.464-2.328-3.324V5.704c0-2.412.564-3.456 1.992-3.456 1.284 0 1.812.84 1.812 2.196v.288h-.06c-.156-.408-.492-.828-1.2-.828-.972 0-1.596.804-1.596 2.58 0 1.764.624 2.568 1.596 2.568.708 0 1.044-.42 1.2-.828h.06v.684h.852V4.444c0-1.68-.768-2.964-2.688-2.964-1.872 0-2.868 1.212-2.868 4.92 0 3.312.792 4.944 3.228 4.944h1.476v-.768zM32.5 8.332c-.66 0-1.02-.42-1.02-1.488v-.732c0-1.068.36-1.488 1.02-1.488.576 0 .948.324.948.936v1.836c0 .612-.372.936-.948.936z" fill="currentColor"/>
+                    </svg>
+                            </h1>
+            <div class="header__title_item theme">
+                <svg class="header__title_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 40" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                    <g class="moon">
+                        <path d="M25.295 23.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.402 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C15 23.067 17.99 26 21.68 26c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"/>
+                    </g>
+                    <g class="sun">
+                        <path d="M20 14a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 15.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 14.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 24.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 20a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 20a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 25.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 27.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"/>
+                        <path d="M24 20a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+
+        <nav class="nav desktop">
+            <div class="nav__wrap">
+                <a class="nav__item about " href="/faq">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M26 19a6 6 0 1 1-12 0 6 6 0 0 1 12 0zm1 0a7 7 0 1 1-14 0 7 7 0 0 1 14 0zm-6-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 1.875c.345 0 .625.28.625.625v4a.625.625 0 1 1-1.25 0v-4c0-.345.28-.625.625-.625z"></path>
+                    </svg>
+                    <span class="nav__item_name">О проекте</span>
+                </a>
+                <div class="nav__item theme">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <g class="moon">
+                            <path d="M24.295 22.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.403 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C14 22.067 16.99 25 20.68 25c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"></path>
+                        </g>
+                        <g class="sun">
+                            <path d="M20 13a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 14.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 13.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 23.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 19a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 19a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 24.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 26.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"></path>
+                            <path d="M24 19a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                        </g>
+                    </svg>
+                    <span class="nav__item_name">Тема</span>
+                </div>
+                <a class="nav__item " href="/">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M27.618 18.107l-7.31-5.743L13 18.107l.618.786 1.19-.936V25.5h11v-7.543l1.192.936.618-.786zm-2.81-.935l-4.5-3.536-4.5 3.536V24.5h9v-7.328z"></path>
+                    </svg>
+                    <span class="nav__item_name">Новые</span>
+                    <span class="nav__item_badge" data-badge="index"></span>
+                </a>
+                <a class="nav__item " href="/abyss/">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M25.849 15.448A.786.786 0 0 0 26 15c0-1.105-2.686-2-6-2s-6 .895-6 2c0 .16.056.315.162.464L18 21.642v4.727l4-2.667v-2.06l3.852-6.194h-.003zm-1.854 1.044c-1.061.316-2.46.508-3.995.508-1.534 0-2.934-.192-3.994-.508L19 21.358V24.5l2-1.333v-1.809l2.995-4.866zM24.844 15c0 .552-2.16 1-4.825 1-2.664 0-4.824-.448-4.824-1s2.16-1 4.825-1c2.664 0 4.824.448 4.824 1z"></path>
+                    </svg>
+                    <span class="nav__item_name">Бездна</span>
+                </a>
+                <a class="nav__item " href="/strips">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M19.5 19h-3v-1h3v1zM23.5 19h-3v-1h3v1z"></path>
+                        <path d="M17 15h6l3-3v11a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V12l3 3zm8-.586V23a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-8.586L16.586 16h6.828L25 14.414z"></path>
+                    </svg>
+                    <span class="nav__item_name">Комиксы</span>
+                    <span class="nav__item_badge" data-badge="strips"></span>
+                </a>
+                <a class="nav__item " href="/search">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M25 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0zm-1.31 4.731a6 6 0 1 1 .734-.679l2.446 2.608-.73.684-2.45-2.613z"></path>
+                    </svg>
+                    <span class="nav__item_name">Поиск</span>
+                </a>
+                <a class="nav__item " href="/add">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M19.5 18.5V24h1v-5.5H26v-1h-5.5V12h-1v5.5H14v1h5.5z"></path>
+                    </svg>
+                    <span class="nav__item_name">Добавить</span>
+                </a>
+            </div>
+        </nav>  </div>
+</header>
+
+<div class="columns">
+        <main class="columns__main ">
+        <article class="quote" data-quote="">
+            <div class="quote__frame">
+                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/">#</a>
+                    <div class="quote__header_date">
+
+                                            </div>
+                </header>
+                <div class="quote__body">
+
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"></path>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter=""></div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"></path>
+                        </svg>
+                    </div>
+                    <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;&quot;, &quot;url&quot;: &quot;quote/&quot;, &quot;title&quot;: &quot;Цитата #&quot;, &quot;description&quot;: &quot;&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"></path>
+                        </svg>
+                    </div>
+                </footer>
+            </div>
+        </article>
+    </main>
+</div>
+
+<footer class="footer">
+    <nav class="footer__nav">
+        <a href="/faq" class="footer__nav_link ">
+            О сайте
+        </a>
+        <a href="/webmaster" class="footer__nav_link ">
+            Вебмастеру
+        </a>
+        <a href="/rss" class="footer__nav_link">RSS</a>
+        <a href="/rss/comics.xml" class="footer__nav_link">RSS комиксов</a>
+    </nav>
+    <div class="footer__legal">
+        <p class="footer__legal_para">
+            Идея проекта &copy; bash.org. Реализация &copy; 2004–2022 команда bash.im, &copy; 2022 команда башорг.рф. Использование сайта подразумевает согласие с&nbsp;<a href="/eula">пользовательским соглашением</a>. <b>18+</b>
+        </p>
+        <p class="footer__legal_para">
+            Если&nbsp;что, пишите в&nbsp;техподдержку: <a href="mailto:support@башорг.рф">support@башорг.рф</a>
+        </p>
+    </div>
+    <div class="footer__badges">
+        <div class="footer__badges_item">
+            <!--LiveInternet logo-->
+                <a href="https://www.liveinternet.ru/click" target="_blank"><img src="https://counter.yadro.ru/logo?15.1"
+                    title="LiveInternet: показано число просмотров за 24 часа, посетителей за 24 часа и за сегодня"
+                    alt="" style="border:0" width="88" height="31"/></a>
+            <!--/LiveInternet-->
+        </div>
+        <div class="footer__badges_item">
+            <!-- Top.Mail.Ru logo -->
+            <a href="https://top-fwz1.mail.ru/jump?from=3269973">
+                <img src="https://top-fwz1.mail.ru/counter?id=3269973;t=464;l=1" height="31" width="88" alt="Top.Mail.Ru" style="border:0;" /></a>
+            <!-- /Top.Mail.Ru logo -->
+        </div>
+        <div class="footer__badges_item">
+            <img src="https://www.yandex.ru/cycounter?башорг.рф" width="88" height="31" alt="Индекс Цитирования Яndex" border="0">
+        </div>
+    </div>
+</footer>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2DC218B0LJ"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-2DC218B0LJ');
+</script>
+
+<!-- Top.Mail.Ru counter -->
+<script type="text/javascript">
+    var _tmr = window._tmr || (window._tmr = []);
+    _tmr.push({id: "3269973", type: "pageView", start: (new Date()).getTime()});
+    (function (d, w, id) {
+        if (d.getElementById(id)) return;
+        var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+        ts.src = "https://top-fwz1.mail.ru/js/code.js";
+        var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+        if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+    })(document, window, "tmr-code");
+</script>
+<noscript><div><img src="https://top-fwz1.mail.ru/counter?id=3269973;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div></noscript>
+<!-- /Top.Mail.Ru counter -->
+
+<!--LiveInternet counter-->
+<script>
+    new Image().src = "https://counter.yadro.ru/hit?r"+
+        escape(document.referrer)+((typeof(screen)=="undefined")?"":
+            ";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
+                screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
+        ";h"+escape(document.title.substring(0,150))+
+        ";"+Math.random();</script>
+<!--/LiveInternet-->
+
+<script type="text/javascript">
+    var currentTheme = localStorage.getItem("theme") || "light";
+</script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(91228568, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true
+    });
+
+    ym(91228568, "params", { theme: currentTheme });
+
+    window.addEventListener('load', function() {
+        setTimeout(function () {
+            if (typeof web3 !== 'undefined') {
+                ym(91228568, 'reachGoal', 'w3');
+            }
+        }, 5000);
+    });
+
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/91228568" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+<script src="/3.0/bor.js?54e9492e3e49b12224457e7671125ac4" async data-turbolinks-eval="false"></script>
+<script>
+    var badges = [
+        {
+            'name': 'index',
+            'timestamp': 1652738160,
+            'counter': 86738,
+            'id': 468895
+        },
+        {
+            'name': 'strips',
+            'timestamp': 1652738160,
+            'counter': 1944,
+            'id': 20210324
+        },
+        {
+            'name': 'abyssbest',
+            'timestamp': 1652738160,
+            'counter': 11849,
+            'id': 311281
+        },
+    ];
+    var localBadges = JSON.parse(localStorage.getItem('badges'));
+    if (localBadges != null) {
+        localBadges.forEach(function(item, index) {
+            var delta = badges[index].counter - item.counter;
+            if (!isNaN(parseFloat(delta)) && delta > 0) {
+                if ('index' === badges[index].name) {
+                    localBadges[index] = badges[index];
+                } else {
+                    var elem = document.querySelector('[data-badge="' + item.name + '"]');
+                    if (elem != null) {
+                        elem.innerText = delta <= 10 ? delta : '9+';
+                        setTimeout(function(){
+                            elem.classList.add('active');
+                        }, 50);
+                    }
+                }
+            }
+        });
+        localStorage.setItem('badges', JSON.stringify(localBadges));
+    } else {
+        localStorage.setItem('badges', JSON.stringify(badges));
+    }
+</script>
+<div class="nav mobile">
+    <div class="nav__wrap">
+        <a class="nav__item about " href="/faq">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M26 19a6 6 0 1 1-12 0 6 6 0 0 1 12 0zm1 0a7 7 0 1 1-14 0 7 7 0 0 1 14 0zm-6-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 1.875c.345 0 .625.28.625.625v4a.625.625 0 1 1-1.25 0v-4c0-.345.28-.625.625-.625z"></path>
+            </svg>
+            <span class="nav__item_name">О проекте</span>
+        </a>
+        <div class="nav__item theme">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <g class="moon">
+                    <path d="M24.295 22.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.403 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C14 22.067 16.99 25 20.68 25c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"></path>
+                </g>
+                <g class="sun">
+                    <path d="M20 13a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 14.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 13.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 23.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 19a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 19a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 24.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 26.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"></path>
+                    <path d="M24 19a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                </g>
+            </svg>
+            <span class="nav__item_name">Тема</span>
+        </div>
+        <a class="nav__item " href="/">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M27.618 18.107l-7.31-5.743L13 18.107l.618.786 1.19-.936V25.5h11v-7.543l1.192.936.618-.786zm-2.81-.935l-4.5-3.536-4.5 3.536V24.5h9v-7.328z"></path>
+            </svg>
+            <span class="nav__item_name">Новые</span>
+            <span class="nav__item_badge" data-badge="index"></span>
+        </a>
+        <a class="nav__item " href="/abyss/">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M25.849 15.448A.786.786 0 0 0 26 15c0-1.105-2.686-2-6-2s-6 .895-6 2c0 .16.056.315.162.464L18 21.642v4.727l4-2.667v-2.06l3.852-6.194h-.003zm-1.854 1.044c-1.061.316-2.46.508-3.995.508-1.534 0-2.934-.192-3.994-.508L19 21.358V24.5l2-1.333v-1.809l2.995-4.866zM24.844 15c0 .552-2.16 1-4.825 1-2.664 0-4.824-.448-4.824-1s2.16-1 4.825-1c2.664 0 4.824.448 4.824 1z"></path>
+            </svg>
+            <span class="nav__item_name">Бездна</span>
+        </a>
+        <a class="nav__item " href="/strips">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M19.5 19h-3v-1h3v1zM23.5 19h-3v-1h3v1z"></path>
+                <path d="M17 15h6l3-3v11a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V12l3 3zm8-.586V23a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-8.586L16.586 16h6.828L25 14.414z"></path>
+            </svg>
+            <span class="nav__item_name">Комиксы</span>
+            <span class="nav__item_badge" data-badge="strips"></span>
+        </a>
+        <a class="nav__item " href="/search">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M25 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0zm-1.31 4.731a6 6 0 1 1 .734-.679l2.446 2.608-.73.684-2.45-2.613z"></path>
+            </svg>
+            <span class="nav__item_name">Поиск</span>
+        </a>
+        <a class="nav__item " href="/add">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M19.5 18.5V24h1v-5.5H26v-1h-5.5V12h-1v5.5H14v1h5.5z"></path>
+            </svg>
+            <span class="nav__item_name">Добавить</span>
+        </a>
+    </div>
+</div>
+</body>
+</html>

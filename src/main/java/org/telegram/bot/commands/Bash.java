@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
@@ -28,8 +27,8 @@ public class Bash implements Command<SendMessage> {
     private final SpeechService speechService;
     private final NetworkUtils networkUtils;
 
-    private static final String BASHORG_URL = "http://bashorg.org";
-    private static final String BASH_RANDOM_QUOT_URL = BASHORG_URL + "/casual";
+    private static final String BASHORG_URL = "https://xn--80abh7bk0c.xn--p1ai";
+    private static final String BASH_RANDOM_QUOT_URL = BASHORG_URL + "/random";
     private static final String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
 
     @Override
@@ -37,19 +36,19 @@ public class Bash implements Command<SendMessage> {
         Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         String textMessage = cutCommandInText(message.getText());
-        String quot;
+        String quote;
 
         if (textMessage == null) {
-            log.debug("Request to get random bash quot");
-            quot = getRandomQuot();
+            log.debug("Request to get random bash quote");
+            quote = getRandomQuot();
         } else {
-            log.debug("Request to get bash quot by number {}", textMessage);
+            log.debug("Request to get bash quote by number {}", textMessage);
             try {
                 Integer.parseInt(textMessage);
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-            quot = getDefineQuot(textMessage);
+            quote = getDefineQuot(textMessage);
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -57,84 +56,82 @@ public class Bash implements Command<SendMessage> {
         sendMessage.enableMarkdown(true);
         sendMessage.disableWebPagePreview();
         sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(quot);
+        sendMessage.setText(quote);
 
         return List.of(sendMessage);
     }
 
     /**
-     * Getting random quot from Bash.org.
+     * Getting random quote from Bash.org.
      *
-     * @return raw text of quot.
+     * @return raw text of quote.
      */
     private String getRandomQuot() {
-        String quot = getBashOrgRawData(BASH_RANDOM_QUOT_URL);
-        checkForError(quot);
-
-        String quoteNumber = quot.substring(quot.indexOf("<a href=\"/quote/") + 16);
-        quoteNumber = quoteNumber.substring(0, quoteNumber.indexOf("\">"));
-        quoteNumber = quoteNumber.replace("/bayan", "");
-
-        String date = quot.substring(quot.indexOf("</a>,-->") + 9);
-        date = date.substring(0, date.indexOf("<a href"));
-
-        quot = quot.substring(quot.indexOf("<div>") + 5);
-        quot = quot.substring(0, quot.indexOf("</div>"));
-
-        return buildResultMessage(quot, quoteNumber, date);
+        return buildResponse(getBashOrgRawData(BASH_RANDOM_QUOT_URL));
     }
 
     /**
-     * Getting quot from Bash.org by number.
+     * Getting quote from Bash.org by number.
      *
-     * @param quotNumber number of quot.
-     * @return raw text of quot.
+     * @param quoteNumber number of quote.
+     * @return raw text of quote.
      */
-    private String getDefineQuot(String quotNumber) {
-        String quot = getBashOrgRawData(BASH_DEFINITE_QUOT_URL + "/" + quotNumber);
-        checkForError(quot);
-
-        String date = quot.substring(quot.indexOf("| добавлено: ") + 18);
-        date = date.substring(date.indexOf("</a> ") + 5, date.indexOf("</div>") - 1);
-
-        quot = quot.substring(quot.indexOf("<div class=\"quote\">") + 19);
-        quot = quot.substring(0, quot.indexOf("</div>"));
-
-        return buildResultMessage(quot, quotNumber, date);
+    private String getDefineQuot(String quoteNumber) {
+        return buildResponse(getBashOrgRawData(BASH_DEFINITE_QUOT_URL + "/" + quoteNumber));
     }
 
     private String getBashOrgRawData(String url) {
         try {
-            return networkUtils.readStringFromURL(url, Charset.forName("windows-1251"));
+            return networkUtils.readStringFromURL(url);
         } catch (IOException e) {
-            log.error("Error receiving quot", e);
+            log.error("Error receiving quote", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
     }
 
-    private void checkForError(String data) {
-        final String errorText = "не имеют доступа для просмотра статей из данного раздела";
-        if (data.contains(errorText)) {
+    private String buildResponse(String quoteRaw) {
+        String quoteNumber = getQuoteNumber(quoteRaw);
+        if (quoteNumber.isBlank()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
+
+        String date = getQuoteDate(quoteRaw);
+        String quote = getQuote(quoteRaw);
+
+        return buildResponse(quote, quoteNumber, date);
+    }
+
+    private String getQuote(String rawData) {
+        String buf = rawData.substring(rawData.indexOf("<div class=\"quote__body\">") + 25);
+        return buf.substring(0, buf.indexOf("</div>")).trim();
+    }
+
+    private String getQuoteDate(String rawData) {
+        String buf = rawData.substring(rawData.indexOf("<div class=\"quote__header_date\">") + 32);
+        return buf.substring(0, buf.indexOf("</div>") - 1).trim();
+    }
+
+    private String getQuoteNumber(String rawData) {
+        String buf = rawData.substring(rawData.indexOf("data-quote=\"") + 12);
+        return buf.substring(0, buf.indexOf("\">"));
     }
 
     /**
-     * Formatting raw text of Bash.org quot.
+     * Formatting raw text of Bash.org quote.
      *
-     * @param quot raw text of quot.
-     * @param quotNumber number of quot.
-     * @param date date of quot.
-     * @return formatted text of quot.
+     * @param quote raw text of quote.
+     * @param quotNumber number of quote.
+     * @param date date of quote.
+     * @return formatted text of quote.
      */
-    private String buildResultMessage(String quot, String quotNumber, String date) {
-        quot = quot.replace("&quot;", "_");
-        quot = quot.replace("<br>", "\n");
-        quot = quot.replace("<br />", "\n");
-        quot = quot.replace("<' + 'br>", "\n");
-        quot = quot.replace("&lt;", "<").replace("&gt;", ">");
-        quot = cutMarkdownSymbolsInText(quot);
+    private String buildResponse(String quote, String quotNumber, String date) {
+        quote = quote.replace("&quote;", "_");
+        quote = quote.replace("<br>", "\n");
+        quote = quote.replace("<br />", "\n");
+        quote = quote.replace("<' + 'br>", "\n");
+        quote = quote.replace("&lt;", "<").replace("&gt;", ">");
+        quote = cutMarkdownSymbolsInText(quote);
 
-        return "[Цитата #" + quotNumber + "](" + BASHORG_URL + "/quote/" + quotNumber + ")\n" + "*" + date + "*\n" + quot;
+        return "[Цитата #" + quotNumber + "](" + BASHORG_URL + "/quote/" + quotNumber + ")\n" + "*" + date + "*\n" + quote;
     }
 }

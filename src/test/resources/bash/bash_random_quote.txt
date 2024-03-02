@@ -1,0 +1,1384 @@
+
+<!doctype html>
+<html theme="light" lang="ru" data-controller="index" aside="true">
+<head>
+    <meta charset="utf-8">
+    <title>Подборка случайных цитат — Цитатник Рунета</title>
+
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f5f4f2">
+    <meta name="viewport" id="view" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"/>
+    <link rel="preload" as="style" href="/3.0/bor.css?54e9492e3e49b12224457e7671125ac4">
+    <link rel="preload" as="script" href="/3.0/bor.js?54e9492e3e49b12224457e7671125ac4">
+
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com/" crossorigin>
+    <link rel="dns-prefetch" href="https://mc.yandex.ru/" crossorigin>
+
+
+
+
+
+
+    <link rel="stylesheet" href="/3.0/bor.css?54e9492e3e49b12224457e7671125ac4">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="shortcut" href="/favicon.ico">
+    <link rel="mask-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/favicon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/favicon-167x167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
+    <link rel="alternate" title="Комиксы – башорг.рф" href="/rss/comics.xml" type="application/rss+xml">
+    <link rel="alternate" title="Цитатник Рунета – башорг.рф" href="/rss/" type="application/rss+xml">
+    <script>
+        var nextTheme = {
+            light: 'dark',
+            dark: 'light'
+        };
+        var colors = {
+            light:'#f5f4f2',
+            dark: '#252323'
+        };
+        var tokens = ['aside', 'theme'];
+        var meta = document.querySelector('[name="theme-color"]');
+        for (var i = 0; i < tokens.length; i++) {
+            var name = tokens[i];
+            var value = localStorage.getItem(name);
+            if (value != null) {
+                document.documentElement.setAttribute(name, value);
+                name === 'theme' && meta.setAttribute('content', colors[value]);
+            }
+        }
+    </script>
+</head>
+<body data-turbolinks-suppress-warning>
+<header class="header">
+
+    <div class="header__projects">
+    </div>
+
+    <div class="header__wrap">
+        <div class="header__title">
+            <a class="header__title_item info " href="/faq" aria-label="О проекте">
+                <svg class="header__title_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 40" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                    <path d="M20 26a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 1a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm1-10a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 7v-5h-2v5h2z"/>
+                </svg>
+            </a>
+            <h1 class="header__title_wrap">
+                <a href="/" class="header__title_link">                    <span class="header__title_name">Башорг.рф&nbsp;— Цитатник Рунета</span>
+                    <svg class="header__shell" viewbox="0 0 253 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M195.944 11.656L200.12.88h-.864l-4.176 10.776h.864z" fill="currentColor"/>
+                        <path d="M.924 10h5.172v-.816h-2.4V6.508c0-.96.636-1.74 1.848-1.74h1.164v-.96h-.864c-1.296 0-1.848.744-2.088 1.56h-.06v-1.56H.924v.816h1.812v4.56H.924V10zM10.195 10.144c1.74 0 2.808-1.272 2.808-3.24 0-1.968-1.068-3.24-2.808-3.24-1.74 0-2.808 1.272-2.808 3.24 0 1.968 1.068 3.24 2.808 3.24zm0-.828c-1.068 0-1.788-.636-1.788-1.968V6.46c0-1.332.72-1.968 1.788-1.968s1.788.636 1.788 1.968v.888c0 1.332-.72 1.968-1.788 1.968zM16.79 10.144c1.74 0 2.809-1.272 2.809-3.24 0-1.968-1.068-3.24-2.808-3.24-1.74 0-2.808 1.272-2.808 3.24 0 1.968 1.068 3.24 2.808 3.24zm0-.828c-1.067 0-1.787-.636-1.787-1.968V6.46c0-1.332.72-1.968 1.788-1.968s1.788.636 1.788 1.968v.888c0 1.332-.72 1.968-1.788 1.968zM26.098 10v-.816h-2.82v-4.56h2.82v-.816h-2.82V1.624h-.924v1.62c0 .42-.156.564-.564.564h-1.536v.816h2.064v3.96c0 .828.432 1.416 1.368 1.416h2.412z" fill="#D33682"/>
+                        <path d="M39.212 10l2.22-6.192h-.948L39.596 6.4l-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972L37.988 10h1.224zM42.735 12.4h.96V8.992h.048c.396.756 1.044 1.152 1.908 1.152 1.512 0 2.424-1.212 2.424-3.24 0-2.028-.912-3.24-2.424-3.24-.864 0-1.512.396-1.908 1.152h-.048V3.808h-.96V12.4zm2.544-3.108c-.852 0-1.584-.444-1.584-1.272V5.788c0-.828.732-1.272 1.584-1.272 1.116 0 1.764.744 1.764 1.86v1.056c0 1.116-.648 1.86-1.764 1.86zM53.255 10h.96V3.808h-.96v4.296c0 .816-.768 1.188-1.536 1.188-.948 0-1.464-.552-1.464-1.68V3.808h-.96V7.78c0 1.5.852 2.364 2.148 2.364 1.02 0 1.5-.54 1.764-1.152h.048V10zM55.926 12.4h.96V8.992h.048c.396.756 1.044 1.152 1.908 1.152 1.512 0 2.424-1.212 2.424-3.24 0-2.028-.912-3.24-2.424-3.24-.864 0-1.512.396-1.908 1.152h-.048V3.808h-.96V12.4zm2.544-3.108c-.852 0-1.584-.444-1.584-1.272V5.788c0-.828.732-1.272 1.584-1.272 1.116 0 1.764.744 1.764 1.86v1.056c0 1.116-.648 1.86-1.764 1.86zM62.641 10h.96V7.756l1.068-.972L67.081 10h1.188l-2.868-3.768 2.568-2.424h-1.176L64.73 5.704l-1.08 1.02h-.048V1.12h-.96V10zM71.96 2.44c.553 0 .757-.264.757-.612v-.192c0-.348-.204-.612-.757-.612-.551 0-.755.264-.755.612v.192c0 .348.204.612.755.612zM69.25 10h5.28v-.816H72.44V3.808h-3.192v.816h2.232v4.56h-2.232V10zM76.708 10V5.704c0-.816.768-1.188 1.536-1.188.948 0 1.464.552 1.464 1.68V10h.96V6.028c0-1.5-.852-2.364-2.148-2.364-1.02 0-1.5.54-1.764 1.152h-.048V3.808h-.96V10h.96z" fill="#859900"/>
+                        <path d="M84.128 10h.876l1.476-8.376h-.876l-.456 2.592h-1.716v.792h1.572l-.276 1.608H83v.792h1.584L84.128 10zm2.208 0h.876l.456-2.592h1.716v-.792h-1.572l.276-1.608h1.728v-.792h-1.584l.456-2.592h-.876L86.336 10zM99.815 10.144c1.236 0 2.016-.612 2.376-1.44l-.684-.468c-.312.672-.852 1.08-1.68 1.08-1.164 0-1.788-.792-1.788-1.884V6.376c0-1.092.636-1.884 1.764-1.884.768 0 1.296.372 1.524 1.008l.768-.408c-.348-.84-1.092-1.428-2.292-1.428-1.752 0-2.796 1.272-2.796 3.24 0 1.956 1.032 3.24 2.808 3.24zM109.194 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM115.501 10v-.816h-2.82v-4.56h2.82v-.816h-2.82V1.624h-.924v1.62c0 .42-.156.564-.564.564h-1.536v.816h2.064v3.96c0 .828.432 1.416 1.368 1.416h2.412zM124.324 11.656L128.5.88h-.864l-4.176 10.776h.864zM134.075 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM139.278 10.144c1.224 0 2.113-.6 2.485-1.428l-.708-.48c-.324.672-.949 1.08-1.777 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.843 1.272-2.843 3.252 0 1.956 1.127 3.228 2.903 3.228zm-.06-5.688c1.02 0 1.717.744 1.717 1.836v.132h-3.553V6.34c0-1.08.78-1.884 1.836-1.884zM146.378 10l2.22-6.192h-.948l-.888 2.592-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972l2.22 6.192h1.224zM150.705 11.656L154.881.88h-.864l-4.176 10.776h.864zM161.956 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM165.624 10.144c1.584 0 2.616-.708 2.616-1.932 0-1.344-1.236-1.584-2.124-1.716l-.972-.144c-.552-.084-1.092-.252-1.092-.9 0-.636.54-.984 1.512-.984 1.092 0 1.644.432 1.932.78l.624-.588c-.588-.624-1.404-.996-2.52-.996-1.44 0-2.496.612-2.496 1.848 0 1.344 1.248 1.584 2.124 1.716l.972.144c.564.084 1.092.252 1.092.9 0 .732-.684 1.068-1.644 1.068-.984 0-1.656-.348-2.244-.972l-.648.564c.648.732 1.572 1.212 2.868 1.212zM172.219 10.144c1.584 0 2.616-.708 2.616-1.932 0-1.344-1.236-1.584-2.124-1.716l-.972-.144c-.552-.084-1.092-.252-1.092-.9 0-.636.54-.984 1.512-.984 1.092 0 1.644.432 1.932.78l.624-.588c-.588-.624-1.404-.996-2.52-.996-1.44 0-2.496.612-2.496 1.848 0 1.344 1.248 1.584 2.124 1.716l.972.144c.564.084 1.092.252 1.092.9 0 .732-.684 1.068-1.644 1.068-.984 0-1.656-.348-2.244-.972l-.648.564c.648.732 1.572 1.212 2.868 1.212zM182.758 9.808l5.16-2.988v-.96l-5.16-2.988v1.02l4.26 2.412V6.4l-4.26 2.412v.996zM205.028 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM210.232 10.144c1.224 0 2.112-.6 2.484-1.428l-.708-.48c-.324.672-.948 1.08-1.776 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.844 1.272-2.844 3.252 0 1.956 1.128 3.228 2.904 3.228zm-.06-5.688c1.02 0 1.716.744 1.716 1.836v.132h-3.552V6.34c0-1.08.78-1.884 1.836-1.884zM217.331 10l2.22-6.192h-.948l-.888 2.592-.96 2.796h-.048l-.96-2.796-.888-2.592h-.972l2.22 6.192h1.224zM221.658 11.656L225.834.88h-.864l-4.176 10.776h.864zM227.486 10h.96V5.704c0-.816.768-1.188 1.536-1.188.948 0 1.464.552 1.464 1.68V10h.96V6.028c0-1.5-.852-2.364-2.148-2.364-1.02 0-1.5.54-1.764 1.152h-.048V1.12h-.96V10zM236.613 10.144c1.224 0 2.112-.6 2.484-1.428l-.708-.48c-.324.672-.948 1.08-1.776 1.08-1.164 0-1.896-.792-1.896-1.884v-.288h4.584v-.456c0-1.752-1.08-3.024-2.748-3.024-1.68 0-2.844 1.272-2.844 3.252 0 1.956 1.128 3.228 2.904 3.228zm-.06-5.688c1.02 0 1.716.744 1.716 1.836v.132h-3.552V6.34c0-1.08.78-1.884 1.836-1.884zM246.1 10v-.84h-.864V5.752c0-1.308-.924-2.088-2.376-2.088-1.26 0-2.052.6-2.364 1.248l.648.48c.324-.564.828-.912 1.656-.912.936 0 1.476.468 1.476 1.368v.612h-1.32c-1.86 0-2.664.66-2.664 1.8 0 1.164.828 1.884 2.124 1.884 1.008 0 1.596-.444 1.86-1.152h.06c.072.576.36 1.008 1.104 1.008h.66zm-3.516-.66c-.792 0-1.284-.336-1.284-.972v-.252c0-.6.516-.936 1.656-.936h1.32V8.2c0 .636-.708 1.14-1.692 1.14zM251.196 10h.96V1.12h-.96v3.696h-.048c-.396-.756-1.044-1.152-1.908-1.152-1.512 0-2.424 1.212-2.424 3.24 0 2.028.912 3.24 2.424 3.24.864 0 1.512-.396 1.908-1.152h.048V10zm-1.584-.708c-1.116 0-1.764-.744-1.764-1.86V6.376c0-1.116.648-1.86 1.764-1.86.852 0 1.584.444 1.584 1.272V8.02c0 .828-.732 1.272-1.584 1.272zM33.448 10.576h-1.476c-1.908 0-2.328-1.464-2.328-3.324V5.704c0-2.412.564-3.456 1.992-3.456 1.284 0 1.812.84 1.812 2.196v.288h-.06c-.156-.408-.492-.828-1.2-.828-.972 0-1.596.804-1.596 2.58 0 1.764.624 2.568 1.596 2.568.708 0 1.044-.42 1.2-.828h.06v.684h.852V4.444c0-1.68-.768-2.964-2.688-2.964-1.872 0-2.868 1.212-2.868 4.92 0 3.312.792 4.944 3.228 4.944h1.476v-.768zM32.5 8.332c-.66 0-1.02-.42-1.02-1.488v-.732c0-1.068.36-1.488 1.02-1.488.576 0 .948.324.948.936v1.836c0 .612-.372.936-.948.936z" fill="currentColor"/>
+                    </svg>
+                            </h1>
+            <div class="header__title_item theme">
+                <svg class="header__title_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 40" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                    <g class="moon">
+                        <path d="M25.295 23.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.402 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C15 23.067 17.99 26 21.68 26c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"/>
+                    </g>
+                    <g class="sun">
+                        <path d="M20 14a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 15.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 14.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 24.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 20a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 20a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 25.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 27.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"/>
+                        <path d="M24 20a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+            <div class="sections mobile ">
+                <ul class="sections__list">
+            <li class="sections__item">
+                <a class="sections__link " href="/">новые</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/best">лучшие</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link active" href="/random">случайные</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/byrating">по рейтингу</a>
+            </li>
+        </ul>
+            </div>
+
+        <nav class="nav desktop">
+            <div class="nav__wrap">
+                <a class="nav__item about " href="/faq">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M26 19a6 6 0 1 1-12 0 6 6 0 0 1 12 0zm1 0a7 7 0 1 1-14 0 7 7 0 0 1 14 0zm-6-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 1.875c.345 0 .625.28.625.625v4a.625.625 0 1 1-1.25 0v-4c0-.345.28-.625.625-.625z"></path>
+                    </svg>
+                    <span class="nav__item_name">О проекте</span>
+                </a>
+                <div class="nav__item theme">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <g class="moon">
+                            <path d="M24.295 22.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.403 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C14 22.067 16.99 25 20.68 25c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"></path>
+                        </g>
+                        <g class="sun">
+                            <path d="M20 13a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 14.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 13.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 23.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 19a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 19a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 24.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 26.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"></path>
+                            <path d="M24 19a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                        </g>
+                    </svg>
+                    <span class="nav__item_name">Тема</span>
+                </div>
+                <a class="nav__item active" href="/">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M27.618 18.107l-7.31-5.743L13 18.107l.618.786 1.19-.936V25.5h11v-7.543l1.192.936.618-.786zm-2.81-.935l-4.5-3.536-4.5 3.536V24.5h9v-7.328z"></path>
+                    </svg>
+                    <span class="nav__item_name">Новые</span>
+                    <span class="nav__item_badge" data-badge="index"></span>
+                </a>
+                <a class="nav__item " href="/abyss/">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M25.849 15.448A.786.786 0 0 0 26 15c0-1.105-2.686-2-6-2s-6 .895-6 2c0 .16.056.315.162.464L18 21.642v4.727l4-2.667v-2.06l3.852-6.194h-.003zm-1.854 1.044c-1.061.316-2.46.508-3.995.508-1.534 0-2.934-.192-3.994-.508L19 21.358V24.5l2-1.333v-1.809l2.995-4.866zM24.844 15c0 .552-2.16 1-4.825 1-2.664 0-4.824-.448-4.824-1s2.16-1 4.825-1c2.664 0 4.824.448 4.824 1z"></path>
+                    </svg>
+                    <span class="nav__item_name">Бездна</span>
+                </a>
+                <a class="nav__item " href="/strips">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M19.5 19h-3v-1h3v1zM23.5 19h-3v-1h3v1z"></path>
+                        <path d="M17 15h6l3-3v11a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V12l3 3zm8-.586V23a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-8.586L16.586 16h6.828L25 14.414z"></path>
+                    </svg>
+                    <span class="nav__item_name">Комиксы</span>
+                    <span class="nav__item_badge" data-badge="strips"></span>
+                </a>
+                <a class="nav__item " href="/search">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M25 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0zm-1.31 4.731a6 6 0 1 1 .734-.679l2.446 2.608-.73.684-2.45-2.613z"></path>
+                    </svg>
+                    <span class="nav__item_name">Поиск</span>
+                </a>
+                <a class="nav__item " href="/add">
+                    <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                        <path d="M19.5 18.5V24h1v-5.5H26v-1h-5.5V12h-1v5.5H14v1h5.5z"></path>
+                    </svg>
+                    <span class="nav__item_name">Добавить</span>
+                </a>
+            </div>
+        </nav>  </div>
+</header>
+
+<div class="columns">
+    <main class="columns__main ">
+
+    <div class="sections desktop top">
+                <ul class="sections__list">
+            <li class="sections__item">
+                <a class="sections__link " href="/">новые</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/best">лучшие</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link active" href="/random">случайные</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/byrating">по рейтингу</a>
+            </li>
+        </ul>
+
+    </div>
+
+
+
+    <section class="quotes" >
+
+
+                            <article class="quote" data-quote="10229">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/10229">#10229</a>
+                    <div class="quote__header_date">
+                        06.02.2006 в 10:25
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    &lt;yМHuK&gt; Bоnpoс #276: Трaдиционный русский напиток  (5 букв)<br>&lt;Chrono&gt; водка<br>&lt;LSD&gt; водка<br>&lt;Racco^n&gt; водка<br>&lt;LD&gt; водка
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[10229, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[10229, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    2435
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[10229, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;10229&quot;, &quot;url&quot;: &quot;quote/10229&quot;, &quot;title&quot;: &quot;Цитата #10229&quot;, &quot;description&quot;: &quot;&amp;lt;yМHuK&amp;gt; Bоnpoс #276: Трaдиционный русский напиток  (5 букв)&lt;br&gt;&amp;lt;Chrono&amp;gt; водка&lt;br&gt;&amp;lt;LSD&amp;gt; водка&lt;br&gt;&amp;lt;Racco^n&amp;gt; водка&lt;br&gt;&amp;lt;LD&amp;gt; водка&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="124070">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/124070">#124070</a>
+                    <div class="quote__header_date">
+                        17.03.2007 в 23:56
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    &lt;igoryok&gt; подключают там же где тел берешь<br>&lt;ears&gt; igoryok у наркоманов???
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[124070, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[124070, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    1741
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[124070, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;124070&quot;, &quot;url&quot;: &quot;quote/124070&quot;, &quot;title&quot;: &quot;Цитата #124070&quot;, &quot;description&quot;: &quot;&amp;lt;igoryok&amp;gt; подключают там же где тел берешь&lt;br&gt;&amp;lt;ears&amp;gt; igoryok у наркоманов???&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="279018">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/279018">#279018</a>
+                    <div class="quote__header_date">
+                        04.06.2007 в 20:21
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    &lt;Deks&gt; спамеры жгут...Только что пришел на мыло спам с темой "Просто спам".Я даже от такой наглости прочитал его...
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[279018, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[279018, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    3535
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[279018, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;279018&quot;, &quot;url&quot;: &quot;quote/279018&quot;, &quot;title&quot;: &quot;Цитата #279018&quot;, &quot;description&quot;: &quot;&amp;lt;Deks&amp;gt; спамеры жгут...Только что пришел на мыло спам с темой Просто спам.Я даже от такой наглости прочитал его...&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="390534">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/390534">#390534</a>
+                    <div class="quote__header_date">
+                        12.07.2007 в 03:10
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    &lt;xxx&gt; Счастье — это когда битый пиксель с монитора можно убрать ногтем...
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[390534, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[390534, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    3138
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[390534, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;390534&quot;, &quot;url&quot;: &quot;quote/390534&quot;, &quot;title&quot;: &quot;Цитата #390534&quot;, &quot;description&quot;: &quot;&amp;lt;xxx&amp;gt; Счастье — это когда битый пиксель с монитора можно убрать ногтем...&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="392286">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/392286">#392286</a>
+                    <div class="quote__header_date">
+                        28.09.2007 в 10:20
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    она<br>Представь...мы стоим с тобой под холодной струей душа,ты чувствуешь моё дыхание, я тебя обнимаю и..........<br>он<br>ЗАКАЛЯЕМСЯ!
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[392286, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[392286, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    3789
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[392286, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;392286&quot;, &quot;url&quot;: &quot;quote/392286&quot;, &quot;title&quot;: &quot;Цитата #392286&quot;, &quot;description&quot;: &quot;она&lt;br&gt;Представь...мы стоим с тобой под холодной струей душа,ты чувствуешь моё дыхание, я тебя обнимаю и..........&lt;br&gt;он&lt;br&gt;ЗАКАЛЯЕМСЯ!&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="397632">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/397632">#397632</a>
+                    <div class="quote__header_date">
+                        02.07.2008 в 21:30
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    у меня открыто 3 окна : БОР, блог и Консультант+ (прога со всякими документами и законодательствами). Когда подходит начальство я открываю Консультант и с умным видом изучаю Гражданский Кодекс РФ, в остальное время я либо пишу чето в блоге или читаю БОР.<br><br>я тут подумал как это со стороны: чел читает ГК РФ, дописывает его и время от времени тупо ржет...
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[397632, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[397632, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    32400
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[397632, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;397632&quot;, &quot;url&quot;: &quot;quote/397632&quot;, &quot;title&quot;: &quot;Цитата #397632&quot;, &quot;description&quot;: &quot;у меня открыто 3 окна : БОР, блог и Консультант+ (прога со всякими документами и законодательствами). Когда подходит начальство я открываю Консультант и с умным видом изучаю Гражданский Кодекс РФ, в остальное время я либо пишу чето в блоге или читаю БОР.&lt;br&gt;&lt;br&gt;я тут подумал как это со стороны: чел читает ГК РФ, дописывает его и время от времени тупо ржет...&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="408522">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/408522">#408522</a>
+                    <div class="quote__header_date">
+                        02.11.2010 в 10:45
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    x&gt; Для тебя не существует непознаваемых элементов? А если я поищу?<br>y&gt; О, новое поветрие - философ-гопник. Че, души нет? А если найду?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[408522, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[408522, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    11705
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[408522, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;408522&quot;, &quot;url&quot;: &quot;quote/408522&quot;, &quot;title&quot;: &quot;Цитата #408522&quot;, &quot;description&quot;: &quot;x&amp;gt; Для тебя не существует непознаваемых элементов? А если я поищу?&lt;br&gt;y&amp;gt; О, новое поветрие - философ-гопник. Че, души нет? А если найду?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="410171">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/410171">#410171</a>
+                    <div class="quote__header_date">
+                        30.03.2011 в 10:46
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Во времена счастливого советского детства у меня была кукла. Звали её Ада. Так и было написано на этикетке - Кукла Ада. На неё не подходили никакие одёжки и она всё время ломалась. И только спустя многие годы до меня дошло...
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[410171, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[410171, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    13437
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[410171, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;410171&quot;, &quot;url&quot;: &quot;quote/410171&quot;, &quot;title&quot;: &quot;Цитата #410171&quot;, &quot;description&quot;: &quot;Во времена счастливого советского детства у меня была кукла. Звали её Ада. Так и было написано на этикетке - Кукла Ада. На неё не подходили никакие одёжки и она всё время ломалась. И только спустя многие годы до меня дошло...&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="413985">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/413985">#413985</a>
+                    <div class="quote__header_date">
+                        30.10.2011 в 09:12
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx: Целевая аудитория: молодые люди от 20 до 27 лет, которые проводят в Интернете времени больше, чем за обычным компьютером.<br><br>xxx: а вот ты где больше проводишь времени, за компом или в интернете?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[413985, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[413985, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    8770
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[413985, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;413985&quot;, &quot;url&quot;: &quot;quote/413985&quot;, &quot;title&quot;: &quot;Цитата #413985&quot;, &quot;description&quot;: &quot;xxx: Целевая аудитория: молодые люди от 20 до 27 лет, которые проводят в Интернете времени больше, чем за обычным компьютером.&lt;br&gt;&lt;br&gt;xxx: а вот ты где больше проводишь времени, за компом или в интернете?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="420909">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/420909">#420909</a>
+                    <div class="quote__header_date">
+                        25.01.2013 в 13:12
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx:<br>Сегодня в разговоре с другом сошлись на мысли, что было бы просто здорово, если на<br>перфоратор, как и на огнестрельное оружие требовалось бы разрешение. Причем прохождение<br>мед.комиссии у психиатора и нарколога было бы первостепенной задачей.
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[420909, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[420909, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    2
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[420909, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;420909&quot;, &quot;url&quot;: &quot;quote/420909&quot;, &quot;title&quot;: &quot;Цитата #420909&quot;, &quot;description&quot;: &quot;xxx:&lt;br&gt;Сегодня в разговоре с другом сошлись на мысли, что было бы просто здорово, если на&lt;br&gt;перфоратор, как и на огнестрельное оружие требовалось бы разрешение. Причем прохождение&lt;br&gt;мед.комиссии у психиатора и нарколога было бы первостепенной задачей.&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="421390">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/421390">#421390</a>
+                    <div class="quote__header_date">
+                        26.02.2013 в 10:44
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx:<br>Вчера утром, приехав на работу без двадцати минут, уже с трудом, как обычно, нашел место на парковке. Даже и не место, а кое-как в сугробе поперек приютился. А сегодня приехал на десять минут позже, а свободных мест полно - аж растерялся от свободы выбора.<br>Вот интересно, это как-то связано со вчерашним зачислением зарплаты или просто удивительное совпадение?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[421390, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[421390, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    3742
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[421390, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;421390&quot;, &quot;url&quot;: &quot;quote/421390&quot;, &quot;title&quot;: &quot;Цитата #421390&quot;, &quot;description&quot;: &quot;xxx:&lt;br&gt;Вчера утром, приехав на работу без двадцати минут, уже с трудом, как обычно, нашел место на парковке. Даже и не место, а кое-как в сугробе поперек приютился. А сегодня приехал на десять минут позже, а свободных мест полно - аж растерялся от свободы выбора.&lt;br&gt;Вот интересно, это как-то связано со вчерашним зачислением зарплаты или просто удивительное совпадение?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="421570">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/421570">#421570</a>
+                    <div class="quote__header_date">
+                        11.03.2013 в 09:46
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Сижу в очереди к врачу. Подходит девушка.<br>- А кто последний в 15 кабинет?<br>- Я.<br>- А за вами еще много людей?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[421570, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[421570, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    6479
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[421570, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;421570&quot;, &quot;url&quot;: &quot;quote/421570&quot;, &quot;title&quot;: &quot;Цитата #421570&quot;, &quot;description&quot;: &quot;Сижу в очереди к врачу. Подходит девушка.&lt;br&gt;- А кто последний в 15 кабинет?&lt;br&gt;- Я.&lt;br&gt;- А за вами еще много людей?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="421770">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/421770">#421770</a>
+                    <div class="quote__header_date">
+                        22.03.2013 в 10:46
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx: Напоминает время, когда мужчины были мужчинами и писали драйвера к своим девайсам сами.
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[421770, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[421770, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    3744
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[421770, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;421770&quot;, &quot;url&quot;: &quot;quote/421770&quot;, &quot;title&quot;: &quot;Цитата #421770&quot;, &quot;description&quot;: &quot;xxx: Напоминает время, когда мужчины были мужчинами и писали драйвера к своим девайсам сами.&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="421987">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/421987">#421987</a>
+                    <div class="quote__header_date">
+                        05.04.2013 в 11:13
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    s: мне базу для заливки выслали. 20000 строк. СКРИНШОТАМИ
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[421987, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[421987, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    8416
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[421987, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;421987&quot;, &quot;url&quot;: &quot;quote/421987&quot;, &quot;title&quot;: &quot;Цитата #421987&quot;, &quot;description&quot;: &quot;s: мне базу для заливки выслали. 20000 строк. СКРИНШОТАМИ&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="429853">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/429853">#429853</a>
+                    <div class="quote__header_date">
+                        01.09.2014 в 11:46
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    ххх: Ну Стивен Кинг крутой чувак, даже его простенькие рассказы вызывают трепет. ИМХО если он вздумает написать рецепт борща или селедки под шубой - получится трилер, жесть и обоссака.
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[429853, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[429853, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    5356
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[429853, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;429853&quot;, &quot;url&quot;: &quot;quote/429853&quot;, &quot;title&quot;: &quot;Цитата #429853&quot;, &quot;description&quot;: &quot;ххх: Ну Стивен Кинг крутой чувак, даже его простенькие рассказы вызывают трепет. ИМХО если он вздумает написать рецепт борща или селедки под шубой - получится трилер, жесть и обоссака.&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="433235">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/433235">#433235</a>
+                    <div class="quote__header_date">
+                        09.04.2015 в 10:44
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Из ЖЖ iris_emerald<br>Да что там говорить, у нас даже прощеное воскресение каждый год превращается в какую-то трагикомедию.<br>Это обычно бывает так. Мне звонит отец и испуганным голосом спрашивает, что случилось с моей сестрой. Я начинаю паниковать и думать, а что же с ней случилось. Отец объясняет свой испуг: сестра прислала смс с текстом "Папочка, прости меня". Папочка православные праздники не отслеживает, папочка не в курсе, папочка начинает рисовать самые ужасные картины типа той, что она решила самовыпилиться и вот это ее последнее сообщение.<br>А вы говорите, позвонить и рассказать какую-нибудь новость.
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[433235, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[433235, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    5474
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[433235, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;433235&quot;, &quot;url&quot;: &quot;quote/433235&quot;, &quot;title&quot;: &quot;Цитата #433235&quot;, &quot;description&quot;: &quot;Из ЖЖ iris_emerald&lt;br&gt;Да что там говорить, у нас даже прощеное воскресение каждый год превращается в какую-то трагикомедию.&lt;br&gt;Это обычно бывает так. Мне звонит отец и испуганным голосом спрашивает, что случилось с моей сестрой. Я начинаю паниковать и думать, а что же с ней случилось. Отец объясняет свой испуг: сестра прислала смс с текстом Папочка, прости меня. Папочка православные праздники не отслеживает, папочка не в курсе, папочка начинает рисовать самые ужасные картины типа той, что она решила самовыпилиться и вот это ее последнее сообщение.&lt;br&gt;А вы говорите, позвонить и рассказать какую-нибудь новость.&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="434387">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/434387">#434387</a>
+                    <div class="quote__header_date">
+                        25.06.2015 в 11:44
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Kira: знаешь, а диплом как тамагочи<br>Kira: ты его делаешь, заботишься о нём, трясёшься, он всё хорошеет и растёт в страницах<br>Kira: а если забросишь, то всё - здохнет и тебя с собой утащит<br>Kira: жестокая игра<br>Kira: не терпит нубов
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[434387, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[434387, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    1826
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[434387, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;434387&quot;, &quot;url&quot;: &quot;quote/434387&quot;, &quot;title&quot;: &quot;Цитата #434387&quot;, &quot;description&quot;: &quot;Kira: знаешь, а диплом как тамагочи&lt;br&gt;Kira: ты его делаешь, заботишься о нём, трясёшься, он всё хорошеет и растёт в страницах&lt;br&gt;Kira: а если забросишь, то всё - здохнет и тебя с собой утащит&lt;br&gt;Kira: жестокая игра&lt;br&gt;Kira: не терпит нубов&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="435745">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/435745">#435745</a>
+                    <div class="quote__header_date">
+                        21.09.2015 в 08:46
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Я: Кошь, мне сегодня снилась какая-то фигня с твоим участием...<br>Жена: Какая-то фигня с моим участием — это вся твоя жизнь, дорогой.
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[435745, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[435745, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    6702
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[435745, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;435745&quot;, &quot;url&quot;: &quot;quote/435745&quot;, &quot;title&quot;: &quot;Цитата #435745&quot;, &quot;description&quot;: &quot;Я: Кошь, мне сегодня снилась какая-то фигня с твоим участием...&lt;br&gt;Жена: Какая-то фигня с моим участием — это вся твоя жизнь, дорогой.&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="446225">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/446225">#446225</a>
+                    <div class="quote__header_date">
+                        11.08.2017 в 10:45
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Пикируемся с женой.<br>- Папа, вы не хотите похудеть, хе-хе-хе?<br>- А чего это вы хихикаете и так смотрите странно? Я вот сейчас возьму топор, буду за вами ходить, странно смотреть и спрашивать, не хотите ли похудеть, хе-хе-хе?.. Хотя нет, тут нужна другая формулировка. Не хотите ли меньше весить, хе-хе-хе?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[446225, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[446225, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    1041
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[446225, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;446225&quot;, &quot;url&quot;: &quot;quote/446225&quot;, &quot;title&quot;: &quot;Цитата #446225&quot;, &quot;description&quot;: &quot;Пикируемся с женой.&lt;br&gt;- Папа, вы не хотите похудеть, хе-хе-хе?&lt;br&gt;- А чего это вы хихикаете и так смотрите странно? Я вот сейчас возьму топор, буду за вами ходить, странно смотреть и спрашивать, не хотите ли похудеть, хе-хе-хе?.. Хотя нет, тут нужна другая формулировка. Не хотите ли меньше весить, хе-хе-хе?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="454814">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/454814">#454814</a>
+                    <div class="quote__header_date">
+                        06.03.2019 в 10:45
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx: Коллеги, на корпоративном портале в карточках сотрудников должны быть фотографии ваши<br>Всех, у кого нет фоток, я прошу выслать мне фотку или прикрепите сами на портале (но напишите мне в личку, что прикрепили)<br>yyy: я прикрепил<br>xxx: yyy, обрати внимание - фото должно быть твое, а не мужика, который тебе понравился! Поменяй, пожалуйста
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[454814, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[454814, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    1310
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[454814, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;454814&quot;, &quot;url&quot;: &quot;quote/454814&quot;, &quot;title&quot;: &quot;Цитата #454814&quot;, &quot;description&quot;: &quot;xxx: Коллеги, на корпоративном портале в карточках сотрудников должны быть фотографии ваши&lt;br&gt;Всех, у кого нет фоток, я прошу выслать мне фотку или прикрепите сами на портале (но напишите мне в личку, что прикрепили)&lt;br&gt;yyy: я прикрепил&lt;br&gt;xxx: yyy, обрати внимание - фото должно быть твое, а не мужика, который тебе понравился! Поменяй, пожалуйста&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="454926">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/454926">#454926</a>
+                    <div class="quote__header_date">
+                        13.03.2019 в 10:45
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Комментарии на форуме по ассемблеру для новичков:<br>xxx: б%я, какой же страшный язык программирования<br>mov: ax, bx (на сообщение от ххх)<br>xxx: б%я, он мне что-то пишет<br>mov: более того, я в твоем пк и делаю что-то с твоей системой<br>xxx: а как ты там вместе с товарищем майором помещаешься?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[454926, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[454926, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    876
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[454926, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;454926&quot;, &quot;url&quot;: &quot;quote/454926&quot;, &quot;title&quot;: &quot;Цитата #454926&quot;, &quot;description&quot;: &quot;Комментарии на форуме по ассемблеру для новичков:&lt;br&gt;xxx: б%я, какой же страшный язык программирования&lt;br&gt;mov: ax, bx (на сообщение от ххх)&lt;br&gt;xxx: б%я, он мне что-то пишет&lt;br&gt;mov: более того, я в твоем пк и делаю что-то с твоей системой&lt;br&gt;xxx: а как ты там вместе с товарищем майором помещаешься?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="457033">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/457033">#457033</a>
+                    <div class="quote__header_date">
+                        01.08.2019 в 09:11
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx: Помыл на работе кружку - теперь кофе не вкусный; Печаль;
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[457033, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[457033, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    445
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[457033, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;457033&quot;, &quot;url&quot;: &quot;quote/457033&quot;, &quot;title&quot;: &quot;Цитата #457033&quot;, &quot;description&quot;: &quot;xxx: Помыл на работе кружку - теперь кофе не вкусный; Печаль;&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="462658">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/462658">#462658</a>
+                    <div class="quote__header_date">
+                        05.09.2020 в 08:13
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    Лента новостей новостного канала лениво ползёт по экрану:<br>"Состояние главы Amazon..."<br>Мысли:<br>"Надо же, даже такой богач подхватил вирус, не уберёгся. Все мы смертны."<br>Лента проезжает дальше:<br>"...достигло 200 млрд. долларов."<br>Мысли:<br>"Кхм..."
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[462658, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[462658, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    27
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[462658, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;462658&quot;, &quot;url&quot;: &quot;quote/462658&quot;, &quot;title&quot;: &quot;Цитата #462658&quot;, &quot;description&quot;: &quot;Лента новостей новостного канала лениво ползёт по экрану:&lt;br&gt;Состояние главы Amazon...&lt;br&gt;Мысли:&lt;br&gt;Надо же, даже такой богач подхватил вирус, не уберёгся. Все мы смертны.&lt;br&gt;Лента проезжает дальше:&lt;br&gt;...достигло 200 млрд. долларов.&lt;br&gt;Мысли:&lt;br&gt;Кхм...&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="463451">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/463451">#463451</a>
+                    <div class="quote__header_date">
+                        10.11.2020 в 11:44
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    ххх: Не выходи в замужество - не совершай ошибку<br>ххх: К чему тебе эти ужасы<br>ххх: За сапоги и шубку?<br>ххх: Купи сама - в кредит или так<br>ххх: Зачем тебе к шубе какой-то мудак?
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[463451, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[463451, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    1294
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[463451, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;463451&quot;, &quot;url&quot;: &quot;quote/463451&quot;, &quot;title&quot;: &quot;Цитата #463451&quot;, &quot;description&quot;: &quot;ххх: Не выходи в замужество - не совершай ошибку&lt;br&gt;ххх: К чему тебе эти ужасы&lt;br&gt;ххх: За сапоги и шубку?&lt;br&gt;ххх: Купи сама - в кредит или так&lt;br&gt;ххх: Зачем тебе к шубе какой-то мудак?&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+                                        <article class="quote" data-quote="465598">
+            <div class="quote__frame">
+                                <header class="quote__header">
+                    <a class="quote__header_permalink" href="/quote/465598">#465598</a>
+                    <div class="quote__header_date">
+                        17.05.2021 в 11:12
+                    </div>
+                </header>
+                                <div class="quote__body">
+                    xxx: ну, в итоге собрались и устроили импровизированную встречу выпускников впервые за пять лет<br>xxx: признался, что у меня дочь, рассказал что назвали её Алисой<br>xxx: и тут начались расспросы, почему именно так - Кэрролл? Булычёв? Кинчев?<br>xxx: поди объясни, что мы с Леной просто пришли к обоюдному согласию, что это имя красиво звучит<br>xxx: в итоге сказал, что назвал дочь в честь хромой лисы из сказки про Буратино<br>xxx: выпили мы уже достаточно, так что объяснение было воспринято вполне всерьёз, после чего мне весь вечер говорили, что я труъ панк
+                                    </div>
+                <footer class="quote__footer">
+                    <div class="quote__button dismiss" role="button" aria-label="Это баян!" tabindex="0" data-vote="[465598, 2, 0]" title="Это баян!">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M4 .375H.375v15.25H4v-1.25H1.625V1.625H4V.375zM12.375.5v15h1.25V.5h-1.25zm-4 15V.5h1.25v15h-1.25zM18 1.625h2.375v12.75H18v1.25h3.625V.375H18v1.25zM6 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill-rule="evenodd" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="quote__button down" role="button" aria-label="Голосовать против этой цитаты" tabindex="0" data-vote="[465598, 1, 0]" data-swipe="1" title="Голосовать против этой цитаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm5.625 7h8v1.25H6v-1.25zm10-5.75h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                    <div class="quote__total" data-vote-counter>
+                                                    2411
+                                            </div>
+                    <div class="quote__button up" role="button" aria-label="Голосовать за эту цитату" tabindex="0" data-vote="[465598, 0, 0]" data-swipe="0" title="Голосовать за эту цитату">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M.375.375H4v1.25H1.625v12.75H4v1.25H.375V.375zm10.25 7V3h-1.25v4.375H5v1.25h4.375V13h1.25V8.625H15v-1.25h-4.375zM16 1.625h2.375v12.75H16v1.25h3.625V.375H16v1.25z"/>
+                        </svg>
+                    </div>
+                                        <div role="button" class="quote__button share" aria-label="Поделиться" tabindex="0" data-share="{&quot;id&quot;: &quot;465598&quot;, &quot;url&quot;: &quot;quote/465598&quot;, &quot;title&quot;: &quot;Цитата #465598&quot;, &quot;description&quot;: &quot;xxx: ну, в итоге собрались и устроили импровизированную встречу выпускников впервые за пять лет&lt;br&gt;xxx: признался, что у меня дочь, рассказал что назвали её Алисой&lt;br&gt;xxx: и тут начались расспросы, почему именно так - Кэрролл? Булычёв? Кинчев?&lt;br&gt;xxx: поди объясни, что мы с Леной просто пришли к обоюдному согласию, что это имя красиво звучит&lt;br&gt;xxx: в итоге сказал, что назвал дочь в честь хромой лисы из сказки про Буратино&lt;br&gt;xxx: выпили мы уже достаточно, так что объяснение было воспринято вполне всерьёз, после чего мне весь вечер говорили, что я труъ панк&quot;}" title="Поделиться цитатой">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                            <path d="M9 .116l3.942 3.942-.884.884-2.433-2.433V12h-1.25V2.509L5.942 4.942l-.884-.884L9 .116zM1.625 9H.375v6.625h17.25V9h-1.25v5.375H1.625V9z"/>
+                        </svg>
+                    </div>
+                                    </footer>
+            </div>
+        </article>
+
+            <div class="more">
+        <a href="/random?8992" class="more__link">
+            Хочу ещё!
+        </a>
+    </div>
+
+    </section>
+
+
+
+    <div class="sections desktop bottom">
+                <ul class="sections__list">
+            <li class="sections__item">
+                <a class="sections__link " href="/">новые</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/best">лучшие</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link active" href="/random">случайные</a>
+            </li>
+            <li class="sections__item">
+                <a class="sections__link " href="/byrating">по рейтингу</a>
+            </li>
+        </ul>
+
+    </div>
+
+</main>
+
+<aside class="columns__aside">
+    <div class="columns__aside_wrap">
+        <div style="border: 1px solid #ccc; text-align: center; padding: 10px 0; color: #aaa;">Скоро здесь будет реклама</div>
+    </div>
+</aside>
+
+</div>
+
+<footer class="footer">
+    <nav class="footer__nav">
+        <a href="/faq" class="footer__nav_link ">
+            О сайте
+        </a>
+        <a href="/webmaster" class="footer__nav_link ">
+            Вебмастеру
+        </a>
+        <a href="/rss" class="footer__nav_link">RSS</a>
+        <a href="/rss/comics.xml" class="footer__nav_link">RSS комиксов</a>
+    </nav>
+    <div class="footer__legal">
+        <p class="footer__legal_para">
+            Идея проекта &copy; bash.org. Реализация &copy; 2004–2022 команда bash.im, &copy; 2022 команда башорг.рф. Использование сайта подразумевает согласие с&nbsp;<a href="/eula">пользовательским соглашением</a>. <b>18+</b>
+        </p>
+        <p class="footer__legal_para">
+            Если&nbsp;что, пишите в&nbsp;техподдержку: <a href="mailto:support@башорг.рф">support@башорг.рф</a>
+        </p>
+    </div>
+    <div class="footer__badges">
+        <div class="footer__badges_item">
+            <!--LiveInternet logo-->
+                <a href="https://www.liveinternet.ru/click" target="_blank"><img src="https://counter.yadro.ru/logo?15.1"
+                    title="LiveInternet: показано число просмотров за 24 часа, посетителей за 24 часа и за сегодня"
+                    alt="" style="border:0" width="88" height="31"/></a>
+            <!--/LiveInternet-->
+        </div>
+        <div class="footer__badges_item">
+            <!-- Top.Mail.Ru logo -->
+            <a href="https://top-fwz1.mail.ru/jump?from=3269973">
+                <img src="https://top-fwz1.mail.ru/counter?id=3269973;t=464;l=1" height="31" width="88" alt="Top.Mail.Ru" style="border:0;" /></a>
+            <!-- /Top.Mail.Ru logo -->
+        </div>
+        <div class="footer__badges_item">
+            <img src="https://www.yandex.ru/cycounter?башорг.рф" width="88" height="31" alt="Индекс Цитирования Яndex" border="0">
+        </div>
+    </div>
+</footer>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2DC218B0LJ"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-2DC218B0LJ');
+</script>
+
+<!-- Top.Mail.Ru counter -->
+<script type="text/javascript">
+    var _tmr = window._tmr || (window._tmr = []);
+    _tmr.push({id: "3269973", type: "pageView", start: (new Date()).getTime()});
+    (function (d, w, id) {
+        if (d.getElementById(id)) return;
+        var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+        ts.src = "https://top-fwz1.mail.ru/js/code.js";
+        var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+        if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+    })(document, window, "tmr-code");
+</script>
+<noscript><div><img src="https://top-fwz1.mail.ru/counter?id=3269973;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div></noscript>
+<!-- /Top.Mail.Ru counter -->
+
+<!--LiveInternet counter-->
+<script>
+    new Image().src = "https://counter.yadro.ru/hit?r"+
+        escape(document.referrer)+((typeof(screen)=="undefined")?"":
+            ";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
+                screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
+        ";h"+escape(document.title.substring(0,150))+
+        ";"+Math.random();</script>
+<!--/LiveInternet-->
+
+<script type="text/javascript">
+    var currentTheme = localStorage.getItem("theme") || "light";
+</script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(91228568, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true
+    });
+
+    ym(91228568, "params", { theme: currentTheme });
+
+    window.addEventListener('load', function() {
+        setTimeout(function () {
+            if (typeof web3 !== 'undefined') {
+                ym(91228568, 'reachGoal', 'w3');
+            }
+        }, 5000);
+    });
+
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/91228568" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+<script src="/3.0/bor.js?54e9492e3e49b12224457e7671125ac4" async data-turbolinks-eval="false"></script>
+<script>
+    var badges = [
+        {
+            'name': 'index',
+            'timestamp': 1652738160,
+            'counter': 86738,
+            'id': 468895
+        },
+        {
+            'name': 'strips',
+            'timestamp': 1652738160,
+            'counter': 1944,
+            'id': 20210324
+        },
+        {
+            'name': 'abyssbest',
+            'timestamp': 1652738160,
+            'counter': 11849,
+            'id': 311281
+        },
+    ];
+    var localBadges = JSON.parse(localStorage.getItem('badges'));
+    if (localBadges != null) {
+        localBadges.forEach(function(item, index) {
+            var delta = badges[index].counter - item.counter;
+            if (!isNaN(parseFloat(delta)) && delta > 0) {
+                if ('index' === badges[index].name) {
+                    localBadges[index] = badges[index];
+                } else {
+                    var elem = document.querySelector('[data-badge="' + item.name + '"]');
+                    if (elem != null) {
+                        elem.innerText = delta <= 10 ? delta : '9+';
+                        setTimeout(function(){
+                            elem.classList.add('active');
+                        }, 50);
+                    }
+                }
+            }
+        });
+        localStorage.setItem('badges', JSON.stringify(localBadges));
+    } else {
+        localStorage.setItem('badges', JSON.stringify(badges));
+    }
+</script>
+<div class="nav mobile">
+    <div class="nav__wrap">
+        <a class="nav__item about " href="/faq">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M26 19a6 6 0 1 1-12 0 6 6 0 0 1 12 0zm1 0a7 7 0 1 1-14 0 7 7 0 0 1 14 0zm-6-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 1.875c.345 0 .625.28.625.625v4a.625.625 0 1 1-1.25 0v-4c0-.345.28-.625.625-.625z"></path>
+            </svg>
+            <span class="nav__item_name">О проекте</span>
+        </a>
+        <div class="nav__item theme">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <g class="moon">
+                    <path d="M24.295 22.652c-.175-.094-.828.06-1.11.06-3.785 0-6.854-2.931-6.854-6.644 0-.403 0-.736.126-1.12a.13.13 0 0 0 .007-.049c-.007-.12-.066-.225-.166-.104a6.683 6.683 0 0 0-.345.446c-.578.834-.945 2.006-.945 3.206 0 3.073 2.54 5.564 5.672 5.564 1.651 0 3.26-.796 3.615-1.359zm.671-1.208c-.437.183-.776.28-1.782.28-3.228 0-5.844-2.568-5.844-5.735 0-.91.113-1.473.244-1.993l.002-.007.05-.194.013-.052c.04-.155.08-.31.119-.474.034-.146-.076-.285-.228-.268a2.1 2.1 0 0 0-.467.113 2.703 2.703 0 0 0-.34.15c-1.388.73-2.733 2.817-2.733 5.183C14 22.067 16.99 25 20.68 25c2.49 0 4.468-1.222 5.114-2.83l.021-.053a3.162 3.162 0 0 0 .183-.742c.02-.17-.15-.289-.312-.228a10.53 10.53 0 0 0-.547.224l-.145.061-.027.012z"></path>
+                </g>
+                <g class="sun">
+                    <path d="M20 13a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 1 0v1a.5.5 0 0 1-.5.5zM15.757 14.757a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM25.657 13.343a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 1 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM15.757 23.243a.5.5 0 0 1 0 .707l-.707.707a.5.5 0 0 1-.707-.707l.707-.707a.5.5 0 0 1 .707 0zM28 19a.5.5 0 0 1-.5.5h-1a.5.5 0 1 1 0-1h1a.5.5 0 0 1 .5.5zM14 19a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 1 .5.5zM25.657 24.657a.5.5 0 0 1-.707 0l-.707-.707a.5.5 0 1 1 .707-.707l.707.707a.5.5 0 0 1 0 .707zM19.5 26.5a.5.5 0 0 0 1 0v-1a.5.5 0 1 0-1 0v1z"></path>
+                    <path d="M24 19a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-1 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                </g>
+            </svg>
+            <span class="nav__item_name">Тема</span>
+        </div>
+        <a class="nav__item active" href="/">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M27.618 18.107l-7.31-5.743L13 18.107l.618.786 1.19-.936V25.5h11v-7.543l1.192.936.618-.786zm-2.81-.935l-4.5-3.536-4.5 3.536V24.5h9v-7.328z"></path>
+            </svg>
+            <span class="nav__item_name">Новые</span>
+            <span class="nav__item_badge" data-badge="index"></span>
+        </a>
+        <a class="nav__item " href="/abyss/">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M25.849 15.448A.786.786 0 0 0 26 15c0-1.105-2.686-2-6-2s-6 .895-6 2c0 .16.056.315.162.464L18 21.642v4.727l4-2.667v-2.06l3.852-6.194h-.003zm-1.854 1.044c-1.061.316-2.46.508-3.995.508-1.534 0-2.934-.192-3.994-.508L19 21.358V24.5l2-1.333v-1.809l2.995-4.866zM24.844 15c0 .552-2.16 1-4.825 1-2.664 0-4.824-.448-4.824-1s2.16-1 4.825-1c2.664 0 4.824.448 4.824 1z"></path>
+            </svg>
+            <span class="nav__item_name">Бездна</span>
+        </a>
+        <a class="nav__item " href="/strips">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M19.5 19h-3v-1h3v1zM23.5 19h-3v-1h3v1z"></path>
+                <path d="M17 15h6l3-3v11a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V12l3 3zm8-.586V23a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v-8.586L16.586 16h6.828L25 14.414z"></path>
+            </svg>
+            <span class="nav__item_name">Комиксы</span>
+            <span class="nav__item_badge" data-badge="strips"></span>
+        </a>
+        <a class="nav__item " href="/search">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M25 18a5 5 0 1 1-10 0 5 5 0 0 1 10 0zm-1.31 4.731a6 6 0 1 1 .734-.679l2.446 2.608-.73.684-2.45-2.613z"></path>
+            </svg>
+            <span class="nav__item_name">Поиск</span>
+        </a>
+        <a class="nav__item " href="/add">
+            <svg class="nav__item_icon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 40 30" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                <path d="M19.5 18.5V24h1v-5.5H26v-1h-5.5V12h-1v5.5H14v1h5.5z"></path>
+            </svg>
+            <span class="nav__item_name">Добавить</span>
+        </a>
+    </div>
+</div>
+</body>
+</html>

@@ -16,7 +16,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,16 +39,17 @@ class BashTest {
 
     @Test
     void parseRandomQuotTest() throws IOException {
-        final String expectedText = "[Цитата #75286](http://bashorg.org/quote/75286)\n" +
-                "*27 июня 2019 *\n" +
-                "xxx: Я немного побаиваюсь людей, которые пишут мне в мессенджер\n" +
-                "yyy: страшнее те, кто пишут на массажер или в утюг например\n" +
-                "xxx: мне проще, я утюг от вай-фая отключил\n" +
-                "yyy: А они по VPN ";
+        final String expectedText = "[Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)\n" +
+                "*06.02.2006 в 10:25*\n" +
+                "<yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв\n" +
+                "<Chrono> водка\n" +
+                "<LSD> водка\n" +
+                "<Racco^n> водка\n" +
+                "<LD> водка";
         Update update = TestUtils.getUpdateFromGroup(null);
-        String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quot.txt");
+        String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quote.txt");
 
-        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawRandomQuot);
+        when(networkUtils.readStringFromURL(anyString())).thenReturn(rawRandomQuot);
 
         SendMessage sendMessage = bash.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -69,16 +69,18 @@ class BashTest {
 
     @Test
     void parseDefineQuotTest() throws IOException {
-        final String expectedText = "[Цитата #1](http://bashorg.org/quote/1)\n" +
-                "*25 ноября 2007*\n" +
-                "Annette:\n" +
-                "Недавно поставила новый антивирус - Avast. Оказалось, у него имеется одна интересная особенность: любит, понимаешь, \"поговорить\"  Так вот. Решила я пересмотреть Бриджит Джонс, мозги расслабить после трудного дня. И есть там сцена, где Хью Грант присаживается на край кровати и успокаивающе гладит Бриджит по макушке, попутно оправдываясь за то, что должен уехать. \n" +
-                "Картина маслом: садится Хью Грант на кровать, проводит рукой Бриджит по голове, и одновременно с этим действием слышится характерный звук металлофона: \"Бррррррыньк!\"  Далее Хью Грант открывает рот и произносит с успокаивающим лицом: \"Вирусная база обновлена\". ";
+        final String expectedText = "[Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)\n" +
+                "*06.02.2006 в 10:25*\n" +
+                "<yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв\n" +
+                "<Chrono> водка\n" +
+                "<LSD> водка\n" +
+                "<Racco^n> водка\n" +
+                "<LD> водка";
         Update update = getUpdateFromGroup();
-        update.getMessage().setText("bash 1");
-        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quot.txt");
+        update.getMessage().setText("bash 10229");
+        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quote.txt");
 
-        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
+        when(networkUtils.readStringFromURL(anyString())).thenReturn(rawDefinedQuot);
 
         SendMessage sendMessage = bash.parse(update).get(0);
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -92,7 +94,7 @@ class BashTest {
     void parseWithNoResponseTest() throws IOException {
         Update update = TestUtils.getUpdateFromGroup(null);
 
-        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(new IOException());
+        when(networkUtils.readStringFromURL(anyString())).thenThrow(new IOException());
 
         assertThrows(BotException.class, () -> bash.parse(update));
         verify(bot).sendTyping(update.getMessage().getChatId());
@@ -101,12 +103,11 @@ class BashTest {
 
     @Test
     void parseWithErrorsInResponseTest() throws IOException {
-        final String errorText = "не имеют доступа для просмотра статей из данного раздела";
         Update update = getUpdateFromGroup();
         update.getMessage().setText("bash 1");
-        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quot.txt") + errorText;
+        String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_not_found_quote.txt");
 
-        when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenReturn(rawDefinedQuot);
+        when(networkUtils.readStringFromURL(anyString())).thenReturn(rawDefinedQuot);
 
         assertThrows(BotException.class, () -> bash.parse(update));
         verify(bot).sendTyping(update.getMessage().getChatId());
