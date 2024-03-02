@@ -59,7 +59,9 @@ public class SendMessageExecutor implements MethodExecutor {
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(update, method, e, "error sending response");
+            if (isError(e)) {
+                botStats.incrementErrors(update, method, e, "error sending response");
+            }
             log.error("Error: cannot send response: {}", e.getMessage());
             tryToSendWithoutMarkdowns(sendMessage);
         } catch (Exception e) {
