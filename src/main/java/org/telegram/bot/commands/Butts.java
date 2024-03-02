@@ -60,7 +60,7 @@ public class Butts implements Command<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
 
-        String caption = "Butts";
+        String caption = "18+";
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setPhoto(new InputFile(BUTTS_IMAGE_URL + nameOfImage));
         sendPhoto.setCaption(caption);

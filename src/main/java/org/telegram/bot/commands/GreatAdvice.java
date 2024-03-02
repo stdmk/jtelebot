@@ -59,7 +59,7 @@ public class GreatAdvice implements Command<SendMessage> {
         sendMessage.setChatId(message.getChatId().toString());
         sendMessage.setReplyToMessageId(message.getMessageId());
         sendMessage.enableHtml(true);
-        sendMessage.setText(TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()));
+        sendMessage.setText("18+\n" + TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()));
 
         return returnOneResult(sendMessage);
     }

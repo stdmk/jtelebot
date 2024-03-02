@@ -60,7 +60,7 @@ public class Boobs implements Command<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, boobsCounts[0].getCount());
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
 
-        String caption = "Boobs";
+        String caption = "18+";
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setPhoto(new InputFile(BOOBS_IMAGE_URL + nameOfImage));
         sendPhoto.setCaption(caption);
