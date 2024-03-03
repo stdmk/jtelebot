@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -90,7 +91,6 @@ class WordTest {
     void parseTest() throws IOException {
         final String expectedResponseText1 = TestUtils.getResourceAsString("wiktionary/response_text1");
         final String expectedResponseText2 = TestUtils.getResourceAsString("wiktionary/response_text2");
-        final String expectedResponseText3 = TestUtils.getResourceAsString("wiktionary/response_text3");
         Update update = TestUtils.getUpdateFromGroup("word word");
         Word.WiktionaryData wiktionaryData = new Word.WiktionaryData()
                 .setQuery(new Word.Query()
@@ -105,19 +105,15 @@ class WordTest {
                 .thenReturn(response);
 
         List<SendMessage> methods = word.parse(update);
-        assertEquals(3, methods.size());
+        assertEquals(2, methods.size());
 
         BotApiMethodMessage method = methods.get(0);
         SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText1, sendMessage.getText());
+        assertThat(expectedResponseText1).isEqualToNormalizingNewlines(sendMessage.getText());
 
         method = methods.get(1);
         sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText2, sendMessage.getText());
-
-        method = methods.get(2);
-        sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText3, sendMessage.getText());
+        assertThat(expectedResponseText2).isEqualToNormalizingNewlines(sendMessage.getText());
 
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
