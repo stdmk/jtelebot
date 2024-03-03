@@ -66,6 +66,14 @@ public class TextUtils {
         return text.replace("<", "");
     }
 
+    public static String removeDuplicateLineBreaks(String text) {
+        while (text.contains("\n\n")) {
+            text = text.replace("\n\n", "");
+        }
+
+        return text;
+    }
+
     public static String withCapital(String text) {
         return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
