@@ -88,8 +88,9 @@ public class Word implements Command<SendMessage> {
     private List<String> buildResponseText(String data) {
         List<String> result = new ArrayList<>();
 
-        data = titlesToHtml(data);
         data = TextUtils.removeDuplicateLineBreaks(data);
+        data = TextUtils.cutHtmlTags(data);
+        data = titlesToHtml(data);
 
         String[] strings = data.split("\n");
         int lastElementIndex = strings.length - 1;
