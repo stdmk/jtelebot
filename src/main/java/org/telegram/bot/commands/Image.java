@@ -38,7 +38,7 @@ public class Image implements Command<PartialBotApiMethod<?>> {
     @Override
     public List<PartialBotApiMethod<?>> parse(Update update) {
         Message message = getMessageFromUpdate(update);
-        bot.sendTyping(message.getChatId());
+        bot.sendUploadPhoto(message.getChatId());
         String textMessage = getTextMessage(update);
         ImageUrl imageUrl;
 

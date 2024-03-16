@@ -2,6 +2,9 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -10,6 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.File;
@@ -34,6 +38,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -43,10 +48,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class FilesTest {
 
-    //TODO
-
     @Mock
     private Bot bot;
+    @Mock
+    private BotStats botStats;
     @Mock
     private FileService fileService;
     @Mock
@@ -116,6 +121,58 @@ class FilesTest {
         InlineKeyboardButton forwardButton = pagesButtons.get(0);
         assertEquals(Emoji.RIGHT_ARROW.getSymbol(), forwardButton.getText());
         assertNotNull(forwardButton.getCallbackData());
+    }
+
+    @Test
+    void emptyCallbackCommandTest() {
+        final String dirName = "root";
+        final String fileName = "testtesttesttesttesttesttesttest";
+        final String fileType = "text";
+        Update update = TestUtils.getUpdateWithCallback("files files");
+
+        when(fileService.get(anyLong())).thenReturn(new File().setId(ROOT_DIR_ID).setName(dirName));
+
+        when(fileService.get(anyLong())).thenReturn(new File().setId(ROOT_DIR_ID).setName(dirName));
+        when(fileService.get(any(Chat.class), any(File.class), anyInt()))
+                .thenReturn(
+                        new PageImpl<>(
+                                List.of(new File().setId(1L).setType(fileType).setName(fileName)),
+                                PageRequest.of(1, 10),
+                                100));
+
+        PartialBotApiMethod<?> method = files.parse(update).get(0);
+
+        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
+        EditMessageText editMessageText = TestUtils.checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
+        assertTrue(editMessageText.getText().contains(dirName));
+
+        InlineKeyboardMarkup replyMarkup = editMessageText.getReplyMarkup();
+        List<List<InlineKeyboardButton>> keyboard = replyMarkup.getKeyboard();
+
+        List<InlineKeyboardButton> filesButtons = keyboard.get(0);
+        assertEquals(1, filesButtons.size());
+
+        InlineKeyboardButton fileButton = filesButtons.get(0);
+        assertTrue(fileButton.getText().length() <= 30);
+        assertNotNull(fileButton.getCallbackData());
+
+        List<InlineKeyboardButton> pagesButtons = keyboard.get(1);
+        assertEquals(1, pagesButtons.size());
+
+        InlineKeyboardButton forwardButton = pagesButtons.get(0);
+        assertEquals(Emoji.RIGHT_ARROW.getSymbol(), forwardButton.getText());
+        assertNotNull(forwardButton.getCallbackData());
+    }
+
+    @Test
+    void unknownCalllBackCommandTest() {
+        final String unknownCallbackCommand = "tratatam-tratatam";
+        Update update = TestUtils.getUpdateWithCallback("files " + unknownCallbackCommand);
+
+        assertThrows(BotException.class, () -> files.parse(update));
+
+        verify(botStats).incrementErrors(update, "Unexpected callback request " + unknownCallbackCommand);
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
     @Test
@@ -473,12 +530,12 @@ class FilesTest {
     }
 
     //does not work. Possibly because of the emoji symbol
-//    @ParameterizedTest
-//    @MethodSource("provideTypes")
-//    void mimeTypeEmojisTest(String type, String emoji) {
-//        String emojiByType = Files.EmojiMimeType.getEmojiByType(type);
-//        assertEquals(emoji, emojiByType);
-//    }
+    @ParameterizedTest
+    @MethodSource("provideTypes")
+    void mimeTypeEmojisTest(String type, String emoji) {
+        String emojiByType = Files.EmojiMimeType.getEmojiByType(type);
+        assertEquals(emoji, emojiByType);
+    }
 
     private File getFile() {
         return new File()
@@ -491,15 +548,15 @@ class FilesTest {
                 .setUser(TestUtils.getUser());
     }
 
-//    private static Stream<Arguments> provideTypes() {
-//        return Stream.of(
-//                Arguments.of(null, Emoji.FOLDER.getEmoji()),
-//                Arguments.of("audio", Emoji.HEADPHONE.getEmoji()),
-//                Arguments.of("image", Emoji.PICTURE.getEmoji()),
-//                Arguments.of("text", Emoji.CLIPBOARD.getEmoji()),
-//                Arguments.of("video", Emoji.MOVIE_CAMERA.getEmoji()),
-//                Arguments.of("test", Emoji.MEMO.getEmoji())
-//        );
-//    }
+    private static Stream<Arguments> provideTypes() {
+        return Stream.of(
+                Arguments.of(null, Emoji.FOLDER.getSymbol()),
+                Arguments.of("audio", Emoji.HEADPHONE.getSymbol()),
+                Arguments.of("image", Emoji.PICTURE.getSymbol()),
+                Arguments.of("text", Emoji.CLIPBOARD.getSymbol()),
+                Arguments.of("video", Emoji.MOVIE_CAMERA.getSymbol()),
+                Arguments.of("test", Emoji.MEMO.getSymbol())
+        );
+    }
 
 }
