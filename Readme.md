@@ -138,6 +138,8 @@ Java Telegram Bot (Spring)
 
 /length — counting the number of characters in a text or text file
 
+/word — access to Wiktionary.
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
