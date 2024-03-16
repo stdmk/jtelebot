@@ -108,13 +108,13 @@ public class Word implements Command<SendMessage> {
             result.add(strings[i] + "\n");
         }
 
-
         return result;
     }
 
     private boolean stringHasNoData(String string) {
         return string.isBlank()
                 || ("—".equals(string))
+                || ("-".equals(string))
                 || ("?".equals(string));
     }
 

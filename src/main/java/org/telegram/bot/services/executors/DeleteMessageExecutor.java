@@ -31,7 +31,9 @@ public class DeleteMessageExecutor implements MethodExecutor {
         try {
             bot.execute(deleteMessage);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(update, method, e, "error sending response");
+            if (isError(e)) {
+                botStats.incrementErrors(update, method, e, "error sending response");
+            }
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (Exception e) {
             botStats.incrementErrors(update, method, e, "unexpected error");

@@ -13,7 +13,8 @@ public interface MethodExecutor {
 
     List<String> notErrorExceptionMessages = List.of(
             "Can't find end of the entity starting at byte offset",
-            "new message content and reply markup are exactly the same as a current content and reply markup of the message"
+            "new message content and reply markup are exactly the same as a current content and reply markup of the message",
+            "message to delete not found"
     );
 
     /**
