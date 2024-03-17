@@ -42,17 +42,17 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
     private final UserService userService;
     private final UserStatsService userStatsService;
 
-    private final List<String> increaseSymbols = Arrays.asList("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++");
-    private final List<String> decreaseSymbols = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
+    private static final List<String> INCREASE_SYMBOLS = Arrays.asList("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++");
+    private static final List<String> DECREASE_SYMBOLS = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
 
     @Override
     public List<SendMessage> parse(Update update) {
         Message message = getMessageFromUpdate(update);
+        bot.sendTyping(message.getChatId());
+
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
-
-        bot.sendTyping(message.getChatId());
 
         String textMessage = cutCommandInText(message.getText());
         String responseText;
@@ -158,32 +158,18 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
     public void analyze(Update update) {
         Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
-        if (textMessage == null) {
-            return;
-        }
-
-        log.debug("Initialization of searching changing karma in text {}", textMessage);
-
-        boolean wrongNumber = true;
-        try {
-            Integer.parseInt(textMessage.substring(0, 2));
-        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-            wrongNumber = false;
-        }
-        if ((textMessage.startsWith("+") || textMessage.startsWith("-")) && (!"+1".equals(textMessage) && !"-1".equals(textMessage)) && wrongNumber) {
-            log.debug("Value of karma change is too large. No karma changes");
+        if (textMessage == null || message.getReplyToMessage() == null) {
             return;
         }
 
         int value = 0;
-
-        if (startsWithElementInList(textMessage, increaseSymbols)) {
+        if (startsWithElementInList(textMessage, INCREASE_SYMBOLS)) {
             value = 1;
-        } else if (startsWithElementInList(textMessage, decreaseSymbols)) {
+        } else if (startsWithElementInList(textMessage, DECREASE_SYMBOLS)) {
             value = -1;
         }
 
-        if (value != 0 && message.getReplyToMessage() != null) {
+        if (value != 0) {
             CommandProperties commandProperties = commandPropertiesService.getCommand(this.getClass());
             AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getFrom().getId(), message.getChatId());
             if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {

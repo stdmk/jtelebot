@@ -146,6 +146,7 @@ public class TestUtils {
     public static User getTelegramUser(Long userId) {
         User user = new User();
         user.setId(userId);
+        user.setUserName("username");
         user.setLanguageCode("en");
 
         return user;
