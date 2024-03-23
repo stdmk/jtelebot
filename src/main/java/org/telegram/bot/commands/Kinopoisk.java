@@ -3,6 +3,7 @@ package org.telegram.bot.commands;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -254,7 +255,10 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
                     buf.append("/movie_").append(similarMovie.getId()).append(" — ").append(similarMovie.getName()).append("\n"));
         });
 
-        buf.append("<a href='" + KINOPOISK_URL + "/film/").append(movie.getId()).append("'>${command.kinopoisk.movieinfo.towebsite}</a>");
+        Long movieId = movie.getId();
+        if (movieId != null) {
+            buf.append("<a href='" + KINOPOISK_URL + "/film/").append(movieId).append("'>${command.kinopoisk.movieinfo.towebsite}</a>");
+        }
 
         return buf.toString();
     }
@@ -314,7 +318,8 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class MovieSearchResult {
+    @Accessors(chain = true)
+    public static class MovieSearchResult {
         private List<Movie> docs;
         private Integer total;
         private Integer limit;
@@ -323,8 +328,9 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
+    @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class Movie {
+    public static class Movie {
         private Long id;
         private String name;
         private String alternativeName;
@@ -347,20 +353,22 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
         private List<ItemName> countries;
         private List<YearRange> releaseYears;
         private List<PersonInMovie> persons;
-        List<LinkedMovie> similarMovies;
+        private List<LinkedMovie> similarMovies;
         private Integer top10;
         private Integer top250;
     }
 
     @Data
-    private static class Name {
+    @Accessors(chain = true)
+    public static class Name {
         private String name;
         private String language;
         private String type;
     }
 
     @Data
-    private static class Rating {
+    @Accessors(chain = true)
+    public static class Rating {
         private Double kp;
         private Double imdb;
         private Double tmdb;
@@ -370,7 +378,8 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class Votes {
+    @Accessors(chain = true)
+    public static class Votes {
         private String kp;
         private String imdb;
         private Double tmdb;
@@ -380,19 +389,22 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class ShortImage {
+    @Accessors(chain = true)
+    public static class ShortImage {
         private String url;
         private String previewUrl;
     }
 
     @Data
-    private static class VideoTypes {
+    @Accessors(chain = true)
+    public static class VideoTypes {
         private List<Video> trailers;
         private List<Video> teasers;
     }
 
     @Data
-    private static class Video {
+    @Accessors(chain = true)
+    public static class Video {
         private String url;
         private String name;
         private String site;
@@ -401,18 +413,21 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class ItemName {
+    @Accessors(chain = true)
+    public static class ItemName {
         private String name;
     }
 
     @Data
-    private static class YearRange {
+    @Accessors(chain = true)
+    public static class YearRange {
         private Integer start;
         private Integer end;
     }
 
     @Data
-    private static class PersonInMovie {
+    @Accessors(chain = true)
+    public static class PersonInMovie {
         private BigDecimal id;
         private String photo;
         private String name;
@@ -423,7 +438,8 @@ public class Kinopoisk implements Command<PartialBotApiMethod<?>> {
     }
 
     @Data
-    private static class LinkedMovie {
+    @Accessors(chain = true)
+    public static class LinkedMovie {
         private Long id;
         private String name;
         private String enName;
