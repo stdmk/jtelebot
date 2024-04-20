@@ -136,7 +136,7 @@ public class TestUtils {
     }
 
     public static org.telegram.bot.domain.entities.Chat getChat(Long chatId) {
-        return new org.telegram.bot.domain.entities.Chat().setChatId(chatId);
+        return new org.telegram.bot.domain.entities.Chat().setChatId(chatId).setAccessLevel(1);
     }
 
     public static User getTelegramUser() {
