@@ -6,7 +6,6 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
@@ -22,6 +21,7 @@ import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.RssMapper;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -31,14 +31,12 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.time.Instant;
 import java.util.*;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.*;
 
 @Component
@@ -46,6 +44,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 @Slf4j
 public class News implements Command<PartialBotApiMethod<?>> {
 
+    private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
     private static final String WORD_PATTERN_TEMPLATE = "\\b(?:%s)\\b";
     private static final Pattern PARAMS_PATTERN = Pattern.compile(
             "(?:\"([^\"]*?)\"|(\\b\\w+\\b))(?:\\s|$)",
@@ -56,6 +55,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
     private final NewsSourceService newsSourceService;
     private final NewsMessageService newsMessageService;
     private final SpeechService speechService;
+    private final RssMapper rssMapper;
     private final NetworkUtils networkUtils;
     private final BotStats botStats;
 
@@ -73,7 +73,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
         } else if (textMessage.startsWith("_")) {
             NewsMessage newsMessage = getNewsById(textMessage.substring(1));
 
-            String responseText = buildFullNewsMessageText(newsMessage);
+            String responseText = rssMapper.toFullNewsMessageText(newsMessage);
 
             if (newsMessage.getAttachUrl() == null) {
                 SendMessage sendMessage = new SendMessage();
@@ -125,7 +125,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
         }
 
         if (responseTextList.isEmpty()) {
-            responseTextList = List.of(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
 
         return mapToSendMessages(responseTextList, message.getChatId(), messageId);
@@ -146,7 +146,13 @@ public class News implements Command<PartialBotApiMethod<?>> {
 
         return newsSourceService.getAll()
                 .stream()
-                .map(newsSource -> searchNewsInNewsSource(newsSource, wordsPattern))
+                .map(newsSource -> {
+                    try {
+                        return searchNewsInNewsSource(newsSource, wordsPattern);
+                    } catch (Exception e) {
+                        return EMPTY_STRING_LIST;
+                    }
+                })
                 .flatMap(Collection::stream)
                 .filter(StringUtils::hasText)
                 .collect(Collectors.toList());
@@ -168,33 +174,17 @@ public class News implements Command<PartialBotApiMethod<?>> {
     }
 
     private List<String> searchNewsInNewsSource(NewsSource newsSource, Pattern pattern) {
-        String url = newsSource.getUrl();
-        SyndFeed syndFeed;
-        try {
-            syndFeed = networkUtils.getRssFeedFromUrl(newsSource.getUrl());
-        } catch (FeedException e) {
-            log.error("Failed to parse news from url: {}: {}", url, e.getMessage());
-            botStats.incrementErrors(url, e, "Failed to parse news from url");
-            return Collections.emptyList();
-        } catch (MalformedURLException e) {
-            log.error("Malformed URL: {}", url);
-            botStats.incrementErrors(url, e, "Malformed URL");
-            return Collections.emptyList();
-        } catch (IOException e) {
-            log.error("Failed to connect to url: {}: {}", url, e.getMessage());
-            botStats.incrementErrors(url, e, "Failed to connect to ur");
-            return Collections.emptyList();
-        }
+        SyndFeed syndFeed = getSyndFeedFromUrl(newsSource.getUrl());
 
         List<NewsMessage> newsMessageList = syndFeed.getEntries()
                 .stream()
                 .filter(syndEntry -> entryMatchesPattern(syndEntry, pattern))
-                .map(this::buildNewsMessageFromSyndEntry)
+                .map(rssMapper::toNewsMessage)
                 .collect(Collectors.toList());
 
         return newsMessageService.save(newsMessageList)
                 .stream()
-                .map(newsMessage -> buildShortNewsMessageText(newsMessage, newsSource.getName()))
+                .map(newsMessage -> rssMapper.toShortNewsMessageText(newsMessage, newsSource.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -216,7 +206,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 .map(news -> {
                     NewsMessage newsMessage = news.getNewsSource().getNewsMessage();
                     if (newsMessage != null) {
-                        return buildShortNewsMessageText(news.getNewsSource().getNewsMessage(), news.getNewsSource().getName());
+                        return rssMapper.toShortNewsMessageText(newsMessage, news.getNewsSource().getName());
                     }
                     return null;
                 })
@@ -251,145 +241,34 @@ public class News implements Command<PartialBotApiMethod<?>> {
      * @return formatted news.
      */
     private List<String> getAllNews(String url, Integer newsCount) {
-        SyndFeed syndFeed;
+        SyndFeed syndFeed = getSyndFeedFromUrl(url);
+
+        if (newsCount != null && newsCount == 1) {
+            return List.of(rssMapper.toFullNewsMessageText(syndFeed.getEntries().get(0)));
+        }
+
+        return newsMessageService.save(rssMapper.toNewsMessage(syndFeed.getEntries()))
+                .stream()
+                .map(rssMapper::toShortNewsMessageText)
+                .collect(Collectors.toList());
+
+    }
+
+    private SyndFeed getSyndFeedFromUrl(String url) {
         try {
-            syndFeed = networkUtils.getRssFeedFromUrl(url);
+            return networkUtils.getRssFeedFromUrl(url);
         } catch (FeedException e) {
             log.error("Failed to parse news from url: {}: {}", url, e.getMessage());
+            botStats.incrementErrors(url, e, "Unable to read rss feed");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         } catch (MalformedURLException e) {
             log.error("Malformed URL: {}", url);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         } catch (IOException e) {
             log.error("Failed to connect to url: {}: {}", url, e.getMessage());
+            botStats.incrementErrors(url, e, "Failed to connect to url");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
-
-        if (newsCount != null && newsCount == 1) {
-            return List.of(buildFullNewsMessageText(syndFeed.getEntries().get(0)));
-        }
-
-        return buildListOfNewsMessageText(syndFeed.getEntries());
-    }
-
-    /**
-     * Creating formatted list of news from feeds.
-     *
-     * @param entries feeds of news.
-     * @return formatted news.
-     */
-    private List<String> buildListOfNewsMessageText(List<SyndEntry> entries) {
-        List<NewsMessage> newsMessages = entries
-                .stream()
-                .map(this::buildNewsMessageFromSyndEntry)
-                .collect(Collectors.toList());
-
-        return newsMessageService.save(newsMessages)
-                .stream()
-                .map(this::buildShortNewsMessageText)
-                .collect(Collectors.toList());
-    }
-
-    public String buildShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
-        return "<b>" + newsMessage.getTitle() + "</b> <a href='" + newsMessage.getLink() + "'>(" + sourceName + ")</a>\n<i>" +
-                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
-    }
-
-    private String buildShortNewsMessageText(NewsMessage newsMessage) {
-        return "<b>" + newsMessage.getTitle() + "</b>\n<i>" +
-                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
-    }
-
-    private String buildFullNewsMessageText(SyndEntry syndEntry) {
-        return buildFullNewsMessageText(buildNewsMessageFromSyndEntry(syndEntry));
-    }
-
-    public NewsMessage buildNewsMessageFromSyndEntry(SyndEntry syndEntry) {
-        String title = reduceSpaces(cutHtmlTags(syndEntry.getTitle()));
-        if (title.length() > 255) {
-            int i = title.indexOf(".");
-            if (i < 0 || i > 255) {
-                title = title.substring(0, 50) + "...";
-            } else {
-                title = title.substring(0, i);
-            }
-        }
-
-        String descHash;
-        String description;
-        if (syndEntry.getDescription() == null) {
-            description = "";
-            descHash = DigestUtils.sha256Hex(title);
-        } else {
-            description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
-            if (description.length() > 768) {
-                description = description.substring(0, 767) + "...";
-            }
-            descHash = DigestUtils.sha256Hex(description);
-        }
-
-        Date publishedDate = syndEntry.getPublishedDate();
-        if (publishedDate == null) {
-            publishedDate = syndEntry.getUpdatedDate();
-            if (publishedDate == null) {
-                publishedDate = Date.from(Instant.now());
-            }
-        }
-
-        return new NewsMessage()
-                .setLink(syndEntry.getLink())
-                .setTitle(title)
-                .setDescription(description)
-                .setPubDate(publishedDate)
-                .setAttachUrl(getAttachUrl(syndEntry))
-                .setDescHash(descHash);
-    }
-
-    private String buildFullNewsMessageText(NewsMessage newsMessage) {
-        return "<b>" + newsMessage.getTitle() + "</b>\n" +
-                "<i>" + formatDate(newsMessage.getPubDate()) + "</i>\n" +
-                newsMessage.getDescription() +
-                "\n<a href=\"" + newsMessage.getLink() + "\">Читать полностью</a>";
-    }
-
-    private String getAttachUrl(SyndEntry syndEntry) {
-        if (!syndEntry.getEnclosures().isEmpty()) {
-            return syndEntry.getEnclosures().get(0).getUrl();
-        }
-
-        Optional<String> optionalDesc = Optional.of(syndEntry).map(SyndEntry::getDescription).map(SyndContent::getValue);
-        if (optionalDesc.isPresent()) {
-            String description = optionalDesc.get();
-            int a = description.indexOf("<img");
-            if (a >= 0) {
-                String buf = description.substring(a);
-                int b = buf.indexOf("/>");
-                if (b < 0) {
-                    b = buf.indexOf("/img>");
-                    if (b < 0) {
-                        b = buf.indexOf(">");
-                        if (b < 0) {
-                            return null;
-                        }
-                    }
-                }
-                String imageTag = buf.substring(4, b);
-
-                a = imageTag.indexOf("src=");
-                if (a < 0) {
-                    return null;
-                }
-                buf = imageTag.substring(a + 5);
-                b = buf.indexOf("\"");
-                if (b < 0) {
-                    return null;
-                }
-
-                return buf.substring(0, b);
-            }
-        }
-
-        return null;
     }
 
 }

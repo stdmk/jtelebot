@@ -14,6 +14,7 @@ import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.RssMapper;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class NewsTimer extends TimerParent {
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
-    private final org.telegram.bot.commands.News newsCommand;
+    private final RssMapper rssMapper;
     private final NetworkUtils networkUtils;
 
     @Override
@@ -58,7 +59,7 @@ public class NewsTimer extends TimerParent {
             }
 
             syndFeed.getEntries().forEach(syndEntry -> {
-                NewsMessage newsMessage = newsCommand.buildNewsMessageFromSyndEntry(syndEntry);
+                NewsMessage newsMessage = rssMapper.toNewsMessage(syndEntry);
 
                 if (newsSource.getNewsMessage() == null || newsSource.getNewsMessage().getPubDate().before(newsMessage.getPubDate())) {
                     newsMessage = newsMessageService.save(newsMessage);
@@ -72,7 +73,7 @@ public class NewsTimer extends TimerParent {
                                     sendMessage.setChatId(news.getChat().getChatId().toString());
                                     sendMessage.enableHtml(true);
                                     sendMessage.disableWebPagePreview();
-                                    sendMessage.setText(newsCommand.buildShortNewsMessageText(finalNewsMessage, news.getNewsSource().getName()));
+                                    sendMessage.setText(rssMapper.toShortNewsMessageText(finalNewsMessage, news.getNewsSource().getName()));
 
                                     sendMessageExecutor.executeMethod(sendMessage);
                             });
