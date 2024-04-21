@@ -25,6 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -223,7 +224,8 @@ public class Tv implements Command<SendMessage> {
                 .stream()
                 .map(UserTv::getTvChannel)
                 .map(tvChannel ->
-                        buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_SHORT) + "\n")
+                        buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_SHORT))
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
