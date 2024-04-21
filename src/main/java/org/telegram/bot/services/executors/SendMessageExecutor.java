@@ -94,9 +94,7 @@ public class SendMessageExecutor implements MethodExecutor {
     }
 
     private void tryToSendWithoutMarkdowns(SendMessage sendMessage) {
-        sendMessage.enableMarkdown(false);
-        sendMessage.enableHtml(false);
-        sendMessage.enableMarkdownV2(false);
+        sendMessage.setParseMode(null);
 
         try {
             bot.execute(sendMessage);
