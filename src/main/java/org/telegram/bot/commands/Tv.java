@@ -208,6 +208,8 @@ public class Tv implements Command {
                         + commandName + "_pr" + tvProgram.getId() + "\n")
                 .collect(Collectors.toList()));
 
+        result.add("\n");
+
         return result;
     }
 
