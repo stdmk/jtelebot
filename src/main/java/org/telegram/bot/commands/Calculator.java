@@ -32,6 +32,7 @@ import java.util.List;
 public class Calculator implements Command {
 
     private static final String MATH_JS_URL = "http://api.mathjs.org/v4/?expr=";
+    private static final String UNAVAILABLE_RESULT = "${command.calculator.unavailable}";
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -61,7 +62,7 @@ public class Calculator implements Command {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> httpRequest = new HttpEntity<>(expressionData.toString(), headers);
 
-            String result = "unavailable";
+            String result = UNAVAILABLE_RESULT;
             try {
                 ResponseEntity<String> response = defaultRestTemplate.postForEntity(MATH_JS_URL, httpRequest, String.class);
                 if (response.getBody() == null) {

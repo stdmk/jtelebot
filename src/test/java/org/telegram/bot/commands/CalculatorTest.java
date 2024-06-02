@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +13,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
@@ -42,6 +44,8 @@ class CalculatorTest {
     private SpeechService speechService;
     @Mock
     private RestTemplate defaultRestTemplate;
+    @Mock
+    private BotStats botStats;
     @Mock
     private ResponseEntity<Object> response;
 
@@ -99,6 +103,21 @@ class CalculatorTest {
 
         String actualErrorText = textResponse.getText();
         assertEquals(expectedErrorText, actualErrorText);
+    }
+
+    @Test
+    void parseWithJsonExceptionTest() {
+        BotRequest request = getRequestFromGroup("calc test");
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(response);
+        when(response.getBody()).thenReturn("{{{");
+
+        assertThrows(BotException.class, () -> calculator.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats).incrementErrors(any(BotRequest.class), any(JSONException.class), anyString());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
     @ParameterizedTest
