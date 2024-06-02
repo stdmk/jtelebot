@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -27,6 +28,7 @@ public class Password implements Command {
     private static final String SPECIAL_SYMBOLS = "!@$%^&*()_-+";
     private static final String SYMBOLS_SOURCE = UPPER_LATIN + LOWER_LATIN + DIGITS + SPECIAL_SYMBOLS;
     private static final Integer DEFAULT_PASSWORD_LENGTH = 15;
+    private static final int MAX_GENERATION_ATTEMTS = 50;
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -36,27 +38,25 @@ public class Password implements Command {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
 
-        int passwordLength;
+        PasswordParams passwordParams;
         String commandArgument = message.getCommandArgument();
         if (commandArgument != null) {
-            try {
-                passwordLength = Integer.parseInt(commandArgument);
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            }
+            passwordParams = getPasswordParams(commandArgument);
         } else {
-            passwordLength = DEFAULT_PASSWORD_LENGTH;
+            passwordParams = new PasswordParams(DEFAULT_PASSWORD_LENGTH, SYMBOLS_SOURCE);
         }
 
-        if (passwordLength < 4 || passwordLength > 4096) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+        log.debug("Request to generate password by params {}", passwordParams);
 
-        log.debug("Request to generate password with {} symbols", passwordLength);
-
-        String password = generatePassword(passwordLength);
+        String password = generatePassword(passwordParams);
+        int attempts = 1;
         while (!isComplexity(password)) {
-            password = generatePassword(passwordLength);
+            if (attempts > MAX_GENERATION_ATTEMTS) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            password = generatePassword(passwordParams);
+            attempts = attempts + 1;
         }
 
         return returnResponse(new TextResponse(message)
@@ -64,13 +64,64 @@ public class Password implements Command {
                 .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
-    private String generatePassword(int length) {
-        StringBuilder buf = new StringBuilder();
-        int sourceLength = SYMBOLS_SOURCE.length();
+    private PasswordParams getPasswordParams(String argument) {
+        int passwordLength;
+        String specialSymbols;
 
-        for (int i = 0; i < length; i++) {
+        if (argument == null || argument.isEmpty() || argument.isBlank()) {
+            return new PasswordParams(DEFAULT_PASSWORD_LENGTH, SYMBOLS_SOURCE);
+        }
+
+        int indexOfSpace = argument.indexOf(" ");
+        if (indexOfSpace < 0) {
+            try {
+                passwordLength = Integer.parseInt(argument);
+            } catch (Exception e) {
+                for (int i = 0; i < argument.length(); i++) {
+                    if (SPECIAL_SYMBOLS.indexOf(argument.charAt(i)) == -1) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                }
+
+                return new PasswordParams(DEFAULT_PASSWORD_LENGTH, UPPER_LATIN + LOWER_LATIN + DIGITS + argument);
+            }
+
+            checkPasswordLength(passwordLength);
+            return new PasswordParams(passwordLength, SYMBOLS_SOURCE);
+        } else {
+            try {
+                passwordLength = Integer.parseInt(argument.substring(0, indexOfSpace));
+            } catch (Exception e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            specialSymbols = argument.substring(indexOfSpace + 1);
+            for (int i = 0; i < specialSymbols.length(); i++) {
+                if (SPECIAL_SYMBOLS.indexOf(specialSymbols.charAt(i)) == -1) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
+            }
+
+            checkPasswordLength(passwordLength);
+            return new PasswordParams(passwordLength, UPPER_LATIN + LOWER_LATIN + DIGITS + specialSymbols);
+        }
+
+    }
+
+    private void checkPasswordLength(int length) {
+        if (length < 4 || length > 4096) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+    }
+
+    private String generatePassword(PasswordParams passwordParams) {
+        String symbolsSource = passwordParams.getSymbolsSource();
+        int sourceLength = symbolsSource.length();
+
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < passwordParams.getLength(); i++) {
             Integer position = MathUtils.getRandomInRange(0, sourceLength);
-            buf.append(SYMBOLS_SOURCE.charAt(position));
+            buf.append(symbolsSource.charAt(position));
         }
 
         return buf.toString();
@@ -93,6 +144,12 @@ public class Password implements Command {
         }
 
         return false;
+    }
+
+    @Value
+    private static class PasswordParams {
+        int length;
+        String symbolsSource;
     }
 
 }

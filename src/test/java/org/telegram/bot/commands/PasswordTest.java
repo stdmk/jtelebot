@@ -31,10 +31,10 @@ class PasswordTest {
     private Password password;
 
     @ParameterizedTest
-    @ValueSource(strings = {"a", "-1", "0", "3", "4097"})
+    @ValueSource(strings = {" a", " -1", " 0", " 3", " 4097", " a /", " 16 /", " 4097 !@$", " 3 !@$"})
     void parseWrongInputTest(String input) {
         final String expectedErrorText = "wrong input";
-        BotRequest request = TestUtils.getRequestFromGroup("password " + input);
+        BotRequest request = TestUtils.getRequestFromGroup("password" + input);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
@@ -44,12 +44,13 @@ class PasswordTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "4", "4096"})
+    @ValueSource(strings = {"", "  ", " 4", " 4096", "!@$", " 16 !@$"})
     void parseTest(String input) {
         BotRequest request = TestUtils.getRequestFromGroup("password" + input);
         BotResponse botResponse = password.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertNotNull(textResponse);
         verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
