@@ -160,7 +160,11 @@ public class Calendar implements Command {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
-                date = LocalDate.of(dateNow.getYear(), month, 1);
+                try {
+                    date = LocalDate.of(dateNow.getYear(), month, 1);
+                } catch (Exception e) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
             }
         }
 

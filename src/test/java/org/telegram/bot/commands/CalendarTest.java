@@ -3,6 +3,8 @@ package org.telegram.bot.commands;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -201,11 +203,15 @@ class CalendarTest {
         assertEquals(expectedResponseText, actualResponseText);
     }
 
-    @Test
-    void calendarWithWrongDateArgumentParsingTest() {
+    @ParameterizedTest
+    @ValueSource(strings = {"32.3033", "2022"})
+    void calendarWithWrongDateArgumentParsingTest(String argument) {
         final String expectedErrorMessage = "error";
-        BotRequest request = getRequestFromGroup("calendar 32.3033");
+        BotRequest request = getRequestFromGroup("calendar " + argument);
+        LocalDate date = LocalDate.of(2007, 5, 1);
 
+        when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
         BotException botException = assertThrows(BotException.class, () -> calendar.parse(request));
