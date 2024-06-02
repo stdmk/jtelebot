@@ -203,11 +203,21 @@ class CalendarTest {
         assertEquals(expectedResponseText, actualResponseText);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"32.3033", "2022"})
-    void calendarWithWrongDateArgumentParsingTest(String argument) {
+    @Test
+    void calendarWithWrongDateArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        BotRequest request = getRequestFromGroup("calendar " + argument);
+        BotRequest request = getRequestFromGroup("calendar 32.3033");
+        when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
+
+        BotException botException = assertThrows(BotException.class, () -> calendar.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        assertEquals(expectedErrorMessage, botException.getMessage());
+    }
+
+    @Test
+    void calendarWithWrongMonth1ArgumentParsingTest() {
+        final String expectedErrorMessage = "error";
+        BotRequest request = getRequestFromGroup("calendar 2022");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
