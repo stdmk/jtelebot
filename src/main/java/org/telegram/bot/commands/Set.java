@@ -56,12 +56,12 @@ public class Set implements Command {
         if (commandArgument == null || commandArgument.toLowerCase().startsWith("back")) {
             if (message.isCallback()) {
                 return returnResponse(new EditResponse(message)
-                        .setText("<b>Установки</b>")
+                        .setText("<b>${setter.set.caption}</b>")
                         .setKeyboard(buildMainKeyboard())
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
             } else {
                 return returnResponse(new TextResponse(message)
-                        .setText("<b>Установки</b>")
+                        .setText("<b>${setter.set.caption}</b>")
                         .setKeyboard(buildMainKeyboard())
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
             }
