@@ -5,18 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.ObjectCopier;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Alias implements Command<SendMessage>, MessageAnalyzer {
+public class Alias implements Command, MessageAnalyzer {
 
     public static final int MAX_COMMANDS_IN_ALIAS = 5;
 
@@ -39,23 +40,23 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
 
         bot.sendTyping(chatId);
 
-        Chat chat = new Chat().setChatId(chatId);
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = message.getChat();
+        User user = message.getUser();
 
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         String caption;
         List<org.telegram.bot.domain.entities.Alias> aliasList;
-        if (textMessage != null) {
-            log.debug("Request to get info about aliases by name {} for chat {}", textMessage, chat);
+        if (commandArgument != null) {
+            log.debug("Request to get info about aliases by name {} for chat {}", commandArgument, chat);
             caption = "${command.alias.foundaliases}:\n";
 
-            aliasList = deduplicate(aliasService.get(chat, textMessage));
+            aliasList = deduplicate(aliasService.get(chat, commandArgument));
             if (aliasList.isEmpty()) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             }
@@ -70,14 +71,11 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
                 .map(this::buildAliasInfoString)
                 .collect(Collectors.joining("\n"));
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setWebPagePreview(false)
+                        .setFormattingStyle(FormattingStyle.MARKDOWN)));
     }
 
     /**
@@ -106,15 +104,15 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
     }
 
     @Override
-    public void analyze(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
         String textMessage = message.getText();
         if (textMessage == null) {
-            return;
+            return returnResponse();
         }
 
-        Chat chat = new Chat().setChatId(message.getChatId());
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = request.getMessage().getChat();
+        User user = request.getMessage().getUser();
 
         String aliasName;
         String argument = null;
@@ -130,17 +128,23 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
         if (alias != null) {
             List<String> aliasValueList = getAliasValueList(alias.getValue());
             if (aliasValueList.size() > 1) {
+                List<BotResponse> resultList = new ArrayList<>(MAX_COMMANDS_IN_ALIAS);
+
                 for (String aliasValue : aliasValueList) {
                     if (argument == null) {
-                        processUpdate(update, chat, user, aliasValue);
+                        resultList.addAll(processUpdate(request, chat, user, aliasValue));
                     } else {
-                        processUpdate(update, chat, user, aliasValue + argument);
+                        resultList.addAll(processUpdate(request, chat, user, aliasValue + argument));
                     }
                 }
+
+                return resultList;
             } else if (argument == null) {
-                processUpdate(update, chat, user, alias.getValue());
+                return processUpdate(request, chat, user, alias.getValue());
             }
         }
+
+        return returnResponse();
     }
 
     private List<String> getAliasValueList(String aliasValue) {
@@ -154,11 +158,11 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
         return List.of(aliasValue);
     }
 
-    private void processUpdate(Update update, Chat chat, User user, String messageText) {
-        Update newUpdate = objectCopier.copyObject(update, Update.class);
-        if (newUpdate == null) {
+    private List<BotResponse> processUpdate(BotRequest botRequest, Chat chat, User user, String messageText) {
+        BotRequest newBotRequest = objectCopier.copyObject(botRequest, BotRequest.class);
+        if (newBotRequest == null) {
             log.error("Failed to get a copy of update");
-            return;
+            return returnResponse();
         }
 
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(messageText, bot.getBotUsername());
@@ -167,11 +171,13 @@ public class Alias implements Command<SendMessage>, MessageAnalyzer {
                 (userService.isUserHaveAccessForCommand(
                         userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(),
                         commandProperties.getAccessLevel()))) {
-            Message newMessage = getMessageFromUpdate(newUpdate);
+            Message newMessage = newBotRequest.getMessage();
             newMessage.setText(messageText);
             userStatsService.incrementUserStatsCommands(chat, user);
-            bot.parseAsync(newUpdate, (Command<?>) context.getBean(commandProperties.getClassName()));
+            return ((Command) context.getBean(commandProperties.getClassName())).parse(newBotRequest);
         }
+
+        return returnResponse();
     }
 
 }

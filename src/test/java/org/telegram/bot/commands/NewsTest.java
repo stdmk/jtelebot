@@ -15,6 +15,10 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.NewsMessageService;
@@ -23,10 +27,6 @@ import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.RssMapper;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -68,113 +68,113 @@ class NewsTest {
         final String firstNewsMessageText = "firstNewsMessageText";
         final String secondNewsMessageText = "secondNewsMessageText";
         final String expectedResponseText = "<b>${command.news.lastnews}:</b>\n\n" + firstNewsMessageText + secondNewsMessageText;
-        Update update = TestUtils.getUpdateFromGroup("news");
+        BotRequest request = TestUtils.getRequestFromGroup("news");
 
         when(newsService.getAll(any(Chat.class))).thenReturn(getSomeNews());
         when(rssMapper.toShortNewsMessageText(any(NewsMessage.class), anyString()))
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void parseWithWrongNumberOfNewsEntityAsArgumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("news_test");
+        BotRequest request = TestUtils.getRequestFromGroup("news_test");
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNumberOfNonExistenceNewsEntityAsArgumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("news_1");
+        BotRequest request = TestUtils.getRequestFromGroup("news_1");
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNumberOfNewsEntityAsArgumentWithoutAttachInEntityTest() {
         final String expectedResponseText = "expectedResponseText";
         final long newsId = 1;
-        Update update = TestUtils.getUpdateFromGroup("news_" + newsId);
+        BotRequest request = TestUtils.getRequestFromGroup("news_" + newsId);
 
         when(newsMessageService.get(newsId)).thenReturn(getSomeNews().get(0).getNewsSource().getNewsMessage());
         when(rssMapper.toFullNewsMessageText(any(NewsMessage.class))).thenReturn(expectedResponseText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertEquals(expectedResponseText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNumberOfNewsEntityAsArgumentWithAttachInEntityTest() {
         final String expectedResponseText = "expectedResponseText";
         final long newsId = 1;
-        Update update = TestUtils.getUpdateFromGroup("news_" + newsId);
+        BotRequest request = TestUtils.getRequestFromGroup("news_" + newsId);
 
         when(newsMessageService.get(newsId)).thenReturn(getSomeNews().get(1).getNewsSource().getNewsMessage());
         when(rssMapper.toFullNewsMessageText(any(NewsMessage.class))).thenReturn(expectedResponseText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
+        BotResponse response = news.parse(request).get(0);
+        FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
 
-        assertEquals(expectedResponseText, sendPhoto.getCaption());
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertEquals(expectedResponseText, photo.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNewsSourceNameAsArgumentWithFeedExceptionTest() throws FeedException, IOException {
-        Update update = TestUtils.getUpdateFromGroup("news " + NEWS_SOURCE1_NAME);
+        BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
         org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new FeedException("error"));
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(botStats).incrementErrors(anyString(), any(Throwable.class), anyString());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNewsSourceNameAsArgumentWithMalformedUrlExceptionTest() throws FeedException, IOException {
-        Update update = TestUtils.getUpdateFromGroup("news " + NEWS_SOURCE1_NAME);
+        BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
         org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new MalformedURLException("error"));
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithNewsSourceNameAsArgumentWithIOExceptionTest() throws FeedException, IOException {
-        Update update = TestUtils.getUpdateFromGroup("news " + NEWS_SOURCE1_NAME);
+        BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
         org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new IOException("error"));
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(botStats).incrementErrors(anyString(), any(Throwable.class), anyString());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -182,7 +182,7 @@ class NewsTest {
         final String firstNewsMessageText = "firstNewsMessageText";
         final String secondNewsMessageText = "secondNewsMessageText";
         final String expectedResponseText = firstNewsMessageText + secondNewsMessageText;
-        Update update = TestUtils.getUpdateFromGroup("news " + NEWS_SOURCE1_NAME);
+        BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
         org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
         List<NewsMessage> newsMessageList = getSomeNews()
                 .stream()
@@ -199,11 +199,11 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertEquals(expectedResponseText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -211,7 +211,7 @@ class NewsTest {
         final String firstNewsMessageText = "firstNewsMessageText";
         final String secondNewsMessageText = "secondNewsMessageText";
         final String expectedResponseText = firstNewsMessageText + secondNewsMessageText;
-        Update update = TestUtils.getUpdateFromGroup("news " + RSS_FEED_URL);
+        BotRequest request = TestUtils.getRequestFromGroup("news " + RSS_FEED_URL);
         List<NewsMessage> newsMessageList = getSomeNews()
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
@@ -225,43 +225,43 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertEquals(expectedResponseText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithUrlAndWrongNewsCountAsArgumentsTest() {
-        Update update = TestUtils.getUpdateFromGroup("news " + RSS_FEED_URL + " 0");
+        BotRequest request = TestUtils.getRequestFromGroup("news " + RSS_FEED_URL + " 0");
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithUrlAndNewsCountAsArgumentsTest() throws FeedException, IOException {
         final String fullNewsMessageText = "fullNewsMessageText";
-        Update update = TestUtils.getUpdateFromGroup("news " + RSS_FEED_URL + " 1");
+        BotRequest request = TestUtils.getRequestFromGroup("news " + RSS_FEED_URL + " 1");
 
         SyndFeed syndFeed = mock(SyndFeed.class);
         when(syndFeed.getEntries()).thenReturn(List.of(mock(SyndEntry.class)));
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenReturn(syndFeed);
         when(rssMapper.toFullNewsMessageText(any(SyndEntry.class))).thenReturn(fullNewsMessageText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(fullNewsMessageText, sendMessage.getText());
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertEquals(fullNewsMessageText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithSearchingNewsFoundNothingTest() throws FeedException, IOException {
-        Update update = TestUtils.getUpdateFromGroup("news test \"testych test\"");
+        BotRequest request = TestUtils.getRequestFromGroup("news test \"testych test\"");
         List<org.telegram.bot.domain.entities.News> newsList = getSomeNews();
         List<NewsSource> sourceList = newsList
                 .stream()
@@ -275,10 +275,10 @@ class NewsTest {
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new BotException("")).thenReturn(syndFeed);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn("not found");
 
-        assertThrows(BotException.class, () -> news.parse(update));
+        assertThrows(BotException.class, () -> news.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -286,7 +286,7 @@ class NewsTest {
         final String firstNewsMessageText = "firstNewsMessageText";
         final String secondNewsMessageText = "secondNewsMessageText";
         final String expectedResponseText = firstNewsMessageText + secondNewsMessageText;
-        Update update = TestUtils.getUpdateFromGroup("news test \"testych test\"");
+        BotRequest request = TestUtils.getRequestFromGroup("news test \"testych test\"");
         List<org.telegram.bot.domain.entities.News> newsList = getSomeNews();
         List<NewsSource> sourceList = newsList
                 .stream()
@@ -324,12 +324,12 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        PartialBotApiMethod<?> method = news.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotResponse response = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(rssMapper, never()).toNewsMessage(notMatchesSyndEntry);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     private List<org.telegram.bot.domain.entities.News> getSomeNews() {

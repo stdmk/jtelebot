@@ -11,6 +11,11 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.ImageUrl;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -18,11 +23,6 @@ import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,104 +62,113 @@ class GooglePicsTest {
 
     @Test
     void googlePicsWithEmptyTextMessageTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture");
+        BotRequest request = TestUtils.getRequestFromGroup("picture");
 
-        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
+        BotResponse response = googlePics.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(method);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(response);
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 
     @Test
     void googlePicsByInvalidImageUrlIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture_a");
-        assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("picture_a");
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+
+        assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void googlePicsByNotExistentImageUrlIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture_1");
+        BotRequest request = TestUtils.getRequestFromGroup("picture_1");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(imageUrlService.get(anyLong())).thenReturn(null);
 
-        assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void googlePicsWithExceptionDuringDownloadingTest() throws Exception {
         final String url = "url";
-        Update update = TestUtils.getUpdateFromGroup("picture_1");
+        BotRequest request = TestUtils.getRequestFromGroup("picture_1");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url));
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
-        BotException botException = assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         assertTrue(botException.getMessage().contains(url));
     }
 
     @Test
     void googlePicsByImageUrlIdTest() throws Exception {
         final String url = "url";
-        Update update = TestUtils.getUpdateFromGroup("picture_1");
+        BotRequest request = TestUtils.getRequestFromGroup("picture_1");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url).setTitle("title"));
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(Mockito.mock(InputStream.class));
 
-        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendPhotoParams(method);
+        BotResponse response = googlePics.parse(request).get(0);
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        TestUtils.checkDefaultFileResponseImageParams(response);
     }
 
     @Test
     void googlePicsWithoutTokenTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture test");
+        BotRequest request = TestUtils.getRequestFromGroup("picture test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn(null);
 
-        assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
     @Test
     void googlePicsWithUnavailableApiTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture test");
+        BotRequest request = TestUtils.getRequestFromGroup("picture test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
                 .thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void googlePicsWithNullResponseTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture test");
+        BotRequest request = TestUtils.getRequestFromGroup("picture test");
         GooglePics.GooglePicsSearchData googlePicsSearchData = new GooglePics.GooglePicsSearchData();
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googlePicsSearchData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GooglePics.GooglePicsSearchData>>any()))
                 .thenReturn(response);
 
-        assertThrows(BotException.class, () -> googlePics.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> googlePics.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(botStats).incrementGoogleRequests();
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
     }
 
     @Test
     void googlePicsTest() {
-        Update update = TestUtils.getUpdateFromGroup("picture test");
+        BotRequest request = TestUtils.getRequestFromGroup("picture test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         GooglePics.GooglePicsSearchItem googlePicsSearchItem = new GooglePics.GooglePicsSearchItem()
                 .setTitle("title")
                 .setLink("link");
@@ -172,15 +181,15 @@ class GooglePicsTest {
                 .thenReturn(response);
         when(imageUrlService.save(anyList())).thenReturn(
                 List.of(
+                        new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle()),
                         new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle())));
 
-        PartialBotApiMethod<?> method = googlePics.parse(update).get(0);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        SendMediaGroup sendMediaGroup = TestUtils.checkDefaultSendMediaGroupParams(method);
+        BotResponse response = googlePics.parse(request).get(0);
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        FileResponse mediaGroup = TestUtils.checkDefaultResponseMultipleImagesParams(response);
 
-        InputMedia inputMedia = sendMediaGroup.getMedias().get(0);
-        assertEquals(googlePicsSearchItem.getLink(), inputMedia.getMedia());
-        assertNotNull(inputMedia.getCaption());
+        File file = mediaGroup.getFiles().get(0);
+        assertEquals(googlePicsSearchItem.getLink(), file.getUrl());
 
         verify(botStats).incrementGoogleRequests();
 

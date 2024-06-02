@@ -11,16 +11,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Word implements Command<SendMessage> {
+public class Word implements Command {
 
     private static final String API_URL = "https://%s.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&titles=";
     private static final Pattern TITLE_PATTERN = Pattern.compile("=+ ([\\w ]+) =+", Pattern.UNICODE_CHARACTER_CLASS);
@@ -41,25 +42,22 @@ public class Word implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         List<String> responseText;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             commandWaitingService.add(message, this.getClass());
             responseText = List.of("${command.word.commandwaitingstart}");
         } else {
-            String lang = languageResolver.getChatLanguageCode(update);
-            responseText = getData(textMessage, lang);
+            String lang = languageResolver.getChatLanguageCode(request);
+            responseText = getData(commandArgument, lang);
         }
 
-        return mapToSendMessages(responseText, message);
+        return mapToTextResponseList(responseText, message, new ResponseSettings().setFormattingStyle(FormattingStyle.HTML));
     }
 
     private List<String> getData(String title, String lang) {

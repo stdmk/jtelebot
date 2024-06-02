@@ -1,8 +1,8 @@
 package org.telegram.bot.services;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.response.TextResponse;
 
 public interface SpyModeService {
-    SendMessage generateMessage(User user, String textMessage);
+    TextResponse generateResponse(User user, String textMessage);
 }

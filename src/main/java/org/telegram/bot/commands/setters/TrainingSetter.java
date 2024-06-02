@@ -5,19 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.time.*;
@@ -26,6 +23,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.*;
@@ -33,7 +31,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
+public class TrainingSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_SET_COMMAND = "training";
@@ -151,14 +149,13 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (emptyTrainingCommands.contains(lowerCaseCommandText)) {
                 return getSetterMainMenu(message, false);
             } else if (containsStartWith(subscriptionCommands, lowerCaseCommandText)) {
@@ -170,7 +167,6 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
         if (emptyTrainingCommands.contains(lowerCaseCommandText)) {
             return getSetterMainMenu(message, true);
         }
@@ -183,7 +179,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private PartialBotApiMethod<?> setSubscription(Message message, Chat chat, User user, String command) {
+    private BotResponse setSubscription(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
         Matcher setSubCountDateDurationMatcher = SET_SUB_COUNT_DATE_DURATION_COMMAND_PATTERN.matcher(command);
@@ -300,17 +296,14 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             return getManageSubscriptionsMenu(message, user, false);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> getManageSubscriptionsMenu(Message message, User user, boolean newMessage) {
+    private BotResponse getManageSubscriptionsMenu(Message message, User user, boolean newMessage) {
         StringBuilder buf = new StringBuilder("<b>${setter.training.subscr.caption}:</b>\n");
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
 
         List<TrainSubscription> trainSubscriptionList = trainSubscriptionService.getActive(user);
         if (trainSubscriptionList.isEmpty()) {
@@ -322,54 +315,34 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
                         .append("${setter.training.subscr.for} ").append(subscription.getPeriod().getMonths()).append(" ${setter.training.subscr.month}.")
                         .append(" (${setter.training.subscr.until} ").append(DateUtils.formatDate(subscription.getStartDate().plus(subscription.getPeriod()))).append(")\n\n");
 
-                List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-                InlineKeyboardButton subscriptionDeleteButton = new InlineKeyboardButton();
-                subscriptionDeleteButton.setText(Emoji.DELETE.getSymbol() + subscription.getStartDate() + " " + subscription.getCount());
-                subscriptionDeleteButton.setCallbackData(CALLBACK_DELETE_SUBSCRIPTION_COMMAND + subscription.getId());
-                buttonRow.add(subscriptionDeleteButton);
-
-                InlineKeyboardButton subscriptionUpdateButton = new InlineKeyboardButton();
-                subscriptionUpdateButton.setText(Emoji.GEAR.getSymbol() + formatDate(subscription.getStartDate().plus(subscription.getPeriod())));
-                subscriptionUpdateButton.setCallbackData(CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscription.getId());
-                buttonRow.add(subscriptionUpdateButton);
-
-                rows.add(buttonRow);
+                rows.add(List.of(
+                        new KeyboardButton()
+                                .setName(Emoji.DELETE.getSymbol() + subscription.getStartDate() + " " + subscription.getCount())
+                                .setCallback(CALLBACK_DELETE_SUBSCRIPTION_COMMAND + subscription.getId()),
+                        new KeyboardButton()
+                                .setName(Emoji.GEAR.getSymbol() + formatDate(subscription.getStartDate().plus(subscription.getPeriod())))
+                                .setCallback(CALLBACK_UPDATE_SUBSCRIPTION_COMMAND + subscription.getId())));
             });
         }
 
-        List<InlineKeyboardButton> addRow = new ArrayList<>();
-        InlineKeyboardButton addSubscriptionButton = new InlineKeyboardButton();
-        addSubscriptionButton.setText(Emoji.NEW.getSymbol() + "${setter.training.subscr.button.add}");
-        addSubscriptionButton.setCallbackData(CALLBACK_ADD_SUBSCRIPTION_COMMAND);
-        addRow.add(addSubscriptionButton);
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.NEW.getSymbol() + "${setter.training.subscr.button.add}")
+                .setCallback(CALLBACK_ADD_SUBSCRIPTION_COMMAND)));
 
-        rows.add(addRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
+        Keyboard keyboard = new Keyboard(getSetterMainMenuButtons(rows));
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(buf.toString());
-            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(buf.toString())
+                    .setKeyboard(keyboard);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(buf.toString());
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(buf.toString())
+                .setKeyboard(keyboard);
     }
 
-    private PartialBotApiMethod<?> setTraining(Message message, Chat chat, User user, String command) {
+    private BotResponse setTraining(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
         command = command.replace(",", ".");
@@ -454,18 +427,14 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             return getManageTrainingMenu(message, user, false);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> getManageTrainingMenu(Message message, User user, boolean newMessage) {
+    private BotResponse getManageTrainingMenu(Message message, User user, boolean newMessage) {
         StringBuilder buf = new StringBuilder("<b>${setter.training.training.caption}:</b>\n");
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
 
         List<Training> trainingList = trainingService.get(user);
         if (trainingList.isEmpty()) {
@@ -473,49 +442,32 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
         } else {
             trainingList.forEach(training -> {
                 buf.append(training.getName()).append(" — ").append(formatShortTime(training.getTimeStart())).append(" (").append(training.getCost()).append(")\n");
-
-                List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-                InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                trainingButton.setText(Emoji.DELETE.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
-                trainingButton.setCallbackData(CALLBACK_DELETE_TRAINING_COMMAND + training.getId());
-                buttonRow.add(trainingButton);
-
-                rows.add(buttonRow);
+                rows.add(List.of(new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")")
+                        .setCallback(CALLBACK_DELETE_TRAINING_COMMAND + training.getId())));
             });
         }
 
-        List<InlineKeyboardButton> addRow = new ArrayList<>();
-        InlineKeyboardButton addTrainingButton = new InlineKeyboardButton();
-        addTrainingButton.setText(Emoji.NEW.getSymbol() + "${setter.training.training.button.add}");
-        addTrainingButton.setCallbackData(CALLBACK_ADD_TRAINING_COMMAND);
-        addRow.add(addTrainingButton);
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.NEW.getSymbol() + "${setter.training.training.button.add}")
+                .setCallback(CALLBACK_ADD_TRAINING_COMMAND)));
 
-        rows.add(addRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
+        Keyboard keyboard = new Keyboard(getSetterMainMenuButtons(rows));
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(buf.toString());
-            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(buf.toString())
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(buf.toString());
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(buf.toString())
+                .setKeyboard(keyboard)
+                .setResponseSettings(FormattingStyle.HTML);
     }
-    private EditMessageText setSchedule(Message message, Chat chat, User user, String command) {
+
+    private EditResponse setSchedule(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
         Matcher setScheduleSelectWeekDayMatcher = SET_SCHEDULE_SELECT_WEEK_DAY_PATTERN.matcher(command);
@@ -573,7 +525,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private EditMessageText getManageScheduleMenu(Message message, User user) {
+    private EditResponse getManageScheduleMenu(Message message, User user) {
         StringBuilder buf = new StringBuilder("<b>${setter.training.schedule.caption}:</b>\n");
 
         boolean scheduleStopped = trainingStoppedService.isStopped(user);
@@ -581,8 +533,7 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             buf.append("<u>${setter.training.schedule.stopped}</u>\n\n");
         }
 
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        List<InlineKeyboardButton> daysOfWeekRow = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
 
         Locale locale = languageResolver.getLocale(message, user);
         List<TrainingScheduled> trainingScheduledList = trainingScheduledService.get(user);
@@ -600,12 +551,10 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             });
         }
 
-        Arrays.stream(DayOfWeek.values()).forEach(dayOfWeek -> {
-            InlineKeyboardButton dayOfWeekButton = new InlineKeyboardButton();
-            dayOfWeekButton.setText(dayOfWeek.getDisplayName(TextStyle.SHORT, locale));
-            dayOfWeekButton.setCallbackData(CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue());
-            daysOfWeekRow.add(dayOfWeekButton);
-        });
+        List<KeyboardButton> daysOfWeekRow = Arrays.stream(DayOfWeek.values()).map(dayOfWeek -> new KeyboardButton()
+                .setName(dayOfWeek.getDisplayName(TextStyle.SHORT, locale))
+                .setCallback(CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue()))
+                .collect(Collectors.toList());
 
         String caption;
         if (scheduleStopped) {
@@ -614,32 +563,23 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             caption = Emoji.NO_ENTRY_SIGN.getSymbol() + "${setter.training.schedule.stop}";
         }
 
-        List<InlineKeyboardButton> stopRow = new ArrayList<>();
-        InlineKeyboardButton stopButton = new InlineKeyboardButton();
-        stopButton.setText(caption);
-        stopButton.setCallbackData(CALLBACK_STOP_SCHEDULE_COMMAND);
-        stopRow.add(stopButton);
-
         rows.add(daysOfWeekRow);
-        rows.add(stopRow);
+        rows.add(List.of(new KeyboardButton()
+                .setName(caption)
+                .setCallback(CALLBACK_STOP_SCHEDULE_COMMAND)));
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
+        Keyboard keyboard = new Keyboard(getSetterMainMenuButtons(rows));
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(buf.toString());
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(buf.toString())
+                .setKeyboard(keyboard)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText getManageScheduleByDayOfWeekMenu(Message message, User user, DayOfWeek dayOfWeek) {
+    private EditResponse getManageScheduleByDayOfWeekMenu(Message message, User user, DayOfWeek dayOfWeek) {
         Locale locale = languageResolver.getLocale(message, user);
         StringBuilder buf = new StringBuilder("<b>" + dayOfWeek.getDisplayName(TextStyle.FULL, locale) + "</b>\n");
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
         final String selectDayOfWeekCallback = internationalizationService.internationalize(
                 CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue(),
                 locale.toLanguageTag());
@@ -655,15 +595,9 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
                 String caption = training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")";
 
                 buf.append(caption).append("\n");
-
-                List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-                InlineKeyboardButton removeButton = new InlineKeyboardButton();
-                removeButton.setText(Emoji.DELETE.getSymbol() + caption);
-                removeButton.setCallbackData(selectDayOfWeekCallback + DELETE_SCHEDULE_COMMAND + training.getId());
-                buttonRow.add(removeButton);
-
-                rows.add(buttonRow);
-
+                rows.add(List.of(new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + caption)
+                        .setCallback(selectDayOfWeekCallback + DELETE_SCHEDULE_COMMAND + training.getId())));
                 alreadySelectedTrainingIdList.add(training.getId());
             });
         }
@@ -672,92 +606,54 @@ public class TrainingSetter implements Setter<PartialBotApiMethod<?>> {
             if (alreadySelectedTrainingIdList.contains(training.getId())) {
                 return;
             }
-
-            List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-            InlineKeyboardButton addButton = new InlineKeyboardButton();
-            addButton.setText(Emoji.NEW.getSymbol() + training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")");
-            addButton.setCallbackData(selectDayOfWeekCallback + ADD_SCHEDULE_COMMAND + training.getId());
-            buttonRow.add(addButton);
-            rows.add(buttonRow);
+            rows.add(List.of(new KeyboardButton()
+                    .setName(Emoji.NEW.getSymbol() + training.getTimeStart() + " — " + training.getName() + " (" + training.getCost() + ")")
+                    .setCallback(selectDayOfWeekCallback + ADD_SCHEDULE_COMMAND + training.getId())));
         });
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
+        Keyboard keyboard = new Keyboard(getSetterMainMenuButtons(rows));
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(buf.toString());
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(buf.toString())
+                .setKeyboard(keyboard)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> getSetterMainMenu(Message message, boolean newMessage) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+    private BotResponse getSetterMainMenu(Message message, boolean newMessage) {
+        List<List<KeyboardButton>> rows = new ArrayList<>();
         String caption = "<b>${setter.training.caption}:</b>";
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(getSetterMainMenuButtons(rows));
+        Keyboard keyboard = new Keyboard(getSetterMainMenuButtons(rows));
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(caption);
-            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(caption)
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(caption);
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(caption)
+                .setKeyboard(keyboard)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private List<List<InlineKeyboardButton>> getSetterMainMenuButtons(List<List<InlineKeyboardButton>> rows) {
-        List<InlineKeyboardButton> subscriptionButtonRow = new ArrayList<>();
-        InlineKeyboardButton subscriptionButton = new InlineKeyboardButton();
-        subscriptionButton.setText(Emoji.TICKET.getSymbol() + "${setter.training.button.subscr}");
-        subscriptionButton.setCallbackData(CALLBACK_SET_COMMAND + SUBSCRIPTION_COMMAND);
-        subscriptionButtonRow.add(subscriptionButton);
-
-        List<InlineKeyboardButton> trainingButtonRow = new ArrayList<>();
-        InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(Emoji.GREEN_BOOK.getSymbol() + "${setter.training.button.nomenclature}");
-        trainingButton.setCallbackData(CALLBACK_SET_COMMAND + TRAINING_COMMAND);
-        trainingButtonRow.add(trainingButton);
-
-        List<InlineKeyboardButton> scheduleButtonRow = new ArrayList<>();
-        InlineKeyboardButton scheduleButton = new InlineKeyboardButton();
-        scheduleButton.setText(Emoji.DATE.getSymbol() + "${setter.training.button.schedule}");
-        scheduleButton.setCallbackData(CALLBACK_SET_COMMAND + SCHEDULE_COMMAND);
-        scheduleButtonRow.add(scheduleButton);
-
-        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
-        InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getSymbol() + "${setter.training.button.trainings}");
-        infoButton.setCallbackData(EMPTY_SET_COMMAND);
-        infoButtonRow.add(infoButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.training.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(subscriptionButtonRow);
-        rows.add(trainingButtonRow);
-        rows.add(scheduleButtonRow);
-        rows.add(infoButtonRow);
-        rows.add(backButtonRow);
+    private List<List<KeyboardButton>> getSetterMainMenuButtons(List<List<KeyboardButton>> rows) {
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.TICKET.getSymbol() + "${setter.training.button.subscr}")
+                .setCallback(CALLBACK_SET_COMMAND + SUBSCRIPTION_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.GREEN_BOOK.getSymbol() + "${setter.training.button.nomenclature}")
+                .setCallback(CALLBACK_SET_COMMAND + TRAINING_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.DATE.getSymbol() + "${setter.training.button.schedule}")
+                .setCallback(CALLBACK_SET_COMMAND + SCHEDULE_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.WEIGHT_LIFTER.getSymbol() + "${setter.training.button.trainings}")
+                .setCallback(EMPTY_SET_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.BACK.getSymbol() + "${setter.training.button.settings}")
+                .setCallback(CALLBACK_COMMAND + "back")));
 
         return rows;
     }

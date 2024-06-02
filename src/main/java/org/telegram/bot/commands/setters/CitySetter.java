@@ -9,18 +9,15 @@ import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.time.ZoneId;
@@ -34,7 +31,7 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CitySetter implements Setter<PartialBotApiMethod<?>> {
+public class CitySetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_CITY_COMMAND = "${setter.city.emptycommand}";
@@ -84,14 +81,13 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (emptyCityCommands.contains(lowerCaseCommandText) || updateCityCommands.contains(lowerCaseCommandText)) {
                 return getMainKeyboard(message, chat, user, false);
             } else if (containsStartWith(selectCityCommands, lowerCaseCommandText)) {
@@ -105,7 +101,6 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
         if (emptyCityCommands.contains(lowerCaseCommandText)) {
             return getMainKeyboard(message,  chat, user, true);
         } else if (containsStartWith(deleteCityCommands, lowerCaseCommandText)) {
@@ -117,7 +112,7 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private EditMessageText selectCityByCallback(Message message, Chat chat, User user, String command) throws BotException {
+    private EditResponse selectCityByCallback(Message message, Chat chat, User user, String command) throws BotException {
         String selectCityCommand = getLocalizedCommand(command, SELECT_CITY_COMMAND);
 
         if (command.toLowerCase().equals(selectCityCommand)) {
@@ -146,10 +141,10 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         userCityService.save(userCity);
 
-        return (EditMessageText) getMainKeyboard(message, chat, user, false);
+        return (EditResponse) getMainKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> addCity(Message message, Chat chat, User user, String command) throws BotException {
+    private BotResponse addCity(Message message, Chat chat, User user, String command) throws BotException {
         String addCityCommand = getLocalizedCommand(command, ADD_CITY_COMMAND);
 
         log.debug("Request to add new city");
@@ -180,7 +175,7 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         return getKeyboardWithTimeZones(message, newCity.getId());
     }
 
-    private SendMessage deleteCity(Message message, User user, String command) throws BotException {
+    private TextResponse deleteCity(Message message, User user, String command) throws BotException {
         String deleteCityCommand = getLocalizedCommand(command, DELETE_CITY_COMMAND);
 
         log.debug("Request to delete city");
@@ -199,10 +194,12 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
 
         cityService.remove(city);
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText setTimeZoneForCity(Message message, Chat chat, User user, String command) throws BotException {
+    private EditResponse setTimeZoneForCity(Message message, Chat chat, User user, String command) throws BotException {
         String setTimezoneCommand = getLocalizedCommand(command, SET_TIMEZONE);
 
         log.debug("Request to set timezone for city");
@@ -237,20 +234,24 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         city.setTimeZone(timeZone.getID());
         cityService.save(city);
 
-        return (EditMessageText) getMainKeyboard(message, chat, user, false);
+        return (EditResponse) getMainKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> addCityByCallback(Message message,  Chat chat, User user, boolean newMessage) {
+    private BotResponse addCityByCallback(Message message,  Chat chat, User user, boolean newMessage) {
         commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_CITY_COMMAND);
 
         if (newMessage) {
-            return buildSendMessageWithText(message, "\n" + ADDING_HELP_TEXT_NAMES);
+            return new TextResponse(message)
+                    .setText("\n" + ADDING_HELP_TEXT_NAMES)
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        return buildEditMessageWithText(message, "\n" + ADDING_HELP_TEXT_NAMES);
+        return new EditResponse(message)
+                .setText("\n" + ADDING_HELP_TEXT_NAMES)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText deleteCityByCallback(Message message, User user, String command) throws BotException {
+    private EditResponse deleteCityByCallback(Message message, User user, String command) throws BotException {
         String deleteCityCommand = getLocalizedCommand(command, DELETE_CITY_COMMAND);
 
         log.debug("Request to delete city");
@@ -282,7 +283,7 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
     }
 
-    private EditMessageText getKeyboardWithCities(Message message, User user, String callbackCommand) {
+    private EditResponse getKeyboardWithCities(Message message, User user, String callbackCommand) {
         String emoji;
         String title;
         List<City> cities;
@@ -297,32 +298,17 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
             cities = cityService.getAll();
         }
 
-        List<List<InlineKeyboardButton>> cityRows = cities.stream().map(city -> {
-            List<InlineKeyboardButton> cityRow = new ArrayList<>();
+        List<List<KeyboardButton>> cityRows = cities.stream().map(city -> List.of(new KeyboardButton()
+                .setName(emoji + city.getNameRu())
+                .setCallback(callbackCommand + " " + city.getId()))).collect(Collectors.toList());
 
-            InlineKeyboardButton cityButton = new InlineKeyboardButton();
-            cityButton.setText(emoji + city.getNameRu());
-            cityButton.setCallbackData(callbackCommand + " " + city.getId());
-
-            cityRow.add(cityButton);
-
-            return cityRow;
-        }).collect(Collectors.toList());
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(cityRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText(title);
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(title)
+                .setKeyboard(new Keyboard(cityRows))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> getMainKeyboard(Message message, Chat chat, User user, boolean newMessage) {
+    private BotResponse getMainKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         String responseText;
 
         UserCity userCity = userCityService.get(user, chat);
@@ -333,118 +319,49 @@ public class CitySetter implements Setter<PartialBotApiMethod<?>> {
         }
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableMarkdown(true);
-            sendMessage.setText(responseText);
-            sendMessage.setReplyMarkup(prepareMainKeyboard());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(prepareMainKeyboard());
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText(responseText);
-        editMessageText.setReplyMarkup(prepareMainKeyboard());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(responseText)
+                .setKeyboard(prepareMainKeyboard())
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private InlineKeyboardMarkup prepareMainKeyboard() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(rows));
-
-        return inlineKeyboardMarkup;
+    private Keyboard prepareMainKeyboard() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.city.button.select}")
+                        .setCallback(CALLBACK_SELECT_CITY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.NEW.getSymbol() + "${setter.city.button.add}")
+                        .setCallback(CALLBACK_ADD_CITY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + "${setter.city.button.remove}")
+                        .setCallback(CALLBACK_DELETE_CITY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.UPDATE.getSymbol() + "${setter.city.button.update}")
+                        .setCallback(CALLBACK_COMMAND + UPDATE_CITY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.city.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back"));
     }
 
-    private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
-
-        List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
-        InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.city.button.select}");
-        selectButton.setCallbackData(CALLBACK_SELECT_CITY_COMMAND);
-        selectButtonRow.add(selectButton);
-
-        List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
-        InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getSymbol() + "${setter.city.button.add}");
-        addButton.setCallbackData(CALLBACK_ADD_CITY_COMMAND);
-        addButtonRow.add(addButton);
-
-        List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
-        InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.city.button.remove}");
-        deleteButton.setCallbackData(CALLBACK_DELETE_CITY_COMMAND);
-        deleteButtonRow.add(deleteButton);
-
-        List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
-        InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.city.button.update}");
-        updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_CITY_COMMAND);
-        updateButtonRow.add(updateButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.city.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(selectButtonRow);
-        rows.add(addButtonRow);
-        rows.add(deleteButtonRow);
-        rows.add(updateButtonRow);
-        rows.add(backButtonRow);
-
-        return rows;
-    }
-
-    private SendMessage getKeyboardWithTimeZones(Message message, Long cityId) {
-        List<List<InlineKeyboardButton>> rows = Arrays
+    private TextResponse getKeyboardWithTimeZones(Message message, Long cityId) {
+        List<List<KeyboardButton>> rows = Arrays
                 .stream(TimeZones.values())
-                .map(zone -> {
-                    List<InlineKeyboardButton> zoneRow = new ArrayList<>();
-                    InlineKeyboardButton zoneButton = new InlineKeyboardButton();
-                    zoneButton.setText(zone.getZone());
-                    zoneButton.setCallbackData(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone());
-                    zoneRow.add(zoneButton);
-
-                    return zoneRow;
-                })
+                .map(zone -> List.of(
+                        new KeyboardButton()
+                                .setName(zone.getZone())
+                                .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone())))
                 .collect(Collectors.toList());
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText("\n" + ADDING_HELP_TEXT_TIMEZONE);
-        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-
-        return sendMessage;
-    }
-
-    private SendMessage buildSendMessageWithText(Message message, String text) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText(text);
-
-        return sendMessage;
-    }
-
-    private EditMessageText buildEditMessageWithText(Message message, String text) {
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText(text);
-
-        return editMessageText;
+        return new TextResponse(message)
+                .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)
+                .setKeyboard(new Keyboard(rows))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private String getLocalizedCommand(String text, String command) {

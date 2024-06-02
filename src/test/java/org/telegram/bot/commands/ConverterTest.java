@@ -9,11 +9,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.commands.convertors.UnitsConverter;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -34,33 +35,35 @@ class ConverterTest {
 
     @Test
     void parseWithWrongInputTest() {
-        Update updateFromGroup = TestUtils.getUpdateFromGroup("конверт 123");
-        assertThrows(BotException.class, () -> converter.parse(updateFromGroup));
-        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
+        BotRequest requestFromGroup = TestUtils.getRequestFromGroup("конверт 123");
+        assertThrows(BotException.class, () -> converter.parse(requestFromGroup));
+        verify(bot).sendTyping(requestFromGroup.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void parseWithUnknownUnitsTest() {
         final String expectedInfo = "info";
-        Update updateFromGroup = TestUtils.getUpdateFromGroup("конверт 1,23 с в");
+        BotRequest requestFromGroup = TestUtils.getRequestFromGroup("конверт 1,23 с в");
 
         UnitsConverter unitsConverter = Mockito.mock(UnitsConverter.class);
         when(unitsConverter.getInfo()).thenReturn(expectedInfo);
         Converter converter2 = new Converter(List.of(unitsConverter), bot, speechService);
 
-        SendMessage sendMessage = converter2.parse(updateFromGroup).get(0);
-        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
+        BotResponse botResponse = converter2.parse(requestFromGroup).get(0);
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedInfo, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(requestFromGroup.getMessage().getChatId());
+
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+        assertEquals(expectedInfo, textResponse.getText());
     }
 
     @Test
     void parseWithMultipleResults() {
         final String expectedResult1 = "result1";
         final String expectedResult2 = "result2";
-        Update updateFromGroup = TestUtils.getUpdateFromGroup("конверт 1,23 с в");
+        BotRequest requestFromGroup = TestUtils.getRequestFromGroup("конверт 1,23 с в");
 
         UnitsConverter unitsConverter1 = Mockito.mock(UnitsConverter.class);
         when(unitsConverter1.getInfo()).thenReturn(expectedResult1);
@@ -68,10 +71,12 @@ class ConverterTest {
         when(unitsConverter2.getInfo()).thenReturn(expectedResult2);
         Converter converter2 = new Converter(List.of(unitsConverter1, unitsConverter2), bot, speechService);
 
-        SendMessage sendMessage = converter2.parse(updateFromGroup).get(0);
-        verify(bot).sendTyping(updateFromGroup.getMessage().getChatId());
+        BotResponse botResponse = converter2.parse(requestFromGroup).get(0);
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResult1 + "\n" + expectedResult2, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(requestFromGroup.getMessage().getChatId());
+
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+        assertEquals(expectedResult1 + "\n" + expectedResult2, textResponse.getText());
     }
 }

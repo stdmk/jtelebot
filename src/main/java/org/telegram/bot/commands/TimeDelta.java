@@ -4,15 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,47 +27,40 @@ import static org.telegram.bot.utils.DateUtils.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TimeDelta implements Command<SendMessage> {
+public class TimeDelta implements Command {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         String responseText;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.timedelta.commandwaitingstart}";
         } else {
             LocalDateTime dateTimeNow = LocalDateTime.now();
 
-            if (textMessage.indexOf(":") > 0) {
-                if (textMessage.indexOf(".") > 0) {
-                    responseText = getDateByLocalDateTimeFormat(textMessage, dateTimeNow);
+            if (commandArgument.indexOf(":") > 0) {
+                if (commandArgument.indexOf(".") > 0) {
+                    responseText = getDateByLocalDateTimeFormat(commandArgument, dateTimeNow);
                 } else {
-                    responseText = getDatesByTimeFormat(textMessage, dateTimeNow);
+                    responseText = getDatesByTimeFormat(commandArgument, dateTimeNow);
                 }
             } else {
-                responseText = getDatesByDateFormat(textMessage, dateTimeNow);
+                responseText = getDatesByDateFormat(commandArgument, dateTimeNow);
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private String getDateByLocalDateTimeFormat(String text, LocalDateTime dateTimeNow) {

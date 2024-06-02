@@ -18,19 +18,17 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -38,6 +36,7 @@ import javax.xml.bind.annotation.XmlElement;
 import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -57,7 +56,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Exchange implements Command<PartialBotApiMethod<?>> {
+public class Exchange implements Command {
 
     private static final String USD_ID = "R01235";
     private static final String EUR_ID = "R01239";
@@ -78,22 +77,22 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
     private final Map<LocalDate, ValCurs> valCursDataMap = new ConcurrentHashMap<>();
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        String textMessage = cutCommandInText(message.getText());
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        String commandArgument = message.getCommandArgument();
         String responseText;
         Long chatId = message.getChatId();
 
-        InputFile chart = null;
-        if (textMessage == null) {
+        InputStream chart = null;
+        if (commandArgument == null) {
             bot.sendTyping(chatId);
             log.debug("Request to get exchange rates for usd and eur");
             responseText = getExchangeRatesForUsdEurCny();
         } else {
-            if (startsWithNumber(textMessage)) {
-                Matcher valuteToRubMatcher = VALUTE_TO_RUB_PATTERN.matcher(textMessage);
-                Matcher ruToValuteMatcher = RUB_TO_VALUTE_PATTERN.matcher(textMessage);
-                Matcher monthsCountMatcher = MONTHS_COUNT_PATTERN.matcher(textMessage);
+            if (startsWithNumber(commandArgument)) {
+                Matcher valuteToRubMatcher = VALUTE_TO_RUB_PATTERN.matcher(commandArgument);
+                Matcher ruToValuteMatcher = RUB_TO_VALUTE_PATTERN.matcher(commandArgument);
+                Matcher monthsCountMatcher = MONTHS_COUNT_PATTERN.matcher(commandArgument);
 
                 if (valuteToRubMatcher.find()) {
                     bot.sendTyping(chatId);
@@ -111,12 +110,12 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
                     bot.sendUploadPhoto(chatId);
                     int months = Integer.parseInt(monthsCountMatcher.group(1));
 
-                    Pair<String, InputFile> result;
+                    Pair<String, InputStream> result;
                     try {
                         result = getChartForUsdEur(months);
                     } catch (IOException e) {
                         log.error("failed to draw chart", e);
-                        botStats.incrementErrors(update, e, "failed to draw chart");
+                        botStats.incrementErrors(request, e, "failed to draw chart");
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                     }
 
@@ -128,33 +127,25 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
                 }
             } else {
                 bot.sendTyping(chatId);
-                if (textMessage.startsWith("_")) {
-                    textMessage = textMessage.substring(1);
+                if (commandArgument.startsWith("_")) {
+                    commandArgument = commandArgument.substring(1);
                 }
 
-                log.debug("Request to get exchange rates for {}", textMessage);
-                responseText = getExchangeRatesForCode(textMessage.toUpperCase(Locale.ROOT));
+                log.debug("Request to get exchange rates for {}", commandArgument);
+                responseText = getExchangeRatesForCode(commandArgument.toUpperCase(Locale.ROOT));
             }
         }
 
         if (chart != null) {
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(chart);
-            sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode("HTML");
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId);
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .setText(responseText)
+                    .addFile(new File(FileType.IMAGE, chart, "chart"))
+                    .setResponseSettings(FormattingStyle.HTML));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.enableHtml(true);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     /**
@@ -274,7 +265,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
         }
     }
 
-    private Pair<String, InputFile> getChartForUsdEur(int months) throws IOException {
+    private Pair<String, InputStream> getChartForUsdEur(int months) throws IOException {
         if (months < 1 || months > 24) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -290,12 +281,12 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
                 + "$ USD: <b>" + getMinValueFromRecords(usdValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(usdValCurs.getRecords()) + "</b> RUB\n"
                 + "€ EUR: <b>" + getMinValueFromRecords(eurValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(eurValCurs.getRecords()) + "</b> RUB\n";
 
-        InputFile chart = getChart(usdValCurs, eurValCurs);
+        InputStream chart = getChart(usdValCurs, eurValCurs);
 
         return Pair.of(title, chart);
     }
 
-    private InputFile getChart(DynamicValCurs usdValCurs, DynamicValCurs eurValCurs) throws IOException {
+    private InputStream getChart(DynamicValCurs usdValCurs, DynamicValCurs eurValCurs) throws IOException {
         XYSeriesCollection dataset = new XYSeriesCollection();
 
         dataset.addSeries(getSeries(usdValCurs.getRecords(),"USD"));
@@ -336,7 +327,7 @@ public class Exchange implements Command<PartialBotApiMethod<?>> {
 
         byte[] bytes = ChartUtils.encodeAsPNG(chart.createBufferedImage(DEFAULT_CHART_WIDTH, DEFAULT_CHART_HEIGHT));
 
-        return new InputFile(new ByteArrayInputStream(bytes), "chart");
+        return new ByteArrayInputStream(bytes);
     }
 
     private Double getMinValue(List<DynamicValCurs> valCurses) {

@@ -1,14 +1,16 @@
 package org.telegram.bot;
 
 import org.apache.commons.io.IOUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.*;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.*;
+import org.telegram.bot.domain.model.response.*;
+import org.telegram.bot.enums.FormattingStyle;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,89 +26,82 @@ public class TestUtils {
     public static final String DEFAULT_FILE_ID = "fileId";
     public static final Integer DEFAULT_VOICE_DURATION = 17;
 
-    public static Update getUpdateWithRepliedMessage(String textMessage) {
+    public static BotRequest getRequestWithRepliedMessage(String textMessage) {
         Chat chat = new Chat();
-        chat.setId(DEFAULT_CHAT_ID);
+        chat.setChatId(DEFAULT_CHAT_ID);
 
         User user = getTelegramUser(ANOTHER_USER_ID);
 
         Message repliedMessage = getMessage(ANOTHER_MESSAGE_ID, chat, user, textMessage);
 
-        return getUpdateWithRepliedMessage(repliedMessage);
+        return getRequestWithRepliedMessage(repliedMessage);
     }
 
-    public static Update getUpdateWithRepliedMessage(Message message) {
-        Update update = getUpdateFromGroup();
-        update.getMessage().setReplyToMessage(message);
+    public static BotRequest getRequestWithRepliedMessage(Message message) {
+        BotRequest request = getRequestFromGroup();
+        request.getMessage().setReplyToMessage(message);
 
-        return update;
+        return request;
     }
 
-    public static Update getUpdateWithVoice() {
-        Voice voice = new Voice();
-        voice.setFileId(DEFAULT_FILE_ID);
-        voice.setDuration(DEFAULT_VOICE_DURATION);
+    public static BotRequest getRequestWithVoice() {
+        Attachment attachment = getAudio();
 
-        Update updateFromGroup = getUpdateFromGroup();
-        updateFromGroup.getMessage().setVoice(voice);
+        BotRequest requestFromGroup = getRequestFromGroup();
+        requestFromGroup.getMessage().setMessageContentType(MessageContentType.VOICE);
+        requestFromGroup.getMessage().setAttachments(List.of(attachment));
 
-        return updateFromGroup;
+        return requestFromGroup;
     }
 
-    public static Update getUpdateFromGroup() {
-        return getUpdateFromGroup(DEFAULT_MESSAGE_TEXT);
+    public static BotRequest getRequestFromGroup() {
+        return getRequestFromGroup(DEFAULT_MESSAGE_TEXT);
     }
 
-    public static Update getUpdateWithCallback(String callback) {
+    public static BotRequest getRequestWithCallback(String callback) {
         Chat chat = new Chat();
-        chat.setId(DEFAULT_CHAT_ID);
+        chat.setChatId(DEFAULT_CHAT_ID);
 
         User user = getTelegramUser();
 
         Message message = getMessage(chat, user);
+        message.setMessageKind(MessageKind.CALLBACK);
+        message.setText(callback);
 
-        CallbackQuery callbackQuery = new CallbackQuery();
-        callbackQuery.setFrom(user);
-        callbackQuery.setMessage(message);
-        callbackQuery.setData(callback);
-
-        Update update = new Update();
-        update.setCallbackQuery(callbackQuery);
-
-        return update;
+        return new BotRequest().setMessage(message);
     }
 
-    public static Update getUpdateFromGroup(String textMessage) {
+    public static BotRequest getRequestFromGroup(String textMessage) {
         Chat chat = new Chat();
-        chat.setId(DEFAULT_CHAT_ID);
+        chat.setChatId(DEFAULT_CHAT_ID);
 
         User user = getTelegramUser();
 
         Message message = getMessage(chat, user, textMessage);
 
-        Update update = new Update();
-        update.setMessage(message);
+        BotRequest botRequest = new BotRequest();
+        botRequest.setMessage(message);
 
-        return update;
+        return botRequest;
     }
 
-    public static Update getUpdateFromPrivate(String textMessage) {
+    public static BotRequest getRequestFromPrivate(String textMessage) {
         Chat chat = new Chat();
-        chat.setId(DEFAULT_USER_ID);
+        chat.setChatId(DEFAULT_USER_ID);
 
         User user = getTelegramUser();
 
         Message message = getMessage(chat, user, textMessage);
 
-        Update update = new Update();
-        update.setMessage(message);
+        BotRequest botRequest = new BotRequest();
+        botRequest.setMessage(message);
 
-        return update;
+        return botRequest;
     }
 
     public static Message getMessage() {
         Chat chat = new Chat();
-        chat.setId(DEFAULT_CHAT_ID);
+        chat.setChatId(DEFAULT_CHAT_ID);
 
         User user = getTelegramUser();
 
@@ -125,7 +120,7 @@ public class TestUtils {
         Message message = new Message();
         message.setMessageId(messageId);
         message.setChat(chat);
-        message.setFrom(user);
+        message.setUser(user);
         message.setText(textMessage);
 
         return message;
@@ -145,9 +140,9 @@ public class TestUtils {
 
     public static User getTelegramUser(Long userId) {
         User user = new User();
-        user.setId(userId);
-        user.setUserName("username");
-        user.setLanguageCode("en");
+        user.setUserId(userId);
+        user.setUsername("username");
+        user.setLang("en");
 
         return user;
     }
@@ -163,184 +158,216 @@ public class TestUtils {
                 .setAccessLevel(1);
     }
 
-    public static Document getDocument() {
-        Document document = new Document();
-
-        document.setFileId("fileId");
-        document.setFileUniqueId("fileUniqueId");
-        document.setMimeType("mimeType");
-        document.setFileSize(1000L);
-
-        return document;
+    public static Attachment getDocument() {
+        return new Attachment("mimeType", "uniqueId", DEFAULT_FILE_ID, "name", 1000L, null);
     }
 
-    public static Audio getAudio() {
-        Audio audio = new Audio();
-
-        audio.setFileId("fileId");
-        audio.setFileUniqueId("fileUniqueId");
-        audio.setMimeType("mimeType");
-        audio.setFileSize(1000L);
-
-        return audio;
+    public static Attachment getDocument(String mimeType) {
+        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, "name", 1000L, null);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage, boolean disableWebPagePreview, String parseMode) {
-        assertEquals(disableWebPagePreview, sendMessage.getDisableWebPagePreview());
-        assertEquals(parseMode, sendMessage.getParseMode());
-        return checkDefaultSendMessageParams(sendMessage);
+    public static Attachment getDocument(String mimeType, Long size) {
+        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, "name", size, null);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(PartialBotApiMethod<?> method, String parseMode, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertTrue(method instanceof SendMessage);
-        return checkDefaultSendMessageParams((SendMessage) method, parseMode, disableWebPagePreview, hasKeyboard);
+    public static Attachment getAudio() {
+        return new Attachment("audio/ogg", "uniqueId", DEFAULT_FILE_ID, null, 20000L, DEFAULT_VOICE_DURATION);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage, boolean disableWebPagePreview) {
-        assertEquals(disableWebPagePreview, sendMessage.getDisableWebPagePreview());
-        return checkDefaultSendMessageParams(sendMessage);
+    public static TextResponse checkDefaultTextResponseParams(BotResponse botResponse, boolean disableWebPagePreview, FormattingStyle formattingStyle) {
+        assertTrue(botResponse instanceof TextResponse);
+        return checkDefaultTextResponseParams((TextResponse) botResponse, disableWebPagePreview, formattingStyle);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage, String parseMode, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertEquals(parseMode, sendMessage.getParseMode());
+    public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, boolean disableWebPagePreview, FormattingStyle formattingStyle) {
+        ResponseSettings responseSettings = textResponse.getResponseSettings();
+        assertNotEquals(disableWebPagePreview, responseSettings.isWebPagePreview());
+        assertEquals(formattingStyle, responseSettings.getFormattingStyle());
+        return checkDefaultTextResponseParams(textResponse);
+    }
+
+    public static TextResponse checkDefaultTextResponseParams(BotResponse response, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
+        assertTrue(response instanceof TextResponse);
+        return checkDefaultTextResponseParams((TextResponse) response, formattingStyle, disableWebPagePreview, hasKeyboard);
+    }
+
+    public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, boolean disableWebPagePreview) {
+        assertEquals(disableWebPagePreview, textResponse.getResponseSettings().isWebPagePreview());
+        return checkDefaultTextResponseParams(textResponse);
+    }
+
+    public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
+        ResponseSettings responseSettings = textResponse.getResponseSettings();
+
+        assertEquals(formattingStyle, responseSettings.getFormattingStyle());
         if (disableWebPagePreview) {
-            assertEquals(Boolean.TRUE, sendMessage.getDisableWebPagePreview());
+            assertEquals(Boolean.TRUE, responseSettings.isWebPagePreview());
         }
         if (hasKeyboard) {
-            assertNotNull(sendMessage.getReplyMarkup());
+            assertNotNull(textResponse.getKeyboard());
         }
-        return checkDefaultSendMessageParams(sendMessage);
+
+        return checkDefaultTextResponseParams(textResponse);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage, String parseMode) {
-        assertEquals(parseMode, sendMessage.getParseMode());
-        return checkDefaultSendMessageParams(sendMessage);
+    public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, FormattingStyle formattingStyle) {
+        assertEquals(formattingStyle, textResponse.getResponseSettings().getFormattingStyle());
+        return checkDefaultTextResponseParams(textResponse);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(PartialBotApiMethod<?> method, String parseMode) {
-        assertTrue(method instanceof SendMessage);
-        return checkDefaultSendMessageParams((SendMessage) method, parseMode);
+    public static TextResponse checkDefaultTextResponseParams(BotResponse response, FormattingStyle formattingStyle) {
+        assertTrue(response instanceof TextResponse);
+        return TestUtils.checkDefaultTextResponseParams((TextResponse) response, formattingStyle);
     }
 
-    public static EditMessageText checkDefaultEditMessageTextParams(PartialBotApiMethod<?> method, String parseMode, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertTrue(method instanceof EditMessageText);
-        return checkDefaultEditMessageTextParams((EditMessageText) method, parseMode, disableWebPagePreview, hasKeyboard);
+    public static EditResponse checkDefaultEditResponseParams(BotResponse response, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
+        assertTrue(response instanceof EditResponse);
+        return checkDefaultEditResponseParams((EditResponse) response, formattingStyle, disableWebPagePreview, hasKeyboard);
     }
 
-    public static EditMessageText checkDefaultEditMessageTextParams(EditMessageText editMessageText, String parseMode, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertEquals(parseMode, editMessageText.getParseMode());
+    public static EditResponse checkDefaultEditResponseParams(EditResponse editResponse, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
+        ResponseSettings responseSettings = editResponse.getResponseSettings();
+
+        assertEquals(formattingStyle, responseSettings.getFormattingStyle());
         if (disableWebPagePreview) {
-            assertEquals(Boolean.TRUE, editMessageText.getDisableWebPagePreview());
+            assertEquals(Boolean.TRUE, responseSettings.isWebPagePreview());
         }
         if (hasKeyboard) {
-            assertNotNull(editMessageText.getReplyMarkup());
+            assertNotNull(editResponse.getKeyboard());
         }
-        return checkDefaultEditMessageTextParams(editMessageText);
+        return checkDefaultEditResponseParams(editResponse);
     }
 
-    public static EditMessageText checkDefaultEditMessageTextParams(EditMessageText editMessageText) {
-        assertNotNull(editMessageText);
-        assertNotNull(editMessageText.getChatId());
-        assertNotNull(editMessageText.getMessageId());
-        assertNotNull(editMessageText.getText());
+    public static EditResponse checkDefaultEditResponseParams(EditResponse editResponse) {
+        assertNotNull(editResponse);
+        assertNotNull(editResponse.getChatId());
+        assertNotNull(editResponse.getEditableMessageId());
+        assertNotNull(editResponse.getText());
 
-        return editMessageText;
+        return editResponse;
     }
 
-    public static SendMessage checkDefaultSendMessageParams(PartialBotApiMethod<?> method) {
-        assertTrue(method instanceof SendMessage);
-        return checkDefaultSendMessageParams((SendMessage) method);
+    public static TextResponse checkDefaultTextResponseParams(BotResponse response) {
+        assertTrue(response instanceof TextResponse);
+        return checkDefaultTextResponseParams((TextResponse) response);
     }
 
-    public static SendMessage checkDefaultSendMessageParams(SendMessage sendMessage) {
-        assertNotNull(sendMessage);
-        assertNotNull(sendMessage.getChatId());
-        assertNotNull(sendMessage.getReplyToMessageId());
-        assertNotNull(sendMessage.getText());
+    public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse) {
+        assertNotNull(textResponse);
+        assertNotNull(textResponse.getChatId());
+        assertNotNull(textResponse.getReplyToMessageId());
+        assertNotNull(textResponse.getText());
 
-        return sendMessage;
+        return textResponse;
     }
 
-    public static SendDocument checkDefaultSendDocumentParams(PartialBotApiMethod<?> method) {
-        assertTrue(method instanceof SendDocument);
-        return checkDefaultSendDocumentParams((SendDocument) method);
+    public static FileResponse checkDefaultFileResponseParams(BotResponse response) {
+        assertTrue(response instanceof FileResponse);
+
+        FileResponse fileResponse = (FileResponse) response;
+        assertFalse(fileResponse.getFiles().isEmpty());
+        assertEquals(FileType.FILE, fileResponse.getFiles().get(0).getFileType());
+
+        return checkDefaultFileResponseParams(fileResponse);
     }
 
-    public static SendDocument checkDefaultSendDocumentParams(SendDocument sendDocument) {
-        assertNotNull(sendDocument);
-        assertNotNull(sendDocument.getChatId());
-        assertNotNull(sendDocument.getReplyToMessageId());
-        assertNotNull(sendDocument.getDocument());
+    public static FileResponse checkDefaultFileResponseParams(FileResponse fileResponse) {
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getChatId());
 
-        return sendDocument;
+        return fileResponse;
     }
 
-    public static SendPhoto checkDefaultSendPhotoParams(PartialBotApiMethod<?> method) {
-        assertTrue(method instanceof SendPhoto);
-        return checkDefaultSendPhotoParams((SendPhoto) method);
+    public static FileResponse checkDefaultFileResponseImageParams(BotResponse response) {
+        assertTrue(response instanceof FileResponse);
+
+        FileResponse fileResponse = (FileResponse) response;
+        assertFalse(fileResponse.getFiles().isEmpty());
+        assertEquals(FileType.IMAGE, fileResponse.getFiles().get(0).getFileType());
+        return checkDefaultFileResponseImageParams(fileResponse);
     }
 
-    public static SendPhoto checkDefaultSendPhotoParams(SendPhoto sendPhoto, boolean hasSpoiler) {
-        assertEquals(hasSpoiler, sendPhoto.getHasSpoiler());
-        return checkDefaultSendPhotoParams(sendPhoto);
+    public static FileResponse checkDefaultFileResponseImageParams(FileResponse fileResponse, boolean hasSpoiler) {
+        assertEquals(hasSpoiler, fileResponse.getFiles().get(0).getFileSettings().isSpoiler());
+        return checkDefaultFileResponseImageParams(fileResponse);
     }
 
-    public static SendPhoto checkDefaultSendPhotoParams(SendPhoto sendPhoto) {
-        assertNotNull(sendPhoto);
-        assertNotNull(sendPhoto.getChatId());
-        assertNotNull(sendPhoto.getReplyToMessageId());
-        assertNotNull(sendPhoto.getPhoto());
-        assertNotNull(sendPhoto.getCaption());
+    public static FileResponse checkDefaultFileResponseImageParams(FileResponse fileResponse) {
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getChatId());
+        assertNotNull(fileResponse.getReplyToMessageId());
+        assertNotNull(fileResponse.getText());
 
-        return sendPhoto;
+        return fileResponse;
     }
 
-    public static SendVideo checkDefaultSendVideoParams(PartialBotApiMethod<?> method) {
-        assertTrue(method instanceof SendVideo);
-        return checkDefaultSendVideoParams((SendVideo) method);
+    public static FileResponse checkDefaultFileResponseVideoParams(BotResponse response) {
+        assertTrue(response instanceof FileResponse);
+
+        FileResponse fileResponse = (FileResponse) response;
+        assertFalse(fileResponse.getFiles().isEmpty());
+        assertEquals(FileType.VIDEO, fileResponse.getFiles().get(0).getFileType());
+
+        return checkDefaultFileResponseVideoParams(fileResponse);
     }
 
-    public static SendVideo checkDefaultSendVideoParams(SendVideo sendVideo) {
-        assertNotNull(sendVideo);
-        assertNotNull(sendVideo.getChatId());
-        assertNotNull(sendVideo.getReplyToMessageId());
-        assertNotNull(sendVideo.getVideo());
-        assertNotNull(sendVideo.getCaption());
+    public static FileResponse checkDefaultFileResponseVideoParams(FileResponse fileResponse) {
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getChatId());
+        assertNotNull(fileResponse.getReplyToMessageId());
+        assertNotNull(fileResponse.getText());
 
-        return sendVideo;
+        return fileResponse;
     }
 
-    public static SendMediaGroup checkDefaultSendMediaGroupParams(PartialBotApiMethod<?> method) {
-        assertTrue(method instanceof SendMediaGroup);
-        return checkDefaultSendMediaGroupParams((SendMediaGroup) method);
+    public static FileResponse checkDefaultResponseMultipleImagesParams(BotResponse response) {
+        assertTrue(response instanceof FileResponse);
+
+        FileResponse fileResponse = (FileResponse) response;
+        assertFalse(fileResponse.getFiles().isEmpty());
+        assertTrue(fileResponse.getFiles().size() > 1);
+        assertEquals(FileType.IMAGE, fileResponse.getFiles().get(0).getFileType());
+
+        return checkDefaultResponseMultipleImagesParams(fileResponse);
     }
 
-    public static SendMediaGroup checkDefaultSendMediaGroupParams(SendMediaGroup sendMediaGroup) {
-        assertNotNull(sendMediaGroup);
-        assertFalse(sendMediaGroup.getMedias().isEmpty());
-        assertNotNull(sendMediaGroup.getReplyToMessageId());
-        assertNotNull(sendMediaGroup.getChatId());
+    public static FileResponse checkDefaultResponseMultipleImagesParams(FileResponse fileResponse) {
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getReplyToMessageId());
+        assertNotNull(fileResponse.getChatId());
 
-        return sendMediaGroup;
+        return fileResponse;
     }
 
-    public static SendLocation checkDefaultSendLocationParams(SendLocation sendLocation) {
-        assertNotNull(sendLocation);
-        assertNotNull(sendLocation.getChatId());
-        assertNotNull(sendLocation.getReplyToMessageId());
-        assertNotNull(sendLocation.getLatitude());
-        assertNotNull(sendLocation.getLongitude());
-
-        return sendLocation;
+    public static LocationResponse checkDefaultLocationResponseParams(BotResponse botResponse) {
+        assertTrue(botResponse instanceof LocationResponse);
+        return (checkDefaultLocationResponseParams((LocationResponse) botResponse));
     }
 
-    public static SendVoice checkDefaultSendVoiceParams(SendVoice sendVoice) {
-        assertNotNull(sendVoice);
-        assertNotNull(sendVoice.getChatId());
-        assertNotNull(sendVoice.getReplyToMessageId());
-        assertNotNull(sendVoice.getVoice());
+    public static LocationResponse checkDefaultLocationResponseParams(LocationResponse locationResponse) {
+        assertNotNull(locationResponse);
+        assertNotNull(locationResponse.getChatId());
+        assertNotNull(locationResponse.getReplyToMessageId());
+        assertNotNull(locationResponse.getLatitude());
+        assertNotNull(locationResponse.getLongitude());
 
-        return sendVoice;
+        return locationResponse;
+    }
+
+    public static FileResponse checkDefaultFileResponseVoiceParams(BotResponse botResponse) {
+        assertTrue(botResponse instanceof FileResponse);
+        return checkDefaultFileResponseVoiceParams((FileResponse) botResponse);
+    }
+
+    public static FileResponse checkDefaultFileResponseVoiceParams(FileResponse fileResponse) {
+        assertFalse(fileResponse.getFiles().isEmpty());
+        assertEquals(FileType.VOICE, fileResponse.getFiles().get(0).getFileType());
+
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getChatId());
+        assertNotNull(fileResponse.getReplyToMessageId());
+
+        return fileResponse;
     }
 
     public static String getResourceAsString(String path) throws IOException {

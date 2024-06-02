@@ -14,17 +14,17 @@ import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.*;
 import java.util.*;
@@ -83,7 +83,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -93,11 +93,11 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML);
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML);
 
-        String actualResponseText = sendMessage.getText();
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 
@@ -117,7 +117,7 @@ class CalendarTest {
         publicHoliday.setDate(date);
         publicHoliday.setLocalName("test");
         Calendar.PublicHoliday[] publicHolidays = List.of(publicHoliday).toArray(Calendar.PublicHoliday[]::new);
-        Update update = getUpdateFromGroup("calendar 01.2007");
+        BotRequest request = getRequestFromGroup("calendar 01.2007");
 
         when(responseEntity.getBody()).thenReturn(publicHolidays);
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -127,12 +127,12 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
-        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
+        TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
 
-        String actualResponseText = sendMessage.getText();
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 
@@ -148,7 +148,7 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>${command.calendar.holidayscaption}: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = getUpdateFromGroup("calendar 01.2007");
+        BotRequest request = getRequestFromGroup("calendar 01.2007");
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("test"));
         when(daysOffProvider.getLocale()).thenReturn(DEFAULT_LOCALE);
@@ -157,12 +157,12 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
-        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
+        TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
 
-        String actualResponseText = sendMessage.getText();
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 
@@ -178,7 +178,7 @@ class CalendarTest {
                 "</code>\n" +
                 "<b>${command.calendar.holidayscaption}: </b>\n";
         LocalDate date = LocalDate.of(2007, 5, 1);
-        Update update = getUpdateFromGroup("calendar january 2007");
+        BotRequest request = getRequestFromGroup("calendar january 2007");
 
         Map<Integer, Set<String>> monthValueNamesMap = new HashMap<>();
         monthValueNamesMap.put(1, Set.of("january"));
@@ -192,43 +192,43 @@ class CalendarTest {
         when(responseEntity.getBody()).thenReturn(null);
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
-        SendMessage sendMessage = checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
+        TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
 
-        String actualResponseText = sendMessage.getText();
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 
     @Test
     void calendarWithWrongDateArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdateFromGroup("calendar 32.3033");
+        BotRequest request = getRequestFromGroup("calendar 32.3033");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> calendar.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void calendarWithWrongMonthArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdateFromGroup("calendar jnary 2007");
+        BotRequest request = getRequestFromGroup("calendar jnary 2007");
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> calendar.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void calendarWithUnexpectedArgumentParsingTest() {
         final String expectedErrorMessage = "error";
-        Update update = getUpdateFromGroup("calendar abv");
+        BotRequest request = getRequestFromGroup("calendar abv");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -236,14 +236,14 @@ class CalendarTest {
 
         when(speechService.getRandomMessageByTag(any(BotSpeechTag.class))).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> calendar.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> calendar.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void calendarWithExpectedMonthNameArgumentTest() {
-        Update update = getUpdateFromGroup("календарь january");
+        BotRequest request = getRequestFromGroup("календарь january");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         Map<Integer, Set<String>> monthValueNamesMap = new HashMap<>();
@@ -255,15 +255,15 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
-        checkDefaultSendMessageParams(method, ParseMode.HTML, false, true);
+        checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
     }
 
     @Test
     void calendarWithExpectedMonthNumberArgumentTest() {
-        Update update = getUpdateWithCallback("calendar 1");
+        BotRequest request = getRequestWithCallback("calendar 1");
         LocalDate date = LocalDate.of(2007, 5, 1);
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(responseEntity);
@@ -271,9 +271,9 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        PartialBotApiMethod<?> method = calendar.parse(update).get(0);
-        verify(bot).sendTyping(update.getCallbackQuery().getMessage().getChatId());
+        BotResponse response = calendar.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
-        checkDefaultEditMessageTextParams(method, ParseMode.HTML, false, true);
+        checkDefaultEditResponseParams(response, FormattingStyle.HTML, false, true);
     }
 }

@@ -13,14 +13,15 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.enums.Zodiac;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,15 +48,15 @@ class HoroscopeTest {
 
     @Test
     void parseWithDeserializeExceptionTest() throws IOException {
-        Update update = TestUtils.getUpdateFromGroup("horoscope");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope");
 
         JsonParseException jsonParseException = mock(JsonParseException.class);
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenThrow(jsonParseException);
 
-        assertThrows((BotException.class), () -> horoscope.parse(update));
+        assertThrows((BotException.class), () -> horoscope.parse(request));
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -70,13 +71,13 @@ class HoroscopeTest {
                 "Кулинарный — /horoscope_cook\n" +
                 "Любовный — /horoscope_lov\n" +
                 "Мобильный — /horoscope_mob\n";
-        Update update = TestUtils.getUpdateFromGroup("horoscope_abv");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope_abv");
 
-        SendMessage sendMessage = horoscope.parse(update).get(0);
+        BotResponse botResponse = horoscope.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -97,32 +98,32 @@ class HoroscopeTest {
                 "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♓️${enum.zodiac.pisces}</a></u>pisces\n";
         Horoscope.HoroscopeData data = getHoroscopeData();
-        Update update = TestUtils.getUpdateFromGroup("horoscope");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope");
 
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse botResponse = horoscope.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void parseWithoutHoroscopeWithBigDataTest() throws IOException {
         Horoscope.HoroscopeData data = getHoroscopeBigData();
-        Update update = TestUtils.getUpdateFromGroup("horoscope");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope");
 
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        List<SendMessage> methods = horoscope.parse(update);
-        assertEquals(12, methods.size());
-        SendMessage sendMessage = methods.get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        List<BotResponse> botResponses = horoscope.parse(request);
+        assertEquals(12, botResponses.size());
+        BotResponse botResponse = botResponses.get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
+        TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
     }
 
     @Test
@@ -143,16 +144,16 @@ class HoroscopeTest {
                 "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♓️${enum.zodiac.pisces}</a></u>pisces\n";
         Horoscope.HoroscopeData data = getHoroscopeData();
-        Update update = TestUtils.getUpdateFromGroup("horoscope_anti");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope_anti");
 
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse response = horoscope.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response, FormattingStyle.HTML);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -161,17 +162,17 @@ class HoroscopeTest {
                 "(today)\n" +
                 "<u><a href=\"https://ignio.com/r/daily/\">♒️${enum.zodiac.aquarius}</a></u>aquarius";
         Horoscope.HoroscopeData data = getHoroscopeData();
-        Update update = TestUtils.getUpdateFromGroup("horoscope_anti");
+        BotRequest request = TestUtils.getRequestFromGroup("horoscope_anti");
 
         when(userZodiacService.get(any(Chat.class), any(User.class))).thenReturn(new UserZodiac().setZodiac(Zodiac.AQUARIUS));
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        SendMessage sendMessage = horoscope.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotResponse botResponse = horoscope.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     private Horoscope.HoroscopeData getHoroscopeData() {

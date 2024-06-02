@@ -4,14 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,7 +23,7 @@ import static org.telegram.bot.utils.TextUtils.cutMarkdownSymbolsInText;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Bash implements Command<SendMessage> {
+public class Bash implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -32,33 +34,30 @@ public class Bash implements Command<SendMessage> {
     private static final String BASH_DEFINITE_QUOT_URL = BASHORG_URL + "/quote";
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         String quote;
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Request to get random bash quote");
             quote = getRandomQuot();
         } else {
-            log.debug("Request to get bash quote by number {}", textMessage);
+            log.debug("Request to get bash quote by number {}", commandArgument);
             try {
-                Integer.parseInt(textMessage);
+                Integer.parseInt(commandArgument);
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-            quote = getDefineQuot(textMessage);
+            quote = getDefineQuot(commandArgument);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableMarkdown(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(quote);
-
-        return List.of(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(quote)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.MARKDOWN)
+                        .setWebPagePreview(false)));
     }
 
     /**

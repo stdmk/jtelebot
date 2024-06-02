@@ -6,14 +6,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageKind;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.ObjectCopier;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashSet;
 import java.util.List;
@@ -48,13 +50,15 @@ class EchoTest {
     @Test
     void parseWithEmptyText() {
         final String expectedResponseText = "чо?";
-        Update update = getUpdateFromGroup("bot");
+        BotRequest request = getRequestFromGroup("bot");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = echo.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage);
+        BotResponse botResponse = echo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.ECHO);
     }
@@ -64,7 +68,7 @@ class EchoTest {
         final String expectedResponseText1 = "пока не родила";
         final String expectedResponseText2 = "нормально";
         Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
-        Update update = getUpdateFromGroup("как дела?");
+        BotRequest request = getRequestFromGroup("как дела?");
 
         TalkerPhrase firstPhrase = new TalkerPhrase()
                 .setId(1L)
@@ -96,11 +100,13 @@ class EchoTest {
 
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
-        SendMessage sendMessage = echo.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage);
+        BotResponse botResponse = echo.parse(request).get(0);
 
-        String actualResponseText = sendMessage.getText();
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
+
+        String actualResponseText = textResponse.getText();
         assertTrue(expectedResponseText1.equals(actualResponseText) || expectedResponseText2.equals(actualResponseText));
     }
 
@@ -108,7 +114,7 @@ class EchoTest {
     void parseWithTextAndOnePhrase() {
         final String expectedResponseText = "пока не родила";
         Chat chat = new Chat().setChatId(DEFAULT_CHAT_ID);
-        Update update = getUpdateFromGroup("как дела?");
+        BotRequest request = getRequestFromGroup("как дела?");
 
         TalkerPhrase firstPhrase = new TalkerPhrase()
                 .setId(1L)
@@ -123,86 +129,89 @@ class EchoTest {
 
         when(talkerWordService.get(anyList(), anyLong())).thenReturn(talkerWords);
 
-        SendMessage sendMessage = echo.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage);
+        BotResponse botResponse = echo.parse(request).get(0);
 
-        String actualResponseText = sendMessage.getText();
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
+
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 
     @Test
     void analyzeCallbackQueryTest() {
-        CallbackQuery callbackQuery = new CallbackQuery();
-        callbackQuery.setId("id");
-        Update update = new Update();
-        update.setCallbackQuery(callbackQuery);
+        org.telegram.bot.domain.model.request.Message message = new Message()
+                .setText("id")
+                .setMessageKind(MessageKind.CALLBACK);
 
-        assertDoesNotThrow(() -> echo.analyze(update));
+        assertDoesNotThrow(() -> echo.analyze(new BotRequest().setMessage(message)));
     }
 
     @Test
     void analyzeWithoutTextMessageTest() {
-        Update update = getUpdateFromGroup(null);
+        BotRequest request = getRequestFromGroup(null);
 
-        assertDoesNotThrow(() -> echo.analyze(update));
+        assertDoesNotThrow(() -> echo.analyze(request));
     }
 
     @Test
     void analyzeWithoutReplyToMessageTest() {
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(talkerDegreeService.get(anyLong())).thenReturn(new TalkerDegree().setDegree(1));
 
-        assertDoesNotThrow(() -> echo.analyze(update));
+        assertDoesNotThrow(() -> echo.analyze(request));
     }
 
     @Test
     void analyzeWithAppealToBot() {
-        Update update = getUpdateFromGroup("@" + BOT_USERNAME + " как дела?");
+        BotRequest request = getRequestFromGroup("@" + BOT_USERNAME + " как дела?");
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
-        assertDoesNotThrow(() -> echo.analyze(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertDoesNotThrow(() -> echo.analyze(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void analyzeWithReplyToMessage() {
-        org.telegram.telegrambots.meta.api.objects.User user = new org.telegram.telegrambots.meta.api.objects.User();
-        user.setUserName(BOT_USERNAME);
+        User user = new User()
+                .setUsername(BOT_USERNAME);
 
         Message replyToMessage = new Message();
-        replyToMessage.setFrom(user);
+        replyToMessage.setUser(user);
         replyToMessage.setText("как дела?");
 
-        Update update = getUpdateWithRepliedMessage(replyToMessage);
+        BotRequest request = getRequestWithRepliedMessage(replyToMessage);
 
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
-        when(objectCopier.copyObject(update, Update.class)).thenReturn(update);
+        when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
-        assertDoesNotThrow(() -> echo.analyze(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertDoesNotThrow(() -> echo.analyze(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(talkerPhraseService).save(anySet(), any(Chat.class));
     }
 
     @Test
     void analyzeWithTalkerDegreeWorks() {
-        Update update = getUpdateFromGroup("как дела?");
+        BotRequest request = getRequestFromGroup("как дела?");
         CommandProperties commandProperties = new CommandProperties().setCommandName("echo");
         TalkerDegree talkerDegree = new TalkerDegree().setChat(new Chat().setChatId(DEFAULT_CHAT_ID)).setDegree(100);
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
         when(talkerDegreeService.get(anyLong())).thenReturn(talkerDegree);
+        when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
-        assertDoesNotThrow(() -> echo.analyze(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertDoesNotThrow(() -> echo.analyze(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 }

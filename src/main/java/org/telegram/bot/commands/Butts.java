@@ -8,17 +8,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
@@ -26,7 +23,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Butts implements Command<SendPhoto> {
+public class Butts implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -35,10 +32,10 @@ public class Butts implements Command<SendPhoto> {
     private static final String BUTTS_API_URL = "http://api.obutts.ru/butts/";
     private static final String BUTTS_IMAGE_URL = "http://media.obutts.ru/butts/";
 
-    public List<SendPhoto> parse(Update update) throws BotException {
-        Message message = getMessageFromUpdate(update);
-        if (cutCommandInText(message.getText()) != null) {
-            return Collections.emptyList();
+    public List<BotResponse> parse(BotRequest request) throws BotException {
+        Message message = request.getMessage();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
 
         bot.sendUploadPhoto(message.getChatId());
@@ -60,15 +57,9 @@ public class Butts implements Command<SendPhoto> {
         Integer numberOfPhoto = getRandomInRange(1, buttsCounts[0].getCount());
         String nameOfImage = String.format("%05d", numberOfPhoto) + ".jpg";
 
-        String caption = "18+";
-        SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setPhoto(new InputFile(BUTTS_IMAGE_URL + nameOfImage));
-        sendPhoto.setCaption(caption);
-        sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(message.getChatId().toString());
-        sendPhoto.setHasSpoiler(true);
-
-        return returnOneResult(sendPhoto);
+        return returnResponse(new FileResponse(message)
+                .setText("18+")
+                .addFile(new File(FileType.IMAGE, BUTTS_IMAGE_URL + nameOfImage, new FileSettings().setSpoiler(true))));
     }
 
     @Data

@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerPhrase;
 import org.telegram.bot.domain.entities.TalkerWord;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
@@ -17,9 +19,6 @@ import org.telegram.bot.services.TalkerPhraseService;
 import org.telegram.bot.services.TalkerWordService;
 import org.telegram.bot.utils.MathUtils;
 import org.telegram.bot.utils.ObjectCopier;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.*;
 import java.util.Set;
@@ -30,7 +29,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Echo implements Command<SendMessage>, MessageAnalyzer {
+public class Echo implements Command, MessageAnalyzer {
 
     private final Bot bot;
     private final ObjectCopier objectCopier;
@@ -44,35 +43,30 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
     private static final Pattern PHRASES_PATTERN = Pattern.compile("([^.!?),]+[.!?]?)", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = message.getText();
 
-        String responseText = getReplyForText(cutCommandInText(textMessage), message.getChatId());
+        String responseText = getReplyForText(message.getCommandArgument(), message.getChatId());
 
         if (responseText == null) {
             responseText = speechService.getRandomMessageByTag(BotSpeechTag.ECHO);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText));
     }
 
     @Override
-    public void analyze(Update update) {
-        if (update.hasCallbackQuery()) {
-            return;
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
+        if (message.isCallback()) {
+            return returnResponse();
         }
 
-        Message message = getMessageFromUpdate(update);
         String textMessage = message.getText();
         if (textMessage == null) {
-            return;
+            return returnResponse();
         }
         parseTalkerData(message);
 
@@ -84,7 +78,7 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
             sendMessage = true;
         }
         else if (replyToMessage != null) {
-            if (botUsername.equals(replyToMessage.getFrom().getUserName())) {
+            if (botUsername.equals(replyToMessage.getUser().getUsername())) {
                 sendMessage = true;
             }
         } else {
@@ -95,16 +89,14 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
         }
 
         if (sendMessage) {
-            bot.sendTyping(message.getChatId());
             String commandName = commandPropertiesService.getCommand(this.getClass()).getCommandName();
-            Update newUpdate = objectCopier.copyObject(update, Update.class);
+            BotRequest newRequest = objectCopier.copyObject(request, BotRequest.class);
+            newRequest.getMessage().setText(commandName + " " + textMessage);
 
-            if (newUpdate == null) {
-                return;
-            }
-            newUpdate.getMessage().setText(commandName + " " + textMessage);
-            bot.parseAsync(newUpdate, this);
+            return this.parse(newRequest);
         }
+
+        return returnResponse();
     }
 
     public String getQuestionForText(String text, Long chatId) {
@@ -222,4 +214,5 @@ public class Echo implements Command<SendMessage>, MessageAnalyzer {
 
         return result;
     }
+
 }

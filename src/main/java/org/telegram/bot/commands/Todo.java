@@ -5,17 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TodoTag;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Todo implements Command<SendMessage> {
+public class Todo implements Command {
 
     private static final Pattern TAGS_PATTERN = Pattern.compile("(^|\\B)#(?![0-9_]+\\b)([a-zA-Zа-яА-Я0-9_]{1,30})(\\b|\\r)");
     private static final String TAG_SYMBOL = "#";
@@ -37,26 +39,26 @@ public class Todo implements Command<SendMessage> {
     private final TodoTagService todoTagService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
 
         bot.sendTyping(chatId);
 
-        Chat chat = new Chat().setChatId(chatId);
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String responseText;
 
-        String textMessage = cutCommandInText(message.getText());
-        if (textMessage == null) {
+        String commandArgument = message.getCommandArgument();
+        if (commandArgument == null) {
             responseText = getTodoList(chat, user);
         } else {
-            if (textMessage.startsWith("_del")) {
-                removeTodo(chat, user, textMessage.substring(4));
+            if (commandArgument.startsWith("_del")) {
+                removeTodo(chat, user, commandArgument.substring(4));
                 responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             } else {
-                List<String> tags = getTags(textMessage);
-                String todoText = getDescription(tags, textMessage);
+                List<String> tags = getTags(commandArgument);
+                String todoText = getDescription(tags, commandArgument);
 
                 if (!StringUtils.hasText(todoText)) {
                     responseText = searchTodosByTags(chat, user, tags);
@@ -67,14 +69,11 @@ public class Todo implements Command<SendMessage> {
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.HTML)
+                        .setWebPagePreview(false)));
     }
 
     private String getTodoList(Chat chat, User user) {

@@ -7,6 +7,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
 import org.telegram.bot.services.ChatService;
@@ -14,16 +16,66 @@ import org.telegram.bot.services.LastCommandService;
 import org.telegram.bot.services.LastMessageService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserStatsServiceImpl implements UserStatsService {
+
+    private final Map<MessageContentType, Consumer<UserStats>> contentTypeUserStatsConsumerMap = Map.of(
+        MessageContentType.TEXT,
+            userStats -> userStats
+                    .setNumberOfMessages(userStats.getNumberOfMessages() + 1)
+                    .setNumberOfMessagesPerDay(userStats.getNumberOfMessagesPerDay() + 1)
+                    .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1),
+
+        MessageContentType.STICKER, userStats ->
+        userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
+                .setNumberOfStickersPerDay(userStats.getNumberOfStickersPerDay() + 1)
+                .setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1),
+
+        MessageContentType.PHOTO, userStats ->
+                    userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1)
+                .setNumberOfPhotosPerDay(userStats.getNumberOfPhotosPerDay() + 1)
+                .setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1),
+
+        MessageContentType.ANIMATION, userStats ->
+                    userStats.setNumberOfAnimations(userStats.getNumberOfAnimations() + 1)
+                .setNumberOfAnimationsPerDay(userStats.getNumberOfAnimationsPerDay() + 1)
+                .setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1),
+
+        MessageContentType.AUDIO, userStats ->
+                    userStats.setNumberOfAudio(userStats.getNumberOfAudio() + 1)
+                .setNumberOfAudioPerDay(userStats.getNumberOfAudioPerDay() + 1)
+                .setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1),
+
+        MessageContentType.FILE, userStats ->
+                    userStats.setNumberOfDocuments(userStats.getNumberOfDocuments() + 1)
+                .setNumberOfDocumentsPerDay(userStats.getNumberOfDocumentsPerDay() + 1)
+                .setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1),
+
+        MessageContentType.VIDEO, userStats ->
+        userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1)
+                .setNumberOfVideosPerDay(userStats.getNumberOfVideosPerDay() + 1)
+                .setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1),
+
+        MessageContentType.VIDEO_NOTE, userStats ->
+        userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1)
+                .setNumberOfVideoNotesPerDay(userStats.getNumberOfVideoNotesPerDay() + 1)
+                .setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1),
+
+        MessageContentType.VOICE, userStats ->
+        userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
+                .setNumberOfVoicesPerDay(userStats.getNumberOfVoicesPerDay() + 1)
+                .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1),
+
+        MessageContentType.UNKNOWN, userStats -> log.warn("Unknown message content type"));
 
     private final UserStatsRepository userStatsRepository;
 
@@ -58,12 +110,12 @@ public class UserStatsServiceImpl implements UserStatsService {
 
     @Override
     @Transactional
-    public void updateEntitiesInfo(Message message, boolean editedMessage) {
+    public void updateEntitiesInfo(Message message) {
         log.debug("Request to updates entities info");
 
-        User user = updateUserInfo(message.getFrom());
+        User user = updateUserInfo(message.getUser());
         Chat chat = updateChatInfo(message.getChat());
-        if (!editedMessage) {
+        if (!message.isEditMessage()) {
             updateUserStats(chat, user, message);
         }
     }
@@ -175,13 +227,10 @@ public class UserStatsServiceImpl implements UserStatsService {
      * @param userFrom telegram User.
      * @return User entity.
      */
-    private User updateUserInfo(org.telegram.telegrambots.meta.api.objects.User userFrom) {
-        String username = userFrom.getUserName();
-        if (username == null) {
-            username = userFrom.getFirstName();
-        }
+    private User updateUserInfo(User userFrom) {
+        String username = userFrom.getUsername();
 
-        Long userId = userFrom.getId();
+        Long userId = userFrom.getUserId();
         User user = userService.get(userId);
 
         if (user == null) {
@@ -206,25 +255,12 @@ public class UserStatsServiceImpl implements UserStatsService {
      * @param chatFrom telegram Chat.
      * @return Chat entity.
      */
-    private Chat updateChatInfo(org.telegram.telegrambots.meta.api.objects.Chat chatFrom) {
-        Long chatId = chatFrom.getId();
-
-        String chatName;
-        if (chatId > 0) {
-            chatName = chatFrom.getUserName();
-            if (chatName == null) {
-                chatName = chatFrom.getFirstName();
-            }
-        } else {
-            chatName = chatFrom.getTitle();
-            if (chatName == null) {
-                chatName = "";
-            }
-        }
+    private Chat updateChatInfo(Chat chatFrom) {
+        Long chatId = chatFrom.getChatId();
 
         Chat chat = chatService.get(chatId);
-        if (!chatName.equals(chat.getName())) {
-            chat.setName(chatName);
+        if (!chatFrom.getName().equals(chat.getName())) {
+            chat.setName(chatFrom.getName());
             chat = chatService.save(chat);
         }
 
@@ -288,51 +324,7 @@ public class UserStatsServiceImpl implements UserStatsService {
                     .setNumberOfAllWickedness(0L);
         }
 
-        if (message.hasText()) {
-            userStats.setNumberOfMessages(userStats.getNumberOfMessages() + 1)
-                    .setNumberOfMessagesPerDay(userStats.getNumberOfMessagesPerDay() + 1)
-                    .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1);
-        }
-        else if (message.hasSticker()) {
-            userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
-                    .setNumberOfStickersPerDay(userStats.getNumberOfStickersPerDay() + 1)
-                    .setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1);
-        }
-        else if (message.hasPhoto()) {
-            userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1)
-                    .setNumberOfPhotosPerDay(userStats.getNumberOfPhotosPerDay() + 1)
-                    .setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1);
-        }
-        else if (message.hasAnimation()) {
-            userStats.setNumberOfAnimations(userStats.getNumberOfAnimations() + 1)
-                    .setNumberOfAnimationsPerDay(userStats.getNumberOfAnimationsPerDay() + 1)
-                    .setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1);
-        }
-        else if (message.hasAudio()) {
-            userStats.setNumberOfAudio(userStats.getNumberOfAudio() + 1)
-                    .setNumberOfAudioPerDay(userStats.getNumberOfAudioPerDay() + 1)
-                    .setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1);
-        }
-        else if (message.hasDocument()) {
-            userStats.setNumberOfDocuments(userStats.getNumberOfDocuments() + 1)
-                    .setNumberOfDocumentsPerDay(userStats.getNumberOfDocumentsPerDay() + 1)
-                    .setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1);
-        }
-        else if (message.hasVideo()) {
-            userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1)
-                    .setNumberOfVideosPerDay(userStats.getNumberOfVideosPerDay() + 1)
-                    .setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1);
-        }
-        else if (message.hasVideoNote()) {
-            userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1)
-                    .setNumberOfVideoNotesPerDay(userStats.getNumberOfVideoNotesPerDay() + 1)
-                    .setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1);
-        }
-        else if (message.hasVoice()) {
-            userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
-                    .setNumberOfVoicesPerDay(userStats.getNumberOfVoicesPerDay() + 1)
-                    .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1);
-        }
+        contentTypeUserStatsConsumerMap.get(message.getMessageContentType()).accept(userStats);
 
         userStats.setLastMessage(lastMessageService.update(userStats.getLastMessage(), message));
 

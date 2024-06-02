@@ -7,13 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 
@@ -21,8 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdateFromGroup;
+import static org.telegram.bot.TestUtils.checkDefaultTextResponseParams;
 
 @ExtendWith(MockitoExtension.class)
 class BashTest {
@@ -46,24 +46,26 @@ class BashTest {
                 "<LSD> водка\n" +
                 "<Racco^n> водка\n" +
                 "<LD> водка";
-        Update update = TestUtils.getUpdateFromGroup(null);
+        BotRequest request = TestUtils.getRequestFromGroup(null);
         String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quote.txt");
 
         when(networkUtils.readStringFromURL(anyString())).thenReturn(rawRandomQuot);
 
-        SendMessage sendMessage = bash.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
-        String actualText = sendMessage.getText();
+        BotResponse botResponse = bash.parse(request).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.MARKDOWN);
+        String actualText = textResponse.getText();
         assertEquals(expectedText, actualText);
     }
 
     @Test
     void parseWithWrongInputTest() {
-        Update update = TestUtils.getUpdateFromGroup("bash test");
+        BotRequest request = TestUtils.getRequestFromGroup("bash test");
 
-        assertThrows(BotException.class, () -> bash.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> bash.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -76,41 +78,43 @@ class BashTest {
                 "<LSD> водка\n" +
                 "<Racco^n> водка\n" +
                 "<LD> водка";
-        Update update = getUpdateFromGroup();
-        update.getMessage().setText("bash 10229");
+        BotRequest request = TestUtils.getRequestFromGroup();
+        request.getMessage().setText("bash 10229");
         String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quote.txt");
 
         when(networkUtils.readStringFromURL(anyString())).thenReturn(rawDefinedQuot);
 
-        SendMessage sendMessage = bash.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage, true, ParseMode.MARKDOWN);
+        BotResponse botResponse = bash.parse(request).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
-        String actualText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.MARKDOWN);
+
+        String actualText = textResponse.getText();
         assertEquals(expectedText, actualText);
     }
 
     @Test
     void parseWithNoResponseTest() throws IOException {
-        Update update = TestUtils.getUpdateFromGroup(null);
+        BotRequest request = TestUtils.getRequestFromGroup(null);
 
         when(networkUtils.readStringFromURL(anyString())).thenThrow(new IOException());
 
-        assertThrows(BotException.class, () -> bash.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> bash.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithErrorsInResponseTest() throws IOException {
-        Update update = getUpdateFromGroup();
-        update.getMessage().setText("bash 1");
+        BotRequest request = TestUtils.getRequestFromGroup();
+        request.getMessage().setText("bash 1");
         String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_not_found_quote.txt");
 
         when(networkUtils.readStringFromURL(anyString())).thenReturn(rawDefinedQuot);
 
-        assertThrows(BotException.class, () -> bash.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> bash.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
     }
 }

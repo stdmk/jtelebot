@@ -9,18 +9,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.checkDefaultSendPhotoParams;
-import static org.telegram.bot.TestUtils.getUpdateFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class BoobsTest {
@@ -39,27 +39,27 @@ class BoobsTest {
 
     @Test
     void parseWithNoResponseTest() {
-        Update update = getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> boobs.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> boobs.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithNullBoobsTest() {
-        Update update = getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> boobs.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> boobs.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseTest() {
-        Update update = getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         Boobs.BoobsCount boobsCount = new Boobs.BoobsCount();
         boobsCount.setCount(1);
         Boobs.BoobsCount[] boobsCountArray = {boobsCount};
@@ -67,9 +67,11 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsCountArray);
 
-        SendPhoto sendPhoto = boobs.parse(update).get(0);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        checkDefaultSendPhotoParams(sendPhoto, true);
+        BotResponse botResponse = boobs.parse(request).get(0);
+        FileResponse image = TestUtils.checkDefaultFileResponseImageParams(botResponse);
+
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        TestUtils.checkDefaultFileResponseImageParams(image, true);
     }
 
 }

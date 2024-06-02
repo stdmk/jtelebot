@@ -85,7 +85,9 @@ public class Config {
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
-        return new JsonMapper();
+        JsonMapper jsonMapper = new JsonMapper();
+        jsonMapper.findAndRegisterModules();
+        return jsonMapper;
     }
 
     @Bean

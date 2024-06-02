@@ -9,13 +9,14 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -53,35 +54,37 @@ class HolidaysTest {
                 "/holidays_1\n" +
                 "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
-        Update update = TestUtils.getUpdateFromGroup("holidays");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays");
         List<Holiday> holidayList = getSomeHolidays();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update).get(0);
+        BotResponse botResponse = holidays.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void parseHolidayInfoWithCorruptedIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("holidays_a");
-        assertThrows(BotException.class, () -> holidays.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("holidays_a");
+        assertThrows(BotException.class, () -> holidays.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void parseHolidayInfoWithUnknownHolidayIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("holidays_1");
-        assertThrows(BotException.class, () -> holidays.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("holidays_1");
+        assertThrows(BotException.class, () -> holidays.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -90,7 +93,7 @@ class HolidaysTest {
         final String expectedResponseText = "<u>holiday1</u>\n" +
                 "<i>02.01.2006 Tue.</i> (1 ${command.holidays.years1})\n" +
                 "${command.holidays.author}: <a href=\"tg://user?id=1\">username</a>";
-        Update update = TestUtils.getUpdateFromGroup("holidays_1");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays_1");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -100,14 +103,16 @@ class HolidaysTest {
                         .setDate(CURRENT_DATE.minusYears(1))
                         .setName("holiday1")
                         .setUser(TestUtils.getUser()));
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update).get(0);
+        BotResponse botResponse = holidays.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -117,50 +122,54 @@ class HolidaysTest {
                 "/holidays_1\n" +
                 "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
-        Update update = TestUtils.getUpdateFromGroup("holidays test");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays test");
         List<Holiday> holidayList = getSomeHolidays();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update).get(0);
+        BotResponse botResponse = holidays.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void parseWithSearchHolidaysByDateWithCorruptedDateTest() {
-        Update update = TestUtils.getUpdateFromGroup("holidays aa.bb");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays aa.bb");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        assertThrows(BotException.class, () -> holidays.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> holidays.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void parseWithSearchHolidaysByDateWithoutHolidaysTest() {
         final String expectedResponseText = "${command.holidays.noholidays}";
-        Update update = TestUtils.getUpdateFromGroup("holidays 11.12");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays 11.12");
         List<Holiday> holidayList = getSomeHolidays();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
-        SendMessage sendMessage = holidays.parse(update).get(0);
+        BotResponse botResponse = holidays.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -170,20 +179,22 @@ class HolidaysTest {
                 "/holidays_1\n" +
                 "<b>02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
                 "/holidays_2\n";
-        Update update = TestUtils.getUpdateFromGroup("holidays 02.01");
+        BotRequest request = TestUtils.getRequestFromGroup("holidays 02.01");
         List<Holiday> holidayList = getSomeHolidays();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        SendMessage sendMessage = holidays.parse(update).get(0);
+        BotResponse botResponse = holidays.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        assertEquals(expectedResponseText, sendMessage.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     private List<Holiday> getSomeHolidays() {

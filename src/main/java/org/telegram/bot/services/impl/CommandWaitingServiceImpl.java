@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.repositories.CommandWaitingRepository;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
-import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +30,10 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
     @Override
     public String getText(Message message) {
-        CommandWaiting commandWaiting = get(new Chat().setChatId(message.getChatId()), new User().setUserId(message.getFrom().getId()));
+        CommandWaiting commandWaiting = get(message.getChat(), message.getUser());
 
         if (commandWaiting == null) {
-            return null;
+            return message.getCommandArgument();
         }
 
         remove(commandWaiting);
@@ -43,10 +43,7 @@ public class CommandWaitingServiceImpl implements CommandWaitingService {
 
     @Override
     public void add(Message message, Class<?> commandClass) {
-        Chat chat = new Chat().setChatId(message.getChatId());
-        User user = new User().setUserId(message.getFrom().getId());
-
-        add(chat, user, commandClass, commandPropertiesService.getCommand(commandClass).getCommandName());
+        add(message.getChat(), message.getUser(), commandClass, commandPropertiesService.getCommand(commandClass).getCommandName());
     }
 
     @Override

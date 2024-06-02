@@ -6,37 +6,34 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.services.executors.SendMessageExecutor;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.timers.FileManagerTimer;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Shutdown implements Command<SendMessage> {
+public class Shutdown implements Command {
 
     private final Bot bot;
-    private final SendMessageExecutor sendMessageExecutor;
     private final ConfigurableApplicationContext configurableApplicationContext;
     private final BotStats botStats;
     private final FileManagerTimer fileManagerTimer;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
 
-        if (cutCommandInText(message.getText()) != null) {
-            return Collections.emptyList();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
 
-        bot.sendTyping(update);
-        log.debug("From {} received command to shutdown", update.getMessage().getFrom());
+        bot.sendTyping(request.getMessage().getChatId());
+        log.debug("From {} received command to shutdown", message.getUser());
 
         try {
             botStats.saveStats();
@@ -45,16 +42,12 @@ public class Shutdown implements Command<SendMessage> {
             log.error("Failed to shutdown normally: {}", e.getMessage());
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText("${command.shutdown.switchingoff}...");
-
-        sendMessageExecutor.executeMethod(sendMessage);
+        bot.sendMessage(new TextResponse(message)
+                .setText("${command.shutdown.switchingoff}..."));
 
         configurableApplicationContext.close();
         System.exit(0);
 
-        return Collections.emptyList();
+        return returnResponse();
     }
 }

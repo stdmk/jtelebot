@@ -6,8 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.MessageAnalyzer;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.SaluteSpeechVoice;
 import org.telegram.bot.exception.BotException;
@@ -23,25 +26,17 @@ import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.telegram.bot.utils.TelegramUtils.getMessage;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class Voice implements Command<SendVoice>, MessageAnalyzer {
+public class Voice implements Command, MessageAnalyzer {
 
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
@@ -54,20 +49,18 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
     private final Bot bot;
 
     @Override
-    public List<SendVoice> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
 
-        String textMessage = commandWaitingService.getText(message);
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
+
         Integer messageIdToReply = message.getMessageId();
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
-                textMessage = repliedMessage.getText();
+                commandArgument = repliedMessage.getText();
                 messageIdToReply = repliedMessage.getMessageId();
             } else {
                 log.debug("Empty request. Turning on command waiting");
@@ -80,14 +73,14 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
             }
         }
 
-        if (!StringUtils.hasLength(textMessage)) {
+        if (!StringUtils.hasLength(commandArgument)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        String lang = languageResolver.getChatLanguageCode(update);
+        String lang = languageResolver.getChatLanguageCode(request);
 
         SaluteSpeechVoice saluteSpeechVoice = null;
-        String[] words = textMessage.split(" ");
+        String[] words = commandArgument.split(" ");
         if (words.length >= 2) {
             saluteSpeechVoice = SaluteSpeechVoice.getByName(words[0]);
         }
@@ -95,10 +88,10 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
         byte[] voice;
         try {
             if (saluteSpeechVoice == null) {
-                voice = speechSynthesizer.synthesize(textMessage, lang);
+                voice = speechSynthesizer.synthesize(commandArgument, lang);
             } else {
-                textMessage = textMessage.replaceFirst(words[0], "").trim();
-                voice = ((SaluteSpeechSynthesizer) speechSynthesizer).synthesize(textMessage, lang, saluteSpeechVoice);
+                commandArgument = commandArgument.replaceFirst(words[0], "").trim();
+                voice = ((SaluteSpeechSynthesizer) speechSynthesizer).synthesize(commandArgument, lang, saluteSpeechVoice);
             }
         } catch (SpeechSynthesizeNoApiResponseException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -106,55 +99,45 @@ public class Voice implements Command<SendVoice>, MessageAnalyzer {
             throw new BotException(e.getMessage());
         }
 
-        SendVoice sendVoice = new SendVoice();
-        sendVoice.setChatId(message.getChatId().toString());
-        sendVoice.setReplyToMessageId(messageIdToReply);
-        sendVoice.setVoice(new InputFile(new ByteArrayInputStream(voice), "voice"));
-
-        return returnOneResult(sendVoice);
+        return returnResponse(new FileResponse()
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(messageIdToReply)
+                .addFile(new File(FileType.VOICE, new ByteArrayInputStream(voice), "voice")));
     }
 
     @Override
-    public void analyze(Update update) {
-        Message message = getMessage(update);
-        if (message.hasVoice()) {
-            org.telegram.telegrambots.meta.api.objects.Voice voice = message.getVoice();
-            byte[] file;
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
 
-            try {
-                file = networkUtils.getFileFromTelegram(voice.getFileId());
-            } catch (TelegramApiException e) {
-                log.error("Failed to get voice-file from Telegram", e);
-                botStats.incrementErrors(update, e, "Failed to get voice-file from Telegram");
-                return;
-            } catch (IOException e) {
-                log.error("Failed to get bytes from inputstream of voice file", e);
-                botStats.incrementErrors(update, e, "Failed to get bytes from inputstream of voice file");
-                return;
-            }
+        return Optional.ofNullable(message.getAttachments())
+                .filter(attachment -> MessageContentType.VOICE.equals(message.getMessageContentType()))
+                .map(attachments -> attachments
+                        .stream()
+                        .findFirst()
+                        .map(voice -> {
+                            byte[] file = bot.getFileFromTelegram(voice.getFileId());
 
-            String response;
-            try {
-                response = speechParser.parse(file, voice.getDuration());
-            } catch (TooLongSpeechException tle) {
-                if (message.getChatId().equals(message.getFrom().getId())) {
-                    response = "${command.voice.speechistoolong}";
-                } else {
-                    return;
-                }
-            } catch (SpeechParseException e) {
-                log.error("Failed to parse voice file", e);
-                botStats.incrementErrors(update, e, "Failed to parse voice file");
-                return;
-            }
+                            String response;
+                            try {
+                                response = speechParser.parse(file, voice.getDuration());
+                            } catch (TooLongSpeechException tle) {
+                                if (message.getChatId().equals(message.getUser().getUserId())) {
+                                    response = "${command.voice.speechistoolong}";
+                                } else {
+                                    return null;
+                                }
+                            } catch (SpeechParseException e) {
+                                log.error("Failed to parse voice file", e);
+                                botStats.incrementErrors(request, e, "Failed to parse voice file");
+                                return null;
+                            }
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText(response);
-
-            sendMessageExecutor.executeMethod(sendMessage);
-        }
+                            return response;
+                        }))
+                .map(optionalText -> optionalText
+                        .map(textOfVoice -> returnResponse(new TextResponse(message).setText(textOfVoice)))
+                        .orElse(returnResponse()))
+                .orElse(returnResponse());
     }
 
 }

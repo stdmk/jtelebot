@@ -1,7 +1,7 @@
 package org.telegram.bot.services.executors;
 
+import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
@@ -28,9 +28,9 @@ public interface MethodExecutor {
      * Execute telegram method.
      *
      * @param method handling method.
-     * @param update handling update.
+     * @param request handling request.
      */
-    void executeMethod(PartialBotApiMethod<?> method, Update update);
+    void executeMethod(PartialBotApiMethod<?> method, BotRequest request);
 
     void executeMethod(PartialBotApiMethod<?> method);
 

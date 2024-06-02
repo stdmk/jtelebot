@@ -7,13 +7,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Top;
 import org.telegram.bot.domain.entities.Timer;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.bot.services.executors.SendMessageExecutor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +26,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Slf4j
 public class UserStatsCleanerTimer extends TimerParent {
 
-    private final SendMessageExecutor sendMessageExecutor;
+    private final Bot bot;
     private final TimerService timerService;
     private final UserStatsService userStatsService;
     private final ChatService chatService;
@@ -81,14 +81,14 @@ public class UserStatsCleanerTimer extends TimerParent {
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");
 
-            List<SendMessage> sendMessageListWithMonthlyTop = chatService.getAllGroups()
+            List<TextResponse> sendMessageListWithMonthlyTop = chatService.getAllGroups()
                     .stream()
                     .map(top::getTopByChat)
                     .collect(Collectors.toList());
 
             userStatsService.clearMonthlyStats();
 
-            sendMessageListWithMonthlyTop.forEach(sendMessageExecutor::executeMethod);
+            sendMessageListWithMonthlyTop.forEach(bot::sendMessage);
 
             timer.setLastAlarmDt(nextAlarm.withDayOfMonth(1));
             timerService.save(timer);

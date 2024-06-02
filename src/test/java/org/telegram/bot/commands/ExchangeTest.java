@@ -15,14 +15,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -71,7 +71,7 @@ class ExchangeTest {
     @Test
     void parseWithNoApiResponseTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -79,15 +79,15 @@ class ExchangeTest {
                 .thenThrow(new IOException());
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void parseWithDeserializingErrorTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
 
         JsonProcessingException jsonProcessingException = Mockito.mock(JsonProcessingException.class);
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -97,8 +97,8 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenThrow(jsonProcessingException);
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -116,7 +116,7 @@ class ExchangeTest {
 //                "€ EUR = 88,9923 RUB ⬆️ (+4,0850)\n" +
 //                "¥ CNY = 13,8741 RUB ⬇️ (-0,6704)\n" +
 //                "(03.01.2007)";
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
         Exchange.ValCurs valCurs3 = getNextValCurs();
@@ -130,44 +130,44 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
+//        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @ParameterizedTest
     @ValueSource(ints = {-1, 0, 25})
     void getChartForUsdEurWithWrongMonthsValueTest() {
         final String expectedErrorMessage = "wrong input";
-        Update update = TestUtils.getUpdateFromGroup("exchange 25");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 25");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void getChartForUsdEurWithNotResponseTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 1");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(networkUtils.readStringFromURL(anyString(), any(Charset.class))).thenThrow(IOException.class);
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
     @Test
     void getChartForUsedEurWithDeserializingErrorTest() throws IOException {
         final String expectedErrorMessage = "no response";
-        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 1");
 
         JsonProcessingException jsonProcessingException = Mockito.mock(JsonProcessingException.class);
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -177,8 +177,8 @@ class ExchangeTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> exchange.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> exchange.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         assertEquals(expectedErrorMessage, botException.getMessage());
     }
 
@@ -188,7 +188,7 @@ class ExchangeTest {
 //        final String expectedResponseText = "MIN/MAX\n" +
 //                "$ USD: <b>90.236</b> RUB / <b>91.234</b> RUB\n" +
 //                "€ EUR: <b>100.95</b> RUB / <b>105.213</b> RUB\n";
-        Update update = TestUtils.getUpdateFromGroup("exchange 1");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 1");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -197,10 +197,10 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursUsd());
         when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot, never()).sendTyping(update.getMessage().getChatId());
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        checkDefaultSendPhotoParams(method);
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot, never()).sendTyping(request.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        checkDefaultFileResponseImageParams(response);
 //        assertEquals(expectedResponseText, sendPhoto.getCaption());
     }
 
@@ -211,7 +211,7 @@ class ExchangeTest {
                 "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
-        Update update = TestUtils.getUpdateFromGroup("exchange 5 " + unknownValuteCode);
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -222,17 +222,17 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void getRublesForCurrencyValueTest() throws IOException {
         //does not work. Possibly because of the ₽ symbol
 //        final String expectedResponseText = "<b>Доллар США в Рубли</b>\n5,0 USD = 384,1035 ₽";
-        Update update = TestUtils.getUpdateFromGroup("exchange 5 usd");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 5 usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -241,10 +241,10 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
+//        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -254,7 +254,7 @@ class ExchangeTest {
                 "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
-        Update update = TestUtils.getUpdateFromGroup("exchange 5 rub " + unknownValuteCode);
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 5 rub " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -265,17 +265,17 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
     void getValuteForRublesCountTest() throws IOException {
         //does not work. Possibly because of the ₽ symbol
 //        final String expectedResponseText = "<b>Рубли в Доллар США</b>\n1,0 ₽ = 0,0130 USD";
-        Update update = TestUtils.getUpdateFromGroup("exchange 1 rub usd");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 1 rub usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -284,10 +284,10 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
+//        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -297,7 +297,7 @@ class ExchangeTest {
                 "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
                 "Евро - /exchange_eur\n" +
                 "Китайский юань - /exchange_cny\n";
-        Update update = TestUtils.getUpdateFromGroup("exchange_" + unknownValuteCode);
+        BotRequest request = TestUtils.getRequestFromGroup("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
 
@@ -307,10 +307,10 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -320,7 +320,7 @@ class ExchangeTest {
 //                "1 USD = 76,8207 RUB ⬆️ (+3,9889)\n" +
 //                "1 RUB = 0,0130 USD\n" +
 //                "(02.01.2007)";
-        Update update = TestUtils.getUpdateFromGroup("exchange usd");
+        BotRequest request = TestUtils.getRequestFromGroup("exchange usd");
         Exchange.ValCurs valCurs1 = getCurrentValCurs();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
 
@@ -331,10 +331,10 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
-        PartialBotApiMethod<?> method = exchange.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
-//        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = exchange.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
+//        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test
@@ -346,7 +346,7 @@ class ExchangeTest {
                 new ConcurrentHashMap<>(
                         Map.of(oldDate, new Exchange.ValCurs(), CURRENT_DATE, getCurrentValCurs())));
 
-        Update update = getUpdateFromGroup();
+        BotRequest request = getRequestFromGroup();
         Exchange.ValCurs valCurs2 = getPreviousValCurs();
         Exchange.ValCurs valCurs3 = getNextValCurs();
 
@@ -357,7 +357,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
-        exchange.parse(update);
+        exchange.parse(request);
 
         verify(xmlMapper, Mockito.times(2)).readValue(anyString(), ArgumentMatchers.<Class<Exchange.ValCurs>>any());
 

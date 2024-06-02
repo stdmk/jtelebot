@@ -8,14 +8,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Speller implements Command<SendMessage> {
+public class Speller implements Command {
 
     private static final String SPELLER_API_URL = "https://speller.yandex.net/services/spellservice.json/checkText?text=";
 
@@ -33,51 +34,40 @@ public class Speller implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
         Integer replyToMessage;
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         String responseText;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage == null) {
                 commandWaitingService.add(message, this.getClass());
                 responseText = "${command.speller.commandwaitingstart}";
                 replyToMessage = message.getMessageId();
             } else {
-                textMessage = repliedMessage.getText();
-                if (textMessage == null) {
-                    textMessage = repliedMessage.getCaption();
-                    if (textMessage == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-                    log.debug("Request to speller text from caption: {}", textMessage);
-                    responseText = getRevisedText(textMessage);
-                    replyToMessage = repliedMessage.getMessageId();
+                commandArgument = repliedMessage.getText();
+                if (commandArgument == null) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 } else {
-                    log.debug("Request to speller text from replied message {}", textMessage);
-                    responseText = getRevisedText(textMessage);
+                    log.debug("Request to speller text from replied message {}", commandArgument);
+                    responseText = getRevisedText(commandArgument);
                     replyToMessage = message.getReplyToMessage().getMessageId();
                 }
             }
         } else {
             replyToMessage = message.getMessageId();
-            responseText = getRevisedText(textMessage);
+            responseText = getRevisedText(commandArgument);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(replyToMessage);
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse()
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(replyToMessage)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     /**

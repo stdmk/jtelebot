@@ -10,11 +10,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
@@ -22,12 +26,6 @@ import org.telegram.bot.services.NewsSourceService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.RssMapper;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,7 +40,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class News implements Command<PartialBotApiMethod<?>> {
+public class News implements Command {
 
     private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
     private static final String WORD_PATTERN_TEMPLATE = "\\b(?:%s)\\b";
@@ -60,59 +58,52 @@ public class News implements Command<PartialBotApiMethod<?>> {
     private final BotStats botStats;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         Chat chat = new Chat().setChatId(message.getChatId());
+        ResponseSettings responseSettings = new ResponseSettings()
+                .setFormattingStyle(FormattingStyle.HTML)
+                .setWebPagePreview(false);
 
         List<String> responseTextList;
-        Integer messageId = message.getMessageId();
-        if (textMessage == null) {
+        if (commandArgument == null) {
             responseTextList = getLastNewsForChat(chat);
-        } else if (textMessage.startsWith("_")) {
-            NewsMessage newsMessage = getNewsById(textMessage.substring(1));
+        } else if (commandArgument.startsWith("_")) {
+            NewsMessage newsMessage = getNewsById(commandArgument.substring(1));
 
             String responseText = rssMapper.toFullNewsMessageText(newsMessage);
 
             if (newsMessage.getAttachUrl() == null) {
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(message.getChatId().toString());
-                sendMessage.setReplyToMessageId(messageId);
-                sendMessage.enableHtml(true);
-                sendMessage.disableWebPagePreview();
-                sendMessage.setText(responseText);
-
-                return returnOneResult(sendMessage);
+                return returnResponse(new TextResponse(message)
+                        .setText(responseText)
+                        .setResponseSettings(responseSettings));
             }
 
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(newsMessage.getAttachUrl()));
-            sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode("HTML");
-            sendPhoto.setReplyToMessageId(messageId);
-            sendPhoto.setChatId(message.getChatId().toString());
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .addFile(new File(FileType.IMAGE, newsMessage.getAttachUrl()))
+                    .setText(responseText)
+                    .setResponseSettings(responseSettings));
         } else {
-            log.debug("Request to get news from {}", textMessage);
+            log.debug("Request to get news from {}", commandArgument);
 
-            org.telegram.bot.domain.entities.News news = newsService.get(chat, textMessage);
+            org.telegram.bot.domain.entities.News news = newsService.get(chat, commandArgument);
 
             String url;
             Integer count = null;
             if (news != null) {
                 url = news.getNewsSource().getUrl();
             } else {
-                int spaceIndex = textMessage.indexOf(" ");
+                int spaceIndex = commandArgument.indexOf(" ");
                 if (spaceIndex > 0) {
-                    url = textMessage.substring(0, spaceIndex);
-                    String potentialCount = textMessage.substring(spaceIndex + 1);
+                    url = commandArgument.substring(0, spaceIndex);
+                    String potentialCount = commandArgument.substring(spaceIndex + 1);
                     if (isThatInteger(potentialCount)) {
                         count = Integer.parseInt(potentialCount);
                     }
                 } else {
-                    url = textMessage;
+                    url = commandArgument;
                 }
             }
 
@@ -120,7 +111,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
                 checkNewsCount(count);
                 responseTextList = getAllNews(url, count);
             } else {
-                responseTextList = searchForNews(textMessage);
+                responseTextList = searchForNews(commandArgument);
             }
         }
 
@@ -128,7 +119,7 @@ public class News implements Command<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
 
-        return mapToSendMessages(responseTextList, message.getChatId(), messageId);
+        return mapToTextResponseList(responseTextList, message, responseSettings);
     }
 
     private void checkNewsCount(Integer newsCount) {

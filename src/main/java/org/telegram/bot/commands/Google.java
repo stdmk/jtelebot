@@ -14,22 +14,20 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.GoogleSearchResult;
 import org.telegram.bot.domain.entities.ImageUrl;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.GoogleSearchResultService;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Google implements Command<PartialBotApiMethod<?>> {
+public class Google implements Command {
 
     private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
 
@@ -52,8 +50,8 @@ public class Google implements Command<PartialBotApiMethod<?>> {
     private final BotStats botStats;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
 
         String token = propertiesConfig.getGoogleToken();
@@ -63,23 +61,19 @@ public class Google implements Command<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
+        String commandArgument = commandWaitingService.getText(message);
+
         String responseText;
-        String textMessage = commandWaitingService.getText(message);
-
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
-
-        if (textMessage == null) {
+        if (commandArgument == null) {
             bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.google.commandwaitingstart}";
-        } else if (textMessage.startsWith("_")) {
+        } else if (commandArgument.startsWith("_")) {
             bot.sendTyping(chatId);
             long googleResultSearchId;
             try {
-                googleResultSearchId = Long.parseLong(textMessage.substring(1));
+                googleResultSearchId = Long.parseLong(commandArgument.substring(1));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -96,19 +90,15 @@ public class Google implements Command<PartialBotApiMethod<?>> {
 
             ImageUrl imageUrl = googleSearchResult.getImageUrl();
             if (imageUrl != null) {
-                SendPhoto sendPhoto = new SendPhoto();
-                sendPhoto.setPhoto(new InputFile(imageUrl.getUrl()));
-                sendPhoto.setCaption(responseText);
-                sendPhoto.setParseMode("HTML");
-                sendPhoto.setReplyToMessageId(message.getMessageId());
-                sendPhoto.setChatId(chatId.toString());
-
-                return returnOneResult(sendPhoto);
+                return returnResponse(new FileResponse(message)
+                        .setText(responseText)
+                        .addFile(new File(FileType.IMAGE, imageUrl.getUrl()))
+                        .setResponseSettings(FormattingStyle.HTML));
             }
         } else {
             bot.sendTyping(chatId);
-            log.debug("Request to get google results for: {}", textMessage);
-            GoogleSearchData googleSearchData = getResultOfSearch(textMessage, token);
+            log.debug("Request to get google results for: {}", commandArgument);
+            GoogleSearchData googleSearchData = getResultOfSearch(commandArgument, token);
 
             if (googleSearchData.getItems() == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
@@ -149,14 +139,11 @@ public class Google implements Command<PartialBotApiMethod<?>> {
             responseText = buf.toString();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(chatId.toString());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setWebPagePreview(false)
+                        .setFormattingStyle(FormattingStyle.HTML)));
     }
 
     /**

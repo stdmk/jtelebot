@@ -7,18 +7,15 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.commands.Set;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.net.MalformedURLException;
@@ -34,7 +31,7 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
+public class NewsSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_NEWS_COMMAND = "${setter.news.emptycommand}";
@@ -88,14 +85,13 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         return AccessLevel.MODERATOR;
     }
 
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (emptyNewsCommands.contains(lowerCaseCommandText) || updateNewsCommands.contains(lowerCaseCommandText)) {
                 return getNewsSourcesListForChatWithKeyboard(message, chat);
             } else if (containsStartWith(deleteNewsCommands, lowerCaseCommandText)) {
@@ -103,7 +99,7 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
             } else if (containsStartWith(deleteNewsSourceCommands, lowerCaseCommandText)) {
                 return getKeyboardWithDeletingNewsSource(message, user, commandText);
             } else if (containsStartWith(addNewsSourceCommands, lowerCaseCommandText)) {
-                return addNewsSourceForChatByCallback(message, chat, new User().setUserId(update.getCallbackQuery().getFrom().getId()));
+                return addNewsSourceForChatByCallback(message, chat, user);
             } else if (containsStartWith(selectNewsCommands, lowerCaseCommandText)) {
                 return selectNewsCallback(message, chat, commandText);
             }
@@ -114,13 +110,13 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         } else if (containsStartWith(deleteNewsCommands, lowerCaseCommandText)) {
             return deleteNewsSourceForChat(message, chat, commandText);
         } else if (containsStartWith(addNewsSourceCommands, lowerCaseCommandText)) {
-            return addNewsSourceForChat(message, chat, new User().setUserId(message.getFrom().getId()), commandText);
+            return addNewsSourceForChat(message, chat, user, commandText);
         } else {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
 
-    private PartialBotApiMethod<?> selectNewsCallback(Message message, Chat chat, String command) {
+    private BotResponse selectNewsCallback(Message message, Chat chat, String command) {
         String selectNewsCommand = getLocalizedCommand(command, SELECT_NEWS_SOURCE_COMMAND);
         if (command.equals(selectNewsCommand)) {
             return getKeyboardWithSelectingNews(message, 0);
@@ -152,7 +148,9 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         org.telegram.bot.domain.entities.News news = newsService.get(chat, newsSource);
         if (news != null) {
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY));
+            return new TextResponse(message)
+                    .setText(speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY))
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
         newsService.save(new org.telegram.bot.domain.entities.News()
@@ -162,56 +160,42 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         return getNewsSourcesListForChatWithKeyboard(message, chat);
     }
 
-    private EditMessageText getKeyboardWithSelectingNews(Message message, int page) {
+    private EditResponse getKeyboardWithSelectingNews(Message message, int page) {
         Page<NewsSource> newsSourceList = newsSourceService.getAll(page);
 
-        List<List<InlineKeyboardButton>> newsSourcesRows = newsSourceList
+        List<List<KeyboardButton>> newsSourcesRows = newsSourceList
                 .stream()
-                .map(newsSource -> {
-                    List<InlineKeyboardButton> newsSourceRow = new ArrayList<>();
+                .map(newsSource -> List.of(
+                        new KeyboardButton()
+                                .setName(newsSource.getName())
+                                .setCallback(CALLBACK_SELECT_NEWS_SOURCE_COMMAND + " " + newsSource.getId())))
+                .collect(Collectors.toList());
 
-                    InlineKeyboardButton newsSourceButton = new InlineKeyboardButton();
-                    newsSourceButton.setText(newsSource.getName());
-                    newsSourceButton.setCallbackData(CALLBACK_SELECT_NEWS_SOURCE_COMMAND + " " + newsSource.getId());
-
-                    newsSourceRow.add(newsSourceButton);
-
-                    return newsSourceRow;
-                }).collect(Collectors.toList());
-
-        List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        List<KeyboardButton> pagesRow = new ArrayList<>(2);
         if (page > 0) {
-            InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.news.button.back}");
-            backButton.setCallbackData(CALLBACK_SELECT_PAGE_NEWS_LIST + (page - 1));
+            KeyboardButton backButton = new KeyboardButton();
+            backButton.setName(Emoji.LEFT_ARROW.getSymbol() + "${setter.news.button.back}");
+            backButton.setCallback(CALLBACK_SELECT_PAGE_NEWS_LIST + (page - 1));
 
             pagesRow.add(backButton);
         }
 
         if (page + 1 < newsSourceList.getTotalPages()) {
-            InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.news.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
-            forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_NEWS_LIST + (page + 1));
+            KeyboardButton forwardButton = new KeyboardButton();
+            forwardButton.setName("${setter.news.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
+            forwardButton.setCallback(CALLBACK_SELECT_PAGE_NEWS_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
         }
 
         newsSourcesRows.add(pagesRow);
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(newsSourcesRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText("${setter.news.selecthelp}");
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText("${setter.news.selecthelp}")
+                .setKeyboard(new Keyboard(addingMainRows(newsSourcesRows)));
     }
 
-    private EditMessageText getKeyboardWithDeletingNewsSource(Message message, User user, String commandText) {
+    private EditResponse getKeyboardWithDeletingNewsSource(Message message, User user, String commandText) {
         String deleteNewsSourceCommand = getLocalizedCommand(commandText, DELETE_NEWS_SOURCE_COMMAND);
         java.util.Set<String> deletePageNewsListCommandSet = internationalizationService.internationalize(DELETE_PAGE_NEWS_SOURCE_LIST);
         if (!deleteNewsSourceCommand.equals(commandText) && (!containsStartWith(deletePageNewsListCommandSet, commandText))) {
@@ -229,53 +213,45 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         Page<NewsSource> newsSourceList = newsSourceService.getAll(page);
 
-        List<List<InlineKeyboardButton>> newsSourcesRows = newsSourceList
+        List<List<KeyboardButton>> newsSourcesRows = newsSourceList
                 .stream()
                 .map(newsSource -> {
-                    List<InlineKeyboardButton> newsSourceRow = new ArrayList<>();
+                    List<KeyboardButton> newsSourceRow = new ArrayList<>();
 
-                    InlineKeyboardButton newsSourceButton = new InlineKeyboardButton();
-                    newsSourceButton.setText(Emoji.DELETE.getSymbol() + newsSource.getName());
-                    newsSourceButton.setCallbackData(CALLBACK_DELETE_NEWS_SOURCE_COMMAND + " " + newsSource.getId());
+                    KeyboardButton newsSourceButton = new KeyboardButton();
+                    newsSourceButton.setName(Emoji.DELETE.getSymbol() + newsSource.getName());
+                    newsSourceButton.setCallback(CALLBACK_DELETE_NEWS_SOURCE_COMMAND + " " + newsSource.getId());
 
                     newsSourceRow.add(newsSourceButton);
 
                     return newsSourceRow;
                 }).collect(Collectors.toList());
 
-        List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        List<KeyboardButton> pagesRow = new ArrayList<>();
         if (page > 0) {
-            InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.news.button.back}");
-            backButton.setCallbackData(CALLBACK_DELETE_PAGE_NEWS_LIST + (page - 1));
+            KeyboardButton backButton = new KeyboardButton();
+            backButton.setName(Emoji.LEFT_ARROW.getSymbol() + "${setter.news.button.back}");
+            backButton.setCallback(CALLBACK_DELETE_PAGE_NEWS_LIST + (page - 1));
 
             pagesRow.add(backButton);
         }
 
         if (page + 1 < newsSourceList.getTotalPages()) {
-            InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.news.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
-            forwardButton.setCallbackData(CALLBACK_DELETE_PAGE_NEWS_LIST + (page + 1));
+            KeyboardButton forwardButton = new KeyboardButton();
+            forwardButton.setName("${setter.news.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
+            forwardButton.setCallback(CALLBACK_DELETE_PAGE_NEWS_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
         }
 
         newsSourcesRows.add(pagesRow);
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(newsSourcesRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText("${setter.news.removingcaption}");
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText("${setter.news.removingcaption}")
+                .setKeyboard(new Keyboard(addingMainRows(newsSourcesRows)));
     }
 
-    private SendMessage deleteNewsSource(Message message, User user, String command) throws BotException {
+    private TextResponse deleteNewsSource(Message message, User user, String command) throws BotException {
         checkUserLevel(user);
 
         String deleteNewsSourceCommand = getLocalizedCommand(command, DELETE_NEWS_SOURCE_COMMAND);
@@ -297,10 +273,12 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         newsSourceService.remove(newsSource);
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> addNewsSourceForChat(Message message, Chat chat, User user, String command) {
+    private BotResponse addNewsSourceForChat(Message message, Chat chat, User user, String command) {
         checkUserLevel(user);
 
         String addNewsCommand = getLocalizedCommand(command, ADD_NEWS_SOURCE_COMMAND);
@@ -308,14 +286,9 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
 
         if (command.equals(addNewsCommand)) {
             List<News> allNewsInChat = newsService.getAll(chat);
-
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
-            sendMessage.setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT)
+                    .setKeyboard(prepareKeyboardWithNews(allNewsInChat));
         }
 
         String params = command.substring(addNewsCommand.length() + 1);
@@ -323,14 +296,18 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         int i = params.indexOf(" ");
         if (i < 0) {
             commandWaitingService.remove(commandWaitingService.get(chat, user));
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            return new TextResponse(message)
+                    .setText(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT))
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
         String name;
         URL url;
         if (!params.startsWith("http") && !params.startsWith("http", i + 1)) {
             commandWaitingService.remove(commandWaitingService.get(chat, user));
-            return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            return new TextResponse(message)
+                    .setText(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT))
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
         try {
@@ -342,7 +319,9 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
                 name = params.substring(0, i);
             } catch (MalformedURLException malformedURLException) {
                 commandWaitingService.remove(commandWaitingService.get(chat, user));
-                return buildSendMessageWithText(message, "${setter.news.wrongurl}");
+                return new TextResponse(message)
+                        .setText("${setter.news.wrongurl}")
+                        .setResponseSettings(FormattingStyle.HTML);
             }
         }
 
@@ -360,26 +339,22 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
             commandWaitingService.remove(commandWaiting);
         }
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText addNewsSourceForChatByCallback(Message message, Chat chat, User user) {
+    private EditResponse addNewsSourceForChatByCallback(Message message, Chat chat, User user) {
         commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_NEWS_SOURCE_COMMAND);
-
         List<News> allNewsInChat = newsService.getAll(chat);
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
-        editMessageText.setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(prepareTextOfListNewsSources(allNewsInChat) + ADDING_HELP_TEXT)
+                .setKeyboard(prepareKeyboardWithNews(allNewsInChat))
+                .setResponseSettings(FormattingStyle.HTML);
 
     }
 
-    private SendMessage deleteNewsSourceForChat(Message message, Chat chat, String command) throws BotException {
+    private TextResponse deleteNewsSourceForChat(Message message, Chat chat, String command) throws BotException {
         String deleteNewsCommand = getLocalizedCommand(command, DELETE_NEWS_COMMAND);
         log.debug("Request to delete news resource");
 
@@ -407,10 +382,12 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        return buildSendMessageWithText(message, responseText);
+        return new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText deleteNewsSourceForChatByCallback(Message message, Chat chat, String command) {
+    private EditResponse deleteNewsSourceForChatByCallback(Message message, Chat chat, String command) {
         String deleteNewsCommand = getLocalizedCommand(command, DELETE_NEWS_COMMAND);
         log.debug("Request to delete news resource");
 
@@ -423,33 +400,22 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         return getNewsSourcesListForChatWithKeyboard(message, chat);
     }
 
-    private SendMessage getNewsSourcesListForChat(Message message, Chat chat) {
+    private TextResponse getNewsSourcesListForChat(Message message, Chat chat) {
         log.debug("Request to list all news sources for chat {}", chat.getChatId());
-
         List<News> allNewsInChat = newsService.getAll(chat);
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(prepareTextOfListNewsSources(allNewsInChat));
-        sendMessage.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(prepareTextOfListNewsSources(allNewsInChat))
+                .setKeyboard(prepareKeyboardWithNews(allNewsInChat))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText getNewsSourcesListForChatWithKeyboard(Message message, Chat chat) {
+    private EditResponse getNewsSourcesListForChatWithKeyboard(Message message, Chat chat) {
         log.debug("Request to list all news sources for chat {}", chat.getChatId());
         List<News> allNewsInChat = newsService.getAll(chat);
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(prepareTextOfListNewsSources(allNewsInChat));
-        editMessageText.setReplyMarkup(prepareKeyboardWithNews(allNewsInChat));
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(prepareTextOfListNewsSources(allNewsInChat))
+                .setKeyboard(prepareKeyboardWithNews(allNewsInChat))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private String prepareTextOfListNewsSources(List<News> allNewsInChat) {
@@ -463,75 +429,40 @@ public class NewsSetter implements Setter<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithNews(List<News> allNewsInChat) {
-        List<List<InlineKeyboardButton>> rows = allNewsInChat.stream().map(news -> {
-            List<InlineKeyboardButton> newsRow = new ArrayList<>();
-
-            InlineKeyboardButton newsButton = new InlineKeyboardButton();
-            newsButton.setText(Emoji.DELETE.getSymbol() + news.getNewsSource().getName());
-            newsButton.setCallbackData(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId());
-
-            newsRow.add(newsButton);
-
-            return newsRow;
-        }).collect(Collectors.toList());
+    private Keyboard prepareKeyboardWithNews(List<News> allNewsInChat) {
+        List<List<KeyboardButton>> rows = allNewsInChat.stream().map(news -> List.of(
+                new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + news.getNewsSource().getName())
+                        .setCallback(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId()))).collect(Collectors.toList());
 
         addingMainRows(rows);
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(rows);
     }
 
-    private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
-        List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
-        InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.news.button.select}");
-        selectButton.setCallbackData(CALLBACK_SELECT_NEWS_SOURCE_COMMAND);
-        selectButtonRow.add(selectButton);
-
-        List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
-        InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.news.button.remove}");
-        deleteButton.setCallbackData(CALLBACK_DELETE_NEWS_SOURCE_COMMAND);
-        deleteButtonRow.add(deleteButton);
-
-        List<InlineKeyboardButton> addButtonRow = new ArrayList<>();
-        InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getSymbol() + "${setter.news.button.add}");
-        addButton.setCallbackData(CALLBACK_ADD_NEWS_SOURCE_COMMAND);
-        addButtonRow.add(addButton);
-
-        List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
-        InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.news.button.update}");
-        updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_NEWS_COMMAND);
-        updateButtonRow.add(updateButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.news.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(selectButtonRow);
-        rows.add(deleteButtonRow);
-        rows.add(addButtonRow);
-        rows.add(updateButtonRow);
-        rows.add(backButtonRow);
+    private List<List<KeyboardButton>> addingMainRows(List<List<KeyboardButton>> rows) {
+        rows.add(new ArrayList<>(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.news.button.select}")
+                        .setCallback(CALLBACK_SELECT_NEWS_SOURCE_COMMAND))));
+        rows.add(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + "${setter.news.button.remove}")
+                        .setCallback(CALLBACK_DELETE_NEWS_SOURCE_COMMAND)));
+        rows.add(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.NEW.getSymbol() + "${setter.news.button.add}")
+                        .setCallback(CALLBACK_ADD_NEWS_SOURCE_COMMAND)));
+        rows.add(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.UPDATE.getSymbol() + "${setter.news.button.update}")
+                        .setCallback(CALLBACK_COMMAND + UPDATE_NEWS_COMMAND)));
+        rows.add(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.news.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back")));
 
         return rows;
-    }
-
-    private SendMessage buildSendMessageWithText(Message message, String text) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(text);
-
-        return sendMessage;
     }
 
     private String getLocalizedCommand(String text, String command) {

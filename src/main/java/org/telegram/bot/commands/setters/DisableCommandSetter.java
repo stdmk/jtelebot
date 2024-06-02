@@ -8,19 +8,15 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.DisableCommand;
-import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -32,7 +28,7 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
+public class DisableCommandSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_COMMAND = "${setter.disablecommand.emptycommand}";
@@ -76,12 +72,12 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
+        if (message.isCallback()) {
             if (emptyDisableCommands.contains(lowerCaseCommandText) || updateDisableCommands.contains(lowerCaseCommandText)) {
                 return getDisabledCommandListWithKeyboard(message, chat, false);
             } else if (containsStartWith(disableCommands, lowerCaseCommandText)) {
@@ -102,31 +98,24 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private PartialBotApiMethod<?> getDisabledCommandListWithKeyboard(Message message, Chat chat, boolean newMessage) {
+    private BotResponse getDisabledCommandListWithKeyboard(Message message, Chat chat, boolean newMessage) {
         log.debug("Request to list of disabled commands for chat {}", chat);
         List<DisableCommand> disableCommandList = disableCommandService.getByChat(chat);
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(prepareTextOfDisableCommandList(disableCommandList));
-            sendMessage.setReplyMarkup(prepareKeyboardWithMainButtons());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(prepareTextOfDisableCommandList(disableCommandList))
+                    .setKeyboard(prepareKeyboardWithMainButtons())
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(prepareTextOfDisableCommandList(disableCommandList));
-        editMessageText.setReplyMarkup(prepareKeyboardWithMainButtons());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(prepareTextOfDisableCommandList(disableCommandList))
+                .setKeyboard(prepareKeyboardWithMainButtons())
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditMessageText disableCommandByCallback(Message message, Chat chat, String command) throws BotException {
+    private EditResponse disableCommandByCallback(Message message, Chat chat, String command) throws BotException {
         String callbackCommand = getStartsWith(
                 internationalizationService.internationalize(CALLBACK_COMMAND),
                 command.toLowerCase());
@@ -167,10 +156,10 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
 
         disableCommandService.save(disableCommandEntity);
 
-        return (EditMessageText) getDisabledCommandListWithKeyboard(message, chat, false);
+        return (EditResponse) getDisabledCommandListWithKeyboard(message, chat, false);
     }
 
-    private EditMessageText getKeyboardWithEnablingCommands(Message message, Chat chat, String commandText) throws BotException {
+    private EditResponse getKeyboardWithEnablingCommands(Message message, Chat chat, String commandText) throws BotException {
         String enableCommand = getLocalizedCommand(commandText, ENABLE_COMMAND);
 
         if (!enableCommand.equals(commandText)) {
@@ -179,35 +168,19 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
 
         List<DisableCommand> disableCommandList = disableCommandService.getByChat(chat);
 
-        List<List<InlineKeyboardButton>> commandPropertyRows = disableCommandList
+        List<List<KeyboardButton>> commandPropertyRows = disableCommandList
                 .stream()
-                .map(disableCommand -> {
-                    List<InlineKeyboardButton> disableCommandRow = new ArrayList<>();
-
-                    InlineKeyboardButton disableCommandButton = new InlineKeyboardButton();
-                    disableCommandButton.setText(Emoji.CHECK_MARK.getSymbol() + disableCommand.getCommandProperties().getRussifiedName());
-                    disableCommandButton.setCallbackData(CALLBACK_ENABLE_COMMAND + " " + disableCommand.getId());
-
-                    disableCommandRow.add(disableCommandButton);
-
-                    return disableCommandRow;
-                })
+                .map(disableCommand -> List.of(new KeyboardButton()
+                        .setName(Emoji.CHECK_MARK.getSymbol() + disableCommand.getCommandProperties().getRussifiedName())
+                        .setCallback(CALLBACK_ENABLE_COMMAND + " " + disableCommand.getId())))
                 .collect(Collectors.toList());
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(commandPropertyRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText("<b>${setter.disablecommand.caption}</b>\n");
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText("<b>${setter.disablecommand.caption}</b>\n")
+                .setKeyboard(new Keyboard(commandPropertyRows));
     }
 
-    private SendMessage enableCommand(Message message, Chat chat, String command) throws BotException {
+    private TextResponse enableCommand(Message message, Chat chat, String command) throws BotException {
         log.debug("Request to enable command");
 
         String enableCommand = getLocalizedCommand(command, ENABLE_COMMAND);
@@ -237,10 +210,12 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
 
         disableCommandService.remove(disableCommand);
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> disableCommand(Message message, Chat chat, String command) throws BotException {
+    private BotResponse disableCommand(Message message, Chat chat, String command) throws BotException {
         String disableCommand = getLocalizedCommand(command, DISABLE_COMMAND);
 
         log.debug("Request to disable command");
@@ -263,12 +238,14 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
         disableCommandEntity = new DisableCommand().setChat(chat).setCommandProperties(commandProperties);
         disableCommandService.save(disableCommandEntity);
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, message.getUser());
         if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
             commandWaitingService.remove(commandWaiting);
         }
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private String prepareTextOfDisableCommandList(List<DisableCommand> disableCommandList) {
@@ -282,106 +259,57 @@ public class DisableCommandSetter implements Setter<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
-    private EditMessageText getKeyboardWithDisablingCommands(Message message, int page) {
+    private EditResponse getKeyboardWithDisablingCommands(Message message, int page) {
         Page<CommandProperties> commandPropertiesList = commandPropertiesService.getAll(page);
 
-        List<List<InlineKeyboardButton>> commandPropertyRows = commandPropertiesList
+        List<List<KeyboardButton>> commandPropertyRows = commandPropertiesList
                 .stream()
                 .filter(commandProperties -> !SET_COMMAND_NAME.equals(commandProperties.getCommandName()))
-                .map(commandProperties -> {
-                    List<InlineKeyboardButton> commandPropertyRow = new ArrayList<>();
-
-                    InlineKeyboardButton commandProperty = new InlineKeyboardButton();
-                    commandProperty.setText(commandProperties.getRussifiedName());
-                    commandProperty.setCallbackData(CALLBACK_DISABLE_COMMAND + " " + commandProperties.getId());
-
-                    commandPropertyRow.add(commandProperty);
-
-                    return commandPropertyRow;
-                })
+                .map(commandProperties -> List.of(
+                        new KeyboardButton()
+                                .setName(commandProperties.getRussifiedName())
+                                .setCallback(CALLBACK_DISABLE_COMMAND + " " + commandProperties.getId())))
                 .collect(Collectors.toList());
 
-        List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        List<KeyboardButton> pagesRow = new ArrayList<>(2);
         if (page > 0) {
-            InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${setter.disablecommand.button.back}");
-            backButton.setCallbackData(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page - 1));
+            KeyboardButton backButton = new KeyboardButton();
+            backButton.setName(Emoji.LEFT_ARROW.getSymbol() + "${setter.disablecommand.button.back}");
+            backButton.setCallback(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page - 1));
 
             pagesRow.add(backButton);
         }
 
         if (page < commandPropertiesList.getTotalPages()) {
-            InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${setter.disablecommand.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
-            forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page + 1));
+            KeyboardButton forwardButton = new KeyboardButton();
+            forwardButton.setName("${setter.disablecommand.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
+            forwardButton.setCallback(CALLBACK_SELECT_PAGE_COMMAND_LIST + (page + 1));
 
             pagesRow.add(forwardButton);
         }
 
         commandPropertyRows.add(pagesRow);
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(commandPropertyRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText("${setter.disablecommand.selectcommand}");
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText("${setter.disablecommand.selectcommand}")
+                .setKeyboard(new Keyboard(commandPropertyRows))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithMainButtons() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(new ArrayList<>()));
-
-        return inlineKeyboardMarkup;
-    }
-
-    private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
-
-        List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
-        InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.CHECK_MARK.getSymbol() + "${setter.disablecommand.button.enable}");
-        deleteButton.setCallbackData(CALLBACK_ENABLE_COMMAND);
-        deleteButtonRow.add(deleteButton);
-
-        List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
-        InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NO_ENTRY_SIGN.getSymbol() + "${setter.disablecommand.button.disable}");
-        selectButton.setCallbackData(CALLBACK_DISABLE_COMMAND);
-        selectButtonRow.add(selectButton);
-
-        List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
-        InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.disablecommand.button.update}");
-        updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_COMMAND_LIST);
-        updateButtonRow.add(updateButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.disablecommand.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(selectButtonRow);
-        rows.add(deleteButtonRow);
-        rows.add(updateButtonRow);
-        rows.add(backButtonRow);
-
-        return rows;
-    }
-
-    private SendMessage buildSendMessageWithText(Message message, String text) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(text);
-
-        return sendMessage;
+    private Keyboard prepareKeyboardWithMainButtons() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName(Emoji.CHECK_MARK.getSymbol() + "${setter.disablecommand.button.enable}")
+                        .setCallback(CALLBACK_ENABLE_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.NO_ENTRY_SIGN.getSymbol() + "${setter.disablecommand.button.disable}")
+                        .setCallback(CALLBACK_DISABLE_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.UPDATE.getSymbol() + "${setter.disablecommand.button.update}")
+                        .setCallback(CALLBACK_COMMAND + UPDATE_COMMAND_LIST),
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.disablecommand.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back"));
     }
 
     private String getLocalizedCommand(String text, String command) {

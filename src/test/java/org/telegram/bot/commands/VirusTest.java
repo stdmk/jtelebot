@@ -11,6 +11,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.virus.VirusScanApiKeyMissingException;
@@ -20,13 +24,11 @@ import org.telegram.bot.providers.virus.VirusScanner;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,30 +55,29 @@ class VirusTest {
     private Virus virus;
 
     @Test
-    void parseWithFailedToGetTelegramFileIdTest() throws TelegramApiException {
-        Document document = TestUtils.getDocument();
-        Update update = TestUtils.getUpdateFromGroup("virus");
-        update.getMessage().setDocument(document);
+    void parseWithFailedToGetTelegramFileIdTest() {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("virus");
+        request.getMessage().setAttachments(List.of(attachment));
 
-        when(networkUtils.getInputStreamFromTelegramFile(anyString())).thenThrow(new TelegramApiException());
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(new BotException("internal error"));
 
-        assertThrows((BotException.class), () -> virus.parse(update));
-        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        assertThrows((BotException.class), () -> virus.parse(request));
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
     void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws TelegramApiException, VirusScanException {
-        Document document = TestUtils.getDocument();
-        Update update = TestUtils.getUpdateFromGroup("virus");
-        update.getMessage().setDocument(document);
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("virus");
+        request.getMessage().setAttachments(List.of(attachment));
 
         InputStream inputStream = Mockito.mock(InputStream.class);
-        when(networkUtils.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
         when(virusScanner.scan(any(InputStream.class))).thenThrow(exception);
 
-        assertThrows((BotException.class), () -> virus.parse(update));
+        assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(botSpeechTag);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
@@ -84,9 +85,9 @@ class VirusTest {
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
     void parseScanUrlWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws VirusScanException {
-        Update update = TestUtils.getUpdateFromGroup("virus http://example.com");
+        BotRequest request = TestUtils.getRequestFromGroup("virus http://example.com");
         when(virusScanner.scan(any(URL.class))).thenThrow(exception);
-        assertThrows((BotException.class), () -> virus.parse(update));
+        assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(botSpeechTag);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
@@ -101,8 +102,8 @@ class VirusTest {
 
     @Test
     void parseScanUrlWithMalformedUrlTest() {
-        Update update = TestUtils.getUpdateFromGroup("virus abv");
-        assertThrows((BotException.class), () -> virus.parse(update));
+        BotRequest request = TestUtils.getRequestFromGroup("virus abv");
+        assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
@@ -110,56 +111,60 @@ class VirusTest {
     @Test
     void parseWithoutArgumentsTest() {
         final String expectedResponseText = "${command.virus.commandwaitingstart}";
-        Update update = TestUtils.getUpdateFromGroup("virus");
+        BotRequest request = TestUtils.getRequestFromGroup("virus");
 
-        SendMessage sendMessage = virus.parse(update).get(0);
+        BotResponse botResponse = virus.parse(request).get(0);
 
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
-        verify(commandWaitingService).add(update.getMessage(), Virus.class);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
+        verify(commandWaitingService).add(request.getMessage(), Virus.class);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseWithUrlTest() throws VirusScanException {
         final String expectedResponseText = "response_text";
-        Update update = TestUtils.getUpdateFromGroup("virus http://example.com");
+        BotRequest request = TestUtils.getRequestFromGroup("virus http://example.com");
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = virus.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseWithDocumentInRepliedMessageTest() throws TelegramApiException, VirusScanException {
         final String expectedResponseText = "response_text";
-        Document document = TestUtils.getDocument();
-        Update update = TestUtils.getUpdateWithRepliedMessage("abv");
-        update.getMessage().getReplyToMessage().setDocument(document);
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("abv");
+        request.getMessage().getReplyToMessage().setAttachments(List.of(attachment));
 
         InputStream inputStream = Mockito.mock(InputStream.class);
-        when(networkUtils.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
         when(virusScanner.scan(any(InputStream.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = virus.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseWithUrlInRepliedMessageTest() throws VirusScanException {
         final String expectedResponseText = "response_text";
-        Update update = TestUtils.getUpdateWithRepliedMessage("http://example.com");
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("http://example.com");
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = virus.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = virus.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 

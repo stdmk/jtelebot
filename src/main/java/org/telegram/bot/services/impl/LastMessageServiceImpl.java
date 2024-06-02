@@ -4,12 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.LastMessage;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.repositories.LastMessageRepository;
 import org.telegram.bot.services.LastMessageService;
-import org.telegram.telegrambots.meta.api.objects.Message;
-
-import java.time.Instant;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -32,12 +29,12 @@ public class LastMessageServiceImpl implements LastMessageService {
 
     @Override
     public LastMessage update(LastMessage lastMessage, Message newMessage) {
-        log.debug("Request to update LastMessage: {} by Message {}", lastMessage , newMessage);
+        log.debug("Request to update LastMessage: {} by Message {}", lastMessage, newMessage);
 
         lastMessage
                 .setMessageId(newMessage.getMessageId())
                 .setText(newMessage.getText())
-                .setDate(Instant.ofEpochSecond(newMessage.getDate()).atZone(ZoneId.systemDefault()).toLocalDateTime());
+                .setDate(newMessage.getDateTime());
 
         return lastMessageRepository.save(lastMessage);
     }

@@ -4,19 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.timers.FileManagerTimer;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.*;
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Webcam implements Command<PartialBotApiMethod<?>> {
+public class Webcam implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -37,35 +36,27 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
     private static final int MAX_VIDEO_DURATION_IN_SECONDS = 20;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        String textMessage = commandWaitingService.getText(message);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
-
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setText("${command.webcam.commandwaitingstart}");
-
-            return returnOneResult(sendMessage);
+            return returnResponse(new TextResponse(message)
+                    .setText("${command.webcam.commandwaitingstart}"));
         } else {
             bot.sendUploadVideo(message.getChatId());
             String duration;
             String url;
-            int spaceIndex = textMessage.indexOf(" ");
+            int spaceIndex = commandArgument.indexOf(" ");
             if (spaceIndex < 0) {
                 duration = String.valueOf(DEFAULT_VIDEO_DURATION_IN_SECONDS);
-                url = textMessage;
+                url = commandArgument;
             } else {
-                url = textMessage.substring(0, spaceIndex);
-                duration = textMessage.substring(spaceIndex + 1);
+                url = commandArgument.substring(0, spaceIndex);
+                duration = commandArgument.substring(spaceIndex + 1);
             }
 
             if (!TextUtils.isThatUrl(url) || !TextUtils.isThatInteger(duration) || Integer.parseInt(duration) > MAX_VIDEO_DURATION_IN_SECONDS) {
@@ -93,12 +84,8 @@ public class Webcam implements Command<PartialBotApiMethod<?>> {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
-            SendVideo sendVideo = new SendVideo();
-            sendVideo.setChatId(message.getChatId());
-            sendVideo.setReplyToMessageId(message.getMessageId());
-            sendVideo.setVideo(new InputFile(videoFile));
-
-            return returnOneResult(sendVideo);
+            return returnResponse(new FileResponse(message)
+                    .addFile(new org.telegram.bot.domain.model.response.File(FileType.VIDEO, videoFile)));
         }
     }
 }

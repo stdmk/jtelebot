@@ -8,22 +8,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GreatAdvice implements Command<SendMessage> {
+public class GreatAdvice implements Command {
 
     private static final String API_URL = "http://fucking-great-advice.ru/api/random";
 
@@ -32,12 +32,12 @@ public class GreatAdvice implements Command<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        if (getTextMessage(update) != null) {
-            return Collections.emptyList();
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
 
-        Message message = getMessageFromUpdate(update);
         bot.sendTyping(message.getChatId());
         log.debug("Request to get great advice");
 
@@ -55,13 +55,9 @@ public class GreatAdvice implements Command<SendMessage> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText("18+\n" + TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()));
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("18+\n" + TextUtils.wrapTextToSpoiler(fuckingGreatAdvice.getText()))
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     @Data

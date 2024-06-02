@@ -5,23 +5,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Error;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -30,7 +29,7 @@ import java.util.zip.ZipOutputStream;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Errors implements Command<PartialBotApiMethod<?>> {
+public class Errors implements Command {
 
     private final Bot bot;
     private final ErrorService errorService;
@@ -40,20 +39,21 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
     private static final String CLEAR_ERRORS_COMMAND = "_clear";
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+
+        String commandArgument = message.getCommandArgument();
         String responseText;
 
-        if (textMessage != null) {
-            if (textMessage.startsWith(CLEAR_ERRORS_COMMAND)) {
+        if (commandArgument != null) {
+            if (commandArgument.startsWith(CLEAR_ERRORS_COMMAND)) {
                 errorService.clear();
                 responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
-            } else if (textMessage.startsWith("_")) {
+            } else if (commandArgument.startsWith("_")) {
                 long errorId;
                 try {
-                    errorId = Long.parseLong(textMessage.substring(1));
+                    errorId = Long.parseLong(commandArgument.substring(1));
                 } catch (NumberFormatException e) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
@@ -63,12 +63,8 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
-                SendDocument sendDocument = new SendDocument();
-                sendDocument.setChatId(message.getChatId());
-                sendDocument.setReplyToMessageId(message.getMessageId());
-                sendDocument.setDocument(getDataFromError(error));
-
-                return returnOneResult(sendDocument);
+                return returnResponse(new FileResponse(message)
+                        .addFile(new File(FileType.FILE, getDataFromError(error), "error" + error.getId() + ".zip")));
             } else {
                 return Collections.emptyList();
             }
@@ -84,16 +80,12 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
             responseText = buf.toString();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private InputFile getDataFromError(Error error) {
+    private InputStream getDataFromError(Error error) {
         try {
             ByteArrayOutputStream zip = new ByteArrayOutputStream();
 
@@ -118,7 +110,7 @@ public class Errors implements Command<PartialBotApiMethod<?>> {
 
             out.close();
 
-            return new InputFile(new ByteArrayInputStream(zip.toByteArray()), "error" + error.getId() + ".zip");
+            return new ByteArrayInputStream(zip.toByteArray());
         } catch (IOException e) {
             botStats.incrementErrors(error, e, "error when building zip file from Error");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

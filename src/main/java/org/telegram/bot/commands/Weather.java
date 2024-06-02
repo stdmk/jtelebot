@@ -13,18 +13,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +43,7 @@ import static org.telegram.bot.utils.TextUtils.withCapital;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Weather implements Command<SendMessage> {
+public class Weather implements Command {
 
     private static final String OPEN_WEATHER_SITE_URL = "https://openweathermap.org/city/";
     private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=";
@@ -63,42 +65,33 @@ public class Weather implements Command<SendMessage> {
     private final LanguageResolver languageResolver;
 
     @Override
-    public List<SendMessage> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         String token = propertiesConfig.getOpenweathermapId();
         if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        Message message = getMessageFromUpdate(update);
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        User user = new User().setUserId(message.getFrom().getId());
+        User user = message.getUser();
         String cityName;
         String responseText;
 
-        String textMessage = commandWaitingService.getText(message);
+        String commandArgument = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
-
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Empty request. Searching for users city");
             UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
             if (userCity == null) {
                 log.debug("City in not set. Turning on command waiting");
                 commandWaitingService.add(message, this.getClass());
-
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(message.getChatId().toString());
-                sendMessage.setReplyToMessageId(message.getMessageId());
-                sendMessage.setText("${command.weather.commandwaitingstart}");
-
-                return returnOneResult(sendMessage);
+                return returnResponse(new TextResponse(message)
+                        .setText("${command.weather.commandwaitingstart}"));
             } else {
                 cityName = userCity.getCity().getNameEn();
             }
         } else {
-            cityName = textMessage;
+            cityName = commandArgument;
         }
         log.debug("City name is {}", cityName);
 
@@ -112,14 +105,11 @@ public class Weather implements Command<SendMessage> {
                 + prepareHourlyForecastWeatherText(weatherForecast)
                 + prepareDailyForecastWeatherText(weatherForecast, languageCode);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setDisableWebPagePreview(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.MARKDOWN)
+                        .setWebPagePreview(false)));
     }
 
     /**

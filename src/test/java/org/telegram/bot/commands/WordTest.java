@@ -12,14 +12,14 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,36 +55,36 @@ class WordTest {
 
     @Test
     void parseWithoutParamsTest() {
-        Update update = TestUtils.getUpdateFromGroup();
-        BotApiMethodMessage method = word.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        BotRequest request = TestUtils.getRequestFromGroup();
+        BotResponse response = word.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals("${command.word.commandwaitingstart}", sendMessage.getText());
-        verify(commandWaitingService).add(update.getMessage(), Word.class);
+        assertEquals("${command.word.commandwaitingstart}", textResponse.getText());
+        verify(commandWaitingService).add(request.getMessage(), Word.class);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseWithoutResponse() {
-        Update update = TestUtils.getUpdateFromGroup("word word");
+        BotRequest request = TestUtils.getRequestFromGroup("word word");
 
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("error"));
 
-        assertThrows(BotException.class, () -> word.parse(update));
+        assertThrows(BotException.class, () -> word.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseWithEmptyResponseTest() {
-        Update update = TestUtils.getUpdateFromGroup("word word");
+        BotRequest request = TestUtils.getRequestFromGroup("word word");
 
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
-        assertThrows(BotException.class, () -> word.parse(update));
+        assertThrows(BotException.class, () -> word.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }
@@ -93,7 +93,7 @@ class WordTest {
     void parseTest() throws IOException {
         final String expectedResponseText1 = TestUtils.getResourceAsString("wiktionary/response_text1");
         final String expectedResponseText2 = TestUtils.getResourceAsString("wiktionary/response_text2");
-        Update update = TestUtils.getUpdateFromGroup("word word");
+        BotRequest request = TestUtils.getRequestFromGroup("word word");
         Word.WiktionaryData wiktionaryData = new Word.WiktionaryData()
                 .setQuery(new Word.Query()
                         .setPages(Map.of(
@@ -101,21 +101,20 @@ class WordTest {
                                         .setPageid(123)
                                         .setExtract(TestUtils.getResourceAsString("wiktionary/wiktionary_response")))));
 
-        when(languageResolver.getChatLanguageCode(update)).thenReturn("en");
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(response.getBody()).thenReturn(wiktionaryData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
-        List<SendMessage> methods = word.parse(update);
+        List<BotResponse> methods = word.parse(request);
         assertEquals(2, methods.size());
 
-        BotApiMethodMessage method = methods.get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertThat(expectedResponseText1).isEqualToNormalizingNewlines(sendMessage.getText());
+        BotResponse response = methods.get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertThat(expectedResponseText1).isEqualToNormalizingNewlines(textResponse.getText());
 
-        method = methods.get(1);
-        sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertThat(expectedResponseText2).isEqualToNormalizingNewlines(sendMessage.getText());
+        textResponse = TestUtils.checkDefaultTextResponseParams(methods.get(1));
+        assertThat(expectedResponseText2).isEqualToNormalizingNewlines(textResponse.getText());
 
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
     }

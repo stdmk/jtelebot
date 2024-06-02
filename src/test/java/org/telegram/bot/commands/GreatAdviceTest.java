@@ -11,11 +11,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -40,41 +41,41 @@ class GreatAdviceTest {
 
     @Test
     void adviceWithNotEmptyMessageTextTest() {
-        Update update = TestUtils.getUpdateFromGroup("advice test");
-        List<SendMessage> methods = greatAdvice.parse(update);
-        verify(bot, never()).sendTyping(update.getMessage().getChatId());
-        assertTrue(methods.isEmpty());
+        BotRequest request = TestUtils.getRequestFromGroup("advice test");
+        List<BotResponse> responseList = greatAdvice.parse(request);
+        verify(bot, never()).sendTyping(request.getMessage().getChatId());
+        assertTrue(responseList.isEmpty());
     }
 
     @Test
     void adviceWithApiUnavailableTest() {
-        Update update = TestUtils.getUpdateFromGroup("advice");
+        BotRequest request = TestUtils.getRequestFromGroup("advice");
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GreatAdvice.FuckingGreatAdvice>>any()))
                 .thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> greatAdvice.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> greatAdvice.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void adviceWithNullableResponseTest() {
-        Update update = TestUtils.getUpdateFromGroup("advice");
+        BotRequest request = TestUtils.getRequestFromGroup("advice");
 
         when(response.getBody()).thenReturn(null);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GreatAdvice.FuckingGreatAdvice>>any()))
                 .thenReturn(response);
 
-        assertThrows(BotException.class, () -> greatAdvice.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> greatAdvice.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void adviceTest() {
         final String responseText = "test";
-        Update update = TestUtils.getUpdateFromGroup("advice");
+        BotRequest request = TestUtils.getRequestFromGroup("advice");
         GreatAdvice.FuckingGreatAdvice fuckingGreatAdvice = new GreatAdvice.FuckingGreatAdvice();
         fuckingGreatAdvice.setText(responseText);
 
@@ -82,11 +83,13 @@ class GreatAdviceTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GreatAdvice.FuckingGreatAdvice>>any()))
                 .thenReturn(response);
 
-        SendMessage sendMessage = greatAdvice.parse(update).get(0);
+        BotResponse botResponse = greatAdvice.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertTrue(sendMessage.getText().contains(responseText));
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+        assertTrue(textResponse.getText().contains(responseText));
     }
 
 }

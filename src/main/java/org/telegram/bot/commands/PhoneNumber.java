@@ -6,15 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PhoneNumber implements Command<SendMessage> {
+public class PhoneNumber implements Command {
 
     private static final String API_URL = "http://rosreestr.subnets.ru/?get=num&num=";
 
@@ -34,33 +35,26 @@ public class PhoneNumber implements Command<SendMessage> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public List<SendMessage> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         String responseText;
-        Message message = getMessageFromUpdate(update);
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.phonenumber.commandwaitingstart}";
         } else {
-            PhoneInfo phoneInfo = getPhoneInfo(textMessage);
+            PhoneInfo phoneInfo = getPhoneInfo(commandArgument);
             responseText = "<b>${command.phonenumber.operator}:</b> " + phoneInfo.getOperator() + "\n" +
                            "<b>${command.phonenumber.region}:</b> " + phoneInfo.getRegion();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private PhoneInfo getPhoneInfo(String text) {

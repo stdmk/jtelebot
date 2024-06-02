@@ -9,8 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,17 +40,6 @@ public class NetworkUtils {
         connection.connect();
 
         return connection.getInputStream();
-    }
-
-    public byte[] getFileFromTelegram(String fileId) throws TelegramApiException, IOException {
-        return IOUtils.toByteArray(getInputStreamFromTelegramFile(fileId));
-    }
-
-    public InputStream getInputStreamFromTelegramFile(String fileId) throws TelegramApiException {
-        GetFile getFile = new GetFile();
-        getFile.setFileId(fileId);
-
-        return bot.downloadFileAsStream(bot.execute(getFile).getFilePath());
     }
 
     public String readStringFromURL(String url) throws IOException {

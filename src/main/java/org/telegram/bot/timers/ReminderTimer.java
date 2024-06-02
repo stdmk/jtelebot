@@ -5,13 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Remind;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.ReminderService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.bot.services.executors.SendMessageExecutor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.*;
 import java.util.HashMap;
@@ -24,10 +26,14 @@ import java.util.Map;
 @Slf4j
 public class ReminderTimer extends TimerParent {
 
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setFormattingStyle(FormattingStyle.HTML)
+            .setWebPagePreview(false);
+
+    private final Bot bot;
     private final ReminderService reminderService;
     private final UserCityService userCityService;
     private final LanguageResolver languageResolver;
-    private final SendMessageExecutor sendMessageExecutor;
 
     private boolean isFirstExecute = true;
 
@@ -56,14 +62,11 @@ public class ReminderTimer extends TimerParent {
             if (dateTimeNow.isAfter(zonedDateTime.toLocalDateTime())) {
                 Locale locale = languageResolver.getLocale(chat);
 
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(chat.getChatId());
-                sendMessage.enableHtml(true);
-                sendMessage.disableWebPagePreview();
-                sendMessage.setText(Remind.prepareTextOfReminder(reminder));
-                sendMessage.setReplyMarkup(Remind.preparePostponeKeyboard(reminder, locale));
-
-                sendMessageExecutor.executeMethod(sendMessage);
+                bot.sendMessage(new TextResponse()
+                        .setChatId(chat.getChatId())
+                        .setText(Remind.prepareTextOfReminder(reminder))
+                        .setKeyboard(Remind.preparePostponeKeyboard(reminder, locale))
+                        .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
 
                 String repeatability = reminder.getRepeatability();
                 if (StringUtils.isEmpty(repeatability)) {

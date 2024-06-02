@@ -4,20 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.LastMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,7 +32,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Where implements Command<SendMessage> {
+public class Where implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -40,25 +41,22 @@ public class Where implements Command<SendMessage> {
     private final CommandWaitingService commandWaitingService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 
         Integer messageId = message.getMessageId();
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         String responseText;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.where.commandwaitingstart}";
         } else {
-            User user = userService.get(textMessage);
+            User user = userService.get(commandArgument);
             Chat chat = new Chat().setChatId(message.getChatId());
 
             if (user == null) {
@@ -79,12 +77,10 @@ public class Where implements Command<SendMessage> {
                     "${command.where.silent} " + deltaDatesToString(dateOfMessage, LocalDateTime.now());
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(messageId);
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse()
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(messageId)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

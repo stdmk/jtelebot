@@ -3,25 +3,25 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.durationToString;
 
 @Component
 @RequiredArgsConstructor
-public class NewYear implements Command<SendMessage> {
+public class NewYear implements Command {
 
     private static final String DEFAULT_TIME_ZONE = "GMT+03:00";
 
@@ -29,15 +29,15 @@ public class NewYear implements Command<SendMessage> {
     private final UserCityService userCityService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        if (cutCommandInText(message.getText()) != null) {
-            return Collections.emptyList();
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
         bot.sendTyping(message.getChatId());
 
-        Chat chat = new Chat().setChatId(message.getChatId());
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = message.getChat();
+        User user = message.getUser();
         ZoneId userTimeZone;
 
         UserCity userCity = userCityService.get(user, chat);
@@ -48,14 +48,10 @@ public class NewYear implements Command<SendMessage> {
         }
 
         ZonedDateTime dateTimeNow = ZonedDateTime.now(userTimeZone);
+        String duration = durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay());
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chat.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText("${command.newyear.caption}: *" + durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay()) +
-                            "* (" + userTimeZone + ")");
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("${command.newyear.caption}: *" + duration + "* (" + userTimeZone + ")")
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 }

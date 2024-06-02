@@ -11,13 +11,14 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TodoTag;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TodoService;
 import org.telegram.bot.services.TodoTagService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -59,44 +60,45 @@ class TodoTest {
                 "description3\n" +
                 "#tag6 #tag #tag7 \n" +
                 "/todo_delnull\n";
-        Update update = TestUtils.getUpdateFromGroup("trigger");
+        BotRequest request = TestUtils.getRequestFromGroup("trigger");
 
         when(todoService.get(any(Chat.class), any(User.class))).thenReturn(getSomeTodos());
 
-        SendMessage sendMessage = todo.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponse, sendMessage.getText());
+        BotResponse botResponse = todo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponse, textResponse.getText());
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseDelArgumentNotIntTest() {
-        Update update = TestUtils.getUpdateFromGroup("trigger_dela");
-        assertThrows(BotException.class, () -> todo.parse(update));
+        BotRequest request = TestUtils.getRequestFromGroup("trigger_dela");
+        assertThrows(BotException.class, () -> todo.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseDelArgumentWithNotExistenceTriggerTest() {
-        Update update = TestUtils.getUpdateFromGroup("trigger_del123");
+        BotRequest request = TestUtils.getRequestFromGroup("trigger_del123");
 
         when(todoService.get(any(Chat.class), anyLong())).thenReturn(null);
 
-        assertThrows(BotException.class, () -> todo.parse(update));
+        assertThrows(BotException.class, () -> todo.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
 
     @Test
     void parseDelArgumentWithNotOwnerTriggerTest() {
-        Update update = TestUtils.getUpdateFromGroup("trigger_del123");
+        BotRequest request = TestUtils.getRequestFromGroup("trigger_del123");
 
         when(todoService.get(any(Chat.class), anyLong())).thenReturn(
                 new org.telegram.bot.domain.entities.Todo()
                         .setUser(TestUtils.getUser(TestUtils.ANOTHER_USER_ID)));
 
-        assertThrows(BotException.class, () -> todo.parse(update));
+        assertThrows(BotException.class, () -> todo.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NOT_OWNER);
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
@@ -104,16 +106,17 @@ class TodoTest {
     @Test
     void parseDelArgumentTest() {
         final String expectedResponseText = "saved";
-        Update update = TestUtils.getUpdateFromGroup("trigger_del123");
+        BotRequest request = TestUtils.getRequestFromGroup("trigger_del123");
 
         when(todoService.get(any(Chat.class), anyLong())).thenReturn(
                 new org.telegram.bot.domain.entities.Todo()
                         .setUser(TestUtils.getUser(TestUtils.DEFAULT_USER_ID)));
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = todo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
 
         verify(todoService).remove(123L);
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
@@ -123,13 +126,14 @@ class TodoTest {
     void parseWithTextWithoutTagsTest() {
         final String expectedResponseText = "saved";
         final String expectedTodoText = "test";
-        Update update = TestUtils.getUpdateFromGroup("trigger " + expectedTodoText);
+        BotRequest request = TestUtils.getRequestFromGroup("trigger " + expectedTodoText);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = todo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
 
         ArgumentCaptor<org.telegram.bot.domain.entities.Todo> todoCaptor = ArgumentCaptor.forClass(org.telegram.bot.domain.entities.Todo.class);
         verify(todoService).save(todoCaptor.capture());
@@ -149,13 +153,14 @@ class TodoTest {
         List<String> tagList = List.of(tag1, tag2);
         final String expectedResponseText = "saved";
         final String expectedTodoText = "test";
-        Update update = TestUtils.getUpdateFromGroup("trigger " + expectedTodoText + " #" + tag1 + " #" + tag2);
+        BotRequest request = TestUtils.getRequestFromGroup("trigger " + expectedTodoText + " #" + tag1 + " #" + tag2);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        SendMessage sendMessage = todo.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = todo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
 
         ArgumentCaptor<org.telegram.bot.domain.entities.Todo> todoCaptor = ArgumentCaptor.forClass(org.telegram.bot.domain.entities.Todo.class);
         verify(todoService).save(todoCaptor.capture());
@@ -197,13 +202,14 @@ class TodoTest {
                 .map(org.telegram.bot.domain.entities.Todo::getTags)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        Update update = TestUtils.getUpdateFromGroup("trigger #" + tag1 + " #" + tag2);
+        BotRequest request = TestUtils.getRequestFromGroup("trigger #" + tag1 + " #" + tag2);
 
         when(todoTagService.get(any(Chat.class), any(User.class), anyList())).thenReturn(todoTagsList);
 
-        SendMessage sendMessage = todo.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse botResponse = todo.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(DEFAULT_CHAT_ID);
     }
 

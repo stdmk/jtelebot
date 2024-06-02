@@ -4,20 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.ImageUrl;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -27,7 +25,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Image implements Command<PartialBotApiMethod<?>> {
+public class Image implements Command {
 
     private final Bot bot;
     private final ImageUrlService imageUrlService;
@@ -36,24 +34,24 @@ public class Image implements Command<PartialBotApiMethod<?>> {
     private final GooglePics googlePics;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendUploadPhoto(message.getChatId());
-        String textMessage = getTextMessage(update);
+        String commandArgument = message.getCommandArgument();
         ImageUrl imageUrl;
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Request to get random image");
             imageUrl = imageUrlService.getRandom();
             if (imageUrl == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-        } else if (textMessage.startsWith("http")) {
-            log.debug("Request to get image from address {}", textMessage);
+        } else if (commandArgument.startsWith("http")) {
+            log.debug("Request to get image from address {}", commandArgument);
 
             URL url;
             try {
-                url = new URL(textMessage);
+                url = new URL(commandArgument);
             } catch (MalformedURLException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -63,18 +61,18 @@ public class Image implements Command<PartialBotApiMethod<?>> {
                 imageUrl = new ImageUrl().setUrl(url.toString());
                 imageUrl = imageUrlService.save(imageUrl);
             }
-        } else if (textMessage.startsWith("_")) {
-            textMessage = textMessage.substring(1);
+        } else if (commandArgument.startsWith("_")) {
+            commandArgument = commandArgument.substring(1);
 
-            log.debug("Request to get image by id {}", textMessage);
+            log.debug("Request to get image by id {}", commandArgument);
             try {
-                imageUrl = imageUrlService.get(Long.valueOf(textMessage));
+                imageUrl = imageUrlService.get(Long.valueOf(commandArgument));
             } catch (NumberFormatException numberFormatException) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
-            log.debug("Request to search image by text {}", textMessage);
-            imageUrl = googlePics.searchImagesOnGoogle(textMessage).get(0);
+            log.debug("Request to search image by text {}", commandArgument);
+            imageUrl = googlePics.searchImagesOnGoogle(commandArgument).get(0);
         }
 
         if (imageUrl == null) {
@@ -86,19 +84,15 @@ public class Image implements Command<PartialBotApiMethod<?>> {
         try {
             image = networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl());
         } catch (Exception e) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setText("${command.image.failedtodownload}: " + imageUrl.getUrl() +
-                    "\n" + Emoji.LEFT_ARROW.getSymbol() + " /image_" + (imageId - 1) +
-                    "\n\n" + getNextImageCommandText(imageId + 1));
-            sendMessage.enableHtml(true);
-            sendMessage.disableWebPagePreview();
-
-            return returnOneResult(sendMessage);
+            return returnResponse(new TextResponse(message)
+                    .setText("${command.image.failedtodownload}: " + imageUrl.getUrl() +
+                            "\n" + Emoji.LEFT_ARROW.getSymbol() + " /image_" + (imageId - 1) +
+                            "\n\n" + getNextImageCommandText(imageId + 1))
+                    .setResponseSettings(new ResponseSettings()
+                            .setFormattingStyle(FormattingStyle.HTML)
+                            .setWebPagePreview(false)));
         }
 
-        SendPhoto sendPhoto = new SendPhoto();
         String caption = "\n";
 
         if (imageId > 1) {
@@ -106,12 +100,9 @@ public class Image implements Command<PartialBotApiMethod<?>> {
         }
         caption = caption + "/image_" + imageId + "\n\n" + getNextImageCommandText(imageId + 1);
 
-        sendPhoto.setPhoto(new InputFile(image, imageUrl.getUrl()));
-        sendPhoto.setCaption(caption);
-        sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(message.getChatId().toString());
-
-        return returnOneResult(sendPhoto);
+        return returnResponse(new FileResponse(message)
+                .addFile(new File(FileType.IMAGE, image, "image"))
+                .setText(caption));
     }
 
     private String getNextImageCommandText(Long imageId) {

@@ -2,8 +2,8 @@ package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -36,11 +36,11 @@ public interface LanguageResolver {
     /**
      * Get language code from Update.
      *
-     * @param update Telegram Update.
+     * @param botRequest request to bot.
      * @return language code.
      */
     @Nullable
-    String getChatLanguageCode(Update update);
+    String getChatLanguageCode(BotRequest botRequest);
 
     /**
      * Get language code by Chat and User.

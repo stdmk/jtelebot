@@ -1,7 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.LastMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.bot.domain.model.request.Message;
 
 /**
  * Service Interface for managing {@link org.telegram.bot.domain.entities.LastMessage}.

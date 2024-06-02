@@ -4,17 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Holiday;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -29,7 +31,7 @@ import static org.telegram.bot.utils.DateUtils.formatDate;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class Holidays implements Command<SendMessage> {
+public class Holidays implements Command {
 
     private final Bot bot;
     private final HolidayService holidayService;
@@ -38,20 +40,20 @@ public class Holidays implements Command<SendMessage> {
     private final Clock clock;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
-        String languageCode = languageResolver.getChatLanguageCode(update);
+        String commandArgument = message.getCommandArgument();
+        String languageCode = languageResolver.getChatLanguageCode(request);
         String responseText;
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Request to get coming holidays");
             responseText = getComingHolidays(new Chat().setChatId(message.getChatId()), languageCode);
-        } else if (textMessage.startsWith("_")) {
+        } else if (commandArgument.startsWith("_")) {
             long holidayId;
             try {
-                holidayId = Long.parseLong(textMessage.substring(1));
+                holidayId = Long.parseLong(commandArgument.substring(1));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -64,26 +66,23 @@ public class Holidays implements Command<SendMessage> {
 
             responseText = getHolidayDetails(holiday, languageCode);
         } else {
-            int dotIndex = textMessage.indexOf(".");
+            int dotIndex = commandArgument.indexOf(".");
             if (dotIndex < 0) {
-                log.debug("Request to search holidays by text: {}", textMessage);
-                responseText = findHolidaysByText(new Chat().setChatId(message.getChatId()), textMessage, languageCode);
+                log.debug("Request to search holidays by text: {}", commandArgument);
+                responseText = findHolidaysByText(new Chat().setChatId(message.getChatId()), commandArgument, languageCode);
             } else {
-                responseText = getHolidaysForTextRequest(textMessage, dotIndex, new Chat().setChatId(message.getChatId()), languageCode);
+                responseText = getHolidaysForTextRequest(commandArgument, dotIndex, new Chat().setChatId(message.getChatId()), languageCode);
                 if (responseText == null) {
                     responseText = "${command.holidays.noholidays}";
                 }
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.HTML)
+                        .setWebPagePreview(false)));
     }
 
     /**

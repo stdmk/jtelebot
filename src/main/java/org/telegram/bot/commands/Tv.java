@@ -4,14 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.entities.UserTv;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
@@ -19,9 +23,6 @@ import org.telegram.bot.services.TvChannelService;
 import org.telegram.bot.services.TvProgramService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserTvService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.*;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import static org.telegram.bot.utils.DateUtils.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Tv implements Command<SendMessage> {
+public class Tv implements Command {
 
     private final Bot bot;
     private final TvChannelService tvChannelService;
@@ -50,32 +51,32 @@ public class Tv implements Command<SendMessage> {
     private static final int HOURS_NUMBER_LONG = 12;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         List<String> responseTextList;
 
         ZoneId zoneId = getUserZoneId(message);
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             responseTextList = buildResponseTextWithShortProgramsToChannels(message, zoneId);
-        } else if (textMessage.startsWith("_ch")) {
+        } else if (commandArgument.startsWith("_ch")) {
             responseTextList = buildResponseTextWithProgramsToChannel(
-                    getTvChannel(textMessage),
+                    getTvChannel(commandArgument),
                     getUserZoneId(message),
                     commandPropertiesService.getCommand(this.getClass()).getCommandName(),
                     HOURS_NUMBER_LONG);
-        } else if (textMessage.startsWith("_pr")) {
+        } else if (commandArgument.startsWith("_pr")) {
             responseTextList = List.of(buildResponseTextWithProgramDetails(
-                    getTvProgram(textMessage),
+                    getTvProgram(commandArgument),
                     getUserZoneId(message),
                     commandPropertiesService.getCommand(this.getClass()).getCommandName()));
         } else {
-            responseTextList = searchForChannelsAndPrograms(textMessage, zoneId);
+            responseTextList = searchForChannelsAndPrograms(commandArgument, zoneId);
         }
 
-        return mapToSendMessages(responseTextList, message);
+        return mapToTextResponseList(responseTextList, message, new ResponseSettings().setFormattingStyle(FormattingStyle.HTML));
     }
 
     private List<String> searchForChannelsAndPrograms(String searchText, ZoneId zoneId) {
@@ -211,8 +212,8 @@ public class Tv implements Command<SendMessage> {
     }
 
     private List<String> buildResponseTextWithShortProgramsToChannels(Message message, ZoneId zoneId) {
-        Chat chat = new Chat().setChatId(message.getChatId());
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = message.getChat();
+        User user = message.getUser();
         log.debug("Request to get tv-program for user {} and chat {}", user, chat);
 
         List<UserTv> userTvList = userTvService.get(chat, user);
@@ -310,7 +311,7 @@ public class Tv implements Command<SendMessage> {
      */
     private ZoneId getUserZoneId(Message message) {
         ZoneId zoneId;
-        UserCity userCity = userCityService.get(new User().setUserId(message.getFrom().getId()), new Chat().setChatId(message.getChatId()));
+        UserCity userCity = userCityService.get(message.getUser(), message.getChat());
         if (userCity == null) {
             zoneId = ZoneId.systemDefault();
         } else {

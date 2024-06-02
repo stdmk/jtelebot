@@ -9,15 +9,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,83 +51,89 @@ class DownloadTest {
 
     @Test
     void parseWithEmptyArgumentTest() {
-        Update update = getUpdateFromGroup("download");
+        BotRequest request = getRequestFromGroup("download");
 
-        PartialBotApiMethod<?> method = download.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
-        Mockito.verify(commandWaitingService).add(update.getMessage(), Download.class);
+        BotResponse response = download.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
+        Mockito.verify(commandWaitingService).add(request.getMessage(), Download.class);
     }
 
     @Test
     void parseWithTwoWrongArgumentsTest() {
-        Update update = getUpdateFromGroup("download test test");
+        BotRequest request = getRequestFromGroup("download test test");
 
-        assertThrows(BotException.class, () -> download.parse(update));
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        assertThrows(BotException.class, () -> download.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"download " + URL + " " + FILE_NAME, "download " + FILE_NAME + " " + URL})
     void parseWithTwoArgumentsTest(String command) throws Exception {
-        Update update = getUpdateFromGroup(command);
+        BotRequest request = getRequestFromGroup(command);
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update).get(0);
-        verify(bot).sendUploadDocument(update.getMessage().getChatId());
-        SendDocument sendDocument = checkDefaultSendDocumentParams(method);
+        BotResponse response = download.parse(request).get(0);
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
-        InputFile inputFile = sendDocument.getDocument();
-        assertEquals(FILE_NAME, inputFile.getMediaName());
+        File file = fileResponse.getFiles().get(0);
+        assertEquals(FILE_NAME, file.getName());
     }
 
     @Test
     void parseWithOneWrongArgument() {
-        Update update = getUpdateFromGroup("download test");
+        BotRequest request = getRequestFromGroup("download test");
 
-        assertThrows(BotException.class, () -> download.parse(update));
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        assertThrows(BotException.class, () -> download.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void parseWithoutFilenameInUrlTest() throws Exception {
-        Update update = getUpdateFromGroup("download " + URL);
+        BotRequest request = getRequestFromGroup("download " + URL);
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update).get(0);
-        verify(bot).sendUploadDocument(update.getMessage().getChatId());
-        assertNotNull(method);
-        assertTrue(method instanceof SendDocument);
+        BotResponse response = download.parse(request).get(0);
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+        assertNotNull(response);
+        assertTrue(response instanceof FileResponse);
 
-        SendDocument sendDocument = (SendDocument) method;
-        InputFile inputFile = sendDocument.getDocument();
-        assertEquals(DEFAULT_FILE_NAME, inputFile.getMediaName());
+        FileResponse fileResponse = (FileResponse) response;
+        File file = fileResponse.getFiles().get(0);
+        assertEquals(DEFAULT_FILE_NAME, file.getName());
     }
 
     @Test
     void parseWithOneArgumentTest() throws Exception {
-        Update update = getUpdateFromGroup("download " + URL + FILE_NAME);
+        BotRequest request = getRequestFromGroup("download " + URL + FILE_NAME);
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
 
-        PartialBotApiMethod<?> method = download.parse(update).get(0);
-        verify(bot).sendUploadDocument(update.getMessage().getChatId());
-        SendDocument sendDocument = checkDefaultSendDocumentParams(method);
+        BotResponse response = download.parse(request).get(0);
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
-        InputFile inputFile = sendDocument.getDocument();
-        assertEquals(FILE_NAME, inputFile.getMediaName());
+        File file = fileResponse.getFiles().get(0);
+        assertEquals(FILE_NAME, file.getName());
     }
 
     @Test
     void parseWithLargeFileTest() throws Exception {
-        Update update = getUpdateFromGroup("download " + URL);
+        BotRequest request = getRequestFromGroup("download " + URL);
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenThrow(new IOException());
 
-        assertThrows(BotException.class, () -> download.parse(update));
-        verify(bot).sendUploadDocument(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> download.parse(request));
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);
     }
 

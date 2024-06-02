@@ -9,11 +9,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
 import org.telegram.bot.services.InternationalizationService;
@@ -21,13 +24,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.time.Clock;
@@ -48,7 +44,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Calendar implements Command<PartialBotApiMethod<?>> {
+public class Calendar implements Command {
 
     private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
     private static final Pattern MONTH_YEAR_PATTERN = Pattern.compile("\\d{2}.\\d{4}");
@@ -64,9 +60,7 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
     private final LanguageResolver languageResolver;
     private final RestTemplate botRestTemplate;
     private final List<DaysOffProvider> daysOffProviderList;
-
     private final Clock clock;
-
 
     @PostConstruct
     private void postConstruct() {
@@ -85,58 +79,41 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
 
-        String textMessage;
-        Long userId;
-        boolean callback;
-        if (update.hasCallbackQuery()) {
-            textMessage = cutCommandInText(update.getCallbackQuery().getData());
-            userId = update.getCallbackQuery().getFrom().getId();
-            callback = true;
-        } else {
-            textMessage = cutCommandInText(message.getText());
-            userId = message.getFrom().getId();
-            callback = false;
-        }
+        String commandArgument = message.getCommandArgument();
 
-        User user = new User().setUserId(userId);
-        Chat chat = new Chat().setChatId(chatId);
+        User user = message.getUser();
+        Chat chat = message.getChat();
 
         LocalDate date;
         String responseText;
         Locale locale = getUserLocale(message, user);
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
            date = LocalDate.now(clock).withDayOfMonth(1);
            responseText = printCalendarByDate(date, chat, user, locale, true);
         } else {
-            date = getDateFromText(textMessage);
+            date = getDateFromText(commandArgument);
             responseText = printCalendarByDate(date, chat, user, locale, false);
         }
 
-        if (callback) {
-            EditMessageText editMessage = new EditMessageText();
-            editMessage.setChatId(chatId.toString());
-            editMessage.setMessageId(message.getMessageId());
-            editMessage.enableHtml(true);
-            editMessage.setText(responseText);
-            editMessage.setReplyMarkup(getKeyboard(date));
+        Keyboard keyboard = getKeyboard(date);
 
-            return returnOneResult(editMessage);
+        if (message.isCallback()) {
+            return returnResponse(new EditResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(new ResponseSettings().setFormattingStyle(FormattingStyle.HTML)));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId.toString());
-        sendMessage.enableHtml(true);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setReplyMarkup(getKeyboard(date));
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setKeyboard(keyboard)
+                .setResponseSettings(new ResponseSettings().setFormattingStyle(FormattingStyle.HTML)));
     }
 
     private Locale getUserLocale(Message message, User user) {
@@ -327,18 +304,14 @@ public class Calendar implements Command<PartialBotApiMethod<?>> {
         return Arrays.asList(publicHolidays);
     }
 
-    private InlineKeyboardMarkup getKeyboard(LocalDate date) {
-        final String command = "/calendar_";
-
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText("${command.calendar.backbutton}" + Emoji.LEFT_ARROW.getSymbol());
-        backButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.minusMonths(1)));
-
-        InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-        forwardButton.setText("${command.calendar.forwardbutton}" + Emoji.RIGHT_ARROW.getSymbol());
-        forwardButton.setCallbackData(command + DateUtils.formatDateWithoutDay(date.plusMonths(1)));
-
-        return new InlineKeyboardMarkup(List.of(List.of(backButton, forwardButton)));
+    private Keyboard getKeyboard(LocalDate date) {
+        return new Keyboard().setKeyboardButtonsList(List.of(
+                new KeyboardButton()
+                        .setName("${command.calendar.backbutton}" + Emoji.LEFT_ARROW.getSymbol())
+                        .setCallback("/calendar_" + DateUtils.formatDateWithoutDay(date.minusMonths(1))),
+                new KeyboardButton()
+                        .setName("${command.calendar.forwardbutton}" + Emoji.RIGHT_ARROW.getSymbol())
+                        .setCallback("/calendar_" + DateUtils.formatDateWithoutDay(date.plusMonths(1)))));
     }
 
     @Data

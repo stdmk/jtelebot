@@ -5,27 +5,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Help implements Command<SendMessage> {
+public class Help implements Command {
 
     private final Bot bot;
     private final CommandPropertiesService commandPropertiesService;
@@ -35,22 +37,22 @@ public class Help implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
 
         String responseText;
-        if (StringUtils.isEmpty(textMessage)) {
+        if (StringUtils.isEmpty(commandArgument)) {
             log.debug("Request to get general help");
             StringBuilder buf = new StringBuilder();
 
-            if (checkIsThatAdmin(message.getFrom().getId())) {
+            if (checkIsThatAdmin(message.getUser().getUserId())) {
                 buf.append("${command.help.grants}\n\n");
             }
 
             Integer accessLevel;
-            Integer userAccessLevel = userService.getUserAccessLevel(message.getFrom().getId());
+            Integer userAccessLevel = userService.getUserAccessLevel(message.getUser().getUserId());
             Integer chatAccessLevel = chatService.getChatAccessLevel(message.getChatId());
             if (userAccessLevel > chatAccessLevel) {
                 accessLevel = userAccessLevel;
@@ -78,9 +80,9 @@ public class Help implements Command<SendMessage> {
 
             responseText = buf.toString();
         } else {
-            log.debug("Request to get help for command: {}", textMessage);
+            log.debug("Request to get help for command: {}", commandArgument);
 
-            CommandProperties command = commandPropertiesService.getCommand(textMessage);
+            CommandProperties command = commandPropertiesService.getCommand(commandArgument);
             if (command == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -88,14 +90,11 @@ public class Help implements Command<SendMessage> {
             responseText = formatHelpText(command.getClassName().toLowerCase(), command.getAccessLevel());
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setWebPagePreview(false)
+                        .setFormattingStyle(FormattingStyle.HTML)));
     }
 
     private String formatHelpText(String commandName, Integer level) {

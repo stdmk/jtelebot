@@ -8,13 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,40 +40,40 @@ class ErrorsTest {
 
     @Test
     void getErrorListTest() {
-        Update update = getUpdateFromGroup("errors");
+        BotRequest request = getRequestFromGroup("errors");
         List<Error> errorList = List.of(new Error().setId(1L).setDateTime(LocalDateTime.now()).setComment("comment"));
 
         when(errorService.getAll()).thenReturn(errorList);
 
-        PartialBotApiMethod<?> method = errors.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(method);
+        BotResponse response = errors.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(response);
     }
 
     @Test
     void clearErrorListTest() {
         final String expectedResponseMessage = "saved";
-        Update update = getUpdateFromGroup("errors_clear");
+        BotRequest request = getRequestFromGroup("errors_clear");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
-        PartialBotApiMethod<?> method = errors.parse(update).get(0);
+        BotResponse response = errors.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(errorService).clear();
-        SendMessage sendMessage = checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseMessage, sendMessage.getText());
+        TextResponse textResponse = checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseMessage, textResponse.getText());
     }
 
     @Test
     void getErrorDataWithWrongIdTest() {
         final String expectedExceptionMessage = "wrong id";
-        Update update = getUpdateFromGroup("errors_a");
+        BotRequest request = getRequestFromGroup("errors_a");
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> errors.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> errors.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedExceptionMessage, botException.getMessage());
     }
 
@@ -81,28 +81,28 @@ class ErrorsTest {
     void getErrorDataOfNotExistenceErrorEntityTest() {
         final long errorId = 1;
         final String expectedExceptionMessage = "not existence Error";
-        Update update = getUpdateFromGroup("errors_" + errorId);
+        BotRequest request = getRequestFromGroup("errors_" + errorId);
 
         when(errorService.get(errorId)).thenReturn(null);
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedExceptionMessage);
 
-        BotException botException = assertThrows(BotException.class, () -> errors.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotException botException = assertThrows(BotException.class, () -> errors.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedExceptionMessage, botException.getMessage());
     }
 
     @Test
     void getErrorDataWithUnexpectedArgument() {
-        Update update = getUpdateFromGroup("errors abv");
-        List<PartialBotApiMethod<?>> methods = errors.parse(update);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        assertTrue(methods.isEmpty());
+        BotRequest request = getRequestFromGroup("errors abv");
+        List<BotResponse> botResponses = errors.parse(request);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        assertTrue(botResponses.isEmpty());
     }
 
     @Test
     void getErrorDataTest() {
         final long errorId = 1;
-        Update update = getUpdateFromGroup("errors_" + errorId);
+        BotRequest request = getRequestFromGroup("errors_" + errorId);
         Error error = new Error()
                 .setId(errorId)
                 .setDateTime(LocalDateTime.now())
@@ -113,8 +113,8 @@ class ErrorsTest {
 
         when(errorService.get(errorId)).thenReturn(error);
 
-        PartialBotApiMethod<?> method = errors.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendDocumentParams(method);
+        BotResponse response = errors.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultFileResponseParams(response);
     }
 }

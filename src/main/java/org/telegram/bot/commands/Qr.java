@@ -17,21 +17,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.MessageAnalyzer;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -40,14 +36,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
+public class Qr implements Command, MessageAnalyzer {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -56,35 +50,20 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
     private final NetworkUtils networkUtils;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
 
-        String textMessage = commandWaitingService.getText(message);
+        String commandArgument = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
-
-        Long chatId = message.getChatId();
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
-
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setChatId(chatId);
-            sendMessage.setText("${command.qr.commandwaitingstart}");
-
-            return returnOneResult(sendMessage);
+            return returnResponse(new TextResponse(message)
+                    .setText("${command.qr.commandwaitingstart}"));
         } else {
-            bot.sendUploadPhoto(chatId);
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(generateQrFromText(textMessage), "qr"));
-            sendPhoto.setCaption(textMessage);
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId);
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .setText(commandArgument)
+                    .addFile(new File(FileType.IMAGE, generateQrFromText(commandArgument), "qr")));
         }
     }
 
@@ -112,40 +91,41 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
     }
 
     @Override
-    public void analyze(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
 
-        if (message.hasPhoto()) {
-            List<PhotoSize> photoList = message.getPhoto();
-            BufferedImage image;
+        if (message.hasAttachment()) {
+            message.getAttachments()
+                    .stream()
+                    .max(Comparator.comparing(Attachment::getSize))
+                    .map(photo -> {
+                        BufferedImage image;
 
-            try {
-                image = ImageIO.read(networkUtils.getInputStreamFromTelegramFile(photoList.get(photoList.size() - 1).getFileId()));
-            } catch (TelegramApiException | IOException e) {
-                log.error("Failed to get file from telegram: {}", e.getMessage());
-                return;
-            }
+                        try {
+                            image = ImageIO.read(bot.getInputStreamFromTelegramFile(photo.getFileId()));
+                        } catch (IOException e) {
+                            log.error("Failed to read image", e);
+                            botStats.incrementErrors(request, e, "Failed to read image");
+                            return null;
+                        }
 
-            String textFromQr;
-            try {
-                textFromQr = getTextFromQr(image);
-            } catch (NotFoundException e) {
-                log.debug("QR is missing");
-                return;
-            }
+                        String textFromQr;
+                        try {
+                            textFromQr = getTextFromQr(image);
+                        } catch (NotFoundException e) {
+                            log.debug("QR is missing");
+                            return null;
+                        }
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText("QR: " + textFromQr);
-
-            try {
-                bot.execute(sendMessage);
-            } catch (TelegramApiException e) {
-                log.error("Cannot send response: {}", e.getMessage());
-                botStats.incrementErrors(update, sendMessage, e, "Error sending QR code decryption");
-            }
+                        return textFromQr;
+                    }).ifPresentOrElse(text ->
+                            returnResponse(new TextResponse(message)
+                                    .setText("QR: `" + text + "`")
+                                    .setResponseSettings(FormattingStyle.MARKDOWN)),
+                            this::returnResponse);
         }
+
+        return returnResponse();
     }
 
     private String getTextFromQr(BufferedImage image) throws NotFoundException {
@@ -154,4 +134,5 @@ public class Qr implements Command<PartialBotApiMethod<?>>, MessageAnalyzer {
 
         return result.getText();
     }
+
 }

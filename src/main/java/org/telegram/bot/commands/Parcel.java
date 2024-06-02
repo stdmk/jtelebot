@@ -4,25 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.timers.TrackCodeEventsTimer;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.bot.utils.TextUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,7 +31,9 @@ import static org.telegram.bot.utils.TextUtils.BORDER;
 
 @Component
 @RequiredArgsConstructor
-public class Parcel implements Command<PartialBotApiMethod<?>> {
+public class Parcel implements Command {
+
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings().setFormattingStyle(FormattingStyle.HTML);
 
     private final ParcelService parcelService;
     private final TrackCodeService trackCodeService;
@@ -44,7 +41,6 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final Bot bot;
-    private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
 
@@ -59,57 +55,46 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
     private static final String TRACKING_ON_SITE_URL = "https://www.pochta.ru/tracking?barcode=";
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
         Chat chat = new Chat().setChatId(message.getChatId());
-        String textMessage;
-        boolean callback = false;
+        User user = message.getUser();
 
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, new User().setUserId(message.getFrom().getId()));
-
-        if (commandWaiting != null) {
+        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
+        String commandArgument;
+        if (commandWaiting == null) {
+            commandArgument = message.getCommandArgument();
+        } else {
             String text = message.getText();
             if (text == null) {
                 text = "";
             }
-            textMessage = cutCommandInText(commandWaiting.getTextMessage()) + text;
-        } else {
-            if (update.hasCallbackQuery()) {
-                commandWaiting = commandWaitingService.get(chat, new User().setUserId(update.getCallbackQuery().getFrom().getId()));
-                CallbackQuery callbackQuery = update.getCallbackQuery();
-                textMessage = cutCommandInText(callbackQuery.getData());
-                callback = true;
-            } else {
-                textMessage = cutCommandInText(message.getText());
+            commandArgument = TextUtils.cutCommandInText(commandWaiting.getTextMessage()) + text;
+        }
+
+        if (message.isCallback()) {
+            if (commandArgument.isEmpty()) {
+                return returnResponse(getMainMenu(message, user, false));
+            } else if (commandArgument.startsWith(DELETE_PARCEL_COMMAND)) {
+                return returnResponse(deleteParcelByCallback(message, user, commandArgument));
+            } else if (commandArgument.startsWith(ADD_PARCEL_COMMAND)) {
+                return returnResponse(addParcelByCallback(message, chat, user, commandArgument));
             }
         }
 
-        if (callback) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
-            if (textMessage.isEmpty()) {
-                return returnOneResult(getMainMenu(message, user, false));
-            } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND)) {
-                return returnOneResult(deleteParcelByCallback(message, user, textMessage));
-            } else if (textMessage.startsWith(ADD_PARCEL_COMMAND)) {
-                return returnOneResult(addParcelByCallback(message, chat, user, textMessage));
-            }
-        }
-
-        User user = new User().setUserId(message.getFrom().getId());
-        if (textMessage == null || textMessage.equals(EMPTY_COMMAND)) {
-            return returnOneResult(getMainMenu(message,  user, true));
-        } else if (textMessage.startsWith(ADD_PARCEL_COMMAND)) {
-            return returnOneResult(addParcel(message, user, textMessage, commandWaiting));
-        } else if (textMessage.startsWith(DELETE_PARCEL_COMMAND) || (textMessage.startsWith(SHORT_DELETE_PARCEL_COMMAND))) {
-            return returnOneResult(deleteParcel(message, user, textMessage));
+        if (commandArgument == null || commandArgument.equals(EMPTY_COMMAND)) {
+            return returnResponse(getMainMenu(message,  user, true));
+        } else if (commandArgument.startsWith(ADD_PARCEL_COMMAND)) {
+            return returnResponse(addParcel(message, user, commandArgument, commandWaiting));
+        } else if (commandArgument.startsWith(DELETE_PARCEL_COMMAND) || (commandArgument.startsWith(SHORT_DELETE_PARCEL_COMMAND))) {
+            return returnResponse(deleteParcel(message, user, commandArgument));
         } else {
-            return getTrackCodeData(message, user, textMessage);
+            return getTrackCodeData(message, user, commandArgument);
         }
     }
 
-    private PartialBotApiMethod<?> getMainMenu(Message message, User user, boolean newMessage) throws BotException {
+    private BotResponse getMainMenu(Message message, User user, boolean newMessage) throws BotException {
         List<org.telegram.bot.domain.entities.Parcel> parcelList = parcelService.get(user);
 
         StringBuilder buf = new StringBuilder("<b>${command.parcel.caption}:</b>\n");
@@ -132,62 +117,40 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
 
         buf.append(buildStringUpdateTimesInformation());
 
-        List<List<InlineKeyboardButton>> rows = parcelList.stream().map(parcel -> {
-            List<InlineKeyboardButton> parcelRow = new ArrayList<>();
-
-            InlineKeyboardButton parcelButton = new InlineKeyboardButton();
-
+        List<List<KeyboardButton>> rows = parcelList.stream().map(parcel -> {
             String parcelName = Emoji.DELETE.getSymbol() + parcel.getName();
             if (parcelName.length() > 30) {
                 parcelName = parcelName.substring(0, 30) + "...";
             }
-            parcelButton.setText(parcelName);
-            parcelButton.setCallbackData(CALLBACK_DELETE_PARCEL_COMMAND + parcel.getId());
-
-            parcelRow.add(parcelButton);
-
-            return parcelRow;
+            return List.of(new KeyboardButton()
+                    .setName(parcelName)
+                    .setCallback(CALLBACK_DELETE_PARCEL_COMMAND + parcel.getId()));
         }).collect(Collectors.toList());
 
-        List<InlineKeyboardButton> addRow = new ArrayList<>();
-        InlineKeyboardButton addButton = new InlineKeyboardButton();
-        addButton.setText(Emoji.NEW.getSymbol() + "${command.parcel.button.add}");
-        addButton.setCallbackData(CALLBACK_ADD_PARCEL_COMMAND);
-        addRow.add(addButton);
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.NEW.getSymbol() + "${command.parcel.button.add}")
+                .setCallback(CALLBACK_ADD_PARCEL_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName(Emoji.UPDATE.getSymbol() + "${command.parcel.button.reload}")
+                .setCallback(CALLBACK_COMMAND)));
 
-        List<InlineKeyboardButton> reloadRows = new ArrayList<>();
-        InlineKeyboardButton reloadButton = new InlineKeyboardButton();
-        reloadButton.setText(Emoji.UPDATE.getSymbol() + "${command.parcel.button.reload}");
-        reloadButton.setCallbackData(CALLBACK_COMMAND);
-        reloadRows.add(reloadButton);
-
-        rows.add(addRow);
-        rows.add(reloadRows);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
+        Keyboard keyboard = new Keyboard(rows);
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setText(buf.toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-
-            return sendMessage;
+            return new TextResponse()
+                    .setChatId(message.getChatId())
+                    .setText(buf.toString())
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.setText(buf.toString());
-        editMessageText.enableHtml(true);
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(buf.toString())
+                .setKeyboard(keyboard)
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
     }
 
-    private EditMessageText deleteParcelByCallback(Message message, User user, String textCommand) throws BotException {
+    private EditResponse deleteParcelByCallback(Message message, User user, String textCommand) throws BotException {
         long parcelId;
         try {
             parcelId = Long.parseLong(textCommand.substring(DELETE_PARCEL_COMMAND.length()));
@@ -206,21 +169,18 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
 
         parcelService.remove(parcel);
 
-        return (EditMessageText) getMainMenu(message, user, false);
+        return (EditResponse) getMainMenu(message, user, false);
     }
 
-    private SendMessage addParcelByCallback(Message message, Chat chat, User user, String textCommand) {
+    private TextResponse addParcelByCallback(Message message, Chat chat, User user, String textCommand) {
         commandWaitingService.add(chat, user, org.telegram.bot.domain.entities.Parcel.class, CALLBACK_COMMAND + textCommand);
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText("${command.parcel.parceladdinghint}: <code>${command.parcel.parceladdingexample}</code>");
-        sendMessage.enableHtml(true);
-
-        return sendMessage;
+        return new TextResponse()
+                .setChatId(message.getChatId())
+                .setText("${command.parcel.parceladdinghint}: <code>${command.parcel.parceladdingexample}</code>")
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> addParcel(Message message, User user, String textCommand, CommandWaiting commandWaiting) throws BotException {
+    private BotResponse addParcel(Message message, User user, String textCommand, CommandWaiting commandWaiting) throws BotException {
         checkFreeTrackCodeSlots(trackCodeService.getTrackCodesCount());
 
         commandWaitingService.remove(commandWaiting);
@@ -256,12 +216,9 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
                 .setName(parcelName)
                 .setTrackCode(trackCode));
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
     }
 
     private void checkFreeTrackCodeSlots(long occupiedSlots) {
@@ -274,7 +231,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         }
     }
 
-    private SendMessage deleteParcel(Message message, User user, String command) throws BotException {
+    private TextResponse deleteParcel(Message message, User user, String command) throws BotException {
         org.telegram.bot.domain.entities.Parcel parcel;
 
         if (command.startsWith(SHORT_DELETE_PARCEL_COMMAND)) {
@@ -308,15 +265,12 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
 
         parcelService.remove(parcel);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
     }
 
-    private List<PartialBotApiMethod<?>> getTrackCodeData(Message message, User user, String command) {
+    private List<BotResponse> getTrackCodeData(Message message, User user, String command) {
         Long parcelId = null;
         try {
             parcelId = Long.parseLong(command.substring(1));
@@ -366,7 +320,7 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         response.add(buildGeneralInformation(trackCode.getBarcode(), trackCodeEventList));
         response.add(lastUpdatesTimeInfo);
 
-        return mapToSendMessages(response, message);
+        return mapToTextResponseList(response, message, DEFAULT_RESPONSE_SETTINGS);
     }
 
     private void notifyOtherUsers(TrackCode trackCode, User user, LocalDateTime lastEventUpdateDateTime) {
@@ -382,16 +336,12 @@ public class Parcel implements Command<PartialBotApiMethod<?>> {
         trackCode.getEvents()
                 .stream()
                 .filter(event -> event.getEventDateTime().isAfter(lastEventUpdateDateTime))
-                .flatMap(newEvent -> parcelsOfTrackCode.stream().map(parcel -> {
-                    String messageText = Parcel.buildStringEventMessage(parcel, newEvent);
-                    SendMessage sendMessage = new SendMessage();
-                    sendMessage.setChatId(parcel.getUser().getUserId());
-                    sendMessage.enableHtml(true);
-                    sendMessage.setText(messageText);
-
-                    return sendMessage;
-                }))
-                .forEach(sendMessageExecutor::executeMethod);
+                .flatMap(newEvent -> parcelsOfTrackCode.stream().map(parcel ->
+                        new TextResponse()
+                                .setChatId(parcel.getUser().getUserId())
+                                .setText(Parcel.buildStringEventMessage(parcel, newEvent))
+                                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS)))
+                .forEach(bot::sendMessage);
     }
 
     public static String buildStringEventMessage(org.telegram.bot.domain.entities.Parcel parcel, TrackCodeEvent trackCodeEvent) {

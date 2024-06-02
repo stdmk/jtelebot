@@ -6,15 +6,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.repositories.DbBackuper;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.io.File;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.getUpdateFromGroup;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BackupTest {
@@ -29,15 +32,22 @@ class BackupTest {
 
     @Test
     void parseTest() {
-        Update update = getUpdateFromGroup();
-        when(dbBackuper.getDbBackup()).thenReturn(new InputFile());
+        BotRequest request = TestUtils.getRequestFromGroup();
+        when(dbBackuper.getDbBackup()).thenReturn(mock(File.class));
 
-        SendDocument sendDocument = backup.parse(update).get(0);
-        verify(bot).sendUploadDocument(update);
+        BotResponse botResponse = backup.parse(request).get(0);
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
-        assertNotNull(sendDocument);
-        assertNotNull(sendDocument.getChatId());
-        assertNotNull(sendDocument.getDocument());
-        assertTrue(sendDocument.getDisableNotification());
+        assertNotNull(fileResponse);
+        assertNotNull(fileResponse.getChatId());
+        assertFalse(fileResponse.getResponseSettings().isNotification());
+
+        List<org.telegram.bot.domain.model.response.File> files = fileResponse.getFiles();
+        assertNotNull(files);
+        assertFalse(files.isEmpty());
+
+        org.telegram.bot.domain.model.response.File file = files.get(0);
+        assertEquals(FileType.FILE, file.getFileType());
     }
 }

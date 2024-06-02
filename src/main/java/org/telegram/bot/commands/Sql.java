@@ -6,19 +6,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText;
@@ -26,7 +25,7 @@ import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Sql implements Command<SendMessage> {
+public class Sql implements Command {
 
     @PersistenceContext
     EntityManager entityManager;
@@ -36,20 +35,21 @@ public class Sql implements Command<SendMessage> {
 
     @Override
     @Transactional
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         String responseText;
-        String textMessage = cutCommandInText(message.getText());
-        if (StringUtils.isEmpty(textMessage)) {
-            return Collections.emptyList();
+
+        String commandArgument = message.getCommandArgument();
+        if (StringUtils.isEmpty(commandArgument)) {
+            return returnResponse();
         }
 
         bot.sendTyping(message.getChatId());
-        log.debug("Request to execute sql request: {}", textMessage);
+        log.debug("Request to execute sql request: {}", commandArgument);
         try {
-            if (textMessage.toLowerCase().startsWith("select")) {
+            if (commandArgument.toLowerCase().startsWith("select")) {
                     StringBuilder buf = new StringBuilder();
-                    List<?> resultList = entityManager.createNativeQuery(textMessage).getResultList();
+                    List<?> resultList = entityManager.createNativeQuery(commandArgument).getResultList();
                     if (resultList.isEmpty()) {
                         buf.append("${command.sql.emptyresponse}");
                     } else {
@@ -67,38 +67,23 @@ public class Sql implements Command<SendMessage> {
                     }
                     responseText = buf.toString();
             }
-            else if (textMessage.startsWith("update") || textMessage.startsWith("insert") || textMessage.startsWith("delete")) {
+            else if (commandArgument.startsWith("update") || commandArgument.startsWith("insert") || commandArgument.startsWith("delete")) {
                 int updated;
-                updated = entityManager.createNativeQuery(textMessage).executeUpdate();
+                updated = entityManager.createNativeQuery(commandArgument).executeUpdate();
                 responseText = "${command.sql.success}: " + updated;
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } catch (Exception e) {
             responseText = "${command.sql.error}: " + getInitialExceptionCauseText(e);
-            sendErrorMessage(message, responseText);
+            bot.sendMessage(new TextResponse(message)
+                    .setText("`" + responseText + "`")
+                    .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText("`" + responseText + "`");
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("`" + responseText + "`")
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
-    private void sendErrorMessage(Message message, String responseText) {
-        try {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.enableMarkdown(true);
-            sendMessage.setText("`" + responseText + "`");
-
-            bot.execute(sendMessage);
-        } catch (TelegramApiException et) {
-            et.printStackTrace();
-        }
-    }
 }

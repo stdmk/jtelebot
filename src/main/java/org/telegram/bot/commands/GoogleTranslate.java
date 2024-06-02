@@ -11,15 +11,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 import java.util.Set;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GoogleTranslate implements Command<SendMessage> {
+public class GoogleTranslate implements Command {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -47,32 +48,29 @@ public class GoogleTranslate implements Command<SendMessage> {
             "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu");
 
     @Override
-    public List<SendMessage> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         Integer replyToMessage;
         String responseText;
 
-        Message message = getMessageFromUpdate(update);
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText() + " ");
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
-        String targetLang = getTargetLang(textMessage);
+        String targetLang = getTargetLang(commandArgument);
         if (targetLang != null) {
-            textMessage = textMessage.substring(targetLang.length() + 1);
+            commandArgument = commandArgument.substring(targetLang.length() + 1);
         } else {
-            if (!textMessage.isEmpty() && RU_ALPHABET.contains(textMessage.charAt(0))) {
+            if (commandArgument != null && !commandArgument.isEmpty() && RU_ALPHABET.contains(commandArgument.charAt(0))) {
                 targetLang = "en";
             } else {
                 targetLang = "ru";
             }
         }
 
-        if (!textMessage.isEmpty()) {
-            log.debug("Request to translate text from message: {}", textMessage);
-            responseText = translateText(textMessage, targetLang);
+        if (commandArgument != null && !commandArgument.isEmpty()) {
+            log.debug("Request to translate text from message: {}", commandArgument);
+            responseText = translateText(commandArgument, targetLang);
             replyToMessage = message.getMessageId();
         } else {
             if (message.getReplyToMessage() == null) {
@@ -83,10 +81,7 @@ public class GoogleTranslate implements Command<SendMessage> {
             } else {
                 String requestText = message.getReplyToMessage().getText();
                 if (requestText == null) {
-                    requestText = message.getReplyToMessage().getCaption();
-                    if (requestText == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
                 responseText = translateText(requestText + " ", targetLang);
@@ -94,13 +89,11 @@ public class GoogleTranslate implements Command<SendMessage> {
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(replyToMessage);
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse()
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(replyToMessage)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     /**
@@ -141,9 +134,11 @@ public class GoogleTranslate implements Command<SendMessage> {
      * @return language code.
      */
     private String getTargetLang(String text) {
-        int i = text.indexOf(" ");
-        if (i > 0 && i <= 3) {
-            return LANG_CODE_LIST.stream().filter(text::startsWith).findFirst().orElse(null);
+        if (text != null && !text.isEmpty()) {
+            int i = text.indexOf(" ");
+            if (i > 0 && i <= 3) {
+                return LANG_CODE_LIST.stream().filter(text::startsWith).findFirst().orElse(null);
+            }
         }
 
         return null;

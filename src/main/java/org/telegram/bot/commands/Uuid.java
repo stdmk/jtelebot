@@ -3,11 +3,11 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.Command;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,21 +15,16 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Uuid implements Command<SendMessage> {
+public class Uuid implements Command {
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
-            return Collections.emptyList();
+    public List<BotResponse> parse(BotRequest request) {
+        if (request.getMessage().hasCommandArgument()) {
+            return returnResponse();
         }
 
-        SendMessage sendMessage = new SendMessage();
-
-        sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setText("`" + UUID.randomUUID() + "`");
-        sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
-        sendMessage.enableMarkdown(true);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(request.getMessage())
+                .setText("`" + UUID.randomUUID() + "`")
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 }

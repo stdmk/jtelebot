@@ -6,13 +6,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -22,23 +23,23 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Cmd implements Command<SendMessage> {
+public class Cmd implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
-        if (textMessage == null || textMessage.isEmpty()) {
+        String commandArgument = request.getMessage().getCommandArgument();
+        if (commandArgument == null || commandArgument.isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
         String responseText;
 
-        ProcessBuilder processBuilder = new ProcessBuilder(textMessage.split(" "));
-        log.debug("Request to execute {}", textMessage);
+        ProcessBuilder processBuilder = new ProcessBuilder(commandArgument.split(" "));
+        log.debug("Request to execute {}", commandArgument);
 
         Process process;
         StringWriter writer = new StringWriter();
@@ -50,16 +51,12 @@ public class Cmd implements Command<SendMessage> {
                 responseText = "executing...";
             }
         } catch (IOException e) {
-            log.debug("Error while executing command {}", textMessage);
+            log.debug("Error while executing command {}", commandArgument);
             responseText = e.getMessage();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText("`" + responseText + "`");
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("```" + responseText + "```")
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 }

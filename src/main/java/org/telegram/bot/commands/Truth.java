@@ -7,13 +7,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
+import org.telegram.bot.enums.FormattingStyle;
 
 import java.util.List;
 
@@ -21,16 +19,18 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @RequiredArgsConstructor
-public class Truth implements Command<PartialBotApiMethod<?>> {
+public class Truth implements Command {
+
+    private static final String API_URL = "https://yesno.wtf/api";
 
     private final Bot bot;
     private final RestTemplate botRestTemplate;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = getTextMessage(update);
+        String textMessage = message.getText();
         Integer messageIdToReply = message.getMessageId();
 
         Message repliedMessage = message.getReplyToMessage();
@@ -41,25 +41,21 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
         int prob = getRandomInRange(0, 100);
         String responseText = buildResponseMessage(prob);
 
-        InputFile gif = getGif(prob);
+        File gif = getGif(prob);
         if (gif != null) {
-            SendDocument sendDocument = new SendDocument();
-            sendDocument.setChatId(message.getChatId().toString());
-            sendDocument.setCaption(responseText);
-            sendDocument.setParseMode("Markdown");
-            sendDocument.setReplyToMessageId(message.getMessageId());
-            sendDocument.setDocument(gif);
-
-            return returnOneResult(sendDocument);
+            return returnResponse(new FileResponse()
+                    .setChatId(message.getChatId())
+                    .setReplyToMessageId(messageIdToReply)
+                    .addFile(gif)
+                    .setText(responseText)
+                    .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(messageIdToReply);
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse()
+                .setChatId(message.getChatId())
+                .setReplyToMessageId(messageIdToReply)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private String buildResponseMessage(int prob) {
@@ -84,8 +80,8 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
         return "${command.truth.caption} - *" + prob + "%*\n(" + comment + ")";
     }
 
-    private InputFile getGif(int prob) {
-        InputFile inputFile = null;
+    private File getGif(int prob) {
+        File file = null;
 
         Answer answer;
         if (prob > 60) {
@@ -98,18 +94,16 @@ public class Truth implements Command<PartialBotApiMethod<?>> {
 
         YesNo yesNo = getYesNo(answer);
         if (yesNo != null) {
-            inputFile = new InputFile(yesNo.getImage());
+            file = new File(FileType.FILE, yesNo.getImage());
         }
 
-        return inputFile;
+        return file;
     }
 
     private YesNo getYesNo(Answer answer) {
-        final String apiUrl = "https://yesno.wtf/api";
-
         ResponseEntity<YesNo> responseEntity;
         try {
-            responseEntity = botRestTemplate.getForEntity(apiUrl + "?force=" + answer.name().toLowerCase(), YesNo.class);
+            responseEntity = botRestTemplate.getForEntity(API_URL + "?force=" + answer.name().toLowerCase(), YesNo.class);
         } catch (RestClientException e) {
             return null;
         }

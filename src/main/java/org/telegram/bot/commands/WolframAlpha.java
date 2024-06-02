@@ -11,22 +11,22 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class WolframAlpha implements Command<SendMessage> {
+public class WolframAlpha implements Command {
 
     private static final String WOLFRAM_ALPHA_API_URL = "http://api.wolframalpha.com/v2/query?output=json&includepodid=Result&";
 
@@ -38,31 +38,24 @@ public class WolframAlpha implements Command<SendMessage> {
     private final BotStats botStats;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
+
+        String commandArgument = commandWaitingService.getText(message);
+
         String responseText;
-        String textMessage = commandWaitingService.getText(message);
-
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
-
-        if (textMessage == null) {
+        if (commandArgument == null) {
             log.debug("Empty request. Enabling command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.wolframalpfa.commandwaitingstart}";
         } else {
-            log.debug("Request to get wolfram alpha for text {}", textMessage);
-            responseText = getWolframAlphaSearchResult(textMessage);
+            log.debug("Request to get wolfram alpha for text {}", commandArgument);
+            responseText = getWolframAlphaSearchResult(commandArgument);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText));
     }
 
     /**

@@ -23,6 +23,36 @@ public class TextUtils {
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
     private static final Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
 
+    public String cutCommandInText(String text) {
+        if (text == null || text.isEmpty()) {
+            return null;
+        }
+        if (text.charAt(0) == '/') {
+            text = text.substring(1);
+        }
+        String cuttedText = getPotentialCommandInText(text);
+        if (cuttedText != null) {
+            if (text.toLowerCase().equals(cuttedText)) {
+                return null;
+            }
+            int i = text.indexOf("@");
+            if (i > 0 && text.endsWith("bot")) {
+                text = text.substring(0, i);
+            }
+            text = text.substring(cuttedText.length());
+            if (text.isEmpty()) {
+                return null;
+            }
+            if (text.startsWith("_")) {
+                return text;
+            }
+
+            return text.substring(1);
+        }
+
+        return null;
+    }
+
     /**
      * Gets a potential command from text.
      *

@@ -8,18 +8,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -44,70 +46,70 @@ class LengthTest {
     private Length length;
 
     @Test
-    void parseUpdateWithoutTextAndDocumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("length");
+    void parseRequestWithoutTextAndDocumentTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("length");
 
-        assertThrows(BotException.class, () -> length.parse(update));
+        assertThrows(BotException.class, () -> length.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
     @Test
-    void parseUpdateWithDocumentWithWrongMimeTypeTest() {
-        Document document = TestUtils.getDocument();
-        Update update = TestUtils.getUpdateFromGroup("length");
-        update.getMessage().setDocument(document);
+    void parseRequestWithDocumentWithWrongMimeTypeTest() {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("length");
+        request.getMessage().setAttachments(List.of(attachment));
 
-        assertThrows(BotException.class, () -> length.parse(update));
+        assertThrows(BotException.class, () -> length.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
     @Test
-    void parseUpdateWithDocumentWithTelegramApiExceptionTest() throws TelegramApiException, IOException {
-        Document document = TestUtils.getDocument();
-        document.setMimeType("text");
-        Update update = TestUtils.getUpdateFromGroup("length");
-        update.getMessage().setDocument(document);
+    void parseRequestWithDocumentWithTelegramApiExceptionTest() {
+        Attachment attachment = TestUtils.getDocument("text");
+        BotRequest request = TestUtils.getRequestFromGroup("length");
+        request.getMessage().setAttachments(List.of(attachment));
 
-        when(networkUtils.getFileFromTelegram(anyString())).thenThrow(new TelegramApiException());
+        when(bot.getFileFromTelegram(anyString())).thenThrow(new BotException("internal error"));
 
-        assertThrows(BotException.class, () -> length.parse(update));
-        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
-        verify(botStats).incrementErrors(any(Document.class), any(Throwable.class), anyString());
+        assertThrows(BotException.class, () -> length.parse(request));
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
     @Test
-    void parseUpdateWithDocumentTest() throws TelegramApiException, IOException {
+    void parseRequestWithDocumentTest() {
         final String fileContent = "test";
         final String expectedResponse = "${command.length.responselength} <b>" + fileContent.length() + "</b> ${command.length.symbols}";
-        Document document = TestUtils.getDocument();
-        document.setMimeType("application");
-        Update update = TestUtils.getUpdateFromGroup("length");
-        update.getMessage().setDocument(document);
+        Attachment attachment = TestUtils.getDocument("application");
+        BotRequest request = TestUtils.getRequestFromGroup("length");
+        request.getMessage().setAttachments(List.of(attachment));
 
-        when(networkUtils.getFileFromTelegram(anyString())).thenReturn(fileContent.getBytes());
+        when(bot.getFileFromTelegram(anyString())).thenReturn(fileContent.getBytes());
 
-        SendMessage sendMessage = length.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponse, sendMessage.getText());
+        BotResponse botResponse = length.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponse, textResponse.getText());
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
     @Test
-    void parseUpdateWithTextParamTest() {
+    void parseRequestWithTextParamTest() {
         final String textParam = "test";
         final String expectedResponse = "${command.length.responselength} <b>" + textParam.length() + "</b> ${command.length.symbols}";
-        Update update = TestUtils.getUpdateFromGroup("length " + textParam);
+        BotRequest request = TestUtils.getRequestFromGroup("length " + textParam);
 
-        SendMessage sendMessage = length.parse(update).get(0);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponse, sendMessage.getText());
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+
+        BotResponse botResponse = length.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponse, textResponse.getText());
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }

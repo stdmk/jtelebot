@@ -4,17 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.repositories.TalkerPhraseRepository;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -23,27 +23,26 @@ import static org.telegram.bot.utils.TextUtils.formatLongValue;
 
 @Component
 @RequiredArgsConstructor
-public class Uptime implements Command<SendMessage> {
+public class Uptime implements Command {
 
     private final Bot bot;
     private final BotStats botStats;
     private final TalkerPhraseRepository talkerPhraseRepository;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
-        StringBuilder buf = new StringBuilder();
 
-        if (textMessage != null) {
-            return Collections.emptyList();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
 
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime botDateTimeStart = botStats.getBotStartDateTime();
         File dbFile = new File("db.mv.db");
 
+        StringBuilder buf = new StringBuilder();
         buf.append("<b>${command.uptime.launch}:</b>\n").append(formatDateTime(botDateTimeStart)).append("\n");
         buf.append("<b>${command.uptime.uptime}:</b>\n").append(durationToString(botDateTimeStart, dateTimeNow)).append("\n");
         buf.append("<b>${command.uptime.totaltime}:</b>\n").append(durationToString(botStats.getTotalRunningTime())).append("\n");
@@ -67,13 +66,8 @@ public class Uptime implements Command<SendMessage> {
         buf.append("${command.uptime.dbsize}: <b>").append(formatFileSize(dbFile.length())).append(" </b>\n");
         buf.append("${command.uptime.freeondisk}: <b>").append(formatFileSize(dbFile.getFreeSpace())).append(" </b>\n");
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(buf.toString());
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(buf.toString())
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

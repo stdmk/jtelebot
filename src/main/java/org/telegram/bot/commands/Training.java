@@ -4,22 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
+import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.bot.utils.TextUtils;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +34,7 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 
 @Component
 @RequiredArgsConstructor
-public class Training implements Command<PartialBotApiMethod<?>> {
+public class Training implements Command {
 
     private final Bot bot;
     private final TrainingScheduledService trainingScheduledService;
@@ -76,45 +72,33 @@ public class Training implements Command<PartialBotApiMethod<?>> {
     private static final String CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_ALL_TIME_COMMAND;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        Long userId;
-        Integer editMessageId = null;
+        User user = message.getUser();
+        Chat chat = message.getChat();
 
-        if (update.hasCallbackQuery()) {
-            userId = update.getCallbackQuery().getFrom().getId();
-            editMessageId = message.getMessageId();
-        } else {
-            userId = message.getFrom().getId();
-        }
-
-        User user = new User().setUserId(userId);
-        Chat chat = new Chat().setChatId(message.getChatId());
-
-        String textMessage;
+        String commandArgument;
         CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
-        if (update.hasCallbackQuery()) {
-            textMessage = cutCommandInText(update.getCallbackQuery().getData());
-        } else if (commandWaiting != null) {
-            textMessage = cutCommandInText(commandWaiting.getTextMessage() + message.getText());
+        if (!message.isCallback() && commandWaiting != null) {
+            commandArgument = TextUtils.cutCommandInText(commandWaiting.getTextMessage() + message.getText());
         } else {
-            textMessage = cutCommandInText(message.getText());
+            commandArgument = message.getCommandArgument();
         }
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = null;
+        Keyboard keyboard = null;
         String responseText;
-        if (textMessage != null) {
-            if (textMessage.startsWith(ADD_COMMAND)) {
+        if (commandArgument != null) {
+            if (commandArgument.startsWith(ADD_COMMAND)) {
                 Long trainingId = null;
                 try {
-                    trainingId = Long.parseLong(textMessage.substring(ADD_COMMAND.length()));
+                    trainingId = Long.parseLong(commandArgument.substring(ADD_COMMAND.length()));
                 } catch (NumberFormatException ignored) {
                     // not training id
                 }
 
                 LocalDateTime dateTimeNow = LocalDateTime.now();
-                if (trainingId != null && update.hasCallbackQuery()) {
+                if (trainingId != null && message.isCallback()) {
                     org.telegram.bot.domain.entities.Training training = trainingService.get(user, trainingId);
                     if (training.getTimeStart().isAfter(dateTimeNow.toLocalTime())) {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -135,28 +119,28 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                             .setUnplanned(true));
 
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED) + "\n" + BORDER + getMainMenuText(user);
-                    inlineKeyboardMarkup = getMainKeyboard();
+                    keyboard = getMainKeyboard();
                 } else {
                     responseText = "<b>${command.training.choosetraining}:</b>";
                     List<org.telegram.bot.domain.entities.Training> trainingList = trainingService.get(user);
                     if (trainingList.isEmpty()) {
                         responseText = responseText + "${command.training.emptynomenclature} /set";
-                        inlineKeyboardMarkup = getMainKeyboard();
+                        keyboard = getMainKeyboard();
                     } else {
-                        inlineKeyboardMarkup = getKeyboardWithTrainingList(trainingList);
+                        keyboard = getKeyboardWithTrainingList(trainingList);
                     }
                 }
-            } else if (textMessage.startsWith(CANCEL_COMMAND)) {
+            } else if (commandArgument.startsWith(CANCEL_COMMAND)) {
                 commandWaitingService.remove(chat, user);
 
                 String cancellationReason = null;
                 String eventIdString;
-                if (textMessage.contains(CANCEL_REASON_COMMAND)) {
-                    int cancellationReasonCommandIndex = textMessage.indexOf(CANCEL_REASON_COMMAND);
-                    eventIdString = textMessage.substring(CANCEL_COMMAND.length(), cancellationReasonCommandIndex);
-                    cancellationReason = textMessage.substring(cancellationReasonCommandIndex + 4);
+                if (commandArgument.contains(CANCEL_REASON_COMMAND)) {
+                    int cancellationReasonCommandIndex = commandArgument.indexOf(CANCEL_REASON_COMMAND);
+                    eventIdString = commandArgument.substring(CANCEL_COMMAND.length(), cancellationReasonCommandIndex);
+                    cancellationReason = commandArgument.substring(cancellationReasonCommandIndex + 4);
                 } else {
-                    eventIdString = textMessage.substring(CANCEL_COMMAND.length());
+                    eventIdString = commandArgument.substring(CANCEL_COMMAND.length());
                 }
 
                 long eventId;
@@ -188,24 +172,24 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     commandWaitingService.add(chat, user, Training.class, COMMAND_NAME + CANCEL_COMMAND + eventId + CANCEL_REASON_COMMAND);
                     responseText = "${command.training.rejectionreason}";
                 }
-            } else if (textMessage.startsWith(REPORT_COMMAND)) {
+            } else if (commandArgument.startsWith(REPORT_COMMAND)) {
                 int page = 0;
                 LocalDate dateNow = LocalDate.now();
                 String reportDownloadCommand = null;
 
-                if (textMessage.startsWith(REPORT_ALL_TIME_COMMAND)) {
+                if (commandArgument.startsWith(REPORT_ALL_TIME_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAll(user));
                     reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND;
-                } else if (textMessage.startsWith(REPORT_YEAR_COMMAND)) {
+                } else if (commandArgument.startsWith(REPORT_YEAR_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAllOfYear(user, dateNow.getYear()));
                     reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_YEAR_COMMAND;
-                } else if (textMessage.startsWith(REPORT_MONTH_COMMAND)) {
+                } else if (commandArgument.startsWith(REPORT_MONTH_COMMAND)) {
                     responseText = getReportStatistic(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()));
                     reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_MONTH_COMMAND;
-                } else if (textMessage.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
+                } else if (commandArgument.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
                     long subscriptionId;
                     try {
-                        subscriptionId = Long.parseLong(textMessage.substring(REPORT_SUBSCRIPTION_COMMAND.length()));
+                        subscriptionId = Long.parseLong(commandArgument.substring(REPORT_SUBSCRIPTION_COMMAND.length()));
                     } catch (NumberFormatException e) {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                     }
@@ -219,7 +203,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND + subscriptionId;
                 } else {
                     try {
-                        page = Integer.parseInt(textMessage.substring(REPORT_COMMAND.length()));
+                        page = Integer.parseInt(commandArgument.substring(REPORT_COMMAND.length()));
                     } catch (NumberFormatException ignored) {
                         // not page
                     }
@@ -227,28 +211,28 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     responseText = "<b>${command.training.choosereport}:</b>\n";
                 }
 
-                inlineKeyboardMarkup = getReportKeyboard(user, page, reportDownloadCommand);
-            } else if (textMessage.startsWith(DOWNLOAD_COMMAND)) {
+                keyboard = getReportKeyboard(user, page, reportDownloadCommand);
+            } else if (commandArgument.startsWith(DOWNLOAD_COMMAND)) {
                 LocalDate dateNow = LocalDate.now();
                 String languageCode = languageResolver.getChatLanguageCode(message, user);
-                InputFile inputFile;
+                File file;
                 String caption;
 
-                if (textMessage.startsWith(DOWNLOAD_REPORT_ALL_TIME_COMMAND)) {
-                    inputFile = getReportFile(trainingEventService.getAll(user), "all", languageCode);
+                if (commandArgument.startsWith(DOWNLOAD_REPORT_ALL_TIME_COMMAND)) {
+                    file = getReportFile(trainingEventService.getAll(user), "all", languageCode);
                     caption = "{command.training.alltimereport}";
-                } else if (textMessage.startsWith(DOWNLOAD_REPORT_YEAR_COMMAND)) {
+                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_YEAR_COMMAND)) {
                     int year = dateNow.getYear();
-                    inputFile = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year), languageCode);
+                    file = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year), languageCode);
                     caption = "{command.training.yearreport} " + year;
-                } else if (textMessage.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
+                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
                     String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, languageResolver.getLocale(chat));
-                    inputFile = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName, languageCode);
+                    file = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName, languageCode);
                     caption = "{command.training.monthly} " + monthName;
-                } else if (textMessage.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
+                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
                     long subscriptionId;
                     try {
-                        subscriptionId = Long.parseLong(textMessage.substring(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND.length()));
+                        subscriptionId = Long.parseLong(commandArgument.substring(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND.length()));
                     } catch (NumberFormatException e) {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                     }
@@ -261,50 +245,39 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                     String subscriptionName = formatDate(subscription.getStartDate()) + " — " +
                             formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
                             " (" + subscription.getCount() + ")";
-                    inputFile = getReportFile(trainingEventService.getAll(user, subscription), subscriptionName, languageCode);
+                    file = getReportFile(trainingEventService.getAll(user, subscription), subscriptionName, languageCode);
                     caption = "${command.training.subscriptionreport} " + subscriptionName;
                 } else {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                 }
 
-                SendDocument sendDocument = new SendDocument();
-                sendDocument.setChatId(message.getChatId().toString());
-                sendDocument.setReplyToMessageId(message.getMessageId());
-                sendDocument.setCaption(caption);
-                sendDocument.setDocument(inputFile);
-
-                return returnOneResult(sendDocument);
+                return returnResponse(new FileResponse(message)
+                        .addFile(file)
+                        .setText(caption));
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
             responseText = getMainMenuText(user);
-            inlineKeyboardMarkup = getMainKeyboard();
+            keyboard = getMainKeyboard();
         }
 
-        if (editMessageId != null) {
-            EditMessageText editMessageText = new EditMessageText();
-            editMessageText.setChatId(message.getChatId().toString());
-            editMessageText.setMessageId(message.getMessageId());
-            editMessageText.enableHtml(true);
-            editMessageText.setText(responseText);
-            editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-            return returnOneResult(editMessageText);
+        if (message.isCallback()) {
+            return returnResponse(new EditResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(new ResponseSettings()
+                            .setFormattingStyle(FormattingStyle.HTML)));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)                    
+                .setText(responseText)
+                .setKeyboard(keyboard)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.HTML)));
     }
 
-    private InputFile getReportFile(List<TrainingEvent> trainingEventList, String fileName, String lang) {
+    private File getReportFile(List<TrainingEvent> trainingEventList, String fileName, String lang) {
         StringBuilder buf = new StringBuilder("Отчёт " + fileName + "\n\n");
 
         buf.append(cutHtmlTags(getReportStatistic(trainingEventList))).append(BORDER).append("\n");
@@ -336,7 +309,7 @@ public class Training implements Command<PartialBotApiMethod<?>> {
 
         String txt = internationalizationService.internationalize(buf.toString(), lang);
 
-        return new InputFile(new ByteArrayInputStream(txt.getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
+        return new File(FileType.FILE, new ByteArrayInputStream(txt.getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
     }
 
     private String getReportStatistic(List<TrainingEvent> trainingEventList) {
@@ -529,145 +502,89 @@ public class Training implements Command<PartialBotApiMethod<?>> {
                 .map(TrainingScheduled::getTraining);
     }
 
-    private InlineKeyboardMarkup getKeyboardWithTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {
+    private Keyboard getKeyboardWithTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {
         LocalTime timeNow = LocalTime.now();
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
         trainingList
                 .stream()
                 .filter(training -> training.getTimeStart().isBefore(timeNow))
                 .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
-                .forEach(training -> {
-                    List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-                    InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-                    trainingButton.setText(Emoji.NEW.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")");
-                    trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND + training.getId());
-                    buttonRow.add(trainingButton);
-
-                    rows.add(buttonRow);
-        });
+                .forEach(training -> rows.add(List.of(
+                        new KeyboardButton()
+                                .setName(Emoji.NEW.getSymbol() + training.getName() + " " + formatShortTime(training.getTimeStart()) + " (" + training.getCost() + ")")
+                                .setCallback(COMMAND_NAME + ADD_COMMAND + training.getId()))));
 
         rows.add(getTrainingMainInfoButtonRow());
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(rows);
     }
 
-    private InlineKeyboardMarkup getReportKeyboard(User user, int page, String reportDownloadCommand) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+    private Keyboard getReportKeyboard(User user, int page, String reportDownloadCommand) {
+        List<List<KeyboardButton>> rows = new ArrayList<>();
         Page<TrainSubscription> trainSubscriptionPage = trainSubscriptionService.get(user, page);
 
-        trainSubscriptionPage.forEach(subscription -> {
-            String buttonCaption = formatDate(subscription.getStartDate()) + " — " +
-                    formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
-                    " (" + subscription.getCount() + ")\n";
+        trainSubscriptionPage.forEach(subscription -> rows.add(List.of(
+                new KeyboardButton()
+                        .setName(formatDate(subscription.getStartDate()) + " — " +
+                                formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
+                                " (" + subscription.getCount() + ")\n")
+                        .setCallback(CALLBACK_REPORT_SUBSCRIPTION_COMMAND + subscription.getId()))));
 
-            List<InlineKeyboardButton> reportForSubscriptionRow = new ArrayList<>();
-            InlineKeyboardButton subscriptionReportButton = new InlineKeyboardButton();
-            subscriptionReportButton.setText(buttonCaption);
-            subscriptionReportButton.setCallbackData(CALLBACK_REPORT_SUBSCRIPTION_COMMAND + subscription.getId());
-            reportForSubscriptionRow.add(subscriptionReportButton);
-
-            rows.add(reportForSubscriptionRow);
-        });
-
-        List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+        List<KeyboardButton> pagesRow = new ArrayList<>();
         if (page > 0) {
-            InlineKeyboardButton backButton = new InlineKeyboardButton();
-            backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "${command.training.button.back}");
-            backButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page - 1));
-
-            pagesRow.add(backButton);
+            pagesRow.add(new KeyboardButton()
+                    .setName(Emoji.LEFT_ARROW.getSymbol() + "${command.training.button.back}")
+                    .setCallback(COMMAND_NAME + REPORT_COMMAND + (page - 1)));
         }
 
         if (page + 1 < trainSubscriptionPage.getTotalPages()) {
-            InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-            forwardButton.setText("${command.training.button.forward}" + Emoji.RIGHT_ARROW.getSymbol());
-            forwardButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND + (page + 1));
-
-            pagesRow.add(forwardButton);
+            pagesRow.add(new KeyboardButton()
+                    .setName("${command.training.button.forward}" + Emoji.RIGHT_ARROW.getSymbol())
+                    .setCallback(COMMAND_NAME + REPORT_COMMAND + (page + 1)));
         }
 
         rows.add(pagesRow);
 
         if (reportDownloadCommand != null) {
-            List<InlineKeyboardButton> downloadReportTrainingRow = new ArrayList<>();
-            InlineKeyboardButton downloadReportButton = new InlineKeyboardButton();
-            downloadReportButton.setText(Emoji.DOWN_ARROW.getSymbol() + "${command.training.button.download}");
-            downloadReportButton.setCallbackData(reportDownloadCommand);
-            downloadReportTrainingRow.add(downloadReportButton);
-
-            rows.add(downloadReportTrainingRow);
+            rows.add(List.of(new KeyboardButton()
+                    .setName(Emoji.DOWN_ARROW.getSymbol() + "${command.training.button.download}")
+                    .setCallback(reportDownloadCommand)));
         }
 
-        List<InlineKeyboardButton> reportForMonthRow = new ArrayList<>();
-        InlineKeyboardButton monthReportButton = new InlineKeyboardButton();
-        monthReportButton.setText("${command.training.button.forcurrentmonth}");
-        monthReportButton.setCallbackData(CALLBACK_REPORT_MONTH_COMMAND);
-        reportForMonthRow.add(monthReportButton);
-
-        List<InlineKeyboardButton> reportForYearRow = new ArrayList<>();
-        InlineKeyboardButton yearReportButton = new InlineKeyboardButton();
-        yearReportButton.setText("${command.training.button.forcurrentyear}");
-        yearReportButton.setCallbackData(CALLBACK_REPORT_YEAR_COMMAND);
-        reportForYearRow.add(yearReportButton);
-
-        List<InlineKeyboardButton> reportForAllTimeRow = new ArrayList<>();
-        InlineKeyboardButton allTimeReportButton = new InlineKeyboardButton();
-        allTimeReportButton.setText("${command.training.button.foralltime}");
-        allTimeReportButton.setCallbackData(CALLBACK_REPORT_ALL_COMMAND);
-        reportForAllTimeRow.add(allTimeReportButton);
-
-        rows.add(reportForMonthRow);
-        rows.add(reportForYearRow);
-        rows.add(reportForAllTimeRow);
+        rows.add(List.of(new KeyboardButton()
+                .setName("${command.training.button.forcurrentmonth}")
+                .setCallback(CALLBACK_REPORT_MONTH_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName("${command.training.button.forcurrentyear}")
+                .setCallback(CALLBACK_REPORT_YEAR_COMMAND)));
+        rows.add(List.of(new KeyboardButton()
+                .setName("${command.training.button.foralltime}")
+                .setCallback(CALLBACK_REPORT_ALL_COMMAND)));
         rows.add(getTrainingMainInfoButtonRow());
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(rows);
     }
 
-    private List<InlineKeyboardButton> getTrainingMainInfoButtonRow() {
-        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
-        InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(Emoji.WEIGHT_LIFTER.getSymbol() + "${command.training.button.trainings}");
-        infoButton.setCallbackData(COMMAND_NAME);
+    private List<KeyboardButton> getTrainingMainInfoButtonRow() {
+        List<KeyboardButton> infoButtonRow = new ArrayList<>();
+        KeyboardButton infoButton = new KeyboardButton();
+        infoButton.setName(Emoji.WEIGHT_LIFTER.getSymbol() + "${command.training.button.trainings}");
+        infoButton.setCallback(COMMAND_NAME);
         infoButtonRow.add(infoButton);
 
         return infoButtonRow;
     }
 
-    private InlineKeyboardMarkup getMainKeyboard() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        List<InlineKeyboardButton> addTrainingRow = new ArrayList<>();
-        InlineKeyboardButton trainingButton = new InlineKeyboardButton();
-        trainingButton.setText(Emoji.NEW.getSymbol() + "${command.training.button.unplannedtraining}");
-        trainingButton.setCallbackData(COMMAND_NAME + ADD_COMMAND);
-        addTrainingRow.add(trainingButton);
-
-        List<InlineKeyboardButton> reportTrainingRow = new ArrayList<>();
-        InlineKeyboardButton reportButton = new InlineKeyboardButton();
-        reportButton.setText(Emoji.MEMO.getSymbol() + "${command.training.button.reports}");
-        reportButton.setCallbackData(COMMAND_NAME + REPORT_COMMAND);
-        reportTrainingRow.add(reportButton);
-
-        List<InlineKeyboardButton> settingsRow = new ArrayList<>();
-        InlineKeyboardButton settingsButton = new InlineKeyboardButton();
-        settingsButton.setText(Emoji.GEAR.getSymbol() + "${command.training.button.settings}");
-        settingsButton.setCallbackData("${setter.command} ${setter.set.trainings}");
-        settingsRow.add(settingsButton);
-
-        rows.add(addTrainingRow);
-        rows.add(reportTrainingRow);
-        rows.add(settingsRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard getMainKeyboard() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName(Emoji.NEW.getSymbol() + "${command.training.button.unplannedtraining}")
+                        .setCallback(COMMAND_NAME + ADD_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.MEMO.getSymbol() + "${command.training.button.reports}")
+                        .setCallback(COMMAND_NAME + REPORT_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.GEAR.getSymbol() + "${command.training.button.settings}")
+                        .setCallback("${setter.command} ${setter.set.trainings}"));
     }
 }

@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.utils.TelegramUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @RequiredArgsConstructor
@@ -26,18 +25,18 @@ public class SendVoiceExecutor implements MethodExecutor {
     }
 
     @Override
-    public void executeMethod(PartialBotApiMethod<?> method, Update update) {
-        Message message = TelegramUtils.getMessage(update);
+    public void executeMethod(PartialBotApiMethod<?> method, BotRequest request) {
+        Message message = request.getMessage();
         SendVoice sendVoice = (SendVoice) method;
         log.info("To " + message.getChatId() + ": " + sendVoice.getCaption());
 
         try {
             bot.execute(sendVoice);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(update, method, e, "error sending response");
+            botStats.incrementErrors(request, method, e, "error sending response");
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (Exception e) {
-            botStats.incrementErrors(update, method, e, "unexpected error");
+            botStats.incrementErrors(request, method, e, "unexpected error");
             log.error("Unexpected error: ", e);
         }
     }

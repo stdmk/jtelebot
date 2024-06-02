@@ -7,11 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.LocationResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -31,16 +32,16 @@ class LocationTest {
 
     @Test
     void parseWithoutCoordinatesTest() {
-        Update update = TestUtils.getUpdateFromGroup("location");
-        List<SendLocation> methods = location.parse(update);
-        assertTrue(methods.isEmpty());
+        BotRequest request = TestUtils.getRequestFromGroup("location");
+        List<BotResponse> botResponses = location.parse(request);
+        assertTrue(botResponses.isEmpty());
     }
 
     @Test
     void parseWithWrongInputTest() {
-        Update update = TestUtils.getUpdateFromGroup("location 1234");
-        assertThrows(BotException.class, () -> location.parse(update));
-        verify(bot).sendLocation(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("location 1234");
+        assertThrows(BotException.class, () -> location.parse(request));
+        verify(bot).sendLocation(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -49,13 +50,15 @@ class LocationTest {
         final Double expectedLatitude = 56.83417;
         final Double expectedLongitude = 35.90604;
 
-        Update update = TestUtils.getUpdateFromGroup("location 56.83417 35,90604");
+        BotRequest request = TestUtils.getRequestFromGroup("location 56.83417 35,90604");
 
-        SendLocation sendLocation = location.parse(update).get(0);
-        verify(bot).sendLocation(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendLocationParams(sendLocation);
-        assertEquals(expectedLatitude, sendLocation.getLatitude());
-        assertEquals(expectedLongitude, sendLocation.getLongitude());
+        BotResponse botResponse = location.parse(request).get(0);
+
+        LocationResponse locationResponse = TestUtils.checkDefaultLocationResponseParams(botResponse);
+
+        verify(bot).sendLocation(request.getMessage().getChatId());
+        assertEquals(expectedLatitude, locationResponse.getLatitude());
+        assertEquals(expectedLongitude, locationResponse.getLongitude());
     }
 
 }

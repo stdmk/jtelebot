@@ -4,44 +4,40 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Logs implements Command<SendDocument> {
+public class Logs implements Command {
 
     private final Bot bot;
 
     @Override
-    public List<SendDocument> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        if (cutCommandInText(message.getText()) != null) {
-            return Collections.emptyList();
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
         bot.sendUploadDocument(message.getChatId());
 
         Long chatId = message.getChatId();
         if (chatId < 0) {
-            chatId = message.getFrom().getId();
+            chatId = message.getUser().getUserId();
         }
 
         File logs = new File("logs/log.log");
         log.debug("Request to send logs to {}", chatId);
 
-        SendDocument sendDocument = new SendDocument();
-        sendDocument.setChatId(chatId.toString());
-        sendDocument.setReplyToMessageId(message.getMessageId());
-        sendDocument.setDocument(new InputFile(logs, "logs.log"));
-
-        return returnOneResult(sendDocument);
+        return returnResponse(new FileResponse()
+                .setChatId(chatId)
+                .addFile(new org.telegram.bot.domain.model.response.File(FileType.FILE, logs)));
     }
 }

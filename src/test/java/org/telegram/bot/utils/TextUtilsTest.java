@@ -46,4 +46,18 @@ class TextUtilsTest {
         assertFalse(isThatInteger(null));
         assertTrue(isThatInteger("1"));
     }
+
+    @Test
+    void cutCommandInTextTest() {
+        String textWithSlash = "/bot how are you?";
+        String textWithOnlyCommand = "bot";
+        String textWithSlashAndBotUsername = "/news_1@jtelebot";
+        String textCommon = "погода Ростов-на-Дону";
+
+        assertEquals("how are you?", TextUtils.cutCommandInText(textWithSlash));
+        assertNull(TextUtils.cutCommandInText(textWithOnlyCommand));
+        assertEquals("_1", TextUtils.cutCommandInText(textWithSlashAndBotUsername));
+        assertEquals("Ростов-на-Дону", TextUtils.cutCommandInText(textCommon));
+    }
+
 }

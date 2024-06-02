@@ -11,32 +11,31 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.ImageUrl;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.ImageUrlService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
-import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GooglePics implements Command<PartialBotApiMethod<?>> {
+public class GooglePics implements Command {
 
     private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
 
@@ -50,31 +49,23 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
-        String textMessage = commandWaitingService.getText(message);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         Long chatId = message.getChatId();
-        if (textMessage == null) {
+        if (commandArgument == null) {
             bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
-
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(chatId.toString());
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setText("${command.googlepics.commandwaitingstart}");
-
-            return returnOneResult(sendMessage);
-        } else if (textMessage.startsWith("_")) {
+            return returnResponse(new TextResponse(message)
+                    .setText("${command.googlepics.commandwaitingstart}"));
+        } else if (commandArgument.startsWith("_")) {
             bot.sendUploadPhoto(chatId);
             long imageId;
             try {
-                imageId = Long.parseLong(textMessage.substring(1));
+                imageId = Long.parseLong(commandArgument.substring(1));
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -93,35 +84,21 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
                 throw new BotException("${command.googlepics.unabletodownload}: " + imageUrl.getUrl());
             }
 
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(image, "google"));
-            sendPhoto.setCaption(imageUrl.getTitle());
-            sendPhoto.setParseMode("HTML");
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId.toString());
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .addFile(new File(FileType.IMAGE, image, "google"))
+                    .setText(imageUrl.getTitle())
+                    .setResponseSettings(FormattingStyle.HTML));
 
         } else {
             bot.sendUploadPhoto(chatId);
-            log.debug("Request to search images for {}", textMessage);
-            List<InputMedia> images = new ArrayList<>();
+            log.debug("Request to search images for {}", commandArgument);
+            List<File> images = searchImagesOnGoogle(commandArgument)
+                    .stream()
+                    .map(imageUrl -> new File(FileType.IMAGE, imageUrl.getUrl()))
+                    .collect(Collectors.toList());
 
-            searchImagesOnGoogle(textMessage)
-                    .forEach(imageUrl -> {
-                        InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-                        inputMediaPhoto.setMedia(imageUrl.getUrl());
-                        inputMediaPhoto.setCaption("/image_" + imageUrl.getId());
-
-                        images.add(inputMediaPhoto);
-                    });
-
-            SendMediaGroup sendMediaGroup = new SendMediaGroup();
-            sendMediaGroup.setMedias(images);
-            sendMediaGroup.setReplyToMessageId(message.getMessageId());
-            sendMediaGroup.setChatId(chatId.toString());
-
-            return returnOneResult(sendMediaGroup);
+            return returnResponse(new FileResponse(message)
+                    .addFiles(images));
         }
     }
 
@@ -138,7 +115,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        ResponseEntity<GooglePicsSearchData> response;
+        ResponseEntity<GooglePics.GooglePicsSearchData> response;
         try {
             response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + text, GooglePicsSearchData.class);
         } catch (RestClientException e) {
@@ -148,7 +125,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
 
         botStats.incrementGoogleRequests();
 
-        GooglePicsSearchData googlePicsSearchData = response.getBody();
+        GooglePics.GooglePicsSearchData googlePicsSearchData = response.getBody();
 
         if (googlePicsSearchData == null || googlePicsSearchData.getItems() == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
@@ -158,8 +135,7 @@ public class GooglePics implements Command<PartialBotApiMethod<?>> {
                 .stream()
                 .map(googlePicsSearchItem -> new ImageUrl()
                         .setTitle(googlePicsSearchItem.getTitle())
-                        .setUrl(googlePicsSearchItem.getLink())
-                )
+                        .setUrl(googlePicsSearchItem.getLink()))
                 .collect(Collectors.toList()));
     }
 

@@ -9,6 +9,9 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -17,8 +20,6 @@ import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -51,7 +52,7 @@ class HelpTest {
     void firstGetHelpFromAdminTest() {
         final String currentLevelString = "${command.help.currentlevel} - <b>";
         final String grantingString = "${command.help.grants}";
-        Update update = TestUtils.getUpdateFromGroup("help");
+        BotRequest request = TestUtils.getRequestFromGroup("help");
 
         when(propertiesConfig.getAdminId()).thenReturn(DEFAULT_USER_ID);
         when(userService.get(anyLong()))
@@ -61,12 +62,14 @@ class HelpTest {
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
                 .thenReturn(List.of(new CommandProperties().setClassName("className")));
 
-        SendMessage sendMessage = help.parse(update).get(0);
+        BotResponse botResponse = help.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        String messageText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        String messageText = textResponse.getText();
         assertTrue(messageText.startsWith(grantingString));
         assertTrue(messageText.contains(currentLevelString + AccessLevel.ADMIN.getValue()));
     }
@@ -75,28 +78,30 @@ class HelpTest {
     void getHelpFromChatTest() {
         final String currentLevelString = "${command.help.currentlevel} - <b>";
         final String noPanic = "<b>${command.help.dontpanic}!</b>";
-        Update update = TestUtils.getUpdateFromGroup("help");
+        BotRequest request = TestUtils.getRequestFromGroup("help");
 
         when(propertiesConfig.getAdminId()).thenReturn(ANOTHER_USER_ID);
         when(userService.get(anyLong()))
                 .thenReturn(new User().setUserId(DEFAULT_USER_ID).setAccessLevel(AccessLevel.NEWCOMER.getValue()));
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.TRUSTED.getValue());
 
-        SendMessage sendMessage = help.parse(update).get(0);
+        BotResponse botResponse = help.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
-        String messageText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+
+        String messageText = textResponse.getText();
         assertTrue(messageText.startsWith(noPanic));
         assertTrue(messageText.contains(currentLevelString + AccessLevel.TRUSTED.getValue()));
     }
 
     @Test
     void getHelpOfUnknownCommandTest() {
-        Update update = TestUtils.getUpdateFromGroup("help abv");
-        assertThrows(BotException.class, () -> help.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("help abv");
+        assertThrows(BotException.class, () -> help.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -108,17 +113,19 @@ class HelpTest {
                 "<b>${command.help.commandinfo.examples}:</b> ${help.help.examples}\n" +
                 "<b>${command.help.commandinfo.comment}:</b> ${help.help.comment}\n" +
                 "<b>${command.help.commandinfo.level}:</b> 5";
-        Update update = TestUtils.getUpdateFromGroup("help abv");
+        BotRequest request = TestUtils.getRequestFromGroup("help abv");
         CommandProperties commandProperties = new CommandProperties()
                 .setAccessLevel(AccessLevel.TRUSTED.getValue())
                 .setClassName("help");
 
         when(commandPropertiesService.getCommand(anyString())).thenReturn(commandProperties);
 
-        SendMessage sendMessage = help.parse(update).get(0);
+        BotResponse botResponse = help.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 }

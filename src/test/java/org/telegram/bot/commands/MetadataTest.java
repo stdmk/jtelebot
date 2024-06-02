@@ -8,14 +8,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileInputStream;
@@ -45,89 +49,85 @@ class MetadataTest {
 
     @Test
     void parseWithParamsTest() {
-        Update update = TestUtils.getUpdateFromGroup("metadata test");
-        List<SendMessage> methods = metadata.parse(update);
-        assertTrue(methods.isEmpty());
+        BotRequest request = TestUtils.getRequestFromGroup("metadata test");
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        List<BotResponse> botResponseList = metadata.parse(request);
+        assertTrue(botResponseList.isEmpty());
     }
 
     @Test
     void parseWithoutFilesTest() {
-        Update update = TestUtils.getUpdateFromGroup("metadata");
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
-        SendMessage sendMessage = metadata.parse(update).get(0);
+        BotResponse botResponse = metadata.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertEquals("${command.metadata.commandwaitingstart}", sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        assertEquals("${command.metadata.commandwaitingstart}", textResponse.getText());
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 
     @Test
     void parseFileWithOverLimitFileSizeTest() {
-        Update update = TestUtils.getUpdateFromGroup("metadata");
-        Document document = new Document();
-        document.setFileSize(20971521L);
-        document.setFileId("fileId");
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
+        Attachment document = TestUtils.getDocument("mimetype", 20971521L);
 
-        update.getMessage().setDocument(document);
+        request.getMessage().setAttachments(List.of(document));
+        request.getMessage().setMessageContentType(MessageContentType.FILE);
 
-        assertThrows(BotException.class, () -> metadata.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> metadata.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
-    void parseFileWithApiExceptionTest() throws TelegramApiException {
-        Update update = TestUtils.getUpdateFromGroup("metadata");
-        Video video = new Video();
-        video.setFileSize(1L);
-        video.setFileId("fileId");
+    void parseFileWithApiExceptionTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
-        when(networkUtils.getInputStreamFromTelegramFile(video.getFileId())).thenThrow(new TelegramApiException());
+        Attachment attachment = TestUtils.getDocument();
+        request.getMessage().setAttachments(List.of(attachment));
+        request.getMessage().setMessageContentType(MessageContentType.VIDEO);
 
-        update.getMessage().setVideo(video);
+        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenThrow(new BotException("internal error"));
 
-        assertThrows(BotException.class, () -> metadata.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        verify(botStats).incrementErrors(any(Update.class), any(Throwable.class), anyString());
-        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        assertThrows(BotException.class, () -> metadata.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseFileWithLibExceptionTest() throws TelegramApiException {
-        Update update = TestUtils.getUpdateFromGroup("metadata");
-        Audio audio = new Audio();
-        audio.setFileSize(1L);
-        audio.setFileId("fileId");
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
-        update.getMessage().setAudio(audio);
+        Attachment attachment = TestUtils.getDocument();
+        request.getMessage().setAttachments(List.of(attachment));
+        request.getMessage().setMessageContentType(MessageContentType.AUDIO);
 
         InputStream inputStream = mock(InputStream.class);
-        when(networkUtils.getInputStreamFromTelegramFile(audio.getFileId())).thenReturn(inputStream);
+        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenReturn(inputStream);
 
-        assertThrows(BotException.class, () -> metadata.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        verify(botStats).incrementErrors(any(Update.class), any(Throwable.class), anyString());
-        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        assertThrows(BotException.class, () -> metadata.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseTest() throws FileNotFoundException, TelegramApiException {
-        PhotoSize photoSize = new PhotoSize();
-        photoSize.setFileSize(1);
-        photoSize.setFileId("fileId");
+        Attachment attachment = TestUtils.getDocument();
         Message message = TestUtils.getMessage();
-        message.setPhoto(List.of(photoSize));
-        Update update = TestUtils.getUpdateWithRepliedMessage(message);
+        message.setAttachments(List.of(attachment));
+        message.setMessageContentType(MessageContentType.PHOTO);
+
+        BotRequest request = TestUtils.getRequestWithRepliedMessage(message);
         InputStream file = new FileInputStream("src/test/resources/png.png");
 
-        when(networkUtils.getInputStreamFromTelegramFile(photoSize.getFileId())).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenReturn(file);
 
-        SendMessage sendMessage = metadata.parse(update).get(0);
+        BotResponse botResponse = metadata.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(sendMessage, ParseMode.HTML);
-        assertNotNull(sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        assertNotNull(textResponse.getText());
     }
 
 }

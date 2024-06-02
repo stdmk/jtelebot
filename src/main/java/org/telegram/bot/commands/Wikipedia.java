@@ -10,17 +10,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Wiki;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +35,7 @@ import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Wikipedia implements Command<SendMessage> {
+public class Wikipedia implements Command {
 
     private static final String WIKI_API_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
     private static final String WIKI_SEARCH_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
@@ -46,42 +48,36 @@ public class Wikipedia implements Command<SendMessage> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
+
+        String commandArgument = commandWaitingService.getText(message);
+
         String responseText;
-        String textMessage = commandWaitingService.getText(message);
-
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
-
-        if (textMessage == null) {
+        if (commandArgument == null) {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.wikipedia.commandwaitingstart}";
-        } else if (textMessage.startsWith("_")) {
-            responseText = getWikiTextById(textMessage.substring(1));
+        } else if (commandArgument.startsWith("_")) {
+            responseText = getWikiTextById(commandArgument.substring(1));
         } else {
-            log.debug("Request to search wiki pages by text {}", textMessage);
+            log.debug("Request to search wiki pages by text {}", commandArgument);
 
-            String lang = languageResolver.getChatLanguageCode(update);
-            Wiki wiki = getWiki(textMessage, lang);
+            String lang = languageResolver.getChatLanguageCode(request);
+            Wiki wiki = getWiki(commandArgument, lang);
 
             if (wiki != null && !wiki.getText().isEmpty()) {
                 responseText = getWikiPageDetails(wiki);
             } else {
-                responseText = searchWiki(textMessage, lang);
+                responseText = searchWiki(commandArgument, lang);
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.HTML)
+                        .setWebPagePreview(false)));
     }
 
     private String getWikiTextById(String id) {

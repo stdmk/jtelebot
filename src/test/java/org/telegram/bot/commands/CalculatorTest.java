@@ -11,13 +11,15 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.nio.charset.StandardCharsets;
 
@@ -26,8 +28,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
-import static org.telegram.bot.TestUtils.getUpdateFromGroup;
+import static org.telegram.bot.TestUtils.checkDefaultTextResponseParams;
+import static org.telegram.bot.TestUtils.getRequestFromGroup;
 
 @ExtendWith(MockitoExtension.class)
 class CalculatorTest {
@@ -49,33 +51,38 @@ class CalculatorTest {
     @Test
     void parseWithEmptyTextTest() {
         final String expectedText = "${command.calculator.commandwaitingstart}";
-        Update update = getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
 
-        SendMessage sendMessage = calculator.parse(update).get(0);
-        assertNotNull(sendMessage);
+        BotResponse botResponse = calculator.parse(request).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
-        String actualText = sendMessage.getText();
+        assertNotNull(textResponse);
+
+        String actualText = textResponse.getText();
         assertEquals(expectedText, actualText);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        verify(commandWaitingService).add(update.getMessage(), Calculator.class);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(commandWaitingService).add(request.getMessage(), Calculator.class);
     }
 
     @Test
     void parseWithNoResponseTest() {
-        Update update = getUpdateFromGroup("calc test");
+        BotRequest request = getRequestFromGroup("calc test");
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> calculator.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> calculator.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithRequestErrorTest() {
         final String expectedErrorText = "Undefined symbol test";
-        Update update = getUpdateFromGroup("calc test");
+        BotRequest request = getRequestFromGroup("calc test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenThrow(
                         new HttpClientErrorException(
@@ -84,11 +91,13 @@ class CalculatorTest {
                                 ("{\"error\":\"" + expectedErrorText + "\"}").getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        SendMessage sendMessage = calculator.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
+        BotResponse botResponse = calculator.parse(request).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
-        String actualErrorText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse, FormattingStyle.MARKDOWN);
+
+        String actualErrorText = textResponse.getText();
         assertEquals(expectedErrorText, actualErrorText);
     }
 
@@ -96,17 +105,19 @@ class CalculatorTest {
     @ValueSource(strings = {"6", "Infinite"})
     void parseTest(String expressionResult) {
         final String expectedResponseText = "`" + expressionResult + "`";
-        Update update = getUpdateFromGroup("calc test");
+        BotRequest request = getRequestFromGroup("calc test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(response);
         when(response.getBody()).thenReturn("{\"result\":\"" + expressionResult + "\"}");
 
-        SendMessage sendMessage = calculator.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage, ParseMode.MARKDOWN);
+        BotResponse botResponse = calculator.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(botResponse, FormattingStyle.MARKDOWN);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
-        String actualResponseText = sendMessage.getText();
+        String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
     }
 

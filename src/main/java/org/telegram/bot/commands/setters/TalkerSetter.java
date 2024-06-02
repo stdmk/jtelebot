@@ -7,26 +7,23 @@ import org.telegram.bot.commands.Set;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.TalkerDegree;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.TalkerDegreeService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -35,7 +32,7 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
+public class TalkerSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_TALKER_COMMAND = "${setter.talker.emptycommand}";
@@ -68,14 +65,13 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (emptyTalkerCommands.contains(lowerCaseCommandText)) {
                 return getTalkerSetterWithKeyboard(message, chat, false);
             } else if (containsStartWith(setIdleCommands, lowerCaseCommandText)) {
@@ -85,7 +81,6 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
         if (emptyTalkerCommands.contains(lowerCaseCommandText)) {
             return getTalkerSetterWithKeyboard(message, chat, true);
         } else if (containsStartWith(setIdleCommands, lowerCaseCommandText)) {
@@ -97,7 +92,7 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private PartialBotApiMethod<?> setIdleMinutes(Message message, Chat chat, User user, String command) {
+    private BotResponse setIdleMinutes(Message message, Chat chat, User user, String command) {
         commandWaitingService.remove(chat, user);
 
         String setIdleMinutesCommand = getLocalizedCommand(command, SET_IDLE_MINUTES_COMMAND);
@@ -121,15 +116,12 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
             responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> getTalkerSetterWithKeyboard(Message message, Chat chat, boolean newMessage) {
+    private BotResponse getTalkerSetterWithKeyboard(Message message, Chat chat, boolean newMessage) {
         log.debug("Request to get talker setter for chat {}", chat.getChatId());
 
         TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
@@ -139,26 +131,19 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
                 "${setter.talker.downtime}: <b>" + talkerDegree.getChatIdleMinutes() + " ${setter.talker.m}.</b>";
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(responseText);
-            sendMessage.setReplyMarkup(prepareKeyboardWithDegreeButtons());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(prepareKeyboardWithDegreeButtons())
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(responseText);
-        editMessageText.setReplyMarkup(prepareKeyboardWithDegreeButtons());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(responseText)
+                .setKeyboard(prepareKeyboardWithDegreeButtons())
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> selectTalkerDegreeByCallback(Message message, Chat chat, String command) {
+    private BotResponse selectTalkerDegreeByCallback(Message message, Chat chat, String command) {
         String emptyTalkerCommand = getLocalizedCommand(command, EMPTY_TALKER_COMMAND);
 
         if (command.equals(emptyTalkerCommand)) {
@@ -184,7 +169,7 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         return getTalkerSetterWithKeyboard(message, chat, false);
     }
 
-    private PartialBotApiMethod<?> selectTalkerDegree(Message message, Chat chat, String command) {
+    private BotResponse selectTalkerDegree(Message message, Chat chat, String command) {
         String emptyTalkerCommand = getLocalizedCommand(command, EMPTY_TALKER_COMMAND);
         log.debug("Request to select talker degree");
 
@@ -208,64 +193,33 @@ public class TalkerSetter implements Setter<PartialBotApiMethod<?>> {
         TalkerDegree talkerDegree = talkerDegreeService.get(chat.getChatId());
         talkerDegreeService.save(talkerDegree.setDegree(degree));
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithDegreeButtons() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        List<InlineKeyboardButton> degreeRow1 = new ArrayList<>();
-        List<InlineKeyboardButton> degreeRow2 = new ArrayList<>();
-        List<InlineKeyboardButton> degreeRow3 = new ArrayList<>();
-
-        Stream.of(0, 5, 10, 15, 20, 25, 30)
-                .forEach(value -> {
-                    InlineKeyboardButton degreeButton = new InlineKeyboardButton();
-                    degreeButton.setText(value.toString());
-                    degreeButton.setCallbackData(CALLBACK_SET_TALKER_COMMAND + " " + value);
-                    degreeRow1.add(degreeButton);});
-
-        Stream.of(35, 40, 45, 50, 55, 60, 65)
-                .forEach(value -> {
-                    InlineKeyboardButton degreeButton = new InlineKeyboardButton();
-                    degreeButton.setText(value.toString());
-                    degreeButton.setCallbackData(CALLBACK_SET_TALKER_COMMAND + " " + value);
-                    degreeRow2.add(degreeButton);});
-
-        Stream.of(70, 75, 80, 85, 90, 95, 100)
-                .forEach(value -> {
-                    InlineKeyboardButton degreeButton = new InlineKeyboardButton();
-                    degreeButton.setText(value.toString());
-                    degreeButton.setCallbackData(CALLBACK_SET_TALKER_COMMAND + " " + value);
-                    degreeRow3.add(degreeButton);});
-
-        List<InlineKeyboardButton> setIdleRow = new ArrayList<>();
-        InlineKeyboardButton setIdleButton = new InlineKeyboardButton();
-        setIdleButton.setText(Emoji.HOURGLASS_NOT_DONE.getSymbol() + "${setter.talker.button.downtime}");
-        setIdleButton.setCallbackData(CALLBACK_SET_IDLE_MINUTES_COMMAND);
-        setIdleRow.add(setIdleButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.talker.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(degreeRow1);
-        rows.add(degreeRow2);
-        rows.add(degreeRow3);
-        rows.add(setIdleRow);
-        rows.add(backButtonRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard prepareKeyboardWithDegreeButtons() {
+        return new Keyboard(List.of(
+                Stream.of(0, 5, 10, 15, 20, 25, 30)
+                        .map(value -> new KeyboardButton()
+                                .setName(value.toString())
+                                .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
+                        .collect(Collectors.toList()),
+                Stream.of(35, 40, 45, 50, 55, 60, 65)
+                        .map(value -> new KeyboardButton()
+                                .setName(value.toString())
+                                .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
+                        .collect(Collectors.toList()),
+                Stream.of(70, 75, 80, 85, 90, 95, 100)
+                        .map(value -> new KeyboardButton()
+                                .setName(value.toString())
+                                .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
+                        .collect(Collectors.toList()),
+                List.of(new KeyboardButton()
+                        .setName(Emoji.HOURGLASS_NOT_DONE.getSymbol() + "${setter.talker.button.downtime}")
+                        .setCallback(CALLBACK_SET_IDLE_MINUTES_COMMAND)),
+                List.of(new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.talker.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back"))));
     }
 
     private String getLocalizedCommand(String text, String command) {

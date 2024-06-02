@@ -4,20 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.MathUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Password implements Command<SendMessage> {
+public class Password implements Command {
 
     private static final String UPPER_LATIN = "QWERTYUIOPASDFGHJKLZXCVBNM";
     private static final String LOWER_LATIN = "qwertyuiopasdfghjklzxcvbnm";
@@ -30,14 +32,15 @@ public class Password implements Command<SendMessage> {
     private final SpeechService speechService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        bot.sendTyping(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        bot.sendTyping(message.getChatId());
 
         int passwordLength;
-        String text = getTextMessage(update);
-        if (text != null) {
+        String commandArgument = message.getCommandArgument();
+        if (commandArgument != null) {
             try {
-                passwordLength = Integer.parseInt(getTextMessage(update));
+                passwordLength = Integer.parseInt(commandArgument);
             } catch (NumberFormatException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -56,13 +59,9 @@ public class Password implements Command<SendMessage> {
             password = generatePassword(passwordLength);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getMessage().getChatId().toString());
-        sendMessage.setText("`" + password + "`");
-        sendMessage.setReplyToMessageId(update.getMessage().getMessageId());
-        sendMessage.enableMarkdown(true);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("`" + password + "`")
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private String generatePassword(int length) {

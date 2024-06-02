@@ -7,8 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
 
 import java.util.List;
 
@@ -28,35 +29,35 @@ class LogsTest {
 
     @Test
     void parseWithArgumentsTest() {
-        Update update = TestUtils.getUpdateFromGroup("logs tratatam-tratatam");
+        BotRequest request = TestUtils.getRequestFromGroup("logs tratatam-tratatam");
 
-        List<SendDocument> sendDocumentList = logs.parse(update);
+        List<BotResponse> botResponseList = logs.parse(request);
 
-        assertTrue(sendDocumentList.isEmpty());
+        assertTrue(botResponseList.isEmpty());
         verify(bot, never()).sendUploadDocument(anyLong());
     }
 
     @Test
     void parseFromGroupChatTest() {
-        Update update = TestUtils.getUpdateFromGroup("logs");
-        Long expectedChatId = update.getMessage().getFrom().getId();
+        BotRequest request = TestUtils.getRequestFromGroup("logs");
+        Long expectedChatId = request.getMessage().getUser().getUserId();
 
-        SendDocument sendDocument = logs.parse(update).get(0);
+        BotResponse botResponse = logs.parse(request).get(0);
 
-        TestUtils.checkDefaultSendDocumentParams(sendDocument);
-        assertEquals(expectedChatId.toString(), sendDocument.getChatId());
-        verify(bot).sendUploadDocument(update.getMessage().getChatId());
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
+        assertEquals(expectedChatId, fileResponse.getChatId());
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }
 
     @Test
     void parseFromPrivateChatTest() {
-        Update update = TestUtils.getUpdateFromPrivate("logs");
-        Long expectedChatId = update.getMessage().getChatId();
+        BotRequest request = TestUtils.getRequestFromPrivate("logs");
+        Long expectedChatId = request.getMessage().getChatId();
 
-        SendDocument sendDocument = logs.parse(update).get(0);
+        BotResponse botResponse = logs.parse(request).get(0);
 
-        TestUtils.checkDefaultSendDocumentParams(sendDocument);
-        assertEquals(expectedChatId.toString(), sendDocument.getChatId());
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
+        assertEquals(expectedChatId, fileResponse.getChatId());
         verify(bot).sendUploadDocument(expectedChatId);
     }
 

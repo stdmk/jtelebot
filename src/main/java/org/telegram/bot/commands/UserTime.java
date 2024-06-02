@@ -4,21 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.CityService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -27,7 +28,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class UserTime implements Command<SendMessage> {
+public class UserTime implements Command {
 
     private final Bot bot;
     private final UserService userService;
@@ -35,33 +36,33 @@ public class UserTime implements Command<SendMessage> {
     private final CityService cityService;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         String responseText;
 
         User user;
-        Integer repliedMessageTime = null;
-        if (textMessage == null) {
+        LocalDateTime repliedMessageDateTime = null;
+        if (commandArgument == null) {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
-                repliedMessageTime = repliedMessage.getDate();
-                user = userService.get(repliedMessage.getFrom().getId());
+                repliedMessageDateTime = repliedMessage.getDateTime();
+                user = userService.get(repliedMessage.getUser().getUserId());
             } else {
-                user = userService.get(message.getFrom().getId());
+                user = userService.get(message.getUser().getUserId());
             }
         } else {
-            user = userService.get(textMessage);
+            user = userService.get(commandArgument);
         }
 
         UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
         if (userCity == null) {
-            City city = cityService.get(textMessage);
+            City city = cityService.get(commandArgument);
             if (city == null) {
                 if (user == null) {
-                    log.debug("Unable to find user or city {}", textMessage);
-                    return Collections.emptyList();
+                    log.debug("Unable to find user or city {}", commandArgument);
+                    return returnResponse();
                 }
                 responseText = "У " + getLinkToUser(user, false) + " ${command.usertime.citynotset}";
             } else {
@@ -75,18 +76,14 @@ public class UserTime implements Command<SendMessage> {
             ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
             String dateTimeNow = formatTime(ZonedDateTime.now(userZoneId));
             responseText = "${command.usertime.at} " + getLinkToUser(user, false) + " ${command.usertime.now} *" + dateTimeNow + "*";
-            if (repliedMessageTime != null) {
-                String pastDateTime = formatDateTime(unixTimeToLocalDateTime(repliedMessageTime, userZoneId));
+            if (repliedMessageDateTime != null) {
+                String pastDateTime = formatDateTime(ZonedDateTime.of(repliedMessageDateTime, userZoneId));
                 responseText = responseText + "\n" + "${command.usertime.was}: *" + pastDateTime + "*";
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 }

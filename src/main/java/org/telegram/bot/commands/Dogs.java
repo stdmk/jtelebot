@@ -1,7 +1,6 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.Collections;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -12,17 +11,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class Dogs implements Command<PartialBotApiMethod<?>> {
+public class Dogs implements Command {
 
     private static final String DOGS_API_URL = "https://random.dog/woof.json";
     private static final List<String> PHOTO_EXTENSION_LIST = List.of("jpg", "jpeg", "png");
@@ -42,49 +39,33 @@ public class Dogs implements Command<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
 
-        if (textMessage != null) {
-            return Collections.emptyList();
+        if (commandArgument != null) {
+            return returnResponse();
         }
 
         String imageUrl = getDogsImageUrl();
-        InputFile inputFile = new InputFile(imageUrl);
         String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
+        FileType fileType;
         if (isPhoto(imageUrl)) {
             bot.sendUploadPhoto(chatId);
-
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(inputFile);
-            sendPhoto.setCaption(commandName);
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId);
-
-            return returnOneResult(sendPhoto);
+            fileType = FileType.IMAGE;
         } else if (isVideo(imageUrl)) {
             bot.sendUploadVideo(chatId);
-
-            SendVideo sendVideo = new SendVideo();
-            sendVideo.setVideo(inputFile);
-            sendVideo.setCaption(commandName);
-            sendVideo.setReplyToMessageId(message.getMessageId());
-            sendVideo.setChatId(chatId);
-
-            return returnOneResult(sendVideo);
+            fileType = FileType.VIDEO;
+        } else {
+            bot.sendUploadDocument(chatId);
+            fileType = FileType.FILE;
         }
 
-        bot.sendUploadDocument(chatId);
-
-        SendDocument sendDocument = new SendDocument();
-        sendDocument.setChatId(chatId);
-        sendDocument.setCaption(commandName);
-        sendDocument.setReplyToMessageId(message.getMessageId());
-        sendDocument.setDocument(inputFile);
-
-        return returnOneResult(sendDocument);
+        File file = new File(fileType, imageUrl);
+        return returnResponse(new FileResponse(message)
+                .setText(commandName)
+                .addFile(file));
     }
 
     private boolean isPhoto(String url) {

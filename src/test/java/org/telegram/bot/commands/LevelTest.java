@@ -10,14 +10,14 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -40,52 +40,52 @@ class LevelTest {
 
     @Test
     void parseFromPrivateChatWithoutArgumentsTest() {
-        Update update = TestUtils.getUpdateFromPrivate("level");
+        BotRequest request = TestUtils.getRequestFromPrivate("level");
 
-        assertThrows(BotException.class, () -> level.parse(update));
+        assertThrows(BotException.class, () -> level.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseFromGroupChatWithoutArgumentsTest() {
         final String expectedResponseText = "${command.level.grouplevel} - 5";
-        Update update = TestUtils.getUpdateFromGroup("level");
-        Long chatId = update.getMessage().getChatId();
+        BotRequest request = TestUtils.getRequestFromGroup("level");
+        Long chatId = request.getMessage().getChatId();
 
         when(chatService.getChatAccessLevel(chatId)).thenReturn(5);
 
-        BotApiMethodMessage method = level.parse(update).get(0);
+        BotResponse response = level.parse(request).get(0);
 
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(chatId);
     }
 
     @Test
     void parseWithUnknownUsernameAsArgumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("level username");
+        BotRequest request = TestUtils.getRequestFromGroup("level username");
 
-        assertThrows(BotException.class, () -> level.parse(update));
+        assertThrows(BotException.class, () -> level.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithUsernameAsArgumentTest() {
         final String expectedResponseText = "${command.level.userlevel} [username](tg://user?id=1) - 1";
         final String username = "username";
-        Update update = TestUtils.getUpdateFromGroup("level " + username);
-        Long chatId = update.getMessage().getChatId();
+        BotRequest request = TestUtils.getRequestFromGroup("level " + username);
+        Long chatId = request.getMessage().getChatId();
 
         when(userService.get(username)).thenReturn(TestUtils.getUser());
 
-        BotApiMethodMessage method = level.parse(update).get(0);
+        BotResponse response = level.parse(request).get(0);
 
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(chatId);
     }
 
@@ -93,16 +93,16 @@ class LevelTest {
     void parseWithNumberAsArgumentTest() {
         final String expectedResponseText = "saved";
         final int expectedChatLevel = 5;
-        Update update = TestUtils.getUpdateFromGroup("level " + expectedChatLevel);
-        Long chatId = update.getMessage().getChatId();
+        BotRequest request = TestUtils.getRequestFromGroup("level " + expectedChatLevel);
+        Long chatId = request.getMessage().getChatId();
 
         when(chatService.get(chatId)).thenReturn(TestUtils.getChat(chatId));
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotApiMethodMessage method = level.parse(update).get(0);
+        BotResponse response = level.parse(request).get(0);
 
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
         ArgumentCaptor<Chat> chatArgumentCaptor = ArgumentCaptor.forClass(Chat.class);
         verify(chatService).save(chatArgumentCaptor.capture());
@@ -116,22 +116,22 @@ class LevelTest {
 
     @Test
     void parseWithUsernameAndWrongLevelAsArgumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("level username test");
+        BotRequest request = TestUtils.getRequestFromGroup("level username test");
 
-        assertThrows(BotException.class, () -> level.parse(update));
+        assertThrows(BotException.class, () -> level.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void parseWithUnknownUsernameAndLevelAsArgumentTest() {
-        Update update = TestUtils.getUpdateFromGroup("level username 5");
+        BotRequest request = TestUtils.getRequestFromGroup("level username 5");
 
-        assertThrows(BotException.class, () -> level.parse(update));
+        assertThrows(BotException.class, () -> level.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -139,25 +139,25 @@ class LevelTest {
         final String expectedResponseText = "saved";
         final String username = "username";
         final int expectedUserLevel = 5;
-        Update update = TestUtils.getUpdateFromGroup("level " + username + " " + expectedUserLevel);
-        User updatedUser = TestUtils.getUser();
+        BotRequest request = TestUtils.getRequestFromGroup("level " + username + " " + expectedUserLevel);
+        User requestdUser = TestUtils.getUser();
 
-        when(userService.get(username)).thenReturn(updatedUser);
+        when(userService.get(username)).thenReturn(requestdUser);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotApiMethodMessage method = level.parse(update).get(0);
+        BotResponse response = level.parse(request).get(0);
 
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
         ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
         verify(userService).save(userArgumentCaptor.capture());
 
         User savedUser = userArgumentCaptor.getValue();
-        assertEquals(updatedUser.getUserId(), savedUser.getUserId());
+        assertEquals(requestdUser.getUserId(), savedUser.getUserId());
         assertEquals(expectedUserLevel, savedUser.getAccessLevel());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
 }

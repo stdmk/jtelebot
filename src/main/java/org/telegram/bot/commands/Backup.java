@@ -4,43 +4,37 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.repositories.DbBackuper;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Backup implements Command<SendDocument> {
+public class Backup implements Command {
 
     private final Bot bot;
     private final DbBackuper dbBackuper;
 
     @Override
-    public List<SendDocument> parse(Update update) {
-        String chatId = update.getMessage().getFrom().getId().toString();
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
+        Long chatId = message.getChatId();
         log.debug("Request to send backup to {}", chatId);
 
-        bot.sendUploadDocument(update);
+        bot.sendUploadDocument(chatId);
 
-        if (cutCommandInText(getMessageFromUpdate(update).getText()) != null) {
-            return Collections.emptyList();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
 
-        InputFile dbBackup = dbBackuper.getDbBackup();
-
-        SendDocument sendDocument = new SendDocument();
-        sendDocument.setChatId(chatId);
-        sendDocument.setDocument(dbBackup);
-        sendDocument.setDisableNotification(true);
-
-        return returnOneResult(sendDocument);
+        return returnResponse(new FileResponse(message)
+                .addFile(new File(FileType.FILE, dbBackuper.getDbBackup()))
+                .setResponseSettings(new ResponseSettings()
+                        .setNotification(false)));
     }
-
 
 }

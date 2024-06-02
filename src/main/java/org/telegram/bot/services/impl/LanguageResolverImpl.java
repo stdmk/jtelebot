@@ -7,13 +7,12 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserLanguage;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.services.ChatLanguageService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.UserLanguageService;
-import org.telegram.bot.utils.TelegramUtils;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
@@ -49,26 +48,19 @@ public class LanguageResolverImpl implements LanguageResolver {
     }
 
     @Override
-    public String getChatLanguageCode(Update update) {
-        Message message = TelegramUtils.getMessage(update);
+    public String getChatLanguageCode(BotRequest botRequest) {
+        Message message = botRequest.getMessage();
         if (message == null) {
             return null;
         }
 
-        Long userId;
-        if (update.hasCallbackQuery()) {
-            userId = update.getCallbackQuery().getFrom().getId();
-        } else {
-            userId = message.getFrom().getId();
-        }
-
-        return getChatLanguageCode(message, new User().setUserId(userId));
+        return getChatLanguageCode(message, message.getUser());
     }
 
     @Nullable
     @Override
     public String getChatLanguageCode(Message message, User user) {
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Chat chat = message.getChat();
 
         String lang;
         UserLanguage userLanguage = userLanguageService.get(chat, user);
@@ -81,7 +73,7 @@ public class LanguageResolverImpl implements LanguageResolver {
             return chatLanguage.getLang();
         }
 
-        lang = message.getFrom().getLanguageCode();
+        lang = message.getUser().getLang();
         if (lang != null) {
             return lang;
         }

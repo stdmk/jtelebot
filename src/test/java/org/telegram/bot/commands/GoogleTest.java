@@ -12,6 +12,12 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.GoogleSearchResult;
 import org.telegram.bot.domain.entities.ImageUrl;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -19,12 +25,6 @@ import org.telegram.bot.services.GoogleSearchResultService;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -62,54 +62,56 @@ class GoogleTest {
 
     @Test
     void googleWithoutTokenTest() {
-        Update update = TestUtils.getUpdateFromGroup("google test");
+        BotRequest request = TestUtils.getRequestFromGroup("google test");
 
         when(propertiesConfig.getGoogleToken()).thenReturn(null);
 
-        assertThrows(BotException.class, () -> google.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> google.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
     @Test
     void googleWithEmptyTextMessage() {
-        Update update = TestUtils.getUpdateFromGroup("google");
+        BotRequest request = TestUtils.getRequestFromGroup("google");
 
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
 
-        PartialBotApiMethod<?> method = google.parse(update).get(0);
+        BotResponse response = google.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        TestUtils.checkDefaultSendMessageParams(method);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TestUtils.checkDefaultTextResponseParams(response);
         verify(commandWaitingService).add(any(Message.class), any(Class.class));
     }
 
     @Test
     void getStoredGoogleSearchResultWithInvalidIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("google_a");
+        BotRequest request = TestUtils.getRequestFromGroup("google_a");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
 
-        assertThrows(BotException.class, () -> google.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> google.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void getNotExistentStoredGoogleSearchResultTest() {
-        Update update = TestUtils.getUpdateFromGroup("google_1");
+        BotRequest request = TestUtils.getRequestFromGroup("google_1");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(null);
 
-        assertThrows(BotException.class, () -> google.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> google.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void getStoredGoogleSearchResultTest() {
-        Update update = TestUtils.getUpdateFromGroup("google_1");
+        BotRequest request = TestUtils.getRequestFromGroup("google_1");
         GoogleSearchResult googleSearchResult = new GoogleSearchResult()
                 .setId(1L)
                 .setTitle("title")
@@ -117,14 +119,15 @@ class GoogleTest {
                 .setLink("link")
                 .setFormattedUrl("formattedUrl");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        PartialBotApiMethod<?> method = google.parse(update).get(0);
+        BotResponse response = google.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        String responseText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        String responseText = textResponse.getText();
 
         assertNotNull(responseText);
         assertTrue(responseText.contains(googleSearchResult.getTitle()));
@@ -135,7 +138,7 @@ class GoogleTest {
 
     @Test
     void getStoredGoogleSearchResultWithPictureTest() {
-        Update update = TestUtils.getUpdateFromGroup("google_1");
+        BotRequest request = TestUtils.getRequestFromGroup("google_1");
         ImageUrl imageUrl = new ImageUrl()
                 .setId(1L)
                 .setTitle("imageTitle")
@@ -148,20 +151,21 @@ class GoogleTest {
                 .setFormattedUrl("formattedUrl")
                 .setImageUrl(imageUrl);
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        PartialBotApiMethod<?> method = google.parse(update).get(0);
+        BotResponse response = google.parse(request).get(0);
 
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
-        InputFile photo = sendPhoto.getPhoto();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(response);
+        File photo = fileResponse.getFiles().get(0);
 
         assertNotNull(photo);
-        assertEquals(imageUrl.getUrl(), photo.getAttachName());
+        assertEquals(imageUrl.getUrl(), photo.getUrl());
 
-        String responseText = sendPhoto.getCaption();
+        String responseText = fileResponse.getText();
 
         assertNotNull(responseText);
         assertTrue(responseText.contains(googleSearchResult.getTitle()));
@@ -172,38 +176,40 @@ class GoogleTest {
 
     @Test
     void googleTextWithUnavailableApiTest() {
-        Update update = TestUtils.getUpdateFromGroup("google test");
+        BotRequest request = TestUtils.getRequestFromGroup("google test");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
                 .thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> google.parse(update));
+        assertThrows(BotException.class, () -> google.parse(request));
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void googleWithNullResponseTest() {
-        Update update = TestUtils.getUpdateFromGroup("google test");
+        BotRequest request = TestUtils.getRequestFromGroup("google test");
         Google.GoogleSearchData googleSearchData = new Google.GoogleSearchData();
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googleSearchData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
                 .thenReturn(response);
 
-        assertThrows(BotException.class, () -> google.parse(update));
+        assertThrows(BotException.class, () -> google.parse(request));
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(botStats).incrementGoogleRequests();
     }
 
     @Test
     void googleNotFoundedText() {
-        Update update = TestUtils.getUpdateFromGroup("google test");
+        BotRequest request = TestUtils.getRequestFromGroup("google test");
 
         Google.CseImage cseImage = new Google.CseImage().setSrc("src");
         Google.GoogleSearchItem googleSearchItem = new Google.GoogleSearchItem()
@@ -223,6 +229,7 @@ class GoogleTest {
                 .setDisplayLink(googleSearchItem.getDisplayLink())
                 .setTitle(googleSearchItem.getTitle());
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googleSearchData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
@@ -230,11 +237,11 @@ class GoogleTest {
         when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(cseImage.getSrc()).setTitle("imageTitle"));
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
-        PartialBotApiMethod<?> method = google.parse(update).get(0);
+        BotResponse response = google.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        String responseText = sendMessage.getText();
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        String responseText = textResponse.getText();
 
         assertNotNull(responseText);
         assertTrue(responseText.contains(googleSearchItem.getLink()));

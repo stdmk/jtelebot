@@ -20,12 +20,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.ChatGPTRole;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.CommandWaitingService;
@@ -33,11 +36,7 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -51,7 +50,7 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ChatGPT implements Command<PartialBotApiMethod<?>> {
+public class ChatGPT implements Command {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
@@ -81,26 +80,22 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         String token = propertiesConfig.getChatGPTToken();
         if (StringUtils.isEmpty(token)) {
             log.error("Unable to find google token");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        org.telegram.telegrambots.meta.api.objects.Message message = getMessageFromUpdate(update);
+        org.telegram.bot.domain.model.request.Message message = request.getMessage();
         Long chatId = message.getChatId();
-        String textMessage = commandWaitingService.getText(message);
         String responseText;
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         String imageUrl = null;
-
-        if (textMessage != null) {
-            String lowerTextMessage = textMessage.toLowerCase();
+        if (commandArgument != null) {
+            String lowerTextMessage = commandArgument.toLowerCase();
 
             if (containsStartWith(imageCommands, lowerTextMessage)) {
                 bot.sendUploadPhoto(chatId);
@@ -112,14 +107,14 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
                 }
 
-                textMessage = textMessage.substring(imageCommand.length() + 1);
-                responseText = TextUtils.cutIfLongerThan(textMessage, 1000);
+                commandArgument = commandArgument.substring(imageCommand.length() + 1);
+                responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
 
-                imageUrl = getResponse(new CreateImageRequest().setPrompt(textMessage), token);
+                imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
             } else {
                 bot.sendTyping(chatId);
-                Chat chat = new Chat().setChatId(chatId);
-                User user = new User().setUserId(message.getFrom().getId());
+                Chat chat = message.getChat();
+                User user = message.getUser();
                 List<ChatGPTMessage> messagesHistory;
 
                 if (chatId < 0) {
@@ -129,12 +124,12 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
                 }
 
                 responseText = getResponse(
-                        buildRequest(messagesHistory, textMessage, message.getFrom().getUserName()),
+                        buildRequest(messagesHistory, commandArgument, user.getUsername()),
                         token);
 
                 messagesHistory.addAll(
                         List.of(
-                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(textMessage),
+                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(commandArgument),
                                 new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
                 chatGPTMessageService.update(messagesHistory);
             }
@@ -146,14 +141,10 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
         }
 
         if (imageUrl != null) {
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(imageUrl));
-            sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode("HTML");
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId);
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .setText(responseText)
+                    .addFile(new File(FileType.IMAGE, imageUrl))
+                    .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
         SendMessage sendMessage = new SendMessage();
@@ -162,7 +153,9 @@ public class ChatGPT implements Command<PartialBotApiMethod<?>> {
         sendMessage.setText(responseText);
         sendMessage.enableMarkdown(true);
 
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username) {

@@ -90,20 +90,20 @@ public class LengthConverter implements UnitsConverter {
     @RequiredArgsConstructor
     @Getter
     private enum LengthUnit {
-        FEMTOMETER("command.converter.length.femtometer", new BigDecimal("1").setScale(3, ROUNDING_MODE)),
-        PICOMETER("command.converter.length.picometer", new BigDecimal("1000").setScale(3, ROUNDING_MODE)),
-        NANOMETER("command.converter.length.nanometer", new BigDecimal("1000000").setScale(3, ROUNDING_MODE)),
-        MICROMETER("command.converter.length.micrometer", new BigDecimal("1000000000").setScale(3, ROUNDING_MODE)),
-        MILLIMETER("command.converter.length.millimeter", new BigDecimal("1000000000000").setScale(3, ROUNDING_MODE)),
-        CENTIMETER("command.converter.length.centimeter", new BigDecimal("10000000000000").setScale(3, ROUNDING_MODE)),
-        DECIMETER("command.converter.length.decimeter", new BigDecimal("100000000000000").setScale(3, ROUNDING_MODE)),
-        METER("command.converter.length.meter", new BigDecimal("1000000000000000").setScale(3, ROUNDING_MODE)),
-        KILOMETER("command.converter.length.kilometer", new BigDecimal("1000000000000000000").setScale(3, ROUNDING_MODE)),
-        MILE("command.converter.length.mile", new BigDecimal("1609340000000000000").setScale(3, ROUNDING_MODE)),
-        YARD("command.converter.length.yard", new BigDecimal("914400000000000").setScale(3, ROUNDING_MODE)),
-        FOOR("command.converter.length.foor", new BigDecimal("304800000000000").setScale(3, ROUNDING_MODE)),
-        INCH("command.converter.length.inch", new BigDecimal("25400000000000").setScale(3, ROUNDING_MODE)),
-        NAUTICAL_MILE("command.converter.length.nautical_mile", new BigDecimal("1852000000000000000").setScale(3, ROUNDING_MODE)),
+        FEMTOMETER("${command.converter.length.femtometer}", new BigDecimal("1").setScale(3, ROUNDING_MODE)),
+        PICOMETER("${command.converter.length.picometer}", new BigDecimal("1000").setScale(3, ROUNDING_MODE)),
+        NANOMETER("${command.converter.length.nanometer}", new BigDecimal("1000000").setScale(3, ROUNDING_MODE)),
+        MICROMETER("${command.converter.length.micrometer}", new BigDecimal("1000000000").setScale(3, ROUNDING_MODE)),
+        MILLIMETER("${command.converter.length.millimeter}", new BigDecimal("1000000000000").setScale(3, ROUNDING_MODE)),
+        CENTIMETER("${command.converter.length.centimeter}", new BigDecimal("10000000000000").setScale(3, ROUNDING_MODE)),
+        DECIMETER("${command.converter.length.decimeter}", new BigDecimal("100000000000000").setScale(3, ROUNDING_MODE)),
+        METER("${command.converter.length.meter}", new BigDecimal("1000000000000000").setScale(3, ROUNDING_MODE)),
+        KILOMETER("${command.converter.length.kilometer}", new BigDecimal("1000000000000000000").setScale(3, ROUNDING_MODE)),
+        MILE("${command.converter.length.mile}", new BigDecimal("1609340000000000000").setScale(3, ROUNDING_MODE)),
+        YARD("${command.converter.length.yard}", new BigDecimal("914400000000000").setScale(3, ROUNDING_MODE)),
+        FOOR("${command.converter.length.foor}", new BigDecimal("304800000000000").setScale(3, ROUNDING_MODE)),
+        INCH("${command.converter.length.inch}", new BigDecimal("25400000000000").setScale(3, ROUNDING_MODE)),
+        NAUTICAL_MILE("${command.converter.length.nautical_mile}", new BigDecimal("1852000000000000000").setScale(3, ROUNDING_MODE)),
         ;
 
         private final String name;

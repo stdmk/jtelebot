@@ -7,15 +7,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
-import static org.telegram.bot.TestUtils.checkDefaultSendMessageParams;
+import static org.telegram.bot.TestUtils.checkDefaultTextResponseParams;
 
 @ExtendWith(MockitoExtension.class)
 class CmdTest {
@@ -30,26 +31,30 @@ class CmdTest {
 
     @Test
     void parseEmptyParamsTest() {
-        Update update = TestUtils.getUpdateFromGroup("cmd");
-        assertThrows(BotException.class, () -> cmd.parse(update));
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        BotRequest request = TestUtils.getRequestFromGroup("cmd");
+        assertThrows(BotException.class, () -> cmd.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
     @Test
     void parseWrongCommandTest() {
-        Update update = TestUtils.getUpdateFromGroup("cmd test");
-        SendMessage sendMessage = cmd.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage);
+        BotRequest request = TestUtils.getRequestFromGroup("cmd test");
+        BotResponse botResponse = cmd.parse(request).get(0);
+
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
     }
 
     @Test
     void parseTest() {
-        Update update = TestUtils.getUpdateFromGroup("cmd help");
-        SendMessage sendMessage = cmd.parse(update).get(0);
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        checkDefaultSendMessageParams(sendMessage);
+        BotRequest request = TestUtils.getRequestFromGroup("cmd help");
+        BotResponse botResponse = cmd.parse(request).get(0);
+
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
     }
 
 }

@@ -12,8 +12,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
@@ -22,10 +24,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.utils.ObjectCopier;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,11 +54,11 @@ class KarmaTest {
 
     @Test
     void parsePrivateMessageTest() {
-        Update update = TestUtils.getUpdateFromPrivate("");
+        BotRequest request = TestUtils.getRequestFromPrivate("");
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -67,15 +67,15 @@ class KarmaTest {
                 "\uD83D\uDE07${command.karma.caption}: <b>33</b> (35)\n" +
                 "❤️${command.karma.kindness}: <b>36</b> (38)\n" +
                 "\uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)\n";
-        Update update = TestUtils.getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
 
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        BotApiMethodMessage method = karma.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = karma.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -84,87 +84,87 @@ class KarmaTest {
                 "\uD83D\uDE08${command.karma.caption}: <b>-1</b> (35)\n" +
                 "❤️${command.karma.kindness}: <b>36</b> (38)\n" +
                 "\uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)\n";
-        Update update = TestUtils.getUpdateWithRepliedMessage("");
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("");
 
         UserStats userStats = getSomeUserStats();
         userStats.setNumberOfKarma(-1);
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(userStats);
 
-        BotApiMethodMessage method = karma.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = karma.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void changeKarmaWithoutValueTest() {
-        Update update = TestUtils.getUpdateFromGroup("karma @username");
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username");
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void changeKarmaWithCorruptedValueTest() {
-        Update update = TestUtils.getUpdateFromGroup("karma @username one");
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username one");
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @ParameterizedTest
     @ValueSource(ints = {-2, 0, 2})
     void changeKarmaWithWrongValueTest() {
-        Update update = TestUtils.getUpdateFromGroup("karma @username 2");
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username 2");
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void changeKarmaOfUnknownUserTest() {
-        Update update = TestUtils.getUpdateFromGroup("karma @username 1");
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username 1");
 
         when(userService.get(anyString())).thenReturn(null);
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
     void changeKarmaOfMyselfTest() {
-        Update update = TestUtils.getUpdateFromGroup("karma @username 1");
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username 1");
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
 
-        assertThrows(BotException.class, () -> karma.parse(update));
+        assertThrows(BotException.class, () -> karma.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @ParameterizedTest
     @MethodSource("provideKarmaChanges")
     void changeKarmaOfAnotherUserTest(int value, String expectedResponseText) {
-        Update update = TestUtils.getUpdateFromGroup("karma " + ANOTHER_USER_ID + " " + value);
+        BotRequest request = TestUtils.getRequestFromGroup("karma " + ANOTHER_USER_ID + " " + value);
 
         when(userService.get(ANOTHER_USER_ID)).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        BotApiMethodMessage method = karma.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = karma.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     private static Stream<Arguments> provideKarmaChanges() {
@@ -222,22 +222,22 @@ class KarmaTest {
 
     @Test
     void analyzeWithoutTextTest() {
-        Update update = TestUtils.getUpdateFromGroup();
-        karma.analyze(update);
-        verify(bot, never()).parseAsync(any(Update.class), any(Command.class));
+        BotRequest request = TestUtils.getRequestFromGroup();
+        List<BotResponse> botResponseList = karma.analyze(request);
+        assertTrue(botResponseList.isEmpty());
     }
 
     @Test
     void analyzeWithoutRepliedMessageTest() {
-        Update update = TestUtils.getUpdateFromGroup("--");
-        karma.analyze(update);
-        verify(bot, never()).parseAsync(any(Update.class), any(Command.class));
+        BotRequest request = TestUtils.getRequestFromGroup("--");
+        List<BotResponse> botResponseList = karma.analyze(request);
+        assertTrue(botResponseList.isEmpty());
     }
 
     @Test
     void analyzeWithoutAccessCommandTest() {
-        Update update = TestUtils.getUpdateWithRepliedMessage("");
-        update.getMessage().setText("--");
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("");
+        request.getMessage().setText("--");
 
         CommandProperties commandProperties = mock(CommandProperties.class);
         when(commandProperties.getAccessLevel()).thenReturn(1);
@@ -246,15 +246,15 @@ class KarmaTest {
                 .thenReturn(AccessLevel.NEWCOMER);
         when(userService.isUserHaveAccessForCommand(anyInt(), anyInt())).thenReturn(false);
 
-        karma.analyze(update);
+        List<BotResponse> botResponseList = karma.analyze(request);
 
-        verify(bot, never()).parseAsync(any(Update.class), any(Command.class));
+        assertTrue(botResponseList.isEmpty());
     }
 
     @Test
-    void analyzeWithCopyingUpdateFailedTest() {
-        Update update = TestUtils.getUpdateWithRepliedMessage("");
-        update.getMessage().setText("--");
+    void analyzeWithCopyingrequestFailedTest() {
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("");
+        request.getMessage().setText("--");
 
         CommandProperties commandProperties = mock(CommandProperties.class);
         when(commandProperties.getAccessLevel()).thenReturn(1);
@@ -263,16 +263,16 @@ class KarmaTest {
                 .thenReturn(AccessLevel.FAMILIAR);
         when(userService.isUserHaveAccessForCommand(anyInt(), anyInt())).thenReturn(true);
 
-        karma.analyze(update);
+        List<BotResponse> botResponseList = karma.analyze(request);
 
-        verify(bot, never()).parseAsync(any(Update.class), any(Command.class));
+        assertTrue(botResponseList.isEmpty());
     }
 
     @ParameterizedTest
     @MethodSource("provideMessageTexts")
     void analyzeTest(String messageText, String expectedCommand) {
-        Update update = TestUtils.getUpdateWithRepliedMessage("");
-        update.getMessage().setText(messageText);
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("");
+        request.getMessage().setText(messageText);
 
         CommandProperties commandProperties = mock(CommandProperties.class);
         when(commandProperties.getAccessLevel()).thenReturn(1);
@@ -281,17 +281,20 @@ class KarmaTest {
         when(userService.getCurrentAccessLevel(TestUtils.DEFAULT_USER_ID, TestUtils.DEFAULT_CHAT_ID))
                 .thenReturn(AccessLevel.FAMILIAR);
         when(userService.isUserHaveAccessForCommand(anyInt(), anyInt())).thenReturn(true);
-        when(objectCopier.copyObject(any(Update.class), ArgumentMatchers.any())).thenReturn(update);
+        when(objectCopier.copyObject(any(BotRequest.class), ArgumentMatchers.any())).thenReturn(request);
+        when(userService.get(ANOTHER_USER_ID)).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
+        when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        karma.analyze(update);
+        BotResponse botResponse = karma.analyze(request).get(0);
 
-        verify(bot).parseAsync(update, karma);
-        assertEquals(expectedCommand, update.getMessage().getText());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(expectedCommand, textResponse.getText());
     }
 
     private static Stream<Arguments> provideMessageTexts() {
-        final String increaseKarmaCommand = "karma " + ANOTHER_USER_ID + " 1";
-        final String decreaseKarmaCommand = "karma " + ANOTHER_USER_ID + " -1";
+        final String increaseKarmaCommand = "${command.karma.userskarma} <b><a href=\"tg://user?id=" + ANOTHER_USER_ID +"\">username</a></b> ${command.karma.increased} \uD83D\uDC4D ${command.karma.changedto} <b>34</b>";
+        final String decreaseKarmaCommand = "${command.karma.userskarma} <b><a href=\"tg://user?id=" + ANOTHER_USER_ID + "\">username</a></b> ${command.karma.reduced} \uD83D\uDC4E ${command.karma.changedto} <b>32</b>";
 
         Stream<Arguments> increaseArgumentsStream = Stream.of("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++")
                 .map(text -> Arguments.of(text, increaseKarmaCommand));

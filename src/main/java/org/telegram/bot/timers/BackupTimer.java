@@ -4,31 +4,31 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.repositories.DbBackuper;
-import org.telegram.bot.services.executors.SendDocumentExecutor;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
+
+import java.io.File;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class BackupTimer extends TimerParent {
 
-    private final SendDocumentExecutor sendDocumentExecutor;
+    private final Bot bot;
     private final PropertiesConfig propertiesConfig;
     private final DbBackuper dbBackuper;
 
     @Override
     @Scheduled(cron = "0 0 2 * * ?")
     public void execute() {
-        InputFile dbBackup = dbBackuper.getDbBackup();
-
-        SendDocument sendDocument = new SendDocument();
-        sendDocument.setChatId(propertiesConfig.getAdminId().toString());
-        sendDocument.setDocument(dbBackup);
-        sendDocument.setDisableNotification(true);
-
-        sendDocumentExecutor.executeMethod(sendDocument);
+        File dbBackup = dbBackuper.getDbBackup();
+        bot.sendDocument(new FileResponse()
+                .setChatId(propertiesConfig.getAdminId())
+                .addFile(new org.telegram.bot.domain.model.response.File(FileType.FILE, dbBackup))
+                .setResponseSettings(new ResponseSettings().setNotification(false)));
     }
 }

@@ -1,7 +1,6 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.Collections;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,16 +9,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +25,7 @@ import java.util.Locale;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Cats implements Command<PartialBotApiMethod<?>> {
+public class Cats implements Command {
 
     private static final String CATS_API_URL = "https://api.thecatapi.com/v1/images/search";
 
@@ -36,13 +34,12 @@ public class Cats implements Command<PartialBotApiMethod<?>> {
     private final RestTemplate botRestTemplate;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
-        String textMessage = cutCommandInText(message.getText());
 
-        if (textMessage != null) {
-            return Collections.emptyList();
+        if (message.hasCommandArgument()) {
+            return returnResponse();
         }
         bot.sendUploadPhoto(chatId);
 
@@ -63,24 +60,19 @@ public class Cats implements Command<PartialBotApiMethod<?>> {
         Cat cat = cats[0];
         String url = cat.getUrl();
         String commandName = "/" + this.getClass().getSimpleName().toLowerCase(Locale.ROOT);
+        FileType fileType;
         if (url.endsWith(".gif")) {
             log.debug("The response is a gif");
-            SendDocument sendDocument = new SendDocument();
-            sendDocument.setChatId(chatId.toString());
-            sendDocument.setCaption(commandName);
-            sendDocument.setReplyToMessageId(message.getMessageId());
-            sendDocument.setDocument(new InputFile(url));
-
-            return returnOneResult(sendDocument);
+            fileType = FileType.FILE;
+        } else {
+            fileType = FileType.IMAGE;
         }
 
-        SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setPhoto(new InputFile(url));
-        sendPhoto.setCaption(commandName);
-        sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(chatId.toString());
+        File file = new File(fileType, url);
 
-        return returnOneResult(sendPhoto);
+        return returnResponse(new FileResponse(message)
+                .setText(commandName)
+                .addFile(file));
     }
 
     @Data

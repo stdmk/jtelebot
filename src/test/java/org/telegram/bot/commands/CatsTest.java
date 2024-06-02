@@ -9,11 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
@@ -40,35 +40,35 @@ class CatsTest {
 
     @Test
     void parseWithArgumentsTest() {
-        Update update = getUpdateFromGroup("cats test");
-        List<PartialBotApiMethod<?>> methods = cats.parse(update);
-        verify(bot, never()).sendUploadPhoto(update.getMessage().getChatId());
-        assertTrue(methods.isEmpty());
+        BotRequest request = getRequestFromGroup("cats test");
+        List<BotResponse> botResponses = cats.parse(request);
+        verify(bot, never()).sendUploadPhoto(request.getMessage().getChatId());
+        assertTrue(botResponses.isEmpty());
     }
 
     @Test
     void parseWithNoResponseTest() {
-        Update update = getUpdateFromGroup("cats");
+        BotRequest request = getRequestFromGroup("cats");
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException(""));
 
-        assertThrows(BotException.class, () -> cats.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> cats.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithEmptyResponseTest() {
-        Update update = getUpdateFromGroup("cats");
+        BotRequest request = getRequestFromGroup("cats");
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        assertThrows(BotException.class, () -> cats.parse(update));
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        assertThrows(BotException.class, () -> cats.parse(request));
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseWithGifResponseTest() {
-        Update update = getUpdateFromGroup("cats");
+        BotRequest request = getRequestFromGroup("cats");
         Cats.Cat cat = new Cats.Cat();
         cat.setUrl("url.gif");
         Cats.Cat[] catsArray = {cat};
@@ -76,14 +76,14 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(update).get(0);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        checkDefaultSendDocumentParams(method);
+        BotResponse response = cats.parse(request).get(0);
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        checkDefaultFileResponseParams(response);
     }
 
     @Test
     void parseWithPhotoResponseTest() {
-        Update update = getUpdateFromGroup("cats");
+        BotRequest request = getRequestFromGroup("cats");
         Cats.Cat cat = new Cats.Cat();
         cat.setUrl("url");
         Cats.Cat[] catsArray = {cat};
@@ -91,9 +91,9 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        PartialBotApiMethod<?> method = cats.parse(update).get(0);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
-        checkDefaultSendPhotoParams(method);
+        BotResponse response = cats.parse(request).get(0);
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        checkDefaultFileResponseImageParams(response);
     }
 
 }

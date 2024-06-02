@@ -5,78 +5,57 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class Length implements Command<SendMessage> {
+public class Length implements Command {
 
     private final Bot bot;
     private final BotStats botStats;
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
-    private final NetworkUtils networkUtils;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
 
-        String textMessage = commandWaitingService.getText(message);
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         int length;
-        if (textMessage == null) {
-            if (!message.hasDocument()) {
+        if (commandArgument == null) {
+            if (!message.hasAttachment()) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            length = getFileLength(message.getDocument());
+            length = getFileLength(message.getAttachments().get(0));
         } else {
-            length = textMessage.length();
+            length = commandArgument.length();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(chatId);
-        sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
-        sendMessage.setText("${command.length.responselength} <b>" + length + "</b> ${command.length.symbols}");
-
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText("${command.length.responselength} <b>" + length + "</b> ${command.length.symbols}")
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private int getFileLength(Document document) {
-        checkMimeType(document.getMimeType());
-
-        byte[] file;
-        try {
-            file = networkUtils.getFileFromTelegram(document.getFileId());
-        } catch (TelegramApiException | IOException e) {
-            log.error("Failed to get file from telegram", e);
-            botStats.incrementErrors(document, e, "Failed to get file from telegram");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-        }
-
+    private int getFileLength(Attachment attachment) {
+        checkMimeType(attachment.getMimeType());
+        byte[] file = bot.getFileFromTelegram(attachment.getFileId());
         return new String(file, StandardCharsets.UTF_8).length();
     }
 

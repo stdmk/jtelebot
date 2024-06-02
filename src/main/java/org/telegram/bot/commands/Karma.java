@@ -4,24 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
-import org.telegram.bot.domain.MessageAnalyzer;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.utils.ObjectCopier;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +33,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Karma implements Command<SendMessage>, MessageAnalyzer {
+public class Karma implements Command, MessageAnalyzer {
 
     private final Bot bot;
     private final ObjectCopier objectCopier;
@@ -46,36 +46,32 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
     private static final List<String> DECREASE_SYMBOLS = Arrays.asList("👎🏿", "👎🏾", "👎🏽", "👎🏼", "👎🏻", "👎", "-1", "--");
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
 
         if (message.getChatId() > 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 
-        String textMessage = cutCommandInText(message.getText());
+        String commandArgument = message.getCommandArgument();
         String responseText;
 
-        if (textMessage == null) {
+        if (commandArgument == null) {
             responseText = getKarmaStatsOfUser(message);
         } else {
-            responseText = changeKarmaOfUser(message, textMessage);
+            responseText = changeKarmaOfUser(message, commandArgument);
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private String getKarmaStatsOfUser(Message message) {
         Message repliedMessage = message.getReplyToMessage();
-        Chat chat = new Chat().setChatId(message.getChatId());
-        User user = new User().setUserId(Objects.requireNonNullElse(repliedMessage, message).getFrom().getId());
+        Chat chat = message.getChat();
+        User user = Objects.requireNonNullElse(repliedMessage, message).getUser();
 
         log.debug("Request to get karma info for user {} and chat {}", user, chat);
         UserStats userStats = userStatsService.get(chat, user);
@@ -117,7 +113,7 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
             anotherUser = userService.get(textMessage.substring(0, i));
         }
 
-        if (anotherUser == null || anotherUser.getUserId().equals(message.getFrom().getId())) {
+        if (anotherUser == null || anotherUser.getUserId().equals(message.getUser().getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
@@ -128,7 +124,7 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
                 .setNumberOfKarmaPerDay(anotherUserStats.getNumberOfKarmaPerDay() + value)
                 .setNumberOfAllKarma(anotherUserStats.getNumberOfAllKarma() + value);
 
-        User user = new User().setUserId(message.getFrom().getId());
+        User user = new User().setUserId(message.getUser().getUserId());
         UserStats userStats = userStatsService.get(chat, user);
         if (value > 0) {
             userStats.setNumberOfGoodness(userStats.getNumberOfGoodness() + 1)
@@ -155,11 +151,11 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
     }
 
     @Override
-    public void analyze(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
         String textMessage = message.getText();
         if (textMessage == null || message.getReplyToMessage() == null) {
-            return;
+            return returnResponse();
         }
 
         int value = 0;
@@ -171,15 +167,17 @@ public class Karma implements Command<SendMessage>, MessageAnalyzer {
 
         if (value != 0) {
             CommandProperties commandProperties = commandPropertiesService.getCommand(this.getClass());
-            AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getFrom().getId(), message.getChatId());
+            AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getUser().getUserId(), message.getChatId());
             if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-                Update newUpdate = objectCopier.copyObject(update, Update.class);
-                if (newUpdate == null) {
-                    return;
+                BotRequest newRequest = objectCopier.copyObject(request, BotRequest.class);
+                if (newRequest == null) {
+                    return returnResponse();
                 }
-                newUpdate.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getFrom().getId() + " " + value);
-                bot.parseAsync(newUpdate, this);
+                newRequest.getMessage().setText(commandProperties.getCommandName() + " " + message.getReplyToMessage().getUser().getUserId() + " " + value);
+                return this.parse(newRequest);
             }
         }
+
+        return returnResponse();
     }
 }

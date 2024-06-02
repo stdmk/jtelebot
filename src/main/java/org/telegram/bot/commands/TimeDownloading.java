@@ -4,17 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TimeDownloading implements Command<SendMessage> {
+public class TimeDownloading implements Command {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -52,55 +53,52 @@ public class TimeDownloading implements Command<SendMessage> {
     }
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         String responseText;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.timedownloading.commandwaitingstart}";
         } else {
-            textMessage = textMessage.replace(",", ".");
-            int i = getNextSpaceIndex(textMessage);
+            commandArgument = commandArgument.replace(",", ".");
+            int i = getNextSpaceIndex(commandArgument);
 
             double fileWeight;
             try {
-                fileWeight = Double.parseDouble(textMessage.substring(0, i));
+                fileWeight = Double.parseDouble(commandArgument.substring(0, i));
             } catch (NumberFormatException e) {
-                log.debug("Command parsing error: {} text: {}", e.getMessage(), textMessage);
+                log.debug("Command parsing error: {} text: {}", e.getMessage(), commandArgument);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            textMessage = textMessage.substring(i + 1);
-            i = getNextSpaceIndex(textMessage);
+            commandArgument = commandArgument.substring(i + 1);
+            i = getNextSpaceIndex(commandArgument);
 
-            Long weightMultiplier = getWeighMultiplierByName(textMessage.substring(0, i));
+            Long weightMultiplier = getWeighMultiplierByName(commandArgument.substring(0, i));
             if (weightMultiplier == null) {
-                log.debug("Unknown file weigh unit name: {}", textMessage);
+                log.debug("Unknown file weigh unit name: {}", commandArgument);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            textMessage = textMessage.substring(i + 1);
+            commandArgument = commandArgument.substring(i + 1);
 
-            i = getNextSpaceIndex(textMessage);
+            i = getNextSpaceIndex(commandArgument);
 
             double speedDownloading;
             try {
-                speedDownloading = Double.parseDouble(textMessage.substring(0, i));
+                speedDownloading = Double.parseDouble(commandArgument.substring(0, i));
             } catch (NumberFormatException e) {
-                log.debug("Command parsing error: {} text: {}", e.getMessage(), textMessage);
+                log.debug("Command parsing error: {} text: {}", e.getMessage(), commandArgument);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            Long speedMultiplier = getSpeedMultiplierByName(textMessage.substring(i + 1));
+            Long speedMultiplier = getSpeedMultiplierByName(commandArgument.substring(i + 1));
             if (speedMultiplier == null) {
-                log.debug("Unknown file weigh unit name: {}", textMessage);
+                log.debug("Unknown file weigh unit name: {}", commandArgument);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
@@ -114,16 +112,11 @@ public class TimeDownloading implements Command<SendMessage> {
             } else {
                 responseText = "${command.timedownloading.file} *" + TextUtils.formatFileSize(weighInBytes) + "* ${command.timedownloading.willdownload} ${command.timedownloading.in} *" + DateUtils.durationToString(milliseconds) + "*";
             }
-
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private int getNextSpaceIndex(String text) {

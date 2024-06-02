@@ -8,11 +8,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -33,22 +34,23 @@ class PasswordTest {
     @ValueSource(strings = {"a", "-1", "0", "3", "4097"})
     void parseWrongInputTest(String input) {
         final String expectedErrorText = "wrong input";
-        Update update = TestUtils.getUpdateFromGroup("password " + input);
+        BotRequest request = TestUtils.getRequestFromGroup("password " + input);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
-        BotException botException = assertThrows(BotException.class, () -> password.parse(update));
-        verify(bot).sendTyping(update);
+        BotException botException = assertThrows(BotException.class, () -> password.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorText, botException.getMessage());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "4", "4096"})
     void parseTest(String input) {
-        Update update = TestUtils.getUpdateFromGroup("password" + input);
-        SendMessage sendMessage = password.parse(update).get(0);
-        verify(bot).sendTyping(update);
-        TestUtils.checkDefaultSendMessageParams(sendMessage);
+        BotRequest request = TestUtils.getRequestFromGroup("password" + input);
+        BotResponse botResponse = password.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
 }

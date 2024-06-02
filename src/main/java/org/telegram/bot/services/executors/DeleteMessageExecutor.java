@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class DeleteMessageExecutor implements MethodExecutor {
     }
 
     @Override
-    public void executeMethod(PartialBotApiMethod<?> method, Update update) {
+    public void executeMethod(PartialBotApiMethod<?> method, BotRequest request) {
         DeleteMessage deleteMessage = (DeleteMessage) method;
         log.info("Deleting message {}", deleteMessage.getMessageId());
 
@@ -32,11 +32,11 @@ public class DeleteMessageExecutor implements MethodExecutor {
             bot.execute(deleteMessage);
         } catch (TelegramApiException e) {
             if (isError(e)) {
-                botStats.incrementErrors(update, method, e, "error sending response");
+                botStats.incrementErrors(request, method, e, "error sending response");
             }
             log.error("Error: cannot send response: {}", e.getMessage());
         } catch (Exception e) {
-            botStats.incrementErrors(update, method, e, "unexpected error");
+            botStats.incrementErrors(request, method, e, "unexpected error");
             log.error("Unexpected error: ", e);
         }
     }

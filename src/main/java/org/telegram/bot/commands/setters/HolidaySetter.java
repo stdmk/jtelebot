@@ -9,18 +9,15 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.Holiday;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -36,7 +33,7 @@ import static org.telegram.bot.utils.TextUtils.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
+public class HolidaySetter implements Setter<BotResponse> {
 
     private static final Integer MAX_HOLIDAYS_NAME_LENGTH = 55;
     private static final int MAX_HOLIDAY_NAME_STRING_LENGTH = 16;
@@ -81,14 +78,13 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (emptyHolidayCommands.contains(lowerCaseCommandText) || updateHolidayCommands.contains(lowerCaseCommandText)) {
                 return getHolidayListWithKeyboard(message, chat, user, false);
             } else if (containsStartWith(addHolidayCommands, lowerCaseCommandText)) {
@@ -98,7 +94,6 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
         if (emptyHolidayCommands.contains(lowerCaseCommandText)) {
             return getHolidayListWithKeyboard(message, chat, user, true);
         } else if (containsStartWith(deleteHolidayCommands, lowerCaseCommandText)) {
@@ -110,15 +105,15 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private EditMessageText getKeyboardWithDeletingHolidays(Message message, Chat chat, User user, int page) {
+    private EditResponse getKeyboardWithDeletingHolidays(Message message, Chat chat, User user, int page) {
         Page<Holiday> holidayList = holidayService.get(chat, user, page);
 
-        List<List<InlineKeyboardButton>> holidayRows = holidayList.stream().map(holiday -> {
-            List<InlineKeyboardButton> holidayRow = new ArrayList<>();
+        List<List<KeyboardButton>> holidayRows = holidayList.stream().map(holiday -> {
+            List<KeyboardButton> holidayRow = new ArrayList<>();
 
-            InlineKeyboardButton holidayButton = new InlineKeyboardButton();
-            holidayButton.setText(Emoji.DELETE.getSymbol() + limitStringLength(holiday.getName()));
-            holidayButton.setCallbackData(CALLBACK_DELETE_HOLIDAY_COMMAND + " " + holiday.getId());
+            KeyboardButton holidayButton = new KeyboardButton();
+            holidayButton.setName(Emoji.DELETE.getSymbol() + limitStringLength(holiday.getName()));
+            holidayButton.setCallback(CALLBACK_DELETE_HOLIDAY_COMMAND + " " + holiday.getId());
 
             holidayRow.add(holidayButton);
 
@@ -126,19 +121,19 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         }).collect(Collectors.toList());
 
         if (holidayList.getTotalPages() > 1) {
-            List<InlineKeyboardButton> pagesRow = new ArrayList<>();
+            List<KeyboardButton> pagesRow = new ArrayList<>(2);
             if (page > 0) {
-                InlineKeyboardButton backButton = new InlineKeyboardButton();
-                backButton.setText(Emoji.LEFT_ARROW.getSymbol() + "Назад");
-                backButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page - 1));
+                KeyboardButton backButton = new KeyboardButton();
+                backButton.setName(Emoji.LEFT_ARROW.getSymbol() + "Назад");
+                backButton.setCallback(CALLBACK_SELECT_PAGE_TV_LIST + (page - 1));
 
                 pagesRow.add(backButton);
             }
 
             if (page < holidayList.getTotalPages()) {
-                InlineKeyboardButton forwardButton = new InlineKeyboardButton();
-                forwardButton.setText("Вперёд" + Emoji.RIGHT_ARROW.getSymbol());
-                forwardButton.setCallbackData(CALLBACK_SELECT_PAGE_TV_LIST + (page + 1));
+                KeyboardButton forwardButton = new KeyboardButton();
+                forwardButton.setName("Вперёд" + Emoji.RIGHT_ARROW.getSymbol());
+                forwardButton.setCallback(CALLBACK_SELECT_PAGE_TV_LIST + (page + 1));
 
                 pagesRow.add(forwardButton);
             }
@@ -146,20 +141,13 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
             holidayRows.add(pagesRow);
         }
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(addingMainRows(holidayRows));
-
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText("Список добавленных праздников");
-        editMessageText.setReplyMarkup(inlineKeyboardMarkup);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText("Список добавленных праздников")
+                .setKeyboard(new Keyboard(holidayRows))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private SendMessage deleteUserHoliday(Message message, Chat chat, User user, String command) throws BotException {
+    private BotResponse deleteUserHoliday(Message message, Chat chat, User user, String command) throws BotException {
         String deleteHolidayCommand = getLocalizedCommand(command, DELETE_HOLIDAY_COMMAND);
         log.debug("Request to delete Holiday");
 
@@ -188,10 +176,10 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
 
         holidayService.remove(holiday);
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return buildMessage(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED), true);
     }
 
-    private EditMessageText deleteHolidayByCallback(Message message, Chat chat, User user, String command) throws BotException {
+    private EditResponse deleteHolidayByCallback(Message message, Chat chat, User user, String command) throws BotException {
         String deleteHolidayCommand = getLocalizedCommand(command, DELETE_HOLIDAY_COMMAND);
         log.debug("Request to delete city");
 
@@ -227,9 +215,9 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return getKeyboardWithDeletingHolidays(message, chat, user, 0);
     }
 
-    private PartialBotApiMethod<?> addHolidayByCallback(Message message, Chat chat, User user, String commandText, boolean newMessage) throws BotException {
+    private BotResponse addHolidayByCallback(Message message, Chat chat, User user, String commandText, boolean newMessage) throws BotException {
         String helpText;
-        InlineKeyboardMarkup keyboard;
+        Keyboard keyboard;
 
         String addHolidayCommand = getLocalizedCommand(commandText, ADD_HOLIDAY_COMMAND);
 
@@ -257,7 +245,7 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return buildMessageWithKeyboard(message, keyboard, helpText, newMessage);
     }
 
-    private PartialBotApiMethod<?> addHoliday(Message message, Chat chat, User user, String command) throws BotException {
+    private BotResponse addHoliday(Message message, Chat chat, User user, String command) throws BotException {
         String addHolidayCommand = getLocalizedCommand(command, ADD_HOLIDAY_COMMAND);
         log.debug("Request to add new holiday");
 
@@ -305,31 +293,24 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
             commandWaitingService.remove(commandWaiting);
         }
 
-        return buildSendMessageWithText(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        return buildMessage(message, speechService.getRandomMessageByTag(BotSpeechTag.SAVED), true);
     }
 
-    private PartialBotApiMethod<?> getHolidayListWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
+    private BotResponse getHolidayListWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         log.debug("Request to list all user tv for chat {} and user {}", chat.getChatId(), user.getUserId());
         List<Holiday> holidayList = holidayService.get(chat, user);
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(prepareTextOfUsersHolidays(holidayList));
-            sendMessage.setReplyMarkup(prepareKeyboardWithUserHolidayList());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(prepareTextOfUsersHolidays(holidayList))
+                    .setKeyboard(prepareKeyboardWithUserHolidayList())
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(prepareTextOfUsersHolidays(holidayList));
-        editMessageText.setReplyMarkup(prepareKeyboardWithUserHolidayList());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(prepareTextOfUsersHolidays(holidayList))
+                .setKeyboard(prepareKeyboardWithUserHolidayList())
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private String prepareTextOfUsersHolidays(List<Holiday> userHolidaysList) {
@@ -344,25 +325,15 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         return buf.toString();
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithSelectingYear() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        List<InlineKeyboardButton> skipAddingYear = new ArrayList<>();
-        InlineKeyboardButton skipAdditingYearButton = new InlineKeyboardButton();
-        skipAdditingYearButton.setText("${setter.holiday.addhelp.withoutyear}");
-        skipAdditingYearButton.setCallbackData(CALLBACK_ADD_HOLIDAY_COMMAND + " 0001");
-        skipAddingYear.add(skipAdditingYearButton);
-
-        rows.add(skipAddingYear);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard prepareKeyboardWithSelectingYear() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName("${setter.holiday.addhelp.withoutyear}")
+                        .setCallback(CALLBACK_ADD_HOLIDAY_COMMAND + " 0001"));
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithSelectingMonth(String commandText, Locale locale) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+    private Keyboard prepareKeyboardWithSelectingMonth(String commandText, Locale locale) {
+        List<List<KeyboardButton>> rows = new ArrayList<>();
 
         Map<String, String> monthsValues1 = new LinkedHashMap<>();
         monthsValues1.put(Month.JANUARY.getDisplayName(TextStyle.SHORT, locale), "01");
@@ -383,29 +354,21 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
         rows.add(buildMonthsKeyboardRow(monthsValues1, commandText));
         rows.add(buildMonthsKeyboardRow(monthsValues2, commandText));
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(rows);
     }
 
-    private List<InlineKeyboardButton> buildMonthsKeyboardRow(Map<String, String> monthsValues, String commandText) {
-        List<InlineKeyboardButton> monthsRow = new ArrayList<>();
+    private List<KeyboardButton> buildMonthsKeyboardRow(Map<String, String> monthsValues, String commandText) {
+        return monthsValues.entrySet().stream().map(entry -> new KeyboardButton()
+                .setName(entry.getKey())
+                .setCallback(CALLBACK_COMMAND + commandText + "." + entry.getValue()))
+                .collect(Collectors.toList());
 
-        monthsValues.forEach((key, value) -> {
-            InlineKeyboardButton monthButton = new InlineKeyboardButton();
-            monthButton.setText(key);
-            monthButton.setCallbackData(CALLBACK_COMMAND + commandText + "." + value);
-            monthsRow.add(monthButton);
-        });
-
-        return monthsRow;
     }
 
-    private InlineKeyboardMarkup prepareKeyBoardWithSelectingDayOfMonth(String commandText) throws BotException {
+    private Keyboard prepareKeyBoardWithSelectingDayOfMonth(String commandText) throws BotException {
         String addHolidayCommand = getLocalizedCommand(commandText, ADD_HOLIDAY_COMMAND);
 
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        List<List<KeyboardButton>> rows = new ArrayList<>();
 
         String date = commandText.substring(addHolidayCommand.length() + 1);
         YearMonth yearMonth;
@@ -419,114 +382,62 @@ public class HolidaySetter implements Setter<PartialBotApiMethod<?>> {
 
         int lastDayOfMonth = yearMonth.lengthOfMonth();
         for (int i = 1; i < lastDayOfMonth; i = i + 7) {
-            List<InlineKeyboardButton> daysRow = new ArrayList<>();
+            List<KeyboardButton> daysRow = new ArrayList<>();
             for (int j = i; j < i + 7; j++) {
                 if (j > lastDayOfMonth) {
                     break;
                 }
-                InlineKeyboardButton dayButton = new InlineKeyboardButton();
-                dayButton.setText(String.valueOf(j));
-                dayButton.setCallbackData(CALLBACK_COMMAND + commandText + "." + String.format("%02d", j));
+                KeyboardButton dayButton = new KeyboardButton();
+                dayButton.setName(String.valueOf(j));
+                dayButton.setCallback(CALLBACK_COMMAND + commandText + "." + String.format("%02d", j));
                 daysRow.add(dayButton);
             }
             rows.add(daysRow);
         }
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(rows);
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithUserHolidayList() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        addingMainRows(rows);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard prepareKeyboardWithUserHolidayList() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName(Emoji.DELETE.getSymbol() + "${setter.holiday.button.delete}")
+                        .setCallback(CALLBACK_DELETE_HOLIDAY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.NEW.getSymbol() + "${setter.holiday.button.add}")
+                        .setCallback(CALLBACK_ADD_HOLIDAY_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.UPDATE.getSymbol() + "${setter.holiday.button.update}")
+                        .setCallback(CALLBACK_COMMAND + UPDATE_TV_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.holiday.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back")
+        );
     }
 
-    private List<List<InlineKeyboardButton>> addingMainRows(List<List<InlineKeyboardButton>> rows) {
-        List<InlineKeyboardButton> deleteButtonRow = new ArrayList<>();
-        InlineKeyboardButton deleteButton = new InlineKeyboardButton();
-        deleteButton.setText(Emoji.DELETE.getSymbol() + "${setter.holiday.button.delete}");
-        deleteButton.setCallbackData(CALLBACK_DELETE_HOLIDAY_COMMAND);
-        deleteButtonRow.add(deleteButton);
-
-        List<InlineKeyboardButton> selectButtonRow = new ArrayList<>();
-        InlineKeyboardButton selectButton = new InlineKeyboardButton();
-        selectButton.setText(Emoji.NEW.getSymbol() + "${setter.holiday.button.add}");
-        selectButton.setCallbackData(CALLBACK_ADD_HOLIDAY_COMMAND);
-        selectButtonRow.add(selectButton);
-
-        List<InlineKeyboardButton> updateButtonRow = new ArrayList<>();
-        InlineKeyboardButton updateButton = new InlineKeyboardButton();
-        updateButton.setText(Emoji.UPDATE.getSymbol() + "${setter.holiday.button.update}");
-        updateButton.setCallbackData(CALLBACK_COMMAND + UPDATE_TV_COMMAND);
-        updateButtonRow.add(updateButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.holiday.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(deleteButtonRow);
-        rows.add(selectButtonRow);
-        rows.add(updateButtonRow);
-        rows.add(backButtonRow);
-
-        return rows;
-    }
-
-    private PartialBotApiMethod<?> buildMessageWithKeyboard(Message message, InlineKeyboardMarkup keyboard, String text, boolean newMessage) {
+    private BotResponse buildMessageWithKeyboard(Message message, Keyboard keyboard, String text, boolean newMessage) {
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(text);
-            sendMessage.setReplyMarkup(keyboard);
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(text)
+                    .setKeyboard(keyboard)
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(text);
-        editMessageText.setReplyMarkup(keyboard);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(text)
+                .setKeyboard(keyboard)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private PartialBotApiMethod<?> buildMessage(Message message, String text, boolean newMessage) {
+    private BotResponse buildMessage(Message message, String text, boolean newMessage) {
         if (newMessage) {
-            buildSendMessageWithText(message, text);
+            return new TextResponse(message)
+                    .setText(text)
+                    .setResponseSettings(FormattingStyle.HTML);
         }
-        return buildEditMessageWithText(message, text);
-    }
-
-    private SendMessage buildSendMessageWithText(Message message, String text) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableMarkdown(true);
-        sendMessage.setText(text);
-
-        return sendMessage;
-    }
-
-    private EditMessageText buildEditMessageWithText(Message message, String text) {
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableMarkdown(true);
-        editMessageText.setText(text);
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(text)
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private String limitStringLength(String name) {

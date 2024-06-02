@@ -7,15 +7,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,13 +35,13 @@ class GetidTest {
 
     @Test
     void getIdOfUnknownUsernameTest() {
-        Update update = TestUtils.getUpdateFromGroup("getid test");
+        BotRequest request = TestUtils.getRequestFromGroup("getid test");
 
         when(userService.get(anyString())).thenReturn(null);
 
-        assertThrows(BotException.class, () -> getid.parse(update));
+        assertThrows(BotException.class, () -> getid.parse(request));
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
@@ -50,60 +50,58 @@ class GetidTest {
         final String responseText = "${command.getid.id} [username](tg://user?id=1): `1`\n" +
                 "${command.getid.groupid}: `-1`\n" +
                 "${command.getid.yourid}: `1`";
-        Update update = TestUtils.getUpdateFromGroup("getid test");
+        BotRequest request = TestUtils.getRequestFromGroup("getid test");
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
 
-        SendMessage method = getid.parse(update).get(0);
+        BotResponse response = getid.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(responseText, sendMessage.getText());
+        assertEquals(responseText, textResponse.getText());
     }
 
     @Test
     void getIdOfUserFromRepliedMessageTest() {
-        final String responseText = "${command.getid.id} [username](tg://user?id=1): `1`\n" +
+        final String responseText = "${command.getid.id} [username](tg://user?id=2): `2`\n" +
                 "${command.getid.groupid}: `-1`\n" +
                 "${command.getid.yourid}: `1`";
-        Update update = TestUtils.getUpdateWithRepliedMessage("getid");
+        BotRequest request = TestUtils.getRequestWithRepliedMessage("getid");
 
-        when(userService.get(anyLong())).thenReturn(TestUtils.getUser());
+        BotResponse response = getid.parse(request).get(0);
 
-        SendMessage method = getid.parse(update).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-
-        assertEquals(responseText, sendMessage.getText());
+        assertEquals(responseText, textResponse.getText());
     }
 
     @Test
     void getIdInGroupChatTest() {
         final String responseText = "${command.getid.groupid}: `-1`\n" +
                 "${command.getid.yourid}: `1`";
-        Update update = TestUtils.getUpdateFromGroup("getid");
+        BotRequest request = TestUtils.getRequestFromGroup("getid");
 
-        SendMessage method = getid.parse(update).get(0);
+        BotResponse response = getid.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(responseText, sendMessage.getText());
+        assertEquals(responseText, textResponse.getText());
     }
 
     @Test
     void getIdTest() {
         final String responseText = "${command.getid.yourid}: `1`";
-        Update update = TestUtils.getUpdateFromPrivate("getid");
+        BotRequest request = TestUtils.getRequestFromPrivate("getid");
 
-        SendMessage method = getid.parse(update).get(0);
+        BotResponse response = getid.parse(request).get(0);
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
-        assertEquals(responseText, sendMessage.getText());
+        assertEquals(responseText, textResponse.getText());
     }
 
 }

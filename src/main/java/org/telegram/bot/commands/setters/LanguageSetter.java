@@ -7,29 +7,27 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserLanguage;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
+public class LanguageSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_LANG_COMMAND = "${setter.language.emptycommand}";
@@ -65,18 +63,18 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
-        Chat chat = new Chat().setChatId(chatId);
+        Chat chat = message.getChat();
+        User user = message.getUser();
+        Long userId = user.getUserId();
 
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            Long userId = update.getCallbackQuery().getFrom().getId();
+        if (message.isCallback()) {
             if (chatId < 0) checkAccessLevelForGroupChat(userId);
 
-            User user = new User().setUserId(userId);
             if (emptyLangCommands.contains(lowerCaseCommandText)) {
                 return getLangSetterWithKeyboard(message, chat, user, false);
             } else {
@@ -84,10 +82,8 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        Long userId = message.getFrom().getId();
         if (chatId < 0) checkAccessLevelForGroupChat(userId);
 
-        User user = new User().setUserId(userId);
         if (emptyLangCommands.contains(lowerCaseCommandText)) {
             return getLangSetterWithKeyboard(message, chat, user, true);
         } else {
@@ -102,7 +98,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         }
     }
 
-    private PartialBotApiMethod<?> selectLangByCallback(Message message, Chat chat, User user, String command) {
+    private BotResponse selectLangByCallback(Message message, Chat chat, User user, String command) {
         if (emptyLangCommands.contains(command)) {
             return getLangSetterWithKeyboard(message, chat, user, false);
         }
@@ -142,7 +138,7 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
         return getLangSetterWithKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> setLang(Message message, Chat chat, User user, String command) {
+    private BotResponse setLang(Message message, Chat chat, User user, String command) {
         if (emptyLangCommands.contains(command)) {
             return getLangSetterWithKeyboard(message, chat, user, true);
         }
@@ -175,16 +171,11 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
-
-        return sendMessage;
+        return new TextResponse(message)
+                .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
     }
 
-    private PartialBotApiMethod<?> getLangSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
+    private BotResponse getLangSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         log.debug("Request to get language setter for chat {}", chat.getChatId());
 
         ChatLanguage chatLanguage = chatLanguageService.get(chat);
@@ -207,59 +198,40 @@ public class LanguageSetter implements Setter<PartialBotApiMethod<?>> {
                 + "${setter.language.currentchat}: <b>" + setChatLang + "</b>";
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(responseText);
-            sendMessage.setReplyMarkup(prepareKeyboardWithLangButtons());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(prepareKeyboardWithLangButtons(message))
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(responseText);
-        editMessageText.setReplyMarkup(prepareKeyboardWithLangButtons());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(responseText)
+                .setKeyboard(prepareKeyboardWithLangButtons(message))
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithLangButtons() {
+    private Keyboard prepareKeyboardWithLangButtons(Message message) {
         Set<String> availableLocales = internationalizationService.getAvailableLocales();
+        List<List<KeyboardButton>> buttonsList = new ArrayList<>(3);
 
-        List<InlineKeyboardButton> setUserLangRow = new ArrayList<>();
-        availableLocales.forEach(locale -> {
-            InlineKeyboardButton setLangButton = new InlineKeyboardButton();
-            setLangButton.setText(USER + locale);
-            setLangButton.setCallbackData(CALLBACK_SET_LANG_COMMAND + USER + locale);
-            setUserLangRow.add(setLangButton);
-        });
+        buttonsList.add(availableLocales.stream().map(locale -> new KeyboardButton()
+                .setName(USER + locale)
+                .setCallback(CALLBACK_SET_LANG_COMMAND + USER + locale)
+        ).collect(Collectors.toList()));
 
-        List<InlineKeyboardButton> setChatLangRow = new ArrayList<>();
-        availableLocales.forEach(locale -> {
-            InlineKeyboardButton setLangButton = new InlineKeyboardButton();
-            setLangButton.setText(CHAT + locale);
-            setLangButton.setCallbackData(CALLBACK_SET_LANG_COMMAND + CHAT + locale);
-            setChatLangRow.add(setLangButton);
-        });
+        if (message.isGroupChat()) {
+            buttonsList.add(availableLocales.stream().map(locale -> new KeyboardButton()
+                    .setName(CHAT + locale)
+                    .setCallback(CALLBACK_SET_LANG_COMMAND + CHAT + locale)
+            ).collect(Collectors.toList()));
+        }
 
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.language.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
+        buttonsList.add(List.of(
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.language.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back")));
 
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(setUserLangRow);
-        rows.add(setChatLangRow);
-        rows.add(backButtonRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+        return new Keyboard(buttonsList);
     }
 
 }

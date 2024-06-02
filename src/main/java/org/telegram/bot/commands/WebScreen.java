@@ -6,7 +6,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
@@ -14,12 +17,6 @@ import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +27,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class WebScreen implements Command<PartialBotApiMethod<?>> {
+public class WebScreen implements Command {
 
     private static final String DIMENSION = "1350x950";
     private static final String TIMEOUT_MS = "5000";
@@ -49,41 +46,36 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
     private final NetworkUtils networkUtils;
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         String token = propertiesConfig.getScreenshotMachineToken();
         if (StringUtils.isEmpty(token)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        Message message = getMessageFromUpdate(update);
+        Message message = request.getMessage();
         bot.sendUploadPhoto(message.getChatId());
-        String textMessage = commandWaitingService.getText(message);
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         URL url;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             Message replyToMessage = message.getReplyToMessage();
             if (replyToMessage != null) {
                 if (replyToMessage.hasText()) {
                     url = findFirstUrlInText(replyToMessage.getText());
                 } else {
                     commandWaitingService.add(message, this.getClass());
-                    return returnOneResult(getResponseForEmptyMessage(message));
+                    return returnResponse(new TextResponse(message).setText("${command.webscreen.commandwaitingstart}"));
                 }
             } else {
                 commandWaitingService.add(message, this.getClass());
-                return returnOneResult(getResponseForEmptyMessage(message));
+                return returnResponse(new TextResponse(message).setText("${command.webscreen.commandwaitingstart}"));
             }
         } else {
-            url = findFirstUrlInText(textMessage);
+            url = findFirstUrlInText(commandArgument);
         }
 
         log.debug("Request to get screen of url: {}", url);
-        SendPhoto sendPhoto = new SendPhoto();
-
         InputStream screen;
         try {
             screen = networkUtils.getFileFromUrlWithLimit(API_URL + "&key=" + token + "&url=" + url);
@@ -94,11 +86,8 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
 
         botStats.incrementScreenshots();
 
-        sendPhoto.setPhoto(new InputFile(screen, "webscreen.png"));
-        sendPhoto.setReplyToMessageId(message.getMessageId());
-        sendPhoto.setChatId(message.getChatId().toString());
-
-        return returnOneResult(sendPhoto);
+        return returnResponse(new FileResponse(message)
+                .addFile(new File(FileType.IMAGE, screen, "webscreen.png")));
     }
 
     private URL findFirstUrlInText(String text) {
@@ -109,12 +98,4 @@ public class WebScreen implements Command<PartialBotApiMethod<?>> {
         }
     }
 
-    private SendMessage getResponseForEmptyMessage(Message message) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText("${command.webscreen.commandwaitingstart}");
-
-        return sendMessage;
-    }
 }

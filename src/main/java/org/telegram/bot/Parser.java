@@ -5,82 +5,116 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
+import org.telegram.bot.commands.Command;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.mapper.TelegramObjectMapper;
 import org.telegram.bot.services.executors.MethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.telegram.bot.utils.TelegramUtils.getMessage;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
 public class Parser {
 
+    private final TelegramObjectMapper telegramObjectMapper;
     private final List<MethodExecutor> methodExecutors;
     private final BotStats botStats;
+    private final Map<String, MethodExecutor> methodExecutorMap = new ConcurrentHashMap<>();
 
-    public Parser(@Lazy List<MethodExecutor> methodExecutors, BotStats botStats) {
+    public Parser(TelegramObjectMapper telegramObjectMapper, @Lazy List<MethodExecutor> methodExecutors, BotStats botStats) {
+        this.telegramObjectMapper = telegramObjectMapper;
         this.methodExecutors = methodExecutors;
         this.botStats = botStats;
     }
 
     @Async
-    public void parseAsync(Update update, Command<?> command) {
-        List<PartialBotApiMethod<?>> methods = new ArrayList<>(1);
+    public void parseAsync(BotRequest botRequest, Command command) {
+        if (botRequest == null) {
+            return;
+        }
+
+        List<BotResponse> responseList = new ArrayList<>(1);
         try {
-            methods.addAll(command.parse(update));
+            responseList.addAll(command.parse(botRequest));
         } catch (Exception e) {
-            PartialBotApiMethod<?> method = handleException(update, e);
-            if (method != null) {
-                methods.add(method);
+            BotResponse botResponse = handleException(botRequest, e);
+            if (botResponse != null) {
+                responseList.add(botResponse);
             }
         } finally {
-            executeMethod(update, methods);
+            executeMethod(botRequest, responseList);
         }
     }
 
-    private PartialBotApiMethod<?> handleException(Update update, Throwable e) {
+    private TextResponse handleException(BotRequest botRequest, Throwable e) {
         BotException botException;
         if (e instanceof BotException) {
             botException = (BotException) e;
         } else if (e.getCause() instanceof BotException) {
             botException = (BotException) e.getCause();
         } else {
-            botStats.incrementErrors(update, e, "неожиданная верхнеуровневая ошибка");
+            botStats.incrementErrors(botRequest, e, "Unexpected general error: ");
             log.error("Unexpected error: ", e);
             return null;
         }
 
-        Message message = getMessage(update);
+        Message message = botRequest.getMessage();
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(botException.getMessage());
-
-        return sendMessage;
+        return new TextResponse()
+                .setReplyToMessageId(message.getMessageId())
+                .setChatId(message.getChatId())
+                .setText(botException.getMessage());
     }
 
-    private void executeMethod(Update update, List<PartialBotApiMethod<?>> methods) {
-        if (methods == null) {
+    @Async
+    public void executeMethod(BotRequest botRequest, List<BotResponse> responseList) {
+        if (responseList == null || responseList.isEmpty()) {
             return;
         }
 
-        methods.forEach(method -> methodExecutors
-                .stream()
-                .filter(methodExecutor -> methodExecutor.getMethod().equals(method.getMethod()))
-                .findFirst()
-                .ifPresentOrElse(
-                        methodExecutor -> methodExecutor.executeMethod(method, update),
-                        () -> log.error("Missing executor for {}", method.getMethod())));
+        telegramObjectMapper.toTelegramMethod(responseList)
+                .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
 
         botStats.incrementCommandsProcessed();
+    }
+
+    @Async
+    public void executeMethod(BotResponse response) {
+        if (response == null) {
+            return;
+        }
+
+        PartialBotApiMethod<?> method = telegramObjectMapper.toTelegramMethod(response);
+        getExecutor(method.getMethod()).executeMethod(method);
+        botStats.incrementCommandsProcessed();
+    }
+
+    @Async
+    public void executeMethod(List<BotResponse> responseList) {
+        if (responseList == null || responseList.isEmpty()) {
+            return;
+        }
+
+        telegramObjectMapper.toTelegramMethod(responseList)
+                .forEach(method -> getExecutor(method.getMethod()).executeMethod(method));
+
+        botStats.incrementCommandsProcessed();
+    }
+
+    private MethodExecutor getExecutor(String methodName) {
+        return methodExecutorMap.computeIfAbsent(methodName, key -> methodExecutors
+                .stream()
+                .filter(methodExecutor -> methodName.equals(methodExecutor.getMethod()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Missing executor for " + methodName)));
     }
 
 }

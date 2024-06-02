@@ -4,7 +4,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.bot.domain.model.request.Message;
 
 import java.util.List;
 
@@ -47,7 +47,7 @@ public interface UserStatsService {
      *
      * @param message - received Message.
      */
-    void updateEntitiesInfo(Message message, boolean editedMessage);
+    void updateEntitiesInfo(Message message);
 
     /**
      * Get list of users of chat.

@@ -15,11 +15,14 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.GigaChatMessage;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.enums.GigaChatRole;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.BotException;
@@ -30,11 +33,6 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.GigaChatMessageService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -45,7 +43,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>> {
+public class GigaChat implements SberApiProvider, Command {
 
     private static final String GIGA_CHAT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1/";
     private static final String COMPLETIONS_PATH = "chat/completions";
@@ -68,7 +66,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
     }
 
     @Override
-    public List<PartialBotApiMethod<?>> parse(Update update) {
+    public List<BotResponse> parse(BotRequest request) {
         String token;
         try {
             token = sberTokenProvider.getToken(getScope());
@@ -77,20 +75,17 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        org.telegram.telegrambots.meta.api.objects.Message message = getMessageFromUpdate(update);
+        org.telegram.bot.domain.model.request.Message message = request.getMessage();
         Long chatId = message.getChatId();
-        String textMessage = commandWaitingService.getText(message);
         String responseText;
 
-        if (textMessage == null) {
-            textMessage = cutCommandInText(message.getText());
-        }
+        String commandArgument = commandWaitingService.getText(message);
 
         bot.sendTyping(chatId);
         byte[] image = null;
-        if (textMessage != null) {
-            Chat chat = new Chat().setChatId(chatId);
-            User user = new User().setUserId(message.getFrom().getId());
+        if (commandArgument != null) {
+            Chat chat = message.getChat();
+            User user = message.getUser();
             List<GigaChatMessage> messagesHistory;
 
             if (chatId < 0) {
@@ -100,7 +95,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
             }
 
             responseText = getResponse(
-                    buildRequest(messagesHistory, textMessage),
+                    buildRequest(messagesHistory, commandArgument),
                     token);
 
             image = getImage(responseText, token);
@@ -111,7 +106,7 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
 
             messagesHistory.addAll(
                     List.of(
-                            new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.USER).setContent(textMessage),
+                            new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.USER).setContent(commandArgument),
                             new GigaChatMessage().setChat(chat).setUser(user).setRole(GigaChatRole.ASSISTANT).setContent(responseText)));
             gigaChatMessageService.update(messagesHistory);
         } else {
@@ -121,23 +116,15 @@ public class GigaChat implements SberApiProvider, Command<PartialBotApiMethod<?>
         }
 
         if (image != null) {
-            SendPhoto sendPhoto = new SendPhoto();
-            sendPhoto.setPhoto(new InputFile(new ByteArrayInputStream(image), "image"));
-            sendPhoto.setCaption(responseText);
-            sendPhoto.setParseMode("HTML");
-            sendPhoto.setReplyToMessageId(message.getMessageId());
-            sendPhoto.setChatId(chatId);
-
-            return returnOneResult(sendPhoto);
+            return returnResponse(new FileResponse(message)
+                    .addFile(new File(FileType.IMAGE, new ByteArrayInputStream(image), "image"))
+                    .setText(responseText)
+                    .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-        sendMessage.enableMarkdown(true);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
     private ChatRequest buildRequest(List<GigaChatMessage> gigaChatMessages, String text) {

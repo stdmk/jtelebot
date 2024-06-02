@@ -4,21 +4,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserStats;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +38,7 @@ import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Top implements Command<SendMessage> {
+public class Top implements Command {
 
     private final Bot bot;
     private final UserStatsService userStatsService;
@@ -69,52 +71,46 @@ public class Top implements Command<SendMessage> {
     }
 
     @Override
-    public List<SendMessage> parse(Update update) throws BotException {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) throws BotException {
+        Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = cutCommandInText(message.getText());
         String responseText;
         Chat chat = new Chat().setChatId(message.getChatId());
 
         User user;
-        if (textMessage == null) {
+        String commandArgument = message.getCommandArgument();
+        if (commandArgument == null) {
             Message repliedMessage = message.getReplyToMessage();
 
             Long userId;
-            userId = Objects.requireNonNullElse(repliedMessage, message).getFrom().getId();
+            userId = Objects.requireNonNullElse(repliedMessage, message).getUser().getUserId();
             user = new User().setUserId(userId);
 
             log.debug("Request to get top of user {} for chat {}", user, chat);
             responseText = getTopOfUser(chat, user);
         } else {
-            user = userService.get(textMessage);
+            user = userService.get(commandArgument);
             if (user != null) {
                 log.debug("Request to get top of user {} for chat {}", user, chat);
                 responseText = getTopOfUser(chat, user);
             } else {
-                log.debug("Request to get top of users for chat {} by param {}", chat, textMessage);
-                responseText = getTopListOfUsers(chat, textMessage);
+                log.debug("Request to get top of users for chat {} by param {}", chat, commandArgument);
+                responseText = getTopListOfUsers(chat, commandArgument);
             }
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(responseText);
-        sendMessage.setDisableNotification(true);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(new ResponseSettings()
+                        .setFormattingStyle(FormattingStyle.HTML)
+                        .setNotification(false)));
     }
 
-    public SendMessage getTopByChat(Chat chat) {
-        SendMessage sendMessage = new SendMessage();
-
-        sendMessage.setChatId(chat.getChatId().toString());
-        sendMessage.enableHtml(true);
-        sendMessage.setText(getTopListOfUsers(chat, topListMonthlyParam) + "\n${command.top.monthlyclearcaption}");
-
-        return sendMessage;
+    public TextResponse getTopByChat(Chat chat) {
+        return new TextResponse()
+                .setChatId(chat.getChatId())
+                .setText(getTopListOfUsers(chat, topListMonthlyParam) + "\n${command.top.monthlyclearcaption}")
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     /**

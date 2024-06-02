@@ -6,21 +6,17 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.InternationalizationService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +24,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
+public class ChatGPTSetter implements Setter<BotResponse> {
 
     private static final String CALLBACK_COMMAND = "${setter.command} ";
     private static final String EMPTY_CHATGPT_COMMAND = "chatgpt";
@@ -57,28 +53,26 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
     }
 
     @Override
-    public PartialBotApiMethod<?> set(Update update, String commandText) {
-        Message message = getMessageFromUpdate(update);
-        Chat chat = new Chat().setChatId(message.getChatId());
+    public BotResponse set(BotRequest request, String commandText) {
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
         String lowerCaseCommandText = commandText.toLowerCase();
 
-        if (update.hasCallbackQuery()) {
-            User user = new User().setUserId(update.getCallbackQuery().getFrom().getId());
-
+        if (message.isCallback()) {
             if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {
                 return resetCacheByCallback(message, chat, user);
             }
             return getResetCacheSetterWithKeyboard(message, chat, user, false);
         }
 
-        User user = new User().setUserId(message.getFrom().getId());
         if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {
             return resetCacheByCallback(message, chat, user);
         }
         return getResetCacheSetterWithKeyboard(message, chat, user, true);
     }
 
-    private PartialBotApiMethod<?> resetCacheByCallback(Message message, Chat chat, User user) {
+    private BotResponse resetCacheByCallback(Message message, Chat chat, User user) {
         if (chat.getChatId() < 0) {
             chatGPTMessageService.reset(chat);
         } else {
@@ -88,7 +82,7 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
         return getResetCacheSetterWithKeyboard(message, chat, user, false);
     }
 
-    private PartialBotApiMethod<?> getResetCacheSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
+    private BotResponse getResetCacheSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         List<ChatGPTMessage> messages;
         if (chat.getChatId() < 0) {
             messages = chatGPTMessageService.getMessages(chat);
@@ -100,46 +94,25 @@ public class ChatGPTSetter implements Setter<PartialBotApiMethod<?>> {
                 "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>";
 
         if (newMessage) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.enableHtml(true);
-            sendMessage.setText(responseText);
-            sendMessage.setReplyMarkup(prepareKeyboardWithResetCacheButton());
-
-            return sendMessage;
+            return new TextResponse(message)
+                    .setText(responseText)
+                    .setKeyboard(prepareKeyboardWithResetCacheButton())
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(message.getChatId().toString());
-        editMessageText.setMessageId(message.getMessageId());
-        editMessageText.enableHtml(true);
-        editMessageText.setText(responseText);
-        editMessageText.setReplyMarkup(prepareKeyboardWithResetCacheButton());
-
-        return editMessageText;
+        return new EditResponse(message)
+                .setText(responseText)
+                .setKeyboard(prepareKeyboardWithResetCacheButton())
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private InlineKeyboardMarkup prepareKeyboardWithResetCacheButton() {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        List<InlineKeyboardButton> resetCacheButtonRow = new ArrayList<>();
-        InlineKeyboardButton resetCacheButton = new InlineKeyboardButton();
-        resetCacheButton.setText(Emoji.WASTEBASKET.getSymbol() + "${setter.chatgpt.button.resetcache}");
-        resetCacheButton.setCallbackData(CALLBACK_RESET_CACHE_COMMAND);
-        resetCacheButtonRow.add(resetCacheButton);
-
-        List<InlineKeyboardButton> backButtonRow = new ArrayList<>();
-        InlineKeyboardButton backButton = new InlineKeyboardButton();
-        backButton.setText(Emoji.BACK.getSymbol() + "${setter.chatgpt.button.settings}");
-        backButton.setCallbackData(CALLBACK_COMMAND + "back");
-        backButtonRow.add(backButton);
-
-        rows.add(resetCacheButtonRow);
-        rows.add(backButtonRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard prepareKeyboardWithResetCacheButton() {
+        return new Keyboard(
+                new KeyboardButton()
+                        .setName(Emoji.WASTEBASKET.getSymbol() + "${setter.chatgpt.button.resetcache}")
+                        .setCallback(CALLBACK_RESET_CACHE_COMMAND),
+                new KeyboardButton()
+                        .setName(Emoji.BACK.getSymbol() + "${setter.chatgpt.button.settings}")
+                        .setCallback(CALLBACK_COMMAND + "back"));
     }
 }

@@ -5,21 +5,24 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.Command;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserZodiac;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.enums.Zodiac;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -27,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,9 +40,10 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Horoscope implements Command<SendMessage> {
+public class Horoscope implements Command {
 
-    private static final String HOROSCOPE_DATA_URL = "https://ignio.com/r/daily/";
+    private static final String HOROSCOPE_DATA_URL = "https://ignio.com/r/export/utf/xml/daily/";
+    private static final String HOROSCOPE_CURRENT_DATA_URL = "https://ignio.com/r/daily/";
 
     private final Bot bot;
     private final UserZodiacService userZodiacService;
@@ -46,34 +51,37 @@ public class Horoscope implements Command<SendMessage> {
     private final XmlMapper xmlMapper;
 
     @Override
-    public List<SendMessage> parse(Update update) {
-        Message message = getMessageFromUpdate(update);
+    public List<BotResponse> parse(BotRequest request) {
+        Message message = request.getMessage();
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
-        String textMessage = cutCommandInText(message.getText());
+
+        String commandArgument = message.getCommandArgument();
         String responseText;
-        Chat chat = new Chat().setChatId(chatId);
-        User user = new User().setUserId(message.getFrom().getId());
+        Chat chat = message.getChat();
+        User user = message.getUser();
 
         org.telegram.bot.enums.Horoscope horoscopeType;
-        if (textMessage == null) {
+        if (commandArgument == null) {
             horoscopeType = org.telegram.bot.enums.Horoscope.COM;
         } else {
-            if (textMessage.startsWith("_")) {
-                textMessage = textMessage.substring(1);
+            if (commandArgument.startsWith("_")) {
+                commandArgument = commandArgument.substring(1);
             }
             try {
-                horoscopeType = org.telegram.bot.enums.Horoscope.findByName(textMessage);
+                horoscopeType = org.telegram.bot.enums.Horoscope.findByName(commandArgument);
             } catch (IllegalArgumentException e) {
                 horoscopeType = null;
             }
         }
 
+        ResponseSettings responseSettings = new ResponseSettings().setFormattingStyle(FormattingStyle.HTML);
+
         if (horoscopeType != null) {
             UserZodiac userZodiac = userZodiacService.get(chat, user);
             if (userZodiac == null || Zodiac.NOT_CHOSEN.equals(userZodiac.getZodiac())) {
                 log.debug("Request to {} horoscope for all zodiacs", horoscopeType);
-                return mapToSendMessages(getHoroscopeForAllZodiacs(horoscopeType), message);
+                return mapToTextResponseList(getHoroscopeForAllZodiacs(horoscopeType), message, responseSettings);
             } else {
                 log.debug("Request to get {} horoscope for {}", horoscopeType, userZodiac);
                 responseText = getHoroscopeForZodiacs(horoscopeType, userZodiac.getZodiac());
@@ -82,13 +90,9 @@ public class Horoscope implements Command<SendMessage> {
             responseText = getResponseTextWithHoroscopeTypeList();
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.enableHtml(true);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-
-        return returnOneResult(sendMessage);
+        return returnResponse(new TextResponse(message)
+                .setText(responseText)
+                .setResponseSettings(responseSettings));
     }
 
     private String getResponseTextWithHoroscopeTypeList() {
@@ -113,7 +117,7 @@ public class Horoscope implements Command<SendMessage> {
         result.add("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n(" + horoscopeData.getDate().getToday() + ")\n\n");
         result.addAll(Arrays.stream(Zodiac.values())
                 .filter(zodiac -> !Zodiac.NOT_CHOSEN.equals(zodiac))
-                .map(zodiac -> "<u><a href=\"" + HOROSCOPE_DATA_URL + "\">" + zodiac.getEmoji() + zodiac.getName() + "</a></u>"
+                .map(zodiac -> "<u><a href=\"" + HOROSCOPE_CURRENT_DATA_URL + "\">" + zodiac.getEmoji() + zodiac.getName() + "</a></u>"
                         + getHoroscopeElementByZodiacName(horoscopeData, zodiac).getToday() + "\n")
                 .collect(Collectors.toList()));
 
@@ -128,7 +132,7 @@ public class Horoscope implements Command<SendMessage> {
 
         HoroscopeElement horoscopeElement = getHoroscopeElementByZodiacName(horoscopeData, zodiac);
 
-        buf.append("<u><a href=\"").append(HOROSCOPE_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
+        buf.append("<u><a href=\"").append(HOROSCOPE_CURRENT_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
         buf.append(horoscopeElement.getToday());
 
         return buf.toString();
@@ -149,12 +153,27 @@ public class Horoscope implements Command<SendMessage> {
         String horoscopeFileName = "horoscope/" + horoscope.name().toLowerCase(Locale.ROOT) + ".xml";
         File file = new File(horoscopeFileName);
 
+        if (!file.exists()) {
+            this.updateData();
+        }
+
         try {
             return xmlMapper.readValue(file, HoroscopeData.class);
         } catch (IOException e) {
             log.error("Cannot read file {}: {}", horoscopeFileName, e.getMessage());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
+    }
+
+    public void updateData() {
+        Arrays.stream(org.telegram.bot.enums.Horoscope.values()).forEach(horoscope -> {
+            String horoscopeName = horoscope.name().toLowerCase(Locale.ROOT) + ".xml";
+            try {
+                FileUtils.copyURLToFile(new URL(HOROSCOPE_DATA_URL + horoscopeName), new File("horoscope/" + horoscopeName));
+            } catch (IOException e) {
+                log.error("Failed to download horoscope {}: {}", horoscopeName, e.getMessage());
+            }
+        });
     }
 
     @Data

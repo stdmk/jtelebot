@@ -14,13 +14,13 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -58,8 +58,8 @@ class KinopoiskTest {
 
     @Test
     void parseWithoutTokenTest() {
-        Update update = TestUtils.getUpdateFromGroup();
-        assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        BotRequest request = TestUtils.getRequestFromGroup();
+        assertThrows(BotException.class, () -> kinopoisk.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
     }
 
@@ -77,33 +77,33 @@ class KinopoiskTest {
                                 apiErrorResponse.getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        Update update = TestUtils.getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
 
-        BotException botException = assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        BotException botException = assertThrows(BotException.class, () -> kinopoisk.parse(request));
         assertEquals("${command.kinopoisk.errorfromapi}: " + expectedErrorText, botException.getMessage());
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
     }
 
     @Test
     void parseRandomMovieWithRestClientExceptionTest() {
-        Update update = TestUtils.getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenThrow(new RestClientException("error"));
 
-        assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
     @Test
     void parseRandomMovieWithEmptyResponseTest() {
-        Update update = TestUtils.getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-        assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
@@ -132,27 +132,27 @@ class KinopoiskTest {
                 "/movie_20 — linkedMovieName1\n" +
                 "/movie_21 — linkedMovieName2\n" +
                 "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
-        Update update = TestUtils.getUpdateFromGroup();
+        BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = kinopoisk.parse(update).get(0);
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
-        assertEquals(expectedCaption, sendPhoto.getCaption());
+        BotResponse response = kinopoisk.parse(request).get(0);
+        FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
+        assertEquals(expectedCaption, photo.getText());
 
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
     }
 
     @Test
     void parseMovieByCorruptedIdTest() {
-        Update update = TestUtils.getUpdateFromGroup("movie_a");
+        BotRequest request = TestUtils.getRequestFromGroup("movie_a");
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
 
-        assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
     }
 
     @Test
@@ -179,33 +179,33 @@ class KinopoiskTest {
                 "/movie_20 — linkedMovieName1\n" +
                 "/movie_21 — linkedMovieName2\n" +
                 "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
-        Update update = TestUtils.getUpdateFromGroup("movie_" + MOVIE_ID);
+        BotRequest request = TestUtils.getRequestFromGroup("movie_" + MOVIE_ID);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = kinopoisk.parse(update).get(0);
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
-        assertEquals(expectedCaption, sendPhoto.getCaption());
+        BotResponse response = kinopoisk.parse(request).get(0);
+        FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
+        assertEquals(expectedCaption, photo.getText());
 
-        verify(bot).sendUploadPhoto(update.getMessage().getChatId());
+        verify(bot).sendUploadPhoto(request.getMessage().getChatId());
     }
 
     @Test
     void parseSearchMovieFoundNothingTest() {
         final String movieName = "movie name";
-        Update update = TestUtils.getUpdateFromGroup("movie " + movieName);
+        BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName);
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(0);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
-        assertThrows(BotException.class, () -> kinopoisk.parse(update));
+        assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -234,7 +234,7 @@ class KinopoiskTest {
                 "/movie_20 — linkedMovieName1\n" +
                 "/movie_21 — linkedMovieName2\n" +
                 "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
-        Update update = TestUtils.getUpdateFromGroup("movie " + movieName + "(" + movieYear + ")");
+        BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName + "(" + movieYear + ")");
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(getSomeMovie()));
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
@@ -243,11 +243,11 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = kinopoisk.parse(update).get(0);
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
-        assertEquals(expectedCaption, sendPhoto.getCaption());
+        BotResponse response = kinopoisk.parse(request).get(0);
+        FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
+        assertEquals(expectedCaption, photo.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -275,7 +275,7 @@ class KinopoiskTest {
                 "${command.kinopoisk.movieinfo.similar}:\n" +
                 "/movie_20 — linkedMovieName1\n" +
                 "/movie_21 — linkedMovieName2\n";
-        Update update = TestUtils.getUpdateFromGroup("movie " + movieName + "(" + movieYear + ")");
+        BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName + "(" + movieYear + ")");
         Kinopoisk.Movie foundMovie = getSomeMovie().setId(null);
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(foundMovie));
 
@@ -283,11 +283,11 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + movieYear, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = kinopoisk.parse(update).get(0);
-        SendPhoto sendPhoto = TestUtils.checkDefaultSendPhotoParams(method);
-        assertEquals(expectedCaption, sendPhoto.getCaption());
+        BotResponse response = kinopoisk.parse(request).get(0);
+        FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
+        assertEquals(expectedCaption, photo.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -302,7 +302,7 @@ class KinopoiskTest {
                 "/movie_124\n" +
                 "\n" +
                 "${command.kinopoisk.totalfound}: <b>2</b>\n";
-        Update update = TestUtils.getUpdateFromGroup("movie " + movieName);
+        BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName);
         Kinopoisk.Movie foundMovie1 = getSomeMovie();
         Kinopoisk.Movie foundMovie2 = getSomeMovie().setId(124L);
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(2).setDocs(List.of(foundMovie1, foundMovie2));
@@ -311,11 +311,11 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
-        PartialBotApiMethod<?> method = kinopoisk.parse(update).get(0);
-        SendMessage sendMessage = TestUtils.checkDefaultSendMessageParams(method);
-        assertEquals(expectedResponseText, sendMessage.getText());
+        BotResponse response = kinopoisk.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
 
-        verify(bot).sendTyping(update.getMessage().getChatId());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     private Kinopoisk.MovieSearchResult getSomeMovieSearchResult() {
