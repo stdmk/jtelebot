@@ -139,7 +139,7 @@ public class Bot extends TelegramLongPollingBot {
             CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
             if (analyzerCommandProperties == null
                     || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
-                parser.executeMethod(botRequest, messageAnalyzer.analyze(botRequest));
+                parser.executeAsync(botRequest, messageAnalyzer.analyze(botRequest));
             }
         });
     }
@@ -194,11 +194,11 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     public void sendMessage(TextResponse textResponse) {
-        parser.executeMethod(textResponse);
+        parser.executeAsync(textResponse);
     }
 
     public void sendDocument(FileResponse fileResponse) {
-        parser.executeMethod(fileResponse);
+        parser.executeAsync(fileResponse);
     }
 
     public byte[] getFileFromTelegram(String fileId) {

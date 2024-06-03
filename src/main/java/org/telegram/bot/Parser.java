@@ -50,7 +50,10 @@ public class Parser {
                 responseList.add(botResponse);
             }
         } finally {
-            executeMethod(botRequest, responseList);
+            telegramObjectMapper.toTelegramMethod(responseList)
+                    .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
+
+            botStats.incrementCommandsProcessed();
         }
     }
 
@@ -75,7 +78,7 @@ public class Parser {
     }
 
     @Async
-    public void executeMethod(BotRequest botRequest, List<BotResponse> responseList) {
+    public void executeAsync(BotRequest botRequest, List<BotResponse> responseList) {
         if (responseList == null || responseList.isEmpty()) {
             return;
         }
@@ -87,25 +90,13 @@ public class Parser {
     }
 
     @Async
-    public void executeMethod(BotResponse response) {
+    public void executeAsync(BotResponse response) {
         if (response == null) {
             return;
         }
 
         PartialBotApiMethod<?> method = telegramObjectMapper.toTelegramMethod(response);
         getExecutor(method.getMethod()).executeMethod(method);
-        botStats.incrementCommandsProcessed();
-    }
-
-    @Async
-    public void executeMethod(List<BotResponse> responseList) {
-        if (responseList == null || responseList.isEmpty()) {
-            return;
-        }
-
-        telegramObjectMapper.toTelegramMethod(responseList)
-                .forEach(method -> getExecutor(method.getMethod()).executeMethod(method));
-
         botStats.incrementCommandsProcessed();
     }
 

@@ -24,7 +24,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class TelegramObjectMapper {
 
     private final BotStats botStats;
 
-    public @Nullable BotRequest toBotRequest(Update update) {
+    public BotRequest toBotRequest(Update update) {
         return new BotRequest()
                 .setMessage(getMessage(update));
     }
