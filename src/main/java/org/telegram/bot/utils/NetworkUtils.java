@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.Bot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +22,6 @@ public class NetworkUtils {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
     private static final Integer TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES = 52428800;
-
-    private final Bot bot;
 
     public InputStream getFileFromUrlWithLimit(String url) throws IOException {
         return getFileFromUrlWithLimit(url, TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES);

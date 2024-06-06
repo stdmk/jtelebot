@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -94,15 +95,15 @@ public class Qr implements Command, MessageAnalyzer {
     public List<BotResponse> analyze(BotRequest request) {
         Message message = request.getMessage();
 
-        if (message.hasAttachment()) {
+        if (message.hasAttachment() && MessageContentType.PHOTO.equals(message.getMessageContentType())) {
             message.getAttachments()
                     .stream()
                     .max(Comparator.comparing(Attachment::getSize))
                     .map(photo -> {
                         BufferedImage image;
 
-                        try {
-                            image = ImageIO.read(bot.getInputStreamFromTelegramFile(photo.getFileId()));
+                        try (InputStream inputStream = bot.getInputStreamFromTelegramFile(photo.getFileId())) {
+                            image = ImageIO.read(inputStream);
                         } catch (IOException e) {
                             log.error("Failed to read image", e);
                             botStats.incrementErrors(request, e, "Failed to read image");

@@ -76,21 +76,18 @@ public class Metadata implements Command {
         } else {
             repliedMessageId = messageWithFile.getMessageId();
 
-            InputStream file = getFileFromMessage(messageWithFile.getAttachments().get(0));
-
-            try {
-                responseText = getMetadata(file);
-            } catch (IOException | ImageProcessingException e) {
+            try (InputStream file = getFileFromMessage(messageWithFile.getAttachments().get(0))) {
+                try {
+                    responseText = getMetadata(file);
+                } catch (ImageProcessingException e) {
+                    log.error("Failed to get metadata from file", e);
+                    botStats.incrementErrors(request, e, "Failed to get metadata from file");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                }
+            } catch (IOException e) {
                 log.error("Failed to get metadata from file", e);
                 botStats.incrementErrors(request, e, "Failed to get metadata from file");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-            } finally {
-                try {
-                    file.close();
-                } catch (IOException e) {
-                    log.error("Failed to close inputstream of file", e);
-                    botStats.incrementErrors(request, e, "Failed to close inputstream of file");
-                }
             }
         }
 

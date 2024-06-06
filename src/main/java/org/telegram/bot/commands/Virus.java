@@ -22,6 +22,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -94,13 +95,16 @@ public class Virus implements Command {
     }
 
     private String sendFileToScan(Attachment attachment) {
-        InputStream file = bot.getInputStreamFromTelegramFile(attachment.getFileId());
-
-        try {
-            return virusScanner.scan(file);
+        String scanResult;
+        try (InputStream file = bot.getInputStreamFromTelegramFile(attachment.getFileId())) {
+            scanResult = virusScanner.scan(file);
+        } catch (IOException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         } catch (VirusScanException e) {
             return handleException(e);
         }
+
+        return scanResult;
     }
 
     private String sendUrlToScan(String urlString) {

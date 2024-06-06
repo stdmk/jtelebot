@@ -202,8 +202,8 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     public byte[] getFileFromTelegram(String fileId) {
-        try {
-            return IOUtils.toByteArray(getInputStreamFromTelegramFile(fileId));
+        try (InputStream inputStream = getInputStreamFromTelegramFile(fileId)) {
+            return IOUtils.toByteArray(inputStream);
         } catch (IOException e) {
             log.error("Failed to get file from telegram", e);
             botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
