@@ -68,6 +68,7 @@ class WordTest {
     void parseWithoutResponse() {
         BotRequest request = TestUtils.getRequestFromGroup("word word");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("error"));
 
@@ -77,10 +78,32 @@ class WordTest {
     }
 
     @Test
-    void parseWithEmptyResponseTest() {
+    void parseWithNullResponseTest() {
         BotRequest request = TestUtils.getRequestFromGroup("word word");
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
+                .thenReturn(response);
+
+        assertThrows(BotException.class, () -> word.parse(request));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
+        verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+    }
+
+    @Test
+    void parseWithEmptyResponseTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("word word");
+        Word.WiktionaryData wiktionaryData = new Word.WiktionaryData()
+                .setQuery(new Word.Query()
+                        .setPages(Map.of(
+                                "123", new Word.PageData()
+                                        .setPageid(123)
+                                        .setExtract(""))));
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
+        when(response.getBody()).thenReturn(wiktionaryData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
@@ -101,6 +124,7 @@ class WordTest {
                                         .setPageid(123)
                                         .setExtract(TestUtils.getResourceAsString("wiktionary/wiktionary_response")))));
 
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(response.getBody()).thenReturn(wiktionaryData);
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))

@@ -80,7 +80,12 @@ public class Word implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
 
-        return buildResponseText(optionalExtract.get());
+        String data = optionalExtract.get();
+        if (data.isBlank()) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
+        }
+
+        return buildResponseText(data);
     }
 
     private List<String> buildResponseText(String data) {
