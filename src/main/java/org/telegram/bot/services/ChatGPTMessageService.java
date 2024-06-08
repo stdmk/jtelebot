@@ -10,6 +10,7 @@ public interface ChatGPTMessageService {
     List<ChatGPTMessage> getMessages(Chat chat);
     List<ChatGPTMessage> getMessages(User user);
     void update(List<ChatGPTMessage> messages);
+    List<ChatGPTMessage> update(List<ChatGPTMessage> messages, int deletingCount);
     void reset(Chat chat);
     void reset(User user);
 }

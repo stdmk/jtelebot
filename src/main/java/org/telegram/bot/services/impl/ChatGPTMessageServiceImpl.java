@@ -38,17 +38,22 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
         Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
         if (messages.size() > chatGPTContextSize) {
             int deletingCount = messages.size() - chatGPTContextSize;
-            List<ChatGPTMessage> chatGPTMessagesForDelete = messages
-                    .stream()
-                    .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
-                    .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
-                    .limit(deletingCount)
-                    .collect(Collectors.toList());
-            messages.removeAll(chatGPTMessagesForDelete);
-            chatGPTMessageRepository.deleteAll(chatGPTMessagesForDelete);
+            update(messages, deletingCount);
         }
+    }
 
-        chatGPTMessageRepository.saveAll(messages);
+    @Override
+    public List<ChatGPTMessage> update(List<ChatGPTMessage> messages, int deletingCount) {
+        List<ChatGPTMessage> chatGPTMessagesForDelete = messages
+                .stream()
+                .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
+                .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
+                .limit(deletingCount)
+                .collect(Collectors.toList());
+        messages.removeAll(chatGPTMessagesForDelete);
+        chatGPTMessageRepository.deleteAll(chatGPTMessagesForDelete);
+
+        return chatGPTMessageRepository.saveAll(messages);
     }
 
     @Override

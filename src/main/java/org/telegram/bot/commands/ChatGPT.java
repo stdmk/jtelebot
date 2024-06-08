@@ -110,7 +110,11 @@ public class ChatGPT implements Command {
                 commandArgument = commandArgument.substring(imageCommand.length() + 1);
                 responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
 
-                imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
+                try {
+                    imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
+                } catch (ChatGptApiException e) {
+                    throw toBotApiException(e);
+                }
             } else {
                 bot.sendTyping(chatId);
                 Chat chat = message.getChat();
@@ -123,9 +127,27 @@ public class ChatGPT implements Command {
                     messagesHistory = chatGPTMessageService.getMessages(user);
                 }
 
-                responseText = getResponse(
-                        buildRequest(messagesHistory, commandArgument, user.getUsername()),
-                        token);
+                try {
+                    responseText = getResponse(
+                            buildRequest(messagesHistory, commandArgument, user.getUsername()),
+                            token);
+                } catch (ChatGptApiException e) {
+                    Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
+                    if (messagesHistory.size() >= chatGPTContextSize) {
+                        int deletingMessages = chatGPTContextSize / 2;
+                        messagesHistory = chatGPTMessageService.update(messagesHistory, deletingMessages);
+
+                        try {
+                            responseText = getResponse(
+                                    buildRequest(messagesHistory, commandArgument, user.getUsername()),
+                                    token);
+                        } catch (ChatGptApiException ex) {
+                            throw toBotApiException(e);
+                        }
+                    } else {
+                        throw toBotApiException(e);
+                    }
+                }
 
                 messagesHistory.addAll(
                         List.of(
@@ -171,19 +193,19 @@ public class ChatGPT implements Command {
         return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
     }
 
-    private String getResponse(CreateImageRequest request, String token) {
+    private String getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "images/generations";
         CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
         return response.getData().get(0).getUrl();
     }
 
-    private String getResponse(ChatRequest request, String token) {
+    private String getResponse(ChatRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "chat/completions";
         ChatResponse response = getResponse(request, url, token, ChatResponse.class);
         return response.getChoices().get(0).getMessage().getContent();
     }
 
-    private <T> T getResponse(Object request, String url, String token, Class<T> dataType) {
+    private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {
         String json;
         try {
             json = objectMapper.writeValueAsString(request);
@@ -210,7 +232,7 @@ public class ChatGPT implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
-            throw new BotException("${command.chatgpt.apiresponse}: " + errorResponse.getError().getMessage());
+            throw new ChatGptApiException(errorResponse.getError().getMessage());
         } catch (RestClientException e) {
             log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -222,6 +244,16 @@ public class ChatGPT implements Command {
         }
 
         return response;
+    }
+
+    private static class ChatGptApiException extends Exception {
+        public ChatGptApiException(String message) {
+            super(message);
+        }
+    }
+
+    private BotException toBotApiException(ChatGptApiException e) {
+        return new BotException("${command.chatgpt.apiresponse}: " + e.getMessage());
     }
 
     @Data
