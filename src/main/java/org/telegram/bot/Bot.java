@@ -165,6 +165,10 @@ public class Bot extends TelegramLongPollingBot {
         return null;
     }
 
+    public void parseAsync(BotRequest botRequest, Command command) {
+        parser.parseAsync(botRequest, command);
+    }
+
     @Override
     public String getBotUsername() {
         String botUserName = propertiesConfig.getTelegramBotUsername();

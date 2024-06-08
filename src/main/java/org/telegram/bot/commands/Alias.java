@@ -174,7 +174,7 @@ public class Alias implements Command, MessageAnalyzer {
             Message newMessage = newBotRequest.getMessage();
             newMessage.setText(messageText);
             userStatsService.incrementUserStatsCommands(chat, user);
-            return ((Command) context.getBean(commandProperties.getClassName())).parse(newBotRequest);
+            bot.parseAsync(newBotRequest, (Command) context.getBean(commandProperties.getClassName()));
         }
 
         return returnResponse();

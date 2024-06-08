@@ -22,7 +22,6 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.ObjectCopier;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -97,7 +96,6 @@ class AliasTest {
 
     @Test
     void analyzeTest() {
-        final String expectedResponseText = "*${command.alias.aliaslist}:*\n";
         BotRequest request = TestUtils.getRequestFromGroup();
         org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().get(0);
         CommandProperties commandProperties = new CommandProperties().setClassName("Echo").setAccessLevel(0);
@@ -114,22 +112,16 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
-        when(echo.parse(request)).thenReturn(List.of(new TextResponse(request.getMessage()).setText(expectedResponseText)));
 
-        BotResponse botResponse = alias.analyze(request).get(0);
-        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        List<BotResponse> botResponseList = alias.analyze(request);
 
+        assertTrue(botResponseList.isEmpty());
         verify(userStatsService).incrementUserStatsCommands(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class));
-
-        assertEquals(expectedResponseText, textResponse.getText());
+        verify(bot, times(1)).parseAsync(any(BotRequest.class), any(Command.class));
     }
 
     @Test
     void analyzeMultipleCommandsAliasTest() {
-        final String echoResponseText = "${command.alias.foundaliases}:\n" +
-                "test1 — `echo1`\n" +
-                "test2 — `echo2`${command.alias.foundaliases}:\n";
-        final String expectedResponseText = echoResponseText.repeat(3);
         BotRequest request = TestUtils.getRequestFromGroup();
         List<String> commands = List.of("say test1", "say test2", "say test3");
         org.telegram.bot.domain.entities.Alias aliasEntity = new org.telegram.bot.domain.entities.Alias()
@@ -152,22 +144,16 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
-        when(echo.parse(request)).thenReturn(List.of(new TextResponse(request.getMessage()).setText(echoResponseText)));
 
         List<BotResponse> botResponseList = alias.analyze(request);
-        List<TextResponse> textResponses = botResponseList.stream().map(TestUtils::checkDefaultTextResponseParams).collect(Collectors.toList());
 
+        assertTrue(botResponseList.isEmpty());
         verify(userStatsService, times(3)).incrementUserStatsCommands(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class));
-
-        assertEquals(expectedResponseText, textResponses.stream().map(TextResponse::getText).collect(Collectors.joining()));
+        verify(bot, times(3)).parseAsync(any(BotRequest.class), any(Command.class));
     }
 
     @Test
     void analyzeMultipleCommandsAliasWithArgumentTest() {
-        final String echoResponseText = "${command.alias.foundaliases}:\n" +
-                "test1 — `echo1`\n" +
-                "test2 — `echo2`${command.alias.foundaliases}:\n";
-        final String expectedResponseText = echoResponseText.repeat(3);
         BotRequest request = getRequestFromGroup("test hello");
         org.telegram.bot.domain.entities.Alias aliasEntity = new org.telegram.bot.domain.entities.Alias()
                 .setId(1L)
@@ -189,14 +175,12 @@ class AliasTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(userService.getCurrentAccessLevel(anyLong(), anyLong())).thenReturn(AccessLevel.NEWCOMER);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
-        when(echo.parse(request)).thenReturn(List.of(new TextResponse(request.getMessage()).setText(echoResponseText)));
 
         List<BotResponse> botResponseList = alias.analyze(request);
-        List<TextResponse> textResponses = botResponseList.stream().map(TestUtils::checkDefaultTextResponseParams).collect(Collectors.toList());
 
+        assertTrue(botResponseList.isEmpty());
         verify(userStatsService, times(3)).incrementUserStatsCommands(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class));
-
-        assertEquals(expectedResponseText, textResponses.stream().map(TextResponse::getText).collect(Collectors.joining()));
+        verify(bot, times(3)).parseAsync(any(BotRequest.class), any(Command.class));
     }
 
     private List<org.telegram.bot.domain.entities.Alias> getSomeAliasEntityList() {
