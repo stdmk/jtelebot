@@ -14,6 +14,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.MathUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 
@@ -36,16 +37,19 @@ public class Password implements Command {
     @Override
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
-        bot.sendTyping(message.getChatId());
 
         PasswordParams passwordParams;
         String commandArgument = message.getCommandArgument();
         if (commandArgument != null) {
+            if (!isLooksLikePasswordCommandArgument(commandArgument)) {
+                return returnResponse();
+            }
             passwordParams = getPasswordParams(commandArgument);
         } else {
             passwordParams = new PasswordParams(DEFAULT_PASSWORD_LENGTH, SYMBOLS_SOURCE);
         }
 
+        bot.sendTyping(message.getChatId());
         log.debug("Request to generate password by params {}", passwordParams);
 
         String password = generatePassword(passwordParams);
@@ -62,6 +66,10 @@ public class Password implements Command {
         return returnResponse(new TextResponse(message)
                 .setText("`" + password + "`")
                 .setResponseSettings(FormattingStyle.MARKDOWN));
+    }
+
+    private boolean isLooksLikePasswordCommandArgument(String argument) {
+        return TextUtils.isThatInteger(argument.substring(0, 1)) || argument.length() <= SPECIAL_SYMBOLS.length();
     }
 
     private PasswordParams getPasswordParams(String argument) {

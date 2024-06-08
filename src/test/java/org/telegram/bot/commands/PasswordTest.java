@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -15,9 +16,10 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PasswordTest {
@@ -39,8 +41,18 @@ class PasswordTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
         BotException botException = assertThrows(BotException.class, () -> password.parse(request));
-        verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(bot, never()).sendTyping(request.getMessage().getChatId());
         assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void parseNotArgumentInputTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("password трататам-трататам");
+
+        List<BotResponse> botResponses = password.parse(request);
+
+        assertTrue(botResponses.isEmpty());
+        verify(bot, never()).sendTyping(request.getMessage().getChatId());
     }
 
     @ParameterizedTest
