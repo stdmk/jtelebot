@@ -206,19 +206,15 @@ public class Kinopoisk implements Command {
                 buf.append("\n").append("<i>").append(description).append("</i>\n"));
         buf.append("\n");
         ifPresentAndNotEmpty(movie.getPersons(), persons -> {
-            buf.append("${command.kinopoisk.movieinfo.actors}: ");
-
-            persons
+            String actorsString = persons
                     .stream()
                     .filter(person -> "actor".equals(person.getEnProfession()))
-                    .limit(9)
+                    .limit(10)
+                    .filter(person -> person.getName() != null || person.getEnName() != null)
                     .map(person -> person.getName() == null ? person.getEnName() : person.getName())
-                    .forEach(name -> buf.append(name).append(", "));
-            if (persons.size() >= 10) {
-                buf.append(persons.get(9).getName());
-            }
+                    .collect(Collectors.joining(", "));
 
-            buf.append("\n\n");
+            buf.append("${command.kinopoisk.movieinfo.actors}: ").append(actorsString).append("\n\n");
         });
         ifPresentAndNotEmpty(movie.getVideos(), videos -> {
             List<Video> videosList = new ArrayList<>();

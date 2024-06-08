@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class KinopoiskTest {
@@ -61,6 +60,7 @@ class KinopoiskTest {
         BotRequest request = TestUtils.getRequestFromGroup();
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN);
+        verify(botStats, never()).incrementKinopoiskRequests();
     }
 
     @Test
@@ -82,6 +82,7 @@ class KinopoiskTest {
         BotException botException = assertThrows(BotException.class, () -> kinopoisk.parse(request));
         assertEquals("${command.kinopoisk.errorfromapi}: " + expectedErrorText, botException.getMessage());
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        verify(botStats, never()).incrementKinopoiskRequests();
     }
 
     @Test
@@ -94,6 +95,7 @@ class KinopoiskTest {
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+        verify(botStats, never()).incrementKinopoiskRequests();
     }
 
     @Test
@@ -106,6 +108,7 @@ class KinopoiskTest {
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     @Test
@@ -123,7 +126,7 @@ class KinopoiskTest {
                 "\n" +
                 "<i>shortDesc</i>\n" +
                 "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10, personName10\n" +
+                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
                 "\n" +
                 "${command.kinopoisk.movieinfo.trailers}: \n" +
                 "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
@@ -142,6 +145,7 @@ class KinopoiskTest {
         assertEquals(expectedCaption, photo.getText());
 
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     @Test
@@ -153,6 +157,7 @@ class KinopoiskTest {
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        verify(botStats, never()).incrementKinopoiskRequests();
     }
 
     @Test
@@ -170,7 +175,7 @@ class KinopoiskTest {
                 "\n" +
                 "<i>shortDesc</i>\n" +
                 "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10, personName10\n" +
+                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
                 "\n" +
                 "${command.kinopoisk.movieinfo.trailers}: \n" +
                 "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
@@ -190,6 +195,7 @@ class KinopoiskTest {
         assertEquals(expectedCaption, photo.getText());
 
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     @Test
@@ -206,6 +212,7 @@ class KinopoiskTest {
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     @Test
@@ -225,7 +232,7 @@ class KinopoiskTest {
                 "\n" +
                 "<i>shortDesc</i>\n" +
                 "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10, personName10\n" +
+                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
                 "\n" +
                 "${command.kinopoisk.movieinfo.trailers}: \n" +
                 "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
@@ -248,6 +255,7 @@ class KinopoiskTest {
         assertEquals(expectedCaption, photo.getText());
 
         verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats, times(2)).incrementKinopoiskRequests();
     }
 
     @Test
@@ -267,7 +275,7 @@ class KinopoiskTest {
                 "\n" +
                 "<i>shortDesc</i>\n" +
                 "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10, personName10\n" +
+                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
                 "\n" +
                 "${command.kinopoisk.movieinfo.trailers}: \n" +
                 "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
@@ -288,6 +296,7 @@ class KinopoiskTest {
         assertEquals(expectedCaption, photo.getText());
 
         verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     @Test
@@ -316,6 +325,7 @@ class KinopoiskTest {
         assertEquals(expectedResponseText, textResponse.getText());
 
         verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats).incrementKinopoiskRequests();
     }
 
     private Kinopoisk.MovieSearchResult getSomeMovieSearchResult() {
