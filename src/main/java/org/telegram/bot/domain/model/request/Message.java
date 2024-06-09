@@ -19,6 +19,7 @@ public class Message {
     private Message replyToMessage;
     private String text;
     private LocalDateTime dateTime;
+    private LocalDateTime editDateTime;
     private MessageKind messageKind;
     private MessageContentType messageContentType;
     private List<Attachment> attachments;

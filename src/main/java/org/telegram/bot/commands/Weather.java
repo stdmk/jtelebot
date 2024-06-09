@@ -438,7 +438,7 @@ public class Weather implements Command {
     }
 
     private LocalDateTime getDateTimeFromWeatherForecastData(WeatherForecastData weatherForecastData, long timezone) {
-        return unixTimeToLocalDateTime(weatherForecastData.getDt() + timezone);
+        return unixTimeToLocalDateTimeUtc(weatherForecastData.getDt() + timezone);
     }
 
     @Data

@@ -22,6 +22,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.TelegramObjectMapper;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
@@ -89,6 +90,10 @@ public class Bot extends TelegramLongPollingBot {
         logReceivedMessage(botRequest);
 
         Message message = botRequest.getMessage();
+        if (TelegramUtils.isThatAnOldEditedMessage(message)) {
+            return;
+        }
+
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
         Chat chatEntity = message.getChat();

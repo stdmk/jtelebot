@@ -214,7 +214,11 @@ public class DateUtils {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), zoneId);
     }
 
-    public static LocalDateTime unixTimeToLocalDateTime(long time) {
+    public static LocalDateTime unixTimeToLocalDateTime(Integer time) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.systemDefault());
+    }
+
+    public static LocalDateTime unixTimeToLocalDateTimeUtc(long time) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.of("UTC"));
     }
 

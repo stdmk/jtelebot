@@ -24,11 +24,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.telegram.bot.utils.DateUtils.unixTimeToLocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -82,7 +82,8 @@ public class TelegramObjectMapper {
                 .setMessageId(telegramMessage.getMessageId())
                 .setReplyToMessage(toMessage(telegramMessage.getReplyToMessage()))
                 .setText(messageText)
-                .setDateTime(Instant.ofEpochSecond(telegramMessage.getDate()).atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .setDateTime(telegramMessage.getDate() == null ? null : unixTimeToLocalDateTime(telegramMessage.getDate()))
+                .setEditDateTime(telegramMessage.getEditDate() == null ? null : unixTimeToLocalDateTime(telegramMessage.getEditDate()))
                 .setMessageKind(messageKind)
                 .setMessageContentType(messageContent.getKey())
                 .setAttachments(messageContent.getValue());
@@ -111,7 +112,8 @@ public class TelegramObjectMapper {
                 .setUser(toUser(telegramUser))
                 .setMessageId(telegramMessage.getMessageId())
                 .setText(messageText)
-                .setDateTime(Instant.ofEpochSecond(telegramMessage.getDate()).atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .setDateTime(telegramMessage.getDate() == null ? null : unixTimeToLocalDateTime(telegramMessage.getDate()))
+                .setEditDateTime(telegramMessage.getEditDate() == null ? null : unixTimeToLocalDateTime(telegramMessage.getEditDate()))
                 .setMessageKind(messageKind)
                 .setMessageContentType(messageContent.getKey())
                 .setAttachments(messageContent.getValue());
