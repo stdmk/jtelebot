@@ -59,7 +59,7 @@ public class ReminderTimer extends TimerParent {
             ZoneId zoneId = getDateTimeOfUser(userDateTimeMap, chat, user);
             ZonedDateTime zonedDateTime = reminderDateTime.atZone(zoneId);
 
-            if (dateTimeNow.isAfter(zonedDateTime.toLocalDateTime())) {
+            if (dateTimeNow.atZone(zoneId).isAfter(zonedDateTime)) {
                 Locale locale = languageResolver.getLocale(chat);
 
                 bot.sendMessage(new TextResponse()
