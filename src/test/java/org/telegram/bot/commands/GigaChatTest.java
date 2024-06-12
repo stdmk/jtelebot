@@ -204,15 +204,17 @@ class GigaChatTest {
 
     @Test
     void requestWithImgInResponse() throws GettingSberAccessTokenException, JsonProcessingException {
-        final String expectedResponseText = "hello";
+        final String expectedModel = "model";
+        final String responseText = "hello";
+        final String expectedResponseText = "*GigaChat* (" + expectedModel + "):\n" + responseText;
         BotRequest request = getRequestFromGroup("gigachat picture cat");
 
         GigaChat.Message message = new GigaChat.Message();
-        message.setContent(expectedResponseText + "<img src=\"abv\">");
+        message.setContent(responseText + "<img src=\"abv\">");
         GigaChat.Choice choice = new GigaChat.Choice();
         choice.setMessage(message);
         GigaChat.ChatResponse response = new GigaChat.ChatResponse();
-        response.setChoices(List.of(choice));
+        response.setChoices(List.of(choice)).setModel(expectedModel);
 
         when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -233,16 +235,18 @@ class GigaChatTest {
 
     @Test
     void messageFromChatWithEmptyHistoryTest() throws JsonProcessingException, GettingSberAccessTokenException {
-        final String expectedRequestText = "say hello";
-        final String expectedResponseText = "hello";
-        BotRequest request = getRequestFromGroup("gigachat " + expectedRequestText);
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello";
+        final String expectedResponseText = "*GigaChat* (" + expectedModel + "):\n" + responseText;
+        BotRequest request = getRequestFromGroup("gigachat " + requestText);
 
         GigaChat.Message message = new GigaChat.Message();
-        message.setContent(expectedResponseText);
+        message.setContent(responseText);
         GigaChat.Choice choice = new GigaChat.Choice();
         choice.setMessage(message);
         GigaChat.ChatResponse response = new GigaChat.ChatResponse();
-        response.setChoices(List.of(choice));
+        response.setChoices(List.of(choice)).setModel(expectedModel);
 
         when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -258,7 +262,7 @@ class GigaChatTest {
         verify(gigaChatMessageService).update(captor.capture());
         List<GigaChatMessage> gigaChatMessages = captor.getValue();
         assertEquals(2, gigaChatMessages.size());
-        assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedRequestText.equals(gigaChatMessage.getContent())));
+        assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> requestText.equals(gigaChatMessage.getContent())));
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.USER.equals(gigaChatMessage.getRole())));
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedResponseText.equals(gigaChatMessage.getContent())));
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.ASSISTANT.equals(gigaChatMessage.getRole())));
@@ -268,19 +272,21 @@ class GigaChatTest {
 
     @Test
     void messageFromUserWithHistoryTest() throws JsonProcessingException, GettingSberAccessTokenException {
-        final String expectedRequestText = "say hello";
-        final String expectedResponseText = "hello";
-        BotRequest request = getRequestFromPrivate("gigachat " + expectedRequestText);
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello";
+        final String expectedResponseText = "*GigaChat* (" + expectedModel + "):\n" + responseText;
+        BotRequest request = getRequestFromPrivate("gigachat " + requestText);
 
         List<GigaChatMessage> gigaChatMessages = new ArrayList<>(
                 List.of(new GigaChatMessage().setRole(GigaChatRole.USER).setUser(new User().setUsername("username"))));
 
         GigaChat.Message message = new GigaChat.Message();
-        message.setContent(expectedResponseText);
+        message.setContent(responseText);
         GigaChat.Choice choice = new GigaChat.Choice();
         choice.setMessage(message);
         GigaChat.ChatResponse response = new GigaChat.ChatResponse();
-        response.setChoices(List.of(choice));
+        response.setChoices(List.of(choice)).setModel(expectedModel);
 
         when(sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS)).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -296,7 +302,7 @@ class GigaChatTest {
         verify(gigaChatMessageService).update(captor.capture());
         List<GigaChatMessage> actualGigaChatMessages = captor.getValue();
         assertEquals(3, actualGigaChatMessages.size());
-        assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedRequestText.equals(gigaChatMessage.getContent())));
+        assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> requestText.equals(gigaChatMessage.getContent())));
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.USER.equals(gigaChatMessage.getRole())));
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedResponseText.equals(gigaChatMessage.getContent())));
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.ASSISTANT.equals(gigaChatMessage.getRole())));

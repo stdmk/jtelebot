@@ -50,6 +50,7 @@ public class GigaChat implements SberApiProvider, Command {
     private static final String FILES_PATH = "files/%s/content";
     private static final String DEFAULT_MODEL = "GigaChat:latest";
     private static final Pattern IMAGE_TAG_PATTERN = Pattern.compile("<img\\ssrc=\"([^\"]+)(?=\")");
+    private static final String RESPONSE_CAPTION = "GigaChat";
 
     private final Bot bot;
     private final SberTokenProvider sberTokenProvider;
@@ -143,13 +144,15 @@ public class GigaChat implements SberApiProvider, Command {
         String url = GIGA_CHAT_API_URL + COMPLETIONS_PATH;
         ChatResponse response = getResponse(request, url, token);
 
-        return response.getChoices()
+        String responseText = response.getChoices()
                 .stream()
                 .map(Choice::getMessage)
                 .map(Message::getContent)
                 .filter(StringUtils::hasText)
                 .findFirst()
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
+
+        return "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + responseText;
     }
 
     private byte[] getImage(String text, String token) {
@@ -263,6 +266,7 @@ public class GigaChat implements SberApiProvider, Command {
     }
 
     @Data
+    @Accessors(chain = true)
     public static class ChatResponse {
         private String id;
         private String object;

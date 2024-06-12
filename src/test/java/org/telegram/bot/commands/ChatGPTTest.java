@@ -223,16 +223,18 @@ class ChatGPTTest {
 
     @Test
     void messageFromChatWithEmptyHistoryTest() throws JsonProcessingException {
-        final String expectedRequestText = "say hello";
-        final String expectedResponseText = "hello";
-        BotRequest request = getRequestFromGroup("chatgpt " + expectedRequestText);
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello.";
+        final String expectedResponseText = "*ChatGPT* (" + expectedModel + "):\n" + responseText;
+        BotRequest request = getRequestFromGroup("chatgpt " + requestText);
 
         ChatGPT.Message message = new ChatGPT.Message();
-        message.setContent(expectedResponseText);
+        message.setContent(responseText);
         ChatGPT.Choice choice = new ChatGPT.Choice();
         choice.setMessage(message);
         ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
-        response.setChoices(List.of(choice));
+        response.setChoices(List.of(choice)).setModel(expectedModel);
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -248,7 +250,7 @@ class ChatGPTTest {
         verify(chatGPTMessageService).update(captor.capture());
         List<ChatGPTMessage> chatGPTMessages = captor.getValue();
         assertEquals(2, chatGPTMessages.size());
-        assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedRequestText.equals(chatGPTMessage.getContent())));
+        assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> requestText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.USER.equals(chatGPTMessage.getRole())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
@@ -258,19 +260,21 @@ class ChatGPTTest {
 
     @Test
     void messageFromUserWithHistoryTest() throws JsonProcessingException {
-        final String expectedRequestText = "say hello";
-        final String expectedResponseText = "hello";
-        BotRequest request = getRequestFromPrivate("chatgpt " + expectedRequestText);
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello.";
+        final String expectedResponseText = "*ChatGPT* (" + expectedModel + "):\n" + responseText;
+        BotRequest request = getRequestFromPrivate("chatgpt " + requestText);
 
         List<ChatGPTMessage> chatGPTMessages = new ArrayList<>(
                 List.of(new ChatGPTMessage().setRole(ChatGPTRole.USER).setUser(new User().setUsername("username"))));
 
         ChatGPT.Message message = new ChatGPT.Message();
-        message.setContent(expectedResponseText);
+        message.setContent(responseText);
         ChatGPT.Choice choice = new ChatGPT.Choice();
         choice.setMessage(message);
         ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
-        response.setChoices(List.of(choice));
+        response.setChoices(List.of(choice)).setModel(expectedModel);
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -286,7 +290,7 @@ class ChatGPTTest {
         verify(chatGPTMessageService).update(captor.capture());
         List<ChatGPTMessage> actualChatGPTMessages = captor.getValue();
         assertEquals(3, actualChatGPTMessages.size());
-        assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedRequestText.equals(chatGPTMessage.getContent())));
+        assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> requestText.equals(chatGPTMessage.getContent())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.USER.equals(chatGPTMessage.getRole())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));

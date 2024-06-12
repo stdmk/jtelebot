@@ -36,7 +36,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -54,6 +53,7 @@ public class ChatGPT implements Command {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final String RESPONSE_CAPTION = "ChatGPT";
 
     @Value("${chatGptApiUrl}")
     private String chatGptApiUrl;
@@ -172,12 +172,6 @@ public class ChatGPT implements Command {
                     .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setReplyToMessageId(message.getMessageId());
-        sendMessage.setText(responseText);
-        sendMessage.enableMarkdown(true);
-
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
                 .setResponseSettings(FormattingStyle.MARKDOWN));
@@ -223,7 +217,7 @@ public class ChatGPT implements Command {
     private String getResponse(ChatRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "chat/completions";
         ChatResponse response = getResponse(request, url, token, ChatResponse.class);
-        return response.getChoices().get(0).getMessage().getContent();
+        return "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + response.getChoices().get(0).getMessage().getContent();
     }
 
     private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {
@@ -321,6 +315,7 @@ public class ChatGPT implements Command {
     }
 
     @Data
+    @Accessors(chain = true)
     public static class ChatResponse {
         private String id;
         private String object;
