@@ -77,6 +77,16 @@ public class File {
         this.fileSettings = fileSettings;
     }
 
+    public File(FileType fileType, String url, String name) {
+        this.fileId = null;
+        this.fileType = fileType;
+        this.url = url;
+        this.diskFile = null;
+        this.inputStream = null;
+        this.name = name;
+        this.fileSettings = new FileSettings();
+    }
+
     private final String fileId;
     private final FileType fileType;
     private final String url;

@@ -77,6 +77,8 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         sendPhoto.setChatId(sendMediaGroup.getChatId());
         sendPhoto.setCaption(buf.toString());
 
+        internationalizationService.internationalize(sendPhoto, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
+
         try {
             bot.execute(sendPhoto);
         } catch (TelegramApiException telegramApiException) {

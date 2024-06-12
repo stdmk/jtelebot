@@ -94,7 +94,7 @@ public class GooglePics implements Command {
             log.debug("Request to search images for {}", commandArgument);
             List<File> images = searchImagesOnGoogle(commandArgument)
                     .stream()
-                    .map(imageUrl -> new File(FileType.IMAGE, imageUrl.getUrl()))
+                    .map(imageUrl -> new File(FileType.IMAGE, imageUrl.getUrl(), "/image_" + imageUrl.getId()))
                     .collect(Collectors.toList());
 
             return returnResponse(new FileResponse(message)
