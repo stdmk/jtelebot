@@ -19,6 +19,7 @@ import org.telegram.bot.services.ChatGPTSettingService;
 import org.telegram.bot.services.InternationalizationService;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -127,16 +128,22 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     }
 
     private Keyboard prepareKeyboardWithResetCacheButton(Chat chat) {
-        List<KeyboardButton> availableModels = propertiesConfig.getChatGPTModelsAvailable()
-                .stream()
-                .map(modelName -> new KeyboardButton().setName(modelName).setCallback(CALLBACK_SELECT_MODEL_COMMAND + modelName))
-                .collect(Collectors.toList());
+        List<String> availableModels = propertiesConfig.getChatGPTModelsAvailable();
+        List<KeyboardButton> selectModelButtons;
+        if (availableModels == null) {
+            selectModelButtons = new ArrayList<>(2);
+        } else {
+            selectModelButtons = availableModels
+                    .stream()
+                    .map(modelName -> new KeyboardButton().setName(modelName).setCallback(CALLBACK_SELECT_MODEL_COMMAND + modelName))
+                    .collect(Collectors.toList());
+        }
 
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
         if (chatGPTSettings != null) {
             String currentModel = chatGPTSettings.getModel();
             if (currentModel != null) {
-                availableModels
+                selectModelButtons
                         .stream()
                         .filter(keyboardButton -> currentModel.equals(keyboardButton.getName()))
                         .findFirst()
@@ -145,7 +152,7 @@ public class ChatGPTSetter implements Setter<BotResponse> {
             }
         }
 
-        List<List<KeyboardButton>> buttonsRows = availableModels.stream().map(List::of).collect(Collectors.toList());
+        List<List<KeyboardButton>> buttonsRows = selectModelButtons.stream().map(List::of).collect(Collectors.toList());
         buttonsRows.add(List.of(new KeyboardButton()
                 .setName(Emoji.WASTEBASKET.getSymbol() + "${setter.chatgpt.button.resetcache}")
                 .setCallback(CALLBACK_RESET_CACHE_COMMAND)));
