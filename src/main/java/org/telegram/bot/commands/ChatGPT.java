@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import com.drew.lang.annotations.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +24,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
+import org.telegram.bot.domain.entities.ChatGPTSettings;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -30,10 +33,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatGPTMessageService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -65,6 +65,7 @@ public class ChatGPT implements Command {
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
     private final ChatGPTMessageService chatGPTMessageService;
+    private final ChatGPTSettingService chatGPTSettingService;
     private final InternationalizationService internationalizationService;
     private final ObjectMapper objectMapper;
     private final RestTemplate defaultRestTemplate;
@@ -127,9 +128,11 @@ public class ChatGPT implements Command {
                     messagesHistory = chatGPTMessageService.getMessages(user);
                 }
 
+                String model = getModel(chat);
+
                 try {
                     responseText = getResponse(
-                            buildRequest(messagesHistory, commandArgument, user.getUsername()),
+                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
                             token);
                 } catch (ChatGptApiException e) {
                     Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
@@ -139,7 +142,7 @@ public class ChatGPT implements Command {
 
                         try {
                             responseText = getResponse(
-                                    buildRequest(messagesHistory, commandArgument, user.getUsername()),
+                                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
                                     token);
                         } catch (ChatGptApiException ex) {
                             throw toBotApiException(e);
@@ -180,7 +183,25 @@ public class ChatGPT implements Command {
                 .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
-    private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username) {
+    @NotNull
+    private String getModel(Chat chat) {
+        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+        if (chatGPTSettings != null) {
+            String currentChatsModel = chatGPTSettings.getModel();
+            if (currentChatsModel != null) {
+                return currentChatsModel;
+            }
+        }
+
+        List<String> chatGPTModelsAvailable = propertiesConfig.getChatGPTModelsAvailable();
+        if (CollectionUtils.isEmpty(chatGPTModelsAvailable)) {
+            return DEFAULT_MODEL;
+        }
+
+        return chatGPTModelsAvailable.get(0);
+    }
+
+    private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username, String model) {
         List<Message> requestMessages = chatGPTMessages
                 .stream()
                 .map(chatGPTMessage -> new Message()
@@ -190,7 +211,7 @@ public class ChatGPT implements Command {
                 .collect(Collectors.toList());
         requestMessages.add(new Message().setRole(ChatGPTRole.USER.getName()).setContent(text).setName(username));
 
-        return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
+        return new ChatRequest().setModel(model).setMessages(requestMessages);
     }
 
     private String getResponse(CreateImageRequest request, String token) throws ChatGptApiException {

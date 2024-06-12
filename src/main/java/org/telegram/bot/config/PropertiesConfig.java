@@ -8,6 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import java.util.List;
+
 @Configuration
 @ConfigurationProperties
 @PropertySource(value = "file:properties.properties", ignoreResourceNotFound = true)
@@ -30,6 +32,7 @@ public class PropertiesConfig {
     @Getter(AccessLevel.NONE)
     private Integer russianPostRequestsLimit;
     private Integer chatGPTContextSize = 16;
+    private List<String> chatGPTModelsAvailable;
     private String defaultLanguage = "en";
     private String xmlTvFileUrl;
     private String saluteSpeechSecret;

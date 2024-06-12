@@ -21,6 +21,7 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
+import org.telegram.bot.domain.entities.ChatGPTSettings;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -30,10 +31,7 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatGPTMessageService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.config.PropertiesConfig;
 
 import java.lang.reflect.Field;
@@ -66,6 +64,8 @@ class ChatGPTTest {
     private CommandWaitingService commandWaitingService;
     @Mock
     private ChatGPTMessageService chatGPTMessageService;
+    @Mock
+    private ChatGPTSettingService chatGPTSettingService;
     @Mock
     private InternationalizationService internationalizationService;
     @Mock
@@ -210,6 +210,7 @@ class ChatGPTTest {
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(chatGPTSettingService.get(request.getMessage().getChat())).thenReturn(new ChatGPTSettings().setModel("model"));
         when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
