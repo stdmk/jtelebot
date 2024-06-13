@@ -84,6 +84,7 @@ public class GigaChat implements SberApiProvider, Command {
 
         bot.sendTyping(chatId);
         byte[] image = null;
+        String model;
         if (commandArgument != null) {
             Chat chat = message.getChat();
             User user = message.getUser();
@@ -95,9 +96,9 @@ public class GigaChat implements SberApiProvider, Command {
                 messagesHistory = gigaChatMessageService.getMessages(user);
             }
 
-            responseText = getResponse(
-                    buildRequest(messagesHistory, commandArgument),
-                    token);
+            ChatResponse response = getResponse(buildRequest(messagesHistory, commandArgument), token);
+            model = response.getModel();
+            responseText = toResponseText(response);
 
             image = getImage(responseText, token);
             if (image != null) {
@@ -114,17 +115,18 @@ public class GigaChat implements SberApiProvider, Command {
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.gigachat.commandwaitingstart}";
+            model = "";
         }
 
         if (image != null) {
             return returnResponse(new FileResponse(message)
                     .addFile(new File(FileType.IMAGE, new ByteArrayInputStream(image), "image"))
-                    .setText(responseText)
+                    .setText("*" + RESPONSE_CAPTION + "* (" + model + "):\n" + responseText)
                     .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
         return returnResponse(new TextResponse(message)
-                .setText(responseText)
+                .setText("*" + RESPONSE_CAPTION + "* (" + model + "):\n" + responseText)
                 .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
@@ -140,19 +142,19 @@ public class GigaChat implements SberApiProvider, Command {
         return new ChatRequest().setModel(DEFAULT_MODEL).setMessages(requestMessages);
     }
 
-    private String getResponse(ChatRequest request, String token) {
+    private ChatResponse getResponse(ChatRequest request, String token) {
         String url = GIGA_CHAT_API_URL + COMPLETIONS_PATH;
-        ChatResponse response = getResponse(request, url, token);
+        return getResponse(request, url, token);
+    }
 
-        String responseText = response.getChoices()
+    private String toResponseText(ChatResponse response) {
+        return response.getChoices()
                 .stream()
                 .map(Choice::getMessage)
                 .map(Message::getContent)
                 .filter(StringUtils::hasText)
                 .findFirst()
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
-
-        return "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + responseText;
     }
 
     private byte[] getImage(String text, String token) {

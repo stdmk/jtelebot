@@ -264,7 +264,7 @@ class GigaChatTest {
         assertEquals(2, gigaChatMessages.size());
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> requestText.equals(gigaChatMessage.getContent())));
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.USER.equals(gigaChatMessage.getRole())));
-        assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedResponseText.equals(gigaChatMessage.getContent())));
+        assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> responseText.equals(gigaChatMessage.getContent())));
         assertTrue(gigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.ASSISTANT.equals(gigaChatMessage.getRole())));
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -304,7 +304,7 @@ class GigaChatTest {
         assertEquals(3, actualGigaChatMessages.size());
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> requestText.equals(gigaChatMessage.getContent())));
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.USER.equals(gigaChatMessage.getRole())));
-        assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> expectedResponseText.equals(gigaChatMessage.getContent())));
+        assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> responseText.equals(gigaChatMessage.getContent())));
         assertTrue(actualGigaChatMessages.stream().anyMatch(gigaChatMessage -> GigaChatRole.ASSISTANT.equals(gigaChatMessage.getRole())));
 
         assertEquals(expectedResponseText, textResponse.getText());
