@@ -29,6 +29,7 @@ import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,7 +95,7 @@ public class Remind implements Command {
     private final LanguageResolver languageResolver;
     private final BotStats botStats;
 
-    private final Map<Set<String>, Supplier<LocalDate>> dateKeywords = new ConcurrentHashMap<>();
+    private final Map<Set<String>, Function<ZoneId, LocalDate>> dateKeywords = new ConcurrentHashMap<>();
     private final Map<Set<String>, Supplier<LocalTime>> timeKeywords = new ConcurrentHashMap<>();
 
     @PostConstruct
@@ -110,15 +111,15 @@ public class Remind implements Command {
         afterDaysPattern = Pattern.compile(String.format(template, blockIn, daysBlock));
 
         dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.today")), LocalDate::now);
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.aftertomorrow")), () -> LocalDate.now().plusDays(2));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tomorrow")), () -> LocalDate.now().plusDays(1));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.monday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tuesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.wednesday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.thursday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.friday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.saturday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY)));
-        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.sunday")), () -> LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.aftertomorrow")), zoneId -> LocalDate.now(zoneId).plusDays(2));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tomorrow")), zoneId -> LocalDate.now(zoneId).plusDays(1));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.monday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.MONDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.tuesday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.TUESDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.wednesday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.thursday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.THURSDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.friday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.FRIDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.saturday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.SATURDAY)));
+        dateKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.datekeyword.sunday")), zoneId -> LocalDate.now(zoneId).with(TemporalAdjusters.next(DayOfWeek.SUNDAY)));
 
         timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.morning")), () -> LocalTime.of(7, 0));
         timeKeywords.put(csvTranslationSetToTranslationSet(internationalizationService.getAllTranslations("command.remind.timekeyword.lunch")), () -> LocalTime.of(12, 0));
@@ -221,10 +222,11 @@ public class Remind implements Command {
     private BotResponse addReminder(Message message, Chat chat, User user, String command) {
         log.debug("Request to add new reminder: {}", command);
 
+        ZoneId zoneIdOfUser = getZoneIdOfUser(chat, user);
         String reminderText;
         LocalDate reminderDate = null;
         LocalTime reminderTime = null;
-        LocalDate dateNow = LocalDate.now();
+        LocalDate dateNow = LocalDate.now(zoneIdOfUser);
 
         Pattern datePattern = FULL_DATE_PATTERN;
         Matcher matcher = datePattern.matcher(command);
@@ -254,7 +256,7 @@ public class Remind implements Command {
             if (afterMinutesPhrase != null) {
                 Integer minutes = getValueFromAfterTimePhrase(afterMinutesPhrase);
                 if (minutes != null) {
-                    reminderTime = LocalTime.now().plusMinutes(minutes);
+                    reminderTime = LocalTime.now(zoneIdOfUser).plusMinutes(minutes);
                     command = command.replaceFirst(afterMinutesPhrase, "").trim();
                 }
             }
@@ -264,7 +266,7 @@ public class Remind implements Command {
                 if (afterHoursPhrase != null) {
                     Integer hours = getValueFromAfterTimePhrase(afterHoursPhrase);
                     if (hours != null) {
-                        reminderTime = LocalTime.now().plusHours(hours);
+                        reminderTime = LocalTime.now(zoneIdOfUser).plusHours(hours);
                         command = command.replaceFirst(afterHoursPhrase, "").trim();
                     }
                 }
@@ -296,15 +298,15 @@ public class Remind implements Command {
             }
 
             if (reminderDate == null) {
-                Pair<Set<String>, Supplier<LocalDate>> dateKeyword = getDateKeywordFromText(command);
+                Pair<Set<String>, Function<ZoneId, LocalDate>> dateKeyword = getDateKeywordFromText(command);
                 if (dateKeyword != null) {
-                    reminderDate = dateKeyword.getSecond().get();
+                    reminderDate = dateKeyword.getSecond().apply(zoneIdOfUser);
                     command = cutKeyWordInText(command, dateKeyword.getFirst());
                 }
             }
 
             if (reminderDate == null) {
-                if (reminderTime == null || LocalTime.now().isAfter(reminderTime)) {
+                if (reminderTime == null || LocalTime.now(zoneIdOfUser).isAfter(reminderTime)) {
                     reminderDate = dateNow.plusDays(1);
                 } else {
                     reminderDate = dateNow;
@@ -342,7 +344,7 @@ public class Remind implements Command {
                 .orElse(null);
     }
 
-    private Pair<Set<String>, Supplier<LocalDate>> getDateKeywordFromText(String text) {
+    private Pair<Set<String>, Function<ZoneId, LocalDate>> getDateKeywordFromText(String text) {
         return dateKeywords
                 .entrySet()
                 .stream()
@@ -432,7 +434,8 @@ public class Remind implements Command {
                 } else {
                     matcher = SET_SHORT_DATE_PATTERN.matcher(command);
                     if (matcher.find()) {
-                        reminder.setDate(getDateFromTextWithoutYear(command.substring(matcher.start() + 1, matcher.end()), LocalDate.now()));
+                        ZoneId zoneIdOfUser = getZoneIdOfUser(chat, user);
+                        reminder.setDate(getDateFromTextWithoutYear(command.substring(matcher.start() + 1, matcher.end()), LocalDate.now(zoneIdOfUser)));
                     } else {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
@@ -531,6 +534,8 @@ public class Remind implements Command {
                         SET_DATE + dateFormatter.format(reminder.getDate()) + SET_TIME);
             }
         } else {
+            ZoneId zoneIdOfUser = getZoneIdOfUser(chat, user);
+
             Matcher setPostponeMatcher = POSTPONE_PATTERN.matcher(command);
             if (setPostponeMatcher.find()) {
                 TemporalAmount temporalAmount;
@@ -541,7 +546,7 @@ public class Remind implements Command {
                     temporalAmount = Period.parse(rawValue);
                 }
 
-                LocalDateTime reminderDateTime = LocalDateTime.now().plus(temporalAmount);
+                LocalDateTime reminderDateTime = LocalDateTime.now(zoneIdOfUser).plus(temporalAmount);
 
                 if (StringUtils.isEmpty(reminder.getRepeatability())) {
                     reminder.setDate(reminderDateTime.toLocalDate())
@@ -558,7 +563,7 @@ public class Remind implements Command {
                 }
             } else {
                 caption = "${command.remind.dateset}\n";
-                rowsWithButtons = prepareButtonRowsWithDateSetting(reminder);
+                rowsWithButtons = prepareButtonRowsWithDateSetting(reminder, zoneIdOfUser);
                 commandWaitingService.add(chat, user, Remind.class, CALLBACK_COMMAND + SET_REMINDER + reminder.getId() +
                         SET_DATE);
             }
@@ -607,7 +612,7 @@ public class Remind implements Command {
             zoneId = ZoneId.systemDefault();
         }
 
-        LocalDateTime dateTimeNow = ZonedDateTime.now(zoneId).toLocalDateTime();
+        LocalDateTime dateTimeNow = LocalDateTime.now(zoneId);
         LocalDate reminderDate = reminder.getDate();
         LocalTime reminderTime = reminder.getTime();
         LocalDateTime reminderDateTime = reminderDate.atTime(reminderTime);
@@ -651,10 +656,10 @@ public class Remind implements Command {
                 .collect(Collectors.joining(", "));
     }
 
-    private List<List<KeyboardButton>> prepareButtonRowsWithDateSetting(Reminder reminder) {
+    private List<List<KeyboardButton>> prepareButtonRowsWithDateSetting(Reminder reminder, ZoneId zoneId) {
         Long reminderId = reminder.getId();
         LocalDate reminderDate = reminder.getDate();
-        LocalDate dateNow = LocalDate.now();
+        LocalDate dateNow = LocalDate.now(zoneId);
         List<List<KeyboardButton>> rows = new ArrayList<>();
         String startOfCallbackCommand = CALLBACK_SET_REMINDER + reminderId + SET_DATE;
 
@@ -968,7 +973,7 @@ public class Remind implements Command {
                 "${command.remind.postponeuntil}:\n";
     }
 
-    public static Keyboard preparePostponeKeyboard(Reminder reminder, Locale locale) {
+    public static Keyboard preparePostponeKeyboard(Reminder reminder, ZoneId zoneId, Locale locale) {
         Long reminderId = reminder.getId();
         List<List<KeyboardButton>> rows = new ArrayList<>();
 
@@ -980,7 +985,7 @@ public class Remind implements Command {
                 .map(hours -> generatePostponeButton(reminderId, hours + " ${command.remind.h}.", Duration.of(hours, HOURS)))
                 .collect(Collectors.toList()));
 
-        LocalDate dateNow = LocalDate.now();
+        LocalDate dateNow = LocalDate.now(zoneId);
         rows.add(Arrays.stream(DayOfWeek.values())
                 .map(dayOfWeek -> generatePostponeButton(
                         reminderId,
@@ -1059,6 +1064,15 @@ public class Remind implements Command {
                     .setName(Emoji.LEFT_ARROW.getSymbol() + "${command.remind.button.back}")
                     .setCallback(CALLBACK_COMMAND)));
         }
+    }
+
+    private ZoneId getZoneIdOfUser(Chat chat, User user) {
+        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUser(chat, user);
+        if (zoneIdOfUser == null) {
+            zoneIdOfUser = ZoneId.systemDefault();
+        }
+
+        return zoneIdOfUser;
     }
 
 }

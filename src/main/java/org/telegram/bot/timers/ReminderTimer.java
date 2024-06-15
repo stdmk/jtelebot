@@ -51,6 +51,7 @@ public class ReminderTimer extends TimerParent {
             notNotifiedRemindersList = reminderService.getAllNotNotifiedByDate(dateTimeNow.toLocalDate());
         }
 
+        ZonedDateTime zonedDateTimeNow = ZonedDateTime.now();
         for (Reminder reminder : notNotifiedRemindersList) {
             User user = reminder.getUser();
             Chat chat = reminder.getChat();
@@ -59,13 +60,13 @@ public class ReminderTimer extends TimerParent {
             ZoneId zoneId = getDateTimeOfUser(userDateTimeMap, chat, user);
             ZonedDateTime zonedDateTime = reminderDateTime.atZone(zoneId);
 
-            if (dateTimeNow.atZone(zoneId).isAfter(zonedDateTime)) {
+            if (zonedDateTimeNow.isAfter(zonedDateTime)) {
                 Locale locale = languageResolver.getLocale(chat);
 
                 bot.sendMessage(new TextResponse()
                         .setChatId(chat.getChatId())
                         .setText(Remind.prepareTextOfReminder(reminder))
-                        .setKeyboard(Remind.preparePostponeKeyboard(reminder, locale))
+                        .setKeyboard(Remind.preparePostponeKeyboard(reminder, zoneId, locale))
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
 
                 String repeatability = reminder.getRepeatability();
