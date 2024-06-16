@@ -1,7 +1,7 @@
 package org.telegram.bot.services;
 
 import org.telegram.bot.domain.entities.Error;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.util.List;
 

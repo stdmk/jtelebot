@@ -10,6 +10,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,16 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+import org.telegram.telegrambots.longpolling.BotSession;
+import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
+import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
+import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
+import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
+import org.telegram.telegrambots.longpolling.util.DefaultGetUpdatesGenerator;
+import org.telegram.telegrambots.meta.TelegramUrl;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import javax.net.ssl.SSLContext;
 import java.nio.charset.StandardCharsets;
@@ -38,8 +49,47 @@ import java.util.Locale;
 @Configuration
 public class Config {
 
+    private static final List<String> ALLOWED_UPDATES = List.of(
+            "message",
+            "edited_message",
+            "channel_post",
+            "edited_channel_post",
+            "inline_query",
+            "chosen_inline_result",
+            "callback_query",
+            "my_chat_member",
+            "chat_member",
+            "chat_join_request",
+            "message_reaction",
+            "message_reaction_count");
+
     @Value("${sberApiRequestTimeoutSeconds:60}")
     private Integer sberApiRequestTimeoutSeconds;
+
+    @Value("${telegramBotApiToken}")
+    private String telegramBotApiToken;
+
+    @Bean
+    public TelegramBotsLongPollingApplication telegramBotsApplication() {
+        return new TelegramBotsLongPollingApplication() {
+            @Override
+            public BotSession registerBot(String botToken, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
+                return registerBot(botToken, () -> TelegramUrl.DEFAULT_URL, new DefaultGetUpdatesGenerator(ALLOWED_UPDATES), updatesConsumer);
+            }
+        };
+    }
+
+    @Bean
+    public TelegramBotInitializer telegramBotInitializer(TelegramBotsLongPollingApplication telegramBotsApplication,
+                                                         ObjectProvider<List<SpringLongPollingBot>> longPollingBots) {
+        return new TelegramBotInitializer(telegramBotsApplication,
+                longPollingBots.getIfAvailable(Collections::emptyList));
+    }
+
+    @Bean
+    public TelegramClient telegramClient() {
+        return new OkHttpTelegramClient(telegramBotApiToken);
+    }
 
     @Bean
     public RestTemplate botRestTemplate() {

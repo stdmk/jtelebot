@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.commands.Command;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -13,7 +13,7 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.TelegramObjectMapper;
 import org.telegram.bot.services.executors.MethodExecutor;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,10 +59,10 @@ public class Parser {
 
     private TextResponse handleException(BotRequest botRequest, Throwable e) {
         BotException botException;
-        if (e instanceof BotException) {
-            botException = (BotException) e;
-        } else if (e.getCause() instanceof BotException) {
-            botException = (BotException) e.getCause();
+        if (e instanceof BotException be1) {
+            botException = be1;
+        } else if (e.getCause() instanceof BotException cause) {
+            botException = cause;
         } else {
             botStats.incrementErrors(botRequest, e, "Unexpected general error: ");
             log.error("Unexpected error: ", e);

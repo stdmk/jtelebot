@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.WorkParam;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.WorkParamService;
-import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

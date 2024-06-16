@@ -4,28 +4,27 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.response.Keyboard;
+import org.telegram.bot.domain.model.response.KeyboardButton;
+import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.Emoji;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.*;
-import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.DateUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class TrainingTimer extends TimerParent {
 
-    private final SendMessageExecutor sendMessageExecutor;
+    private final Bot bot;
     private final TrainingEventService trainingEventService;
     private final TrainingScheduledService trainingScheduledService;
     private final TrainSubscriptionService trainSubscriptionService;
@@ -46,13 +45,13 @@ public class TrainingTimer extends TimerParent {
                 .stream()
                 .map(TrainingEvent::getTraining)
                 .map(Training::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         List<Long> userIdListWithStoppedTraining = trainingStoppedService.getAll()
                 .stream()
                 .map(TrainingStopped::getUser)
                 .map(User::getUserId)
-                .collect(Collectors.toList());
+                .toList();
 
         trainingScheduledService.getAll(currentDayOfWeek)
                 .stream()
@@ -73,32 +72,21 @@ public class TrainingTimer extends TimerParent {
 
                     String responseText = "<b>Прошла тренировка: </b>\n" +
                             DateUtils.formatShortTime(training.getTimeStart()) + " — " + training.getName() + "\n";
-                    SendMessage sendMessage = new SendMessage();
-                    sendMessage.setChatId(user.getUserId());
-                    sendMessage.enableHtml(true);
-                    sendMessage.setReplyMarkup(getCancelTrainingKeyboard(trainingEvent.getId()));
-                    sendMessage.setText(responseText);
+                    TextResponse textReponse = new TextResponse()
+                            .setChatId(user.getUserId())
+                            .setText(responseText)
+                            .setKeyboard(getCancelTrainingKeyboard(trainingEvent.getId()))
+                            .setResponseSettings(FormattingStyle.HTML);
 
                     reduceSubscriptionCountLeft(subscription);
-                    sendMessageExecutor.executeMethod(sendMessage);
+                    bot.sendMessage(textReponse);
                 });
     }
 
-    private InlineKeyboardMarkup getCancelTrainingKeyboard(Long eventId) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        List<InlineKeyboardButton> cancelTrainingRow = new ArrayList<>();
-        InlineKeyboardButton cancelButton = new InlineKeyboardButton();
-        cancelButton.setText(Emoji.CANCELLATION.getSymbol() + "Отменить");
-        cancelButton.setCallbackData(COMMAND_NAME + "_c" + eventId);
-        cancelTrainingRow.add(cancelButton);
-
-        rows.add(cancelTrainingRow);
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rows);
-
-        return inlineKeyboardMarkup;
+    private Keyboard getCancelTrainingKeyboard(Long eventId) {
+        return new Keyboard(new KeyboardButton()
+                .setName(Emoji.CANCELLATION.getSymbol() + "Отменить")
+                .setCallback(COMMAND_NAME + "_c" + eventId));
     }
 
     private TrainSubscription getUserSubscription(Map<User, TrainSubscription> userTrainSubscriptionMap, User user) {

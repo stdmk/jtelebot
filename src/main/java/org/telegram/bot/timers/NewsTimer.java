@@ -6,28 +6,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.News;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.NewsMessageService;
 import org.telegram.bot.services.NewsService;
 import org.telegram.bot.services.NewsSourceService;
-import org.telegram.bot.services.executors.SendMessageExecutor;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.RssMapper;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class NewsTimer extends TimerParent {
 
-    private final SendMessageExecutor sendMessageExecutor;
+    private final Bot bot;
     private final NewsService newsService;
     private final NewsMessageService newsMessageService;
     private final NewsSourceService newsSourceService;
@@ -41,7 +42,7 @@ public class NewsTimer extends TimerParent {
                 .stream()
                 .map(News::getNewsSource)
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
 
         newsSources.forEach(newsSource -> {
             SyndFeed syndFeed;
@@ -67,16 +68,12 @@ public class NewsTimer extends TimerParent {
                     newsSourceService.save(newsSource);
                     NewsMessage finalNewsMessage = newsMessage;
                     newsService.getAll(newsSource)
-                            .forEach(news -> {
-                                    SendMessage sendMessage = new SendMessage();
-
-                                    sendMessage.setChatId(news.getChat().getChatId().toString());
-                                    sendMessage.enableHtml(true);
-                                    sendMessage.disableWebPagePreview();
-                                    sendMessage.setText(rssMapper.toShortNewsMessageText(finalNewsMessage, news.getNewsSource().getName()));
-
-                                    sendMessageExecutor.executeMethod(sendMessage);
-                            });
+                            .forEach(news -> bot.sendMessage(new TextResponse()
+                                    .setChatId(news.getChat().getChatId())
+                                    .setText(rssMapper.toShortNewsMessageText(finalNewsMessage, news.getNewsSource().getName()))
+                                    .setResponseSettings(new ResponseSettings()
+                                            .setWebPagePreview(false)
+                                            .setFormattingStyle(FormattingStyle.HTML))));
                 }
             });
         });

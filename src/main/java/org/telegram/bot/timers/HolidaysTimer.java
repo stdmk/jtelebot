@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Holidays;
+import org.telegram.bot.domain.model.response.ResponseSettings;
+import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.bot.services.executors.SendMessageExecutor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -18,7 +20,7 @@ import java.util.Objects;
 @Slf4j
 public class HolidaysTimer extends TimerParent {
 
-    private final SendMessageExecutor sendMessageExecutor;
+    private final Bot bot;
     private final ChatService chatService;
     private final Holidays holidays;
     private final LanguageResolver languageResolver;
@@ -37,15 +39,14 @@ public class HolidaysTimer extends TimerParent {
                         return null;
                     }
 
-                    SendMessage sendMessage = new SendMessage();
-                    sendMessage.setChatId(chat.getChatId().toString());
-                    sendMessage.enableHtml(true);
-                    sendMessage.disableWebPagePreview();
-                    sendMessage.setText(textMessage);
-
-                    return sendMessage;
+                    return new TextResponse()
+                            .setChatId(chat.getChatId())
+                            .setText(textMessage)
+                            .setResponseSettings(new ResponseSettings()
+                                    .setWebPagePreview(false)
+                                    .setFormattingStyle(FormattingStyle.HTML));
                 })
                 .filter(Objects::nonNull)
-                .forEach(sendMessageExecutor::executeMethod);
+                .forEach(bot::sendMessage);
     }
 }

@@ -2,13 +2,13 @@ package org.telegram.bot;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.commands.Command;
 import org.telegram.bot.commands.MessageAnalyzer;
+import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -21,15 +21,18 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.TelegramObjectMapper;
 import org.telegram.bot.services.*;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TelegramUtils;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
+import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
+import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
-import org.telegram.telegrambots.meta.api.methods.send.*;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +40,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class Bot extends TelegramLongPollingBot {
+public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private final List<MessageAnalyzer> messageAnalyzerList;
     private final ApplicationContext context;
@@ -52,6 +55,7 @@ public class Bot extends TelegramLongPollingBot {
     private final SpeechService speechService;
     private final SpyModeService spyModeService;
     private final Parser parser;
+    private final TelegramClient telegramClient;
 
     public Bot(@Lazy List<MessageAnalyzer> messageAnalyzerList,
                ApplicationContext context,
@@ -64,8 +68,9 @@ public class Bot extends TelegramLongPollingBot {
                DisableCommandService disableCommandService,
                SpeechService speechService,
                SpyModeService spyModeService,
-               @Value("${telegramBotApiToken}") String botToken, Parser parser) {
-        super(botToken);
+               Parser parser,
+               TelegramClient telegramClient) {
+        super();
         this.messageAnalyzerList = messageAnalyzerList;
         this.context = context;
         this.botStats = botStats;
@@ -79,10 +84,11 @@ public class Bot extends TelegramLongPollingBot {
         this.speechService = speechService;
         this.spyModeService = spyModeService;
         this.parser = parser;
+        this.telegramClient = telegramClient;
     }
 
     @Override
-    public void onUpdateReceived(Update update) {
+    public void consume(Update update) {
         botStats.incrementReceivedMessages();
 
         BotRequest botRequest = telegramObjectMapper.toBotRequest(update);
@@ -125,6 +131,11 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    @Override
+    public String getBotToken() {
+        return propertiesConfig.getTelegramBotApiToken();
+    }
+
     private void logReceivedMessage(BotRequest botRequest) {
         Message message = botRequest.getMessage();
         org.telegram.bot.domain.entities.User user = message.getUser();
@@ -137,6 +148,11 @@ public class Bot extends TelegramLongPollingBot {
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(user, textOfMessage);
         }
+    }
+
+    @Override
+    public LongPollingUpdateConsumer getUpdatesConsumer() {
+        return this;
     }
 
     private void analyzeMessage(BotRequest botRequest, AccessLevel userAccessLevel) {
@@ -174,13 +190,12 @@ public class Bot extends TelegramLongPollingBot {
         parser.parseAsync(botRequest, command);
     }
 
-    @Override
     public String getBotUsername() {
         String botUserName = propertiesConfig.getTelegramBotUsername();
         if (botUserName == null) {
             User botUser;
             try {
-                botUser = this.execute(new GetMe());
+                botUser = telegramClient.execute(new GetMe());
                 botUserName = botUser.getUserName();
                 propertiesConfig.setTelegramBotUsername(botUserName);
             } catch (TelegramApiException e) {
@@ -221,11 +236,8 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     public InputStream getInputStreamFromTelegramFile(String fileId) {
-        GetFile getFile = new GetFile();
-        getFile.setFileId(fileId);
-
         try {
-            return this.downloadFileAsStream(this.execute(getFile).getFilePath());
+            return telegramClient.downloadFileAsStream(telegramClient.execute(new GetFile(fileId)).getFilePath());
         } catch (TelegramApiException e) {
             log.error("Failed to get file from telegram", e);
             botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
@@ -234,19 +246,19 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     public void sendUploadPhoto(Long chatId) {
-        sendAction(chatId, ActionType.UPLOADPHOTO);
+        sendAction(chatId, ActionType.UPLOAD_PHOTO);
     }
 
     public void sendUploadVideo(Long chatId) {
-        sendAction(chatId, ActionType.UPLOADVIDEO);
+        sendAction(chatId, ActionType.UPLOAD_VIDEO);
     }
 
     public void sendUploadDocument(BotRequest request) {
-        sendAction(request.getMessage().getChatId(), ActionType.UPLOADDOCUMENT);
+        sendAction(request.getMessage().getChatId(), ActionType.UPLOAD_DOCUMENT);
     }
 
     public void sendUploadDocument(Long chatId) {
-        sendAction(chatId, ActionType.UPLOADDOCUMENT);
+        sendAction(chatId, ActionType.UPLOAD_DOCUMENT);
     }
 
     public void sendTyping(Long chatId) {
@@ -254,16 +266,14 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     public void sendLocation(Long chatId) {
-        sendAction(chatId, ActionType.FINDLOCATION);
+        sendAction(chatId, ActionType.FIND_LOCATION);
     }
 
     public void sendAction(Long chatId, ActionType action) {
-        SendChatAction sendChatAction = new SendChatAction();
-        sendChatAction.setChatId(chatId);
-        sendChatAction.setAction(action);
+        SendChatAction sendChatAction = new SendChatAction(chatId.toString(), action.toString());
 
         try {
-            execute(sendChatAction);
+            telegramClient.execute(sendChatAction);
         } catch (TelegramApiException e) {
             botStats.incrementErrors(sendChatAction, e, "ошибка при отправке Action");
             log.error("Error: cannot send chat action: {}", e.getMessage());

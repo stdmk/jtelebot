@@ -3,26 +3,26 @@ package org.telegram.bot.services.executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class SendMediaGroupExecutor implements MethodExecutor {
 
-    private final Bot bot;
+    private final TelegramClient telegramClient;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
@@ -39,7 +39,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
 
         try {
-            bot.execute(sendMediaGroup);
+            telegramClient.execute(sendMediaGroup);
         } catch (TelegramApiException e) {
             tryToSendOnePhoto(sendMediaGroup);
         } catch (Exception e) {
@@ -54,7 +54,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         log.info("To " + sendMediaGroup.getChatId() + ": sending photos " + sendMediaGroup);
 
         try {
-            bot.execute(sendMediaGroup);
+            telegramClient.execute(sendMediaGroup);
         } catch (TelegramApiException e) {
             tryToSendOnePhoto(sendMediaGroup);
         } catch (Exception e) {
@@ -71,26 +71,23 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         InputFile inputFile = new InputFile();
         inputFile.setMedia(inputMedia.getMedia());
 
-        SendPhoto sendPhoto = new SendPhoto();
+        SendPhoto sendPhoto = new SendPhoto(sendMediaGroup.getChatId(), inputFile);
         sendPhoto.setPhoto(inputFile);
         sendPhoto.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
-        sendPhoto.setChatId(sendMediaGroup.getChatId());
         sendPhoto.setCaption(buf.toString());
 
         internationalizationService.internationalize(sendPhoto, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 
         try {
-            bot.execute(sendPhoto);
+            telegramClient.execute(sendPhoto);
         } catch (TelegramApiException telegramApiException) {
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(sendMediaGroup.getChatId());
+            SendMessage sendMessage = new SendMessage(sendMediaGroup.getChatId(), "${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
             sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
-            sendMessage.setText("${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
 
             internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 
             try {
-                bot.execute(sendMessage);
+                telegramClient.execute(sendMessage);
             } catch (TelegramApiException e) {
                 log.error("Still failed to send response: {}", e.getMessage());
             }
