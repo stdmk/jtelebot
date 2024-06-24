@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.Error;
 import org.telegram.bot.repositories.ErrorRepository;
 import org.telegram.bot.services.ErrorService;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.time.LocalDateTime;
 import java.util.List;

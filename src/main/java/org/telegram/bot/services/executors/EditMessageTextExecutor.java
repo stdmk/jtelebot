@@ -3,22 +3,22 @@ package org.telegram.bot.services.executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class EditMessageTextExecutor implements MethodExecutor {
 
-    private final Bot bot;
+    private final TelegramClient telegramClient;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
@@ -36,7 +36,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
         log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
 
         try {
-            bot.execute(editMessageText);
+            telegramClient.execute(editMessageText);
         } catch (TelegramApiException e) {
             if (isError(e)) {
                 botStats.incrementErrors(request, method, e, "error sending response");
@@ -60,7 +60,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
         log.info("To " + chatId + ": edited message " + editMessageText.getText());
 
         try {
-            bot.execute(editMessageText);
+            telegramClient.execute(editMessageText);
         } catch (TelegramApiException e) {
             botStats.incrementErrors(method, e, "error sending response");
             log.error("Error: cannot send response: {}", e.getMessage());

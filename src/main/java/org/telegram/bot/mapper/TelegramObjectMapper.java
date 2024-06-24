@@ -8,11 +8,10 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.*;
-import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -22,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import java.util.ArrayList;
@@ -45,16 +45,15 @@ public class TelegramObjectMapper {
         String messageText;
         org.telegram.telegrambots.meta.api.objects.User telegramUser;
         MessageKind messageKind;
-        org.telegram.telegrambots.meta.api.objects.Message telegramMessage = update.getMessage();
+        org.telegram.telegrambots.meta.api.objects.message.Message telegramMessage = update.getMessage();
         if (telegramMessage == null) {
             telegramMessage = update.getEditedMessage();
             if (telegramMessage == null) {
                 CallbackQuery callbackQuery = update.getCallbackQuery();
                 if (callbackQuery == null) {
-                    botStats.incrementErrors(update, "Unknown type of receiving update");
                     return null;
                 } else {
-                    telegramMessage = callbackQuery.getMessage();
+                    telegramMessage = (org.telegram.telegrambots.meta.api.objects.message.Message) callbackQuery.getMessage();
                     telegramUser = callbackQuery.getFrom();
                     messageText = callbackQuery.getData();
                     messageKind = MessageKind.CALLBACK;
@@ -89,7 +88,7 @@ public class TelegramObjectMapper {
                 .setAttachments(messageContent.getValue());
     }
 
-    private Message toMessage(org.telegram.telegrambots.meta.api.objects.Message telegramMessage) {
+    private Message toMessage(org.telegram.telegrambots.meta.api.objects.message.Message telegramMessage) {
         String messageText;
         org.telegram.telegrambots.meta.api.objects.User telegramUser;
         MessageKind messageKind;
@@ -119,7 +118,7 @@ public class TelegramObjectMapper {
                 .setAttachments(messageContent.getValue());
     }
 
-    private Pair<MessageContentType, List<Attachment>> toAttachments(org.telegram.telegrambots.meta.api.objects.Message message) {
+    private Pair<MessageContentType, List<Attachment>> toAttachments(org.telegram.telegrambots.meta.api.objects.message.Message message) {
         if (message.hasText()) {
             return Pair.of(MessageContentType.TEXT, List.of());
         } else if (message.hasSticker()) {
@@ -184,7 +183,7 @@ public class TelegramObjectMapper {
         return new Attachment(mimeType, fileUniqueId, fileId, name, size, duration);
     }
 
-    private Chat toChat(org.telegram.telegrambots.meta.api.objects.Chat chat) {
+    private Chat toChat(org.telegram.telegrambots.meta.api.objects.chat.Chat chat) {
         Long chatId = chat.getId();
 
         String chatName;
@@ -222,16 +221,16 @@ public class TelegramObjectMapper {
     }
 
     public PartialBotApiMethod<?> toTelegramMethod(BotResponse response) {
-        if (response instanceof TextResponse) {
-            return toSendMessage((TextResponse) response);
-        } else if (response instanceof EditResponse) {
-            return toEditMessageText((EditResponse) response);
-        } else if (response instanceof DeleteResponse) {
-            return toDeleteMessage((DeleteResponse) response);
-        } else if (response instanceof FileResponse) {
-            return toMediaMethod((FileResponse) response);
-        } else if (response instanceof LocationResponse) {
-            return toSendLocation((LocationResponse) response);
+        if (response instanceof TextResponse textResponse) {
+            return toSendMessage(textResponse);
+        } else if (response instanceof EditResponse editResponse) {
+            return toEditMessageText(editResponse);
+        } else if (response instanceof DeleteResponse deleteResponse) {
+            return toDeleteMessage(deleteResponse);
+        } else if (response instanceof FileResponse fileResponse) {
+            return toMediaMethod(fileResponse);
+        } else if (response instanceof LocationResponse locationResponse) {
+            return toSendLocation((locationResponse));
         } else {
             botStats.incrementErrors(response, "Unknown type of BotResponse: " + response.getClass());
             throw new IllegalArgumentException("Unknown type of BotResponse: " + response.getClass());
@@ -240,10 +239,8 @@ public class TelegramObjectMapper {
     }
 
     public SendMessage toSendMessage(TextResponse textResponse) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(textResponse.getChatId());
+        SendMessage sendMessage = new SendMessage(textResponse.getChatId().toString(), textResponse.getText());
         sendMessage.setReplyToMessageId(textResponse.getReplyToMessageId());
-        sendMessage.setText(textResponse.getText());
         sendMessage.setReplyMarkup(toKeyboard(textResponse.getKeyboard()));
 
         ResponseSettings responseSettings = textResponse.getResponseSettings();
@@ -262,11 +259,10 @@ public class TelegramObjectMapper {
     }
 
     private EditMessageText toEditMessageText(EditResponse editResponse) {
-        EditMessageText editMessageText = new EditMessageText();
+        EditMessageText editMessageText = new EditMessageText(editResponse.getText());
 
         editMessageText.setChatId(editResponse.getChatId());
         editMessageText.setMessageId(editResponse.getEditableMessageId());
-        editMessageText.setText(editResponse.getText());
         editMessageText.setReplyMarkup(toKeyboard(editResponse.getKeyboard()));
 
         ResponseSettings responseSettings = editResponse.getResponseSettings();
@@ -288,35 +284,30 @@ public class TelegramObjectMapper {
 
         return new InlineKeyboardMarkup(keyboard.getKeyboardButtonsList()
                 .stream()
-                .map(keyboardButtons -> keyboardButtons.stream().map(this::toInlineKeyboardButton).collect(Collectors.toList()))
+                .map(this::toInlineKeyboardRow)
                 .collect(Collectors.toList()));
     }
 
-    private InlineKeyboardButton toInlineKeyboardButton(KeyboardButton keyboardButton) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+    private InlineKeyboardRow toInlineKeyboardRow(List<KeyboardButton> keyboardButtonList) {
+        InlineKeyboardRow inlineKeyboardRow = new InlineKeyboardRow(keyboardButtonList.size());
+        inlineKeyboardRow.addAll(keyboardButtonList.stream().map(this::toInlineKeyboardButton).toList());
+        return inlineKeyboardRow;
+    }
 
-        inlineKeyboardButton.setText(keyboardButton.getName());
+    private InlineKeyboardButton toInlineKeyboardButton(KeyboardButton keyboardButton) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(keyboardButton.getName());
         inlineKeyboardButton.setCallbackData(keyboardButton.getCallback());
 
         return inlineKeyboardButton;
     }
 
     private DeleteMessage toDeleteMessage(DeleteResponse deleteResponse) {
-        DeleteMessage deleteMessage = new DeleteMessage();
-
-        deleteMessage.setChatId(deleteResponse.getChatId());
-        deleteMessage.setMessageId(deleteResponse.getMessageId());
-
-        return deleteMessage;
+        return new DeleteMessage(deleteResponse.getChatId().toString(), deleteResponse.getMessageId());
     }
 
     private SendLocation toSendLocation(LocationResponse locationResponse) {
-        SendLocation sendLocation = new SendLocation();
-
-        sendLocation.setChatId(locationResponse.getChatId());
+        SendLocation sendLocation = new SendLocation(locationResponse.getChatId().toString(), locationResponse.getLatitude(), locationResponse.getLongitude());
         sendLocation.setReplyToMessageId(locationResponse.getReplyToMessageId());
-        sendLocation.setLatitude(locationResponse.getLatitude());
-        sendLocation.setLongitude(locationResponse.getLongitude());
 
         return sendLocation;
     }
@@ -344,12 +335,9 @@ public class TelegramObjectMapper {
 
     private SendPhoto toSendPhoto(FileResponse fileResponse) {
         org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().get(0);
-        SendPhoto sendPhoto = new SendPhoto();
-        InputFile inputFile = toInputFile(file);
 
-        sendPhoto.setChatId(fileResponse.getChatId());
+        SendPhoto sendPhoto = new SendPhoto(fileResponse.getChatId().toString(), toInputFile(file));
         sendPhoto.setReplyToMessageId(fileResponse.getReplyToMessageId());
-        sendPhoto.setPhoto(inputFile);
         sendPhoto.setCaption(fileResponse.getText());
 
         ResponseSettings responseSettings = fileResponse.getResponseSettings();
@@ -371,10 +359,8 @@ public class TelegramObjectMapper {
         org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().get(0);
         InputFile inputFile = toInputFile(file);
 
-        SendVideo sendVideo = new SendVideo();
-        sendVideo.setChatId(fileResponse.getChatId());
+        SendVideo sendVideo = new SendVideo(fileResponse.getChatId().toString(), inputFile);
         sendVideo.setReplyToMessageId(fileResponse.getReplyToMessageId());
-        sendVideo.setVideo(inputFile);
 
         if (file.getFileSettings().isSpoiler()) {
             sendVideo.setHasSpoiler(true);
@@ -386,10 +372,8 @@ public class TelegramObjectMapper {
     private SendVoice toSendVoice(FileResponse fileResponse) {
         InputFile inputFile = toInputFile(fileResponse.getFiles().get(0));
 
-        SendVoice sendVoice = new SendVoice();
-        sendVoice.setChatId(fileResponse.getChatId());
+        SendVoice sendVoice = new SendVoice(fileResponse.getChatId().toString(), inputFile);
         sendVoice.setReplyToMessageId(fileResponse.getReplyToMessageId());
-        sendVoice.setVoice(inputFile);
 
         return sendVoice;
     }
@@ -397,11 +381,9 @@ public class TelegramObjectMapper {
     public SendDocument toSendDocument(FileResponse fileResponse) {
         InputFile inputFile = toInputFile(fileResponse.getFiles().get(0));
 
-        SendDocument sendDocument = new SendDocument();
-        sendDocument.setChatId(fileResponse.getChatId());
+        SendDocument sendDocument = new SendDocument(fileResponse.getChatId().toString(), inputFile);
         sendDocument.setReplyToMessageId(fileResponse.getReplyToMessageId());
         sendDocument.setCaption(fileResponse.getText());
-        sendDocument.setDocument(inputFile);
 
         ResponseSettings responseSettings = fileResponse.getResponseSettings();
         if (responseSettings != null) {
@@ -435,16 +417,14 @@ public class TelegramObjectMapper {
         List<InputMedia> images = new ArrayList<>(files.size());
 
         files.forEach(file -> {
-            InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-            inputMediaPhoto.setMedia(file.getUrl());
+            InputMediaPhoto inputMediaPhoto = new InputMediaPhoto(file.getUrl());
             inputMediaPhoto.setCaption(file.getName());
             images.add(inputMediaPhoto);
         });
 
-        SendMediaGroup sendMediaGroup = new SendMediaGroup();
+        SendMediaGroup sendMediaGroup = new SendMediaGroup(fileResponse.getChatId().toString(), images);
         sendMediaGroup.setMedias(images);
         sendMediaGroup.setReplyToMessageId(fileResponse.getReplyToMessageId());
-        sendMediaGroup.setChatId(fileResponse.getChatId());
 
         return sendMediaGroup;
     }

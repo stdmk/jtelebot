@@ -3,7 +3,6 @@ package org.telegram.bot.services.executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -11,20 +10,21 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.bot.utils.TextUtils;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class SendMessageExecutor implements MethodExecutor {
 
-    private final Bot bot;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
     private final ObjectCopier objectCopier;
+    private final TelegramClient telegramClient;
 
     @Override
     public String getMethod() {
@@ -56,7 +56,7 @@ public class SendMessageExecutor implements MethodExecutor {
 
     private void sendMessage(SendMessage sendMessage, PartialBotApiMethod<?> method, BotRequest botRequest) {
         try {
-            bot.execute(sendMessage);
+            telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             if (isError(e)) {
                 botStats.incrementErrors(botRequest, method, e, "error sending response");
@@ -81,7 +81,7 @@ public class SendMessageExecutor implements MethodExecutor {
         log.info("To " + chatId + ": " + sendMessage.getText());
 
         try {
-            bot.execute(sendMessage);
+            telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             botStats.incrementErrors(method, e, "error sending message");
             log.error("Error: cannot send response: {}", e.getMessage());
@@ -96,7 +96,7 @@ public class SendMessageExecutor implements MethodExecutor {
         sendMessage.setParseMode(null);
 
         try {
-            bot.execute(sendMessage);
+            telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             log.error("Still failed to send response: {}", e.getMessage());
         }

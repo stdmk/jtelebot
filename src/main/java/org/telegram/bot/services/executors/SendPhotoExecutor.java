@@ -3,23 +3,23 @@ package org.telegram.bot.services.executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
-import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class SendPhotoExecutor implements MethodExecutor {
 
-    private final Bot bot;
+    private final TelegramClient telegramClient;
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
@@ -37,7 +37,7 @@ public class SendPhotoExecutor implements MethodExecutor {
         log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
 
         try {
-            bot.execute(sendPhoto);
+            telegramClient.execute(sendPhoto);
         } catch (TelegramApiException e) {
             botStats.incrementErrors(request, method, e, "error sending response");
             log.error("Error: cannot send response: {}", e.getMessage());
@@ -60,7 +60,7 @@ public class SendPhotoExecutor implements MethodExecutor {
         log.info("To " + chatId + ": sending photo " + sendPhoto.getCaption());
 
         try {
-            bot.execute(sendPhoto);
+            telegramClient.execute(sendPhoto);
         } catch (TelegramApiException e) {
             botStats.incrementErrors(method, e, "error sending response");
             log.error("Error: cannot send response: {}", e.getMessage());
@@ -73,17 +73,16 @@ public class SendPhotoExecutor implements MethodExecutor {
 
     private void tryToDeliverTheMessage(SendPhoto sendPhoto) {
         String imageUrl = sendPhoto.getPhoto().getAttachName();
-        SendMessage sendMessage = new SendMessage();
+
+        SendMessage sendMessage = new SendMessage(sendPhoto.getChatId(), "${executor.sendphoto.failedtosend}: " + imageUrl + "\n" + sendPhoto.getCaption());
         sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
-        sendMessage.setChatId(sendPhoto.getChatId());
-        sendMessage.setText("${executor.sendphoto.failedtosend}: " + imageUrl + "\n" + sendPhoto.getCaption());
         sendMessage.enableHtml(true);
         sendMessage.disableWebPagePreview();
 
         internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 
         try {
-            bot.execute(sendMessage);
+            telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
             log.error("Still failed to send response: {}", e.getMessage());
         }
