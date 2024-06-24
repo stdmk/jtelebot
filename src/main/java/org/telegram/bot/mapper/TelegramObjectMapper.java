@@ -51,7 +51,6 @@ public class TelegramObjectMapper {
             if (telegramMessage == null) {
                 CallbackQuery callbackQuery = update.getCallbackQuery();
                 if (callbackQuery == null) {
-                    botStats.incrementErrors(update, "Unknown type of receiving update");
                     return null;
                 } else {
                     telegramMessage = (org.telegram.telegrambots.meta.api.objects.message.Message) callbackQuery.getMessage();

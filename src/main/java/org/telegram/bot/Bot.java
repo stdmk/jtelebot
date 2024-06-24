@@ -92,13 +92,11 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         botStats.incrementReceivedMessages();
 
         BotRequest botRequest = telegramObjectMapper.toBotRequest(update);
-
-        logReceivedMessage(botRequest);
-
         Message message = botRequest.getMessage();
-        if (TelegramUtils.isThatAnOldEditedMessage(message)) {
+        if (TelegramUtils.isUnsupportedMessage(message)) {
             return;
         }
+        logReceivedMessage(botRequest);
 
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
