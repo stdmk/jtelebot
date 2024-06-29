@@ -150,15 +150,15 @@ Telegram-admin user ID to gain access to all commands.
 To get the value of your ID, run the bot and use the /getid command.  
 Then the admin must send the /help command to the bot for getting admin rights.
 
-**openweathermapId**  
+**openweathermapId** (/weather command)  
 OpenWeatherMap API access token.  
 To get a token go to https://openweathermap.org/
 
-**googleToken**  
+**googleToken** (/google /image /images commands)  
 Google search API access token.  
 To get a token go to https://developers.google.com/custom-search/v1/overview?hl=en#prerequisites
 
-**googleTranslateToken**  
+**googleTranslateToken** (/translate command)  
 Google Translator API access token.  
 To get a token: write and publish the script on https://script.google.com/ and copy value after https://script.google.com/macros/s/  
 ```
@@ -195,62 +195,63 @@ function doGet(e) {
 }
 ```
 
-**screenshotMachineToken**  
+**screenshotMachineToken** (/screen command)  
 Screenshotmachine API access token.  
 To get a token go to https://www.screenshotmachine.com/
 
-**wolframAlphaToken**  
+**wolframAlphaToken** (/wolframalpha command)  
 WolframAlphaToken API access token.
 To get a token go to https://products.wolframalpha.com/api
 
-**kinopoiskToken**  
+**kinopoiskToken** (/kinopoisk command)  
 Kinopoisk.dev API access token.
 To get a token go to @kinopoiskdev_bot.
 
-**chatGptApiUrl**  
+**chatGptApiUrl** (/chatgpt command)  
 API URL of ChatGPT.  
 If the value is empty, the official one will be used: https://api.openai.com/v1/
 
-**chatGptToken**  
+**chatGptToken** (/chatgpt command)  
 ChatGPT API access token.
 To get a token go to https://openai.com/product (third party services are also suitable)
 
 **spyMode**  
 The bot will notify you by adminId when receiving personal messages if value `true`.
 
-**russianPostLogin** and **russianPostPassword**  
+**russianPostLogin** and **russianPostPassword** (/parcel command)  
 Russian Post tracking access token.  
 To get a credentials go to https://tracking.pochta.ru/support/faq/how_to_get_access
 
-**russianPostRequestsLimit**  
+**russianPostRequestsLimit** (/parcel command)  
 Limit of API requests. 100 is the free account limit.
 
-**chatGPTContextSize**  
+**chatGPTContextSize** (/chatgpt command)  
 Size of communication history with chatgpt, messages.  
 16 by default. Reduce if problems arise.
 
 **defaultLanguage**  
 Default language code for the bot. Currently supported: `en`, `ru`. Default `en`.
 
-**xmlTvFileUrl**  
+**xmlTvFileUrl** (/tv command)  
 URL to a TV program file in XMLTV (gz) format. For /tv command.
 
-**sberApiRequestTimeoutSeconds**
+**sberApiRequestTimeoutSeconds** (/voice and /gigachat commands)
 Waiting time for response from sber API.  
 
-**saluteSpeechSecret**  
+**saluteSpeechSecret** (/voice command)  
 Secret for access for Salute Speech services (synthesis and recognize speech).  
 To get a secret go to: https://developers.sber.ru/docs/ru/salutespeech/integration
 
-**gigaChatSecret**  
+**gigaChatSecret** (/gigachat command)  
 Gigachat API access secret.
 To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get/gigachat-api
 
-**virusTotalApiKey**  
+**virusTotalApiKey** (/virus command)  
 Virus Total API key  
 To get a key go to: https://www.virustotal.com/
 
 ### System
+Java 17 is required to run the bot  
 To use the /webcam command, you need to install ffmpeg on your system
 
 ### Build
