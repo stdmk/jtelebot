@@ -41,8 +41,8 @@ public class Location implements Command {
         }
 
         return returnResponse(new LocationResponse(message)
-                .setLatitude(coordinates.getLatitude())
-                .setLongitude(coordinates.getLongitude()));
+                .setLatitude(coordinates.latitude())
+                .setLongitude(coordinates.longitude()));
     }
 
 }

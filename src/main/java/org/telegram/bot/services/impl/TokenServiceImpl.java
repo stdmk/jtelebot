@@ -27,7 +27,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public Token get(Long id) throws Exception {
+    public Token get(Long id) {
         log.debug("Request to get Token by id: {} ", id);
         return tokenRepository.findById(id).orElse(null);
     }

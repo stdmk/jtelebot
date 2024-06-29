@@ -15,18 +15,17 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
-import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.services.SpeechService;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.DateUtils.getDayOfWeek;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
-import static org.telegram.bot.utils.DateUtils.formatDate;
 
 @Service
 @RequiredArgsConstructor
@@ -134,7 +133,7 @@ public class Holidays implements Command {
                 .stream()
                 .filter(holiday -> holiday.getDate().getMonth().getValue() == date.getMonth().getValue()
                         && holiday.getDate().getDayOfMonth() == date.getDayOfMonth())
-                .collect(Collectors.toList());
+                .toList();
         if (holidayList.isEmpty()) {
             return null;
         }

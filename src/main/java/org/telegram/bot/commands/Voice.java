@@ -3,10 +3,8 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
@@ -24,8 +22,7 @@ import org.telegram.bot.providers.sber.SpeechSynthesizer;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.executors.SendMessageExecutor;
-import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -40,11 +37,9 @@ public class Voice implements Command, MessageAnalyzer {
 
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
-    private final NetworkUtils networkUtils;
     private final SpeechSynthesizer speechSynthesizer;
     private final SpeechParser speechParser;
     private final LanguageResolver languageResolver;
-    private final SendMessageExecutor sendMessageExecutor;
     private final BotStats botStats;
     private final Bot bot;
 
@@ -73,7 +68,7 @@ public class Voice implements Command, MessageAnalyzer {
             }
         }
 
-        if (!StringUtils.hasLength(commandArgument)) {
+        if (TextUtils.isEmpty(commandArgument)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 

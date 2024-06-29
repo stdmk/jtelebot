@@ -17,7 +17,6 @@ import org.telegram.bot.services.UserStatsService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 
@@ -84,7 +83,7 @@ public class UserStatsCleanerTimer extends TimerParent {
             List<TextResponse> sendMessageListWithMonthlyTop = chatService.getAllGroups()
                     .stream()
                     .map(top::getTopByChat)
-                    .collect(Collectors.toList());
+                    .toList();
 
             userStatsService.clearMonthlyStats();
 

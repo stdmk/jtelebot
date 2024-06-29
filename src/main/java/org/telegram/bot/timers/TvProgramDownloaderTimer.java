@@ -22,11 +22,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -85,7 +81,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
             try {
                 parseTvProgramData();
             } catch (IOException | XMLStreamException e) {
-                log.error("Unable to read new TvData: " + e.getMessage());
+                log.error("Unable to read new TvData: {}", e.getMessage());
                 return;
             }
 

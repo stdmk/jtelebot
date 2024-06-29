@@ -1,7 +1,6 @@
 package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -123,11 +122,11 @@ public class Password implements Command {
     }
 
     private String generatePassword(PasswordParams passwordParams) {
-        String symbolsSource = passwordParams.getSymbolsSource();
+        String symbolsSource = passwordParams.symbolsSource();
         int sourceLength = symbolsSource.length();
 
         StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < passwordParams.getLength(); i++) {
+        for (int i = 0; i < passwordParams.length(); i++) {
             Integer position = MathUtils.getRandomInRange(0, sourceLength);
             buf.append(symbolsSource.charAt(position));
         }
@@ -154,10 +153,6 @@ public class Password implements Command {
         return false;
     }
 
-    @Value
-    private static class PasswordParams {
-        int length;
-        String symbolsSource;
-    }
+    private record PasswordParams(int length, String symbolsSource) {}
 
 }

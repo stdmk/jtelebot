@@ -155,8 +155,8 @@ public class Metadata implements Command {
         if (latitudeData != null && longitudeData != null) {
             Coordinates coordinates = CoordinatesUtils.parseCoordinates(latitudeData + " " + longitudeData);
             if (coordinates != null) {
-                return formatCoordinateForCommand(coordinates.getLatitude()) + "_"
-                        + formatCoordinateForCommand(coordinates.getLongitude());
+                return formatCoordinateForCommand(coordinates.latitude()) + "_"
+                        + formatCoordinateForCommand(coordinates.longitude());
             }
         }
 

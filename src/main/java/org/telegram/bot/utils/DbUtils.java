@@ -14,7 +14,6 @@ import javax.persistence.PersistenceContext;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
@@ -46,7 +45,7 @@ public class DbUtils {
                         newsMessageWithoutDescHash
                                 .stream()
                                 .map(newsMessage -> newsMessage.setDescHash(DigestUtils.sha256Hex(newsMessage.getDescription())))
-                                .collect(Collectors.toList()));
+                                .toList());
                 newsMessageWithoutDescHash = getNewsMessageWithoutDescHash();
             }
 

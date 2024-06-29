@@ -27,7 +27,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -113,28 +114,29 @@ class KinopoiskTest {
 
     @Test
     void parseRandomMovieTest() {
-        final String expectedCaption = "<b>name (2000)</b>\n" +
-                "alternativeName 21+\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)\n" +
-                "${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b> \n" +
-                "${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>\n" +
-                "${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>\n" +
-                "${command.kinopoisk.movieinfo.director}: <b>personName1</b>\n" +
-                "\n" +
-                "<i>shortDesc</i>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.trailers}: \n" +
-                "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.similar}:\n" +
-                "/movie_20 — linkedMovieName1\n" +
-                "/movie_21 — linkedMovieName2\n" +
-                "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
+        final String expectedCaption = """
+                <b>name (2000)</b>
+                alternativeName 21+
+
+                ${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)
+                ${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b>\s
+                ${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>
+                ${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>
+                ${command.kinopoisk.movieinfo.director}: <b>personName1</b>
+
+                <i>shortDesc</i>
+
+                ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
+
+                ${command.kinopoisk.movieinfo.trailers}:\s
+                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+
+                ${command.kinopoisk.movieinfo.similar}:
+                /movie_20 — linkedMovieName1
+                /movie_21 — linkedMovieName2
+                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
@@ -162,28 +164,29 @@ class KinopoiskTest {
 
     @Test
     void parseMovieByIdTest() {
-        final String expectedCaption = "<b>name (2000)</b>\n" +
-                "alternativeName 21+\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)\n" +
-                "${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b> \n" +
-                "${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>\n" +
-                "${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>\n" +
-                "${command.kinopoisk.movieinfo.director}: <b>personName1</b>\n" +
-                "\n" +
-                "<i>shortDesc</i>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.trailers}: \n" +
-                "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.similar}:\n" +
-                "/movie_20 — linkedMovieName1\n" +
-                "/movie_21 — linkedMovieName2\n" +
-                "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
+        final String expectedCaption = """
+                <b>name (2000)</b>
+                alternativeName 21+
+
+                ${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)
+                ${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b>\s
+                ${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>
+                ${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>
+                ${command.kinopoisk.movieinfo.director}: <b>personName1</b>
+
+                <i>shortDesc</i>
+
+                ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
+
+                ${command.kinopoisk.movieinfo.trailers}:\s
+                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+
+                ${command.kinopoisk.movieinfo.similar}:
+                /movie_20 — linkedMovieName1
+                /movie_21 — linkedMovieName2
+                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("movie_" + MOVIE_ID);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
@@ -219,28 +222,29 @@ class KinopoiskTest {
     void parseSearchMovieWithYearFoundOneWithIdTest() {
         final String movieName = "movie name";
         final int movieYear = 2000;
-        final String expectedCaption = "<b>name (2000)</b>\n" +
-                "alternativeName 21+\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)\n" +
-                "${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b> \n" +
-                "${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>\n" +
-                "${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>\n" +
-                "${command.kinopoisk.movieinfo.director}: <b>personName1</b>\n" +
-                "\n" +
-                "<i>shortDesc</i>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.trailers}: \n" +
-                "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.similar}:\n" +
-                "/movie_20 — linkedMovieName1\n" +
-                "/movie_21 — linkedMovieName2\n" +
-                "<a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>";
+        final String expectedCaption = """
+                <b>name (2000)</b>
+                alternativeName 21+
+
+                ${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)
+                ${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b>\s
+                ${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>
+                ${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>
+                ${command.kinopoisk.movieinfo.director}: <b>personName1</b>
+
+                <i>shortDesc</i>
+
+                ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
+
+                ${command.kinopoisk.movieinfo.trailers}:\s
+                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+
+                ${command.kinopoisk.movieinfo.similar}:
+                /movie_20 — linkedMovieName1
+                /movie_21 — linkedMovieName2
+                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName + "(" + movieYear + ")");
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(getSomeMovie()));
 
@@ -262,27 +266,29 @@ class KinopoiskTest {
     void parseSearchMovieFoundOneWithoutIdTest() {
         final String movieName = "movie name";
         final int movieYear = 2000;
-        final String expectedCaption = "<b>name (2000)</b>\n" +
-                "alternativeName 21+\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)\n" +
-                "\uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)\n" +
-                "${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b> \n" +
-                "${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>\n" +
-                "${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>\n" +
-                "${command.kinopoisk.movieinfo.director}: <b>personName1</b>\n" +
-                "\n" +
-                "<i>shortDesc</i>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.trailers}: \n" +
-                "<a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>\n" +
-                "\n" +
-                "${command.kinopoisk.movieinfo.similar}:\n" +
-                "/movie_20 — linkedMovieName1\n" +
-                "/movie_21 — linkedMovieName2\n";
+        final String expectedCaption = """
+                <b>name (2000)</b>
+                alternativeName 21+
+
+                ${command.kinopoisk.movieinfo.duration}: <b>120 ${command.kinopoisk.movieinfo.minute}.</b> (2 ${utils.date.h}. )
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top10} (3)
+                \uD83C\uDFC6 ${command.kinopoisk.movieinfo.top250} (4)
+                ${command.kinopoisk.movieinfo.kinopoiskrating}: <b>1.0</b> ${command.kinopoisk.movieinfo.imdbrating}: <b>2.0</b>\s
+                ${command.kinopoisk.movieinfo.country}: <b>country1, country2</b>
+                ${command.kinopoisk.movieinfo.genre}: <b>genres1, genres2</b>
+                ${command.kinopoisk.movieinfo.director}: <b>personName1</b>
+
+                <i>shortDesc</i>
+
+                ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
+
+                ${command.kinopoisk.movieinfo.trailers}:\s
+                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+
+                ${command.kinopoisk.movieinfo.similar}:
+                /movie_20 — linkedMovieName1
+                /movie_21 — linkedMovieName2
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName + "(" + movieYear + ")");
         Kinopoisk.Movie foundMovie = getSomeMovie().setId(null);
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(foundMovie));
@@ -302,15 +308,17 @@ class KinopoiskTest {
     @Test
     void parseSearchMovieFoundSeveralMoviesTest() {
         final String movieName = "movie name";
-        final String expectedResponseText = "<b>name</b> (2000)\n" +
-                "shortDesc\n" +
-                "/movie_123\n" +
-                "\n" +
-                "<b>name</b> (2000)\n" +
-                "shortDesc\n" +
-                "/movie_124\n" +
-                "\n" +
-                "${command.kinopoisk.totalfound}: <b>2</b>\n";
+        final String expectedResponseText = """
+                <b>name</b> (2000)
+                shortDesc
+                /movie_123
+
+                <b>name</b> (2000)
+                shortDesc
+                /movie_124
+
+                ${command.kinopoisk.totalfound}: <b>2</b>
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName);
         Kinopoisk.Movie foundMovie1 = getSomeMovie();
         Kinopoisk.Movie foundMovie2 = getSomeMovie().setId(124L);

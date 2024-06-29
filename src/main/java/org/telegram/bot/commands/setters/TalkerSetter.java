@@ -23,7 +23,6 @@ import org.telegram.bot.services.TalkerDegreeService;
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -203,17 +202,17 @@ public class TalkerSetter implements Setter<BotResponse> {
                         .map(value -> new KeyboardButton()
                                 .setName(value.toString())
                                 .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
-                        .collect(Collectors.toList()),
+                        .toList(),
                 Stream.of(35, 40, 45, 50, 55, 60, 65)
                         .map(value -> new KeyboardButton()
                                 .setName(value.toString())
                                 .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
-                        .collect(Collectors.toList()),
+                        .toList(),
                 Stream.of(70, 75, 80, 85, 90, 95, 100)
                         .map(value -> new KeyboardButton()
                                 .setName(value.toString())
                                 .setCallback(CALLBACK_SET_TALKER_COMMAND + " " + value))
-                        .collect(Collectors.toList()),
+                        .toList(),
                 List.of(new KeyboardButton()
                         .setName(Emoji.HOURGLASS_NOT_DONE.getSymbol() + "${setter.talker.button.downtime}")
                         .setCallback(CALLBACK_SET_IDLE_MINUTES_COMMAND)),

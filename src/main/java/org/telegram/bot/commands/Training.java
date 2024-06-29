@@ -7,8 +7,8 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
-import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
@@ -24,7 +24,6 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -320,7 +319,7 @@ public class Training implements Command {
         List<TrainingEvent> nonCanceledTrainingEventList = trainingEventList
                 .stream()
                 .filter(trainingEvent -> !Boolean.TRUE.equals(trainingEvent.getCanceled()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (nonCanceledTrainingEventList.isEmpty())  {
             return "${command.training.notrainings}\n";
@@ -395,11 +394,11 @@ public class Training implements Command {
         List<org.telegram.bot.domain.entities.Training> unplannedTodayTrainings = trainingEventService.getAllUnplanned(user, dateNow)
                 .stream()
                 .map(TrainingEvent::getTraining)
-                .collect(Collectors.toList());
+                .toList();
         List<org.telegram.bot.domain.entities.Training> canceledTodayTrainings = trainingEventService.getAllCanceled(user, dateNow)
                 .stream()
                 .map(TrainingEvent::getTraining)
-                .collect(Collectors.toList());
+                .toList();
 
         StringBuilder buf = new StringBuilder();
 
@@ -445,14 +444,14 @@ public class Training implements Command {
                                                                                     List<org.telegram.bot.domain.entities.Training> unplannedTrainingList,
                                                                                     List<org.telegram.bot.domain.entities.Training> canceledTrainingList,
                                                                                     DayOfWeek dayOfWeek) {
-        List<Long> canceledTrainingIdList = canceledTrainingList.stream().map(org.telegram.bot.domain.entities.Training::getId).collect(Collectors.toList());
+        List<Long> canceledTrainingIdList = canceledTrainingList.stream().map(org.telegram.bot.domain.entities.Training::getId).toList();
         Stream<org.telegram.bot.domain.entities.Training> plannedTrainingsTodayStream =
                 getScheduledTrainingsByWeekDay(trainingScheduledList, dayOfWeek);
 
         return Stream.concat(plannedTrainingsTodayStream, unplannedTrainingList.stream())
                 .filter(training -> !canceledTrainingIdList.contains(training.getId()))
                 .sorted(Comparator.comparing(org.telegram.bot.domain.entities.Training::getTimeStart))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private String buildFormattedTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {

@@ -33,7 +33,7 @@ public class SendDocumentExecutor implements MethodExecutor {
         Message message = request.getMessage();
         String lang = languageResolver.getChatLanguageCode(request);
         SendDocument sendDocument = internationalizationService.internationalize((SendDocument) method, lang);
-        log.info("To " + message.getChatId() + ": sending document " + sendDocument.getCaption());
+        log.info("To {}: sending document {}", message.getChatId(), sendDocument.getCaption());
 
         try {
             telegramClient.execute(sendDocument);
@@ -55,7 +55,7 @@ public class SendDocumentExecutor implements MethodExecutor {
 
         sendDocument = internationalizationService.internationalize(sendDocument, lang);
 
-        log.info("To " + chatId + ": sending document " + sendDocument.getCaption());
+        log.info("To {}: sending document {}", chatId, sendDocument.getCaption());
 
         try {
             telegramClient.execute(sendDocument);

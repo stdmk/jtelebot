@@ -4,18 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Remind;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.Reminder;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.ReminderService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.utils.TextUtils;
 
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +74,7 @@ public class ReminderTimer extends TimerParent {
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
 
                 String repeatability = reminder.getRepeatability();
-                if (StringUtils.isEmpty(repeatability)) {
+                if (TextUtils.isEmpty(repeatability)) {
                     reminder.setNotified(true);
                 } else {
                     LocalDateTime newReminderDateTime = reminderService.getNextAlarmDateTime(reminder);

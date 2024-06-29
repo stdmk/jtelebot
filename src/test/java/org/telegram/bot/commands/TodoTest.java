@@ -23,7 +23,6 @@ import org.telegram.bot.services.TodoTagService;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,18 +47,20 @@ class TodoTest {
 
     @Test
     void parseWithoutArgumentsTest() {
-        final String expectedResponse = "<b>${command.todo.alllistcaption}:</b>\n" +
-                "description1\n" +
-                "#tag1 #tag #tag3 \n" +
-                "/todo_delnull\n" +
-                "\n" +
-                "description2\n" +
-                "#tag4 #tag #tag5 \n" +
-                "/todo_delnull\n" +
-                "\n" +
-                "description3\n" +
-                "#tag6 #tag #tag7 \n" +
-                "/todo_delnull\n";
+        final String expectedResponse = """
+                <b>${command.todo.alllistcaption}:</b>
+                description1
+                #tag1 #tag #tag3\s
+                /todo_delnull
+
+                description2
+                #tag4 #tag #tag5\s
+                /todo_delnull
+
+                description3
+                #tag6 #tag #tag7\s
+                /todo_delnull
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("trigger");
 
         when(todoService.get(any(Chat.class), any(User.class))).thenReturn(getSomeTodos());
@@ -183,25 +184,27 @@ class TodoTest {
 
     @Test
     void parseWithoutTextWithTagsTest() {
-        final String expectedResponseText = "<b>${command.todo.foundlistcaption}:</b>\n" +
-                "description1\n" +
-                "#tag1 #tag #tag3 \n" +
-                "/todo_delnull\n" +
-                "\n" +
-                "description2\n" +
-                "#tag4 #tag #tag5 \n" +
-                "/todo_delnull\n" +
-                "\n" +
-                "description3\n" +
-                "#tag6 #tag #tag7 \n" +
-                "/todo_delnull\n";
+        final String expectedResponseText = """
+                <b>${command.todo.foundlistcaption}:</b>
+                description1
+                #tag1 #tag #tag3\s
+                /todo_delnull
+
+                description2
+                #tag4 #tag #tag5\s
+                /todo_delnull
+
+                description3
+                #tag6 #tag #tag7\s
+                /todo_delnull
+                """;
         String tag1 = "tag1";
         String tag2 = "tag2";
         List<TodoTag> todoTagsList = getSomeTodos()
                 .stream()
                 .map(org.telegram.bot.domain.entities.Todo::getTags)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                .toList();
         BotRequest request = TestUtils.getRequestFromGroup("trigger #" + tag1 + " #" + tag2);
 
         when(todoTagService.get(any(Chat.class), any(User.class), anyList())).thenReturn(todoTagsList);

@@ -18,7 +18,6 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -39,14 +38,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.dateFormatter;
@@ -295,7 +296,7 @@ public class Exchange implements Command {
         List<LocalDate> datesArray = Stream.concat(
                 usdValCurs.getRecords().stream().map(Record::getDate).map(date -> LocalDate.parse(date, dateFormatter)),
                 eurValCurs.getRecords().stream().map(Record::getDate).map(date -> LocalDate.parse(date, dateFormatter)))
-                .collect(Collectors.toList());
+                .toList();
         LocalDate dateFrom = datesArray.stream().min(LocalDate::compareTo).orElse(LocalDate.parse(usdValCurs.getDateRange1(), dateFormatter));
         LocalDate dateTo = datesArray.stream().max(LocalDate::compareTo).orElse(LocalDate.parse(usdValCurs.getDateRange2(), dateFormatter));
 

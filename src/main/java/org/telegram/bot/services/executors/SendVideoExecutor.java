@@ -33,7 +33,7 @@ public class SendVideoExecutor implements MethodExecutor {
         Message message = request.getMessage();
         String lang = languageResolver.getChatLanguageCode(request);
         SendVideo sendVideo = internationalizationService.internationalize((SendVideo) method, lang);
-        log.info("To " + message.getChatId() + ": " + sendVideo.getCaption());
+        log.info("To {}: {}", message.getChatId(), sendVideo.getCaption());
 
         try {
             telegramClient.execute(sendVideo);

@@ -38,7 +38,7 @@ public class SendMessageExecutor implements MethodExecutor {
         SendMessage sendMessage = internationalizationService.internationalize((SendMessage) method, lang);
 
         String messageText = sendMessage.getText();
-        log.info("To " + message.getChatId() + ": " + messageText);
+        log.info("To {}: {}", message.getChatId(), messageText);
 
         if (TextUtils.isNotTextLengthIncludedInLimit(messageText)) {
             TextUtils.splitTextByTelegramMaxLength(messageText)
@@ -78,7 +78,7 @@ public class SendMessageExecutor implements MethodExecutor {
 
         sendMessage = internationalizationService.internationalize(sendMessage, lang);
 
-        log.info("To " + chatId + ": " + sendMessage.getText());
+        log.info("To {}: {}", chatId, sendMessage.getText());
 
         try {
             telegramClient.execute(sendMessage);

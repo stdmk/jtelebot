@@ -4,16 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.ChatGPTMessageRepository;
 import org.telegram.bot.services.ChatGPTMessageService;
-import org.telegram.bot.config.PropertiesConfig;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +48,7 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
                 .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
                 .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
                 .limit(deletingCount)
-                .collect(Collectors.toList());
+                .toList();
         messages.removeAll(chatGPTMessagesForDelete);
         chatGPTMessageRepository.deleteAll(chatGPTMessagesForDelete);
 

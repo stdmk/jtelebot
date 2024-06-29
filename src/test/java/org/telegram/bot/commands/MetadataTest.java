@@ -20,7 +20,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -96,7 +95,7 @@ class MetadataTest {
     }
 
     @Test
-    void parseFileWithLibExceptionTest() throws TelegramApiException {
+    void parseFileWithLibExceptionTest() {
         BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
         Attachment attachment = TestUtils.getDocument();
@@ -111,7 +110,7 @@ class MetadataTest {
     }
 
     @Test
-    void parseTest() throws FileNotFoundException, TelegramApiException {
+    void parseTest() throws FileNotFoundException {
         Attachment attachment = TestUtils.getDocument();
         Message message = TestUtils.getMessage();
         message.setAttachments(List.of(attachment));

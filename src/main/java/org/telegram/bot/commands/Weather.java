@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
@@ -26,14 +27,12 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.bot.config.PropertiesConfig;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -250,7 +249,7 @@ public class Weather implements Command {
         List<WeatherForecastData> weatherForecastList = weatherForecast.getList()
                 .stream()
                 .limit(HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT)
-                .collect(Collectors.toList());
+                .toList();
 
         int maxLengthOfTemp = weatherForecastList
                 .stream()
@@ -281,8 +280,8 @@ public class Weather implements Command {
         List<WeatherForecastData> forecastList = weatherForecast.getList();
         LocalDate firstDate = forecastList.get(0).getNormalizedDate().toLocalDate();
 
-        List<LocalDate> dateOfForecast = Stream.of(1, 2, 3, 4).map(firstDate::plusDays).collect(Collectors.toList());
-        List<List<WeatherForecastData>> forecastListList = dateOfForecast.stream().map(date -> getForecastDataByDate(forecastList, date)).collect(Collectors.toList());
+        List<LocalDate> dateOfForecast = Stream.of(1, 2, 3, 4).map(firstDate::plusDays).toList();
+        List<List<WeatherForecastData>> forecastListList = dateOfForecast.stream().map(date -> getForecastDataByDate(forecastList, date)).toList();
         int spaceCount = getSpaceCount(forecastListList);
 
         Stream.of(0, 1, 2, 3).forEach(index ->
@@ -299,7 +298,7 @@ public class Weather implements Command {
                 .stream()
                 .filter(weatherForecastData -> weatherForecastData.getNormalizedDate().isAfter(dateTimeStart)
                         && weatherForecastData.getNormalizedDate().isBefore(dateTimeEnd))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private String buildDailyForecastString(List<WeatherForecastData> forecastData, LocalDate date, int spaceCount, String lang) {
@@ -323,8 +322,8 @@ public class Weather implements Command {
     private int getSpaceCount(List<List<WeatherForecastData>> forecastListList) {
         Long maxTempValueAbs = forecastListList
                 .stream()
-                .map(forecastList -> forecastList.stream().map(WeatherForecastData::getMain).collect(Collectors.toList()))
-                .map(mainList -> mainList.stream().map(Main::getTemp).collect(Collectors.toList()))
+                .map(forecastList -> forecastList.stream().map(WeatherForecastData::getMain).toList())
+                .map(mainList -> mainList.stream().map(Main::getTemp).toList())
                 .map(temps -> temps.stream().max(Double::compareTo).orElse(0D))
                 .map(Math::round)
                 .map(Math::abs)

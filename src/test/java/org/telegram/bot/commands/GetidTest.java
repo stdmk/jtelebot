@@ -15,7 +15,8 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,9 +48,10 @@ class GetidTest {
 
     @Test
     void getIdOfUsernameTest() {
-        final String responseText = "${command.getid.id} [username](tg://user?id=1): `1`\n" +
-                "${command.getid.groupid}: `-1`\n" +
-                "${command.getid.yourid}: `1`";
+        final String responseText = """
+                ${command.getid.id} [username](tg://user?id=1): `1`
+                ${command.getid.groupid}: `-1`
+                ${command.getid.yourid}: `1`""";
         BotRequest request = TestUtils.getRequestFromGroup("getid test");
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
@@ -64,9 +66,10 @@ class GetidTest {
 
     @Test
     void getIdOfUserFromRepliedMessageTest() {
-        final String responseText = "${command.getid.id} [username](tg://user?id=2): `2`\n" +
-                "${command.getid.groupid}: `-1`\n" +
-                "${command.getid.yourid}: `1`";
+        final String responseText = """
+                ${command.getid.id} [username](tg://user?id=2): `2`
+                ${command.getid.groupid}: `-1`
+                ${command.getid.yourid}: `1`""";
         BotRequest request = TestUtils.getRequestWithRepliedMessage("getid");
 
         BotResponse response = getid.parse(request).get(0);

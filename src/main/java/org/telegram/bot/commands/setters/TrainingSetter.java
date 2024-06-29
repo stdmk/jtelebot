@@ -17,13 +17,15 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 
 import javax.annotation.PostConstruct;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.Period;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.*;
 import static org.telegram.bot.utils.TextUtils.*;
@@ -554,7 +556,7 @@ public class TrainingSetter implements Setter<BotResponse> {
         List<KeyboardButton> daysOfWeekRow = Arrays.stream(DayOfWeek.values()).map(dayOfWeek -> new KeyboardButton()
                 .setName(dayOfWeek.getDisplayName(TextStyle.SHORT, locale))
                 .setCallback(CALLBACK_SELECT_DAY_SCHEDULE_COMMAND + dayOfWeek.getValue()))
-                .collect(Collectors.toList());
+                .toList();
 
         String caption;
         if (scheduleStopped) {

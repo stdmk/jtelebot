@@ -1,11 +1,9 @@
 package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -53,13 +51,13 @@ public class Download implements Command {
 
             InputStream fileFromUrl;
             try {
-                fileFromUrl = networkUtils.getFileFromUrlWithLimit(fileParams.getUrl());
+                fileFromUrl = networkUtils.getFileFromUrlWithLimit(fileParams.url());
             } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
             }
 
             return returnResponse(new FileResponse(message)
-                    .addFile(new File(FileType.FILE, fileFromUrl, fileParams.getName())));
+                    .addFile(new File(FileType.FILE, fileFromUrl, fileParams.name())));
         }
     }
 
@@ -98,9 +96,5 @@ public class Download implements Command {
         return new FileParams(url, fileName);
     }
 
-    @Value
-    private static class FileParams {
-        String url;
-        String name;
-    }
+    private record FileParams(String url, String name) {}
 }

@@ -30,5 +30,5 @@ public interface TokenService {
      * @param id id of token to get.
      * @return the persisted entity.
      */
-    Token get(Long id) throws Exception;
+    Token get(Long id);
 }

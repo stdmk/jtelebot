@@ -64,12 +64,12 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
     @Override
     public CommandProperties getCommand(Class<?> commandClass) {
         String className = removeCapital(commandClass.getSimpleName());
-        log.debug("Request to get command propertiest by class name {}", className);
+        log.debug("Request to get command properties by class name {}", className);
         return commandPropertiesRepository.findByClassName(className);
     }
 
     public Page<CommandProperties> getAll(int page) {
-        log.debug("Request to get all CommandProperties. Page " + page);
+        log.debug("Request to get all CommandProperties. Page {}", page);
         return commandPropertiesRepository.findAll(PageRequest.of(page, 10));
     }
 

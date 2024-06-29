@@ -23,7 +23,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -47,7 +48,7 @@ class VirusTotalScannerImplTest {
     private VirusTotalScannerImpl virusTotalScanner;
 
     @BeforeEach
-    private void init() {
+    public void init() {
         ReflectionTestUtils.setField(virusTotalScanner, "reportWaitingTimeMillis", 1);
     }
 
@@ -109,15 +110,17 @@ class VirusTotalScannerImplTest {
 
     @Test
     void scanUrlTest() throws MalformedURLException, VirusScanException {
-        final String expectedString = "<b>27.01.2024 09:12:55</b>\n" +
-                "${command.virus.stats.total}: <b>3</b>\n" +
-                "${command.virus.stats.confirmedtimeout}: <b>1</b>\n" +
-                "${command.virus.stats.failure}: <b>2</b>\n" +
-                "${command.virus.stats.harmless}: <b>3</b>\n" +
-                "${command.virus.stats.undetected}: <b>8</b>\n" +
-                "${command.virus.stats.suspicious}: <b>5</b>\n" +
-                "${command.virus.stats.malicious}: <b>4</b>\n" +
-                "${command.virus.stats.typeunsupported}: <b>7</b>\n";
+        final String expectedString = """
+                <b>27.01.2024 09:12:55</b>
+                ${command.virus.stats.total}: <b>3</b>
+                ${command.virus.stats.confirmedtimeout}: <b>1</b>
+                ${command.virus.stats.failure}: <b>2</b>
+                ${command.virus.stats.harmless}: <b>3</b>
+                ${command.virus.stats.undetected}: <b>8</b>
+                ${command.virus.stats.suspicious}: <b>5</b>
+                ${command.virus.stats.malicious}: <b>4</b>
+                ${command.virus.stats.typeunsupported}: <b>7</b>
+                """;
         URL url = new URL("http://example.com");
         VirusTotalScannerImpl.AnalysesResponse analysesResponse = getSomeAnalysesResponse();
 
@@ -134,16 +137,18 @@ class VirusTotalScannerImplTest {
     }
 
     @Test
-    void scanFileTest() throws MalformedURLException, VirusScanException {
-        final String expectedString = "<b>27.01.2024 09:12:55</b>\n" +
-                "${command.virus.stats.total}: <b>3</b>\n" +
-                "${command.virus.stats.confirmedtimeout}: <b>1</b>\n" +
-                "${command.virus.stats.failure}: <b>2</b>\n" +
-                "${command.virus.stats.harmless}: <b>3</b>\n" +
-                "${command.virus.stats.undetected}: <b>8</b>\n" +
-                "${command.virus.stats.suspicious}: <b>5</b>\n" +
-                "${command.virus.stats.malicious}: <b>4</b>\n" +
-                "${command.virus.stats.typeunsupported}: <b>7</b>\n";
+    void scanFileTest() throws VirusScanException {
+        final String expectedString = """
+                <b>27.01.2024 09:12:55</b>
+                ${command.virus.stats.total}: <b>3</b>
+                ${command.virus.stats.confirmedtimeout}: <b>1</b>
+                ${command.virus.stats.failure}: <b>2</b>
+                ${command.virus.stats.harmless}: <b>3</b>
+                ${command.virus.stats.undetected}: <b>8</b>
+                ${command.virus.stats.suspicious}: <b>5</b>
+                ${command.virus.stats.malicious}: <b>4</b>
+                ${command.virus.stats.typeunsupported}: <b>7</b>
+                """;
         ByteArrayInputStream file = new ByteArrayInputStream("http://example.com".getBytes());
         VirusTotalScannerImpl.AnalysesResponse analysesResponse = getSomeAnalysesResponse();
 

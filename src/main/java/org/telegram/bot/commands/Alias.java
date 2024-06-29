@@ -152,7 +152,7 @@ public class Alias implements Command, MessageAnalyzer {
             return Arrays.stream(aliasValue.substring(1, aliasValue.length() - 1).split(";"))
                     .filter(value -> !value.isEmpty())
                     .limit(MAX_COMMANDS_IN_ALIAS)
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         return List.of(aliasValue);

@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -119,7 +118,7 @@ public class Horoscope implements Command {
                 .filter(zodiac -> !Zodiac.NOT_CHOSEN.equals(zodiac))
                 .map(zodiac -> "<u><a href=\"" + HOROSCOPE_CURRENT_DATA_URL + "\">" + zodiac.getEmoji() + zodiac.getName() + "</a></u>"
                         + getHoroscopeElementByZodiacName(horoscopeData, zodiac).getToday() + "\n")
-                .collect(Collectors.toList()));
+                .toList());
 
         return result;
     }

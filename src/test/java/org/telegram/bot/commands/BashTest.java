@@ -18,8 +18,9 @@ import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.checkDefaultTextResponseParams;
@@ -39,13 +40,14 @@ class BashTest {
 
     @Test
     void parseRandomQuotTest() throws IOException {
-        final String expectedText = "[Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)\n" +
-                "*06.02.2006 в 10:25*\n" +
-                "<yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв\n" +
-                "<Chrono> водка\n" +
-                "<LSD> водка\n" +
-                "<Racco^n> водка\n" +
-                "<LD> водка";
+        final String expectedText = """
+                [Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)
+                *06.02.2006 в 10:25*
+                <yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв
+                <Chrono> водка
+                <LSD> водка
+                <Racco^n> водка
+                <LD> водка""";
         BotRequest request = TestUtils.getRequestFromGroup(null);
         String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quote.txt");
 
@@ -71,13 +73,14 @@ class BashTest {
 
     @Test
     void parseDefineQuotTest() throws IOException {
-        final String expectedText = "[Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)\n" +
-                "*06.02.2006 в 10:25*\n" +
-                "<yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв\n" +
-                "<Chrono> водка\n" +
-                "<LSD> водка\n" +
-                "<Racco^n> водка\n" +
-                "<LD> водка";
+        final String expectedText = """
+                [Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)
+                *06.02.2006 в 10:25*
+                <yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв
+                <Chrono> водка
+                <LSD> водка
+                <Racco^n> водка
+                <LD> водка""";
         BotRequest request = TestUtils.getRequestFromGroup();
         request.getMessage().setText("bash 10229");
         String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quote.txt");

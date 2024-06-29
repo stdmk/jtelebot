@@ -173,7 +173,7 @@ public class DisableCommandSetter implements Setter<BotResponse> {
                 .map(disableCommand -> List.of(new KeyboardButton()
                         .setName(Emoji.CHECK_MARK.getSymbol() + disableCommand.getCommandProperties().getRussifiedName())
                         .setCallback(CALLBACK_ENABLE_COMMAND + " " + disableCommand.getId())))
-                .collect(Collectors.toList());
+                .toList();
 
         return new EditResponse(message)
                 .setText("<b>${setter.disablecommand.caption}</b>\n")

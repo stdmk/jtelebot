@@ -24,14 +24,14 @@ import org.telegram.bot.providers.virus.VirusScanner;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -68,7 +68,7 @@ class VirusTest {
 
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
-    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws TelegramApiException, VirusScanException {
+    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws VirusScanException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
@@ -137,7 +137,7 @@ class VirusTest {
     }
 
     @Test
-    void parseWithDocumentInRepliedMessageTest() throws TelegramApiException, VirusScanException {
+    void parseWithDocumentInRepliedMessageTest() throws VirusScanException {
         final String expectedResponseText = "response_text";
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestWithRepliedMessage("abv");

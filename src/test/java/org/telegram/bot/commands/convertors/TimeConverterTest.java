@@ -15,7 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(MockitoExtension.class)
 class TimeConverterTest {
@@ -25,19 +26,21 @@ class TimeConverterTest {
 
     @Test
     void getInfoTest() {
-        final String expectedInfo = "<b>${command.converter.time.caption}</b>\n" +
-                "${command.converter.time.femtosecond} — ${command.converter.time.femtosecond}\n" +
-                "${command.converter.time.picosecond} — ${command.converter.time.picosecond}\n" +
-                "${command.converter.time.nanosecond} — ${command.converter.time.nanosecond}\n" +
-                "${command.converter.time.microsecond} — ${command.converter.time.microsecond}\n" +
-                "${command.converter.time.millisecond} — ${command.converter.time.millisecond}\n" +
-                "${command.converter.time.centisecond} — ${command.converter.time.centisecond}\n" +
-                "${command.converter.time.second} — ${command.converter.time.second}\n" +
-                "${command.converter.time.minute} — ${command.converter.time.minute}\n" +
-                "${command.converter.time.hour} — ${command.converter.time.hour}\n" +
-                "${command.converter.time.day} — ${command.converter.time.day}\n" +
-                "${command.converter.time.year} — ${command.converter.time.year}\n" +
-                "${command.converter.time.century} — ${command.converter.time.century}\n";
+        final String expectedInfo = """
+                <b>${command.converter.time.caption}</b>
+                ${command.converter.time.femtosecond} — ${command.converter.time.femtosecond}
+                ${command.converter.time.picosecond} — ${command.converter.time.picosecond}
+                ${command.converter.time.nanosecond} — ${command.converter.time.nanosecond}
+                ${command.converter.time.microsecond} — ${command.converter.time.microsecond}
+                ${command.converter.time.millisecond} — ${command.converter.time.millisecond}
+                ${command.converter.time.centisecond} — ${command.converter.time.centisecond}
+                ${command.converter.time.second} — ${command.converter.time.second}
+                ${command.converter.time.minute} — ${command.converter.time.minute}
+                ${command.converter.time.hour} — ${command.converter.time.hour}
+                ${command.converter.time.day} — ${command.converter.time.day}
+                ${command.converter.time.year} — ${command.converter.time.year}
+                ${command.converter.time.century} — ${command.converter.time.century}
+                """;
         String actualInfo = converter.getInfo();
         assertEquals(expectedInfo, actualInfo);
     }

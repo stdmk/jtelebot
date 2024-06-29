@@ -15,7 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(MockitoExtension.class)
 class LengthConverterTest {
@@ -25,21 +26,23 @@ class LengthConverterTest {
 
     @Test
     void getInfoTest() {
-        final String expectedInfo = "<b>${command.converter.length.caption}</b>\n" +
-                "${command.converter.length.femtometer} — ${command.converter.length.femtometer}\n" +
-                "${command.converter.length.picometer} — ${command.converter.length.picometer}\n" +
-                "${command.converter.length.nanometer} — ${command.converter.length.nanometer}\n" +
-                "${command.converter.length.micrometer} — ${command.converter.length.micrometer}\n" +
-                "${command.converter.length.millimeter} — ${command.converter.length.millimeter}\n" +
-                "${command.converter.length.centimeter} — ${command.converter.length.centimeter}\n" +
-                "${command.converter.length.decimeter} — ${command.converter.length.decimeter}\n" +
-                "${command.converter.length.meter} — ${command.converter.length.meter}\n" +
-                "${command.converter.length.kilometer} — ${command.converter.length.kilometer}\n" +
-                "${command.converter.length.mile} — ${command.converter.length.mile}\n" +
-                "${command.converter.length.yard} — ${command.converter.length.yard}\n" +
-                "${command.converter.length.foor} — ${command.converter.length.foor}\n" +
-                "${command.converter.length.inch} — ${command.converter.length.inch}\n" +
-                "${command.converter.length.nautical_mile} — ${command.converter.length.nautical_mile}\n";
+        final String expectedInfo = """
+                <b>${command.converter.length.caption}</b>
+                ${command.converter.length.femtometer} — ${command.converter.length.femtometer}
+                ${command.converter.length.picometer} — ${command.converter.length.picometer}
+                ${command.converter.length.nanometer} — ${command.converter.length.nanometer}
+                ${command.converter.length.micrometer} — ${command.converter.length.micrometer}
+                ${command.converter.length.millimeter} — ${command.converter.length.millimeter}
+                ${command.converter.length.centimeter} — ${command.converter.length.centimeter}
+                ${command.converter.length.decimeter} — ${command.converter.length.decimeter}
+                ${command.converter.length.meter} — ${command.converter.length.meter}
+                ${command.converter.length.kilometer} — ${command.converter.length.kilometer}
+                ${command.converter.length.mile} — ${command.converter.length.mile}
+                ${command.converter.length.yard} — ${command.converter.length.yard}
+                ${command.converter.length.foor} — ${command.converter.length.foor}
+                ${command.converter.length.inch} — ${command.converter.length.inch}
+                ${command.converter.length.nautical_mile} — ${command.converter.length.nautical_mile}
+                """;
         String actualInfo = converter.getInfo();
         assertEquals(expectedInfo, actualInfo);
     }

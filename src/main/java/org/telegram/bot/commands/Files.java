@@ -11,7 +11,10 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.File;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.model.request.*;
+import org.telegram.bot.domain.model.request.Attachment;
+import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
@@ -110,7 +113,7 @@ public class Files implements Command {
             return makeDirByCallback(message, chat, user, textMessage);
         }
 
-        log.error("Unexpected callback request " + textMessage);
+        log.error("Unexpected callback request {}", textMessage);
         botStats.incrementErrors(request, "Unexpected callback request " + textMessage);
         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
     }

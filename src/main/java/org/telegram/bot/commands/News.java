@@ -13,7 +13,6 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.domain.entities.NewsSource;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -29,13 +28,14 @@ import org.telegram.bot.utils.RssMapper;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
 import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.*;
+import static org.telegram.bot.utils.TextUtils.isThatInteger;
+import static org.telegram.bot.utils.TextUtils.isThatUrl;
 
 @Component
 @RequiredArgsConstructor
@@ -146,7 +146,7 @@ public class News implements Command {
                 })
                 .flatMap(Collection::stream)
                 .filter(StringUtils::hasText)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Set<String> splitParams(String text) {
@@ -171,12 +171,12 @@ public class News implements Command {
                 .stream()
                 .filter(syndEntry -> entryMatchesPattern(syndEntry, pattern))
                 .map(rssMapper::toNewsMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         return newsMessageService.save(newsMessageList)
                 .stream()
                 .map(newsMessage -> rssMapper.toShortNewsMessageText(newsMessage, newsSource.getName()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean entryMatchesPattern(SyndEntry syndEntry, Pattern pattern) {
@@ -202,7 +202,7 @@ public class News implements Command {
                     return null;
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .toList());
 
         return result;
     }
@@ -241,7 +241,7 @@ public class News implements Command {
         return newsMessageService.save(rssMapper.toNewsMessage(syndFeed.getEntries()))
                 .stream()
                 .map(rssMapper::toShortNewsMessageText)
-                .collect(Collectors.toList());
+                .toList();
 
     }
 

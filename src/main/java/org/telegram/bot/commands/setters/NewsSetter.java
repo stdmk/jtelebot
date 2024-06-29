@@ -195,11 +195,11 @@ public class NewsSetter implements Setter<BotResponse> {
                 .setKeyboard(new Keyboard(addingMainRows(newsSourcesRows)));
     }
 
-    private EditResponse getKeyboardWithDeletingNewsSource(Message message, User user, String commandText) {
+    private BotResponse getKeyboardWithDeletingNewsSource(Message message, User user, String commandText) {
         String deleteNewsSourceCommand = getLocalizedCommand(commandText, DELETE_NEWS_SOURCE_COMMAND);
         java.util.Set<String> deletePageNewsListCommandSet = internationalizationService.internationalize(DELETE_PAGE_NEWS_SOURCE_LIST);
         if (!deleteNewsSourceCommand.equals(commandText) && (!containsStartWith(deletePageNewsListCommandSet, commandText))) {
-            deleteNewsSource(message, user, commandText);
+            return deleteNewsSource(message, user, commandText);
         }
 
         int page = 0;
@@ -433,7 +433,7 @@ public class NewsSetter implements Setter<BotResponse> {
         List<List<KeyboardButton>> rows = allNewsInChat.stream().map(news -> List.of(
                 new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + news.getNewsSource().getName())
-                        .setCallback(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId()))).collect(Collectors.toList());
+                        .setCallback(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId()))).toList();
 
         addingMainRows(rows);
 

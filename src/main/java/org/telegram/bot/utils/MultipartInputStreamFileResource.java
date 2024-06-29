@@ -3,7 +3,6 @@ package org.telegram.bot.utils;
 import lombok.EqualsAndHashCode;
 import org.springframework.core.io.InputStreamResource;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 @EqualsAndHashCode(callSuper = false)
@@ -22,7 +21,7 @@ public class MultipartInputStreamFileResource extends InputStreamResource {
     }
 
     @Override
-    public long contentLength() throws IOException {
+    public long contentLength() {
         return -1;
     }
 }

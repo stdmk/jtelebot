@@ -6,32 +6,29 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.soap.*;
-import java.io.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.TrackCodeEvent;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.PostTrackingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.utils.TextUtils;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.soap.*;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +47,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         final String russianPostLogin = propertiesConfig.getRussianPostLogin();
         final String russianPostPassword = propertiesConfig.getRussianPostPassword();
 
-        if (StringUtils.isEmpty(russianPostLogin) || StringUtils.isEmpty(russianPostPassword)) {
+        if (TextUtils.isEmpty(russianPostLogin) || TextUtils.isEmpty(russianPostPassword)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
@@ -223,7 +220,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
 
                     return trackCodeEvent;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private void checkForErrors(TrackingData trackingData) {

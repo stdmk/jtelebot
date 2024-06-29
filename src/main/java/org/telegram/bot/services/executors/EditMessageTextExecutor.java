@@ -33,7 +33,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
         Message message = request.getMessage();
         String lang = languageResolver.getChatLanguageCode(request);
         EditMessageText editMessageText = internationalizationService.internationalize((EditMessageText) method, lang);
-        log.info("To " + message.getChatId() + ": edited message " + editMessageText.getText());
+        log.info("To {}: edited message {}", message.getChatId(), editMessageText.getText());
 
         try {
             telegramClient.execute(editMessageText);
@@ -57,7 +57,7 @@ public class EditMessageTextExecutor implements MethodExecutor {
 
         editMessageText = internationalizationService.internationalize(editMessageText, lang);
 
-        log.info("To " + chatId + ": edited message " + editMessageText.getText());
+        log.info("To {}: edited message {}", chatId, editMessageText.getText());
 
         try {
             telegramClient.execute(editMessageText);

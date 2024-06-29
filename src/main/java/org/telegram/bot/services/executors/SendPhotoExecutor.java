@@ -34,7 +34,7 @@ public class SendPhotoExecutor implements MethodExecutor {
         Message message = request.getMessage();
         String lang = languageResolver.getChatLanguageCode(request);
         SendPhoto sendPhoto = internationalizationService.internationalize((SendPhoto) method, lang);
-        log.info("To " + message.getChatId() + ": sending photo " + sendPhoto.getCaption());
+        log.info("To {}: sending photo {}", message.getChatId(), sendPhoto.getCaption());
 
         try {
             telegramClient.execute(sendPhoto);
@@ -57,7 +57,7 @@ public class SendPhotoExecutor implements MethodExecutor {
 
         sendPhoto = internationalizationService.internationalize(sendPhoto, lang);
 
-        log.info("To " + chatId + ": sending photo " + sendPhoto.getCaption());
+        log.info("To {}: sending photo {}", chatId, sendPhoto.getCaption());
 
         try {
             telegramClient.execute(sendPhoto);

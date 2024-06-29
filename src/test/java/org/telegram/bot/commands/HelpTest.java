@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -19,7 +20,6 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
-import org.telegram.bot.config.PropertiesConfig;
 
 import java.util.List;
 
@@ -107,12 +107,13 @@ class HelpTest {
 
     @Test
     void getHelpOfCommandTest() {
-        final String expectedResponseText = "<b>${command.help.commandinfo.name}:</b> ${help.help.name}\n" +
-                "<b>${command.help.commandinfo.desc}:</b> ${help.help.desc}\n" +
-                "<b>${command.help.commandinfo.args}:</b> ${help.help.params}\n" +
-                "<b>${command.help.commandinfo.examples}:</b> ${help.help.examples}\n" +
-                "<b>${command.help.commandinfo.comment}:</b> ${help.help.comment}\n" +
-                "<b>${command.help.commandinfo.level}:</b> 5";
+        final String expectedResponseText = """
+                <b>${command.help.commandinfo.name}:</b> ${help.help.name}
+                <b>${command.help.commandinfo.desc}:</b> ${help.help.desc}
+                <b>${command.help.commandinfo.args}:</b> ${help.help.params}
+                <b>${command.help.commandinfo.examples}:</b> ${help.help.examples}
+                <b>${command.help.commandinfo.comment}:</b> ${help.help.comment}
+                <b>${command.help.commandinfo.level}:</b> 5""";
         BotRequest request = TestUtils.getRequestFromGroup("help abv");
         CommandProperties commandProperties = new CommandProperties()
                 .setAccessLevel(AccessLevel.TRUSTED.getValue())

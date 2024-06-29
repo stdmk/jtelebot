@@ -10,19 +10,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
-import org.telegram.bot.domain.model.response.BotResponse;
-import org.telegram.bot.domain.model.response.File;
-import org.telegram.bot.domain.model.response.FileResponse;
-import org.telegram.bot.domain.model.response.FileType;
-import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
@@ -95,7 +91,7 @@ public class GooglePics implements Command {
             List<File> images = searchImagesOnGoogle(commandArgument)
                     .stream()
                     .map(imageUrl -> new File(FileType.IMAGE, imageUrl.getUrl(), "/image_" + imageUrl.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             return returnResponse(new FileResponse(message)
                     .addFiles(images));

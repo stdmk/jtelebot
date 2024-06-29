@@ -26,7 +26,7 @@ public class TalkerPhraseServiceImpl implements TalkerPhraseService {
         log.debug("Request to save TalkerWords {}", words);
 
         Set<TalkerPhrase> storedTalkerPhraseList = talkerPhraseRepository.findAllByPhraseInIgnoreCaseAndChat(words, chat);
-        List<String> storedPhrases = storedTalkerPhraseList.stream().map(TalkerPhrase::getPhrase).collect(Collectors.toList());
+        List<String> storedPhrases = storedTalkerPhraseList.stream().map(TalkerPhrase::getPhrase).toList();
 
         return Stream.concat(
                 storedTalkerPhraseList.stream(),
@@ -35,6 +35,6 @@ public class TalkerPhraseServiceImpl implements TalkerPhraseService {
                         .filter(talkerWord -> !storedPhrases.contains(talkerWord.getPhrase()))
                         .collect(Collectors.toSet())).stream()
                 )
-                .collect(Collectors.toList());
+                .toList();
     }
 }

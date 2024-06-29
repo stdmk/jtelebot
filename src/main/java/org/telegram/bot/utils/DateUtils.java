@@ -203,7 +203,7 @@ public class DateUtils {
             buf.append(seconds).append(" ${utils.date.s}. ");
         }
 
-        if (buf.length() == 0) {
+        if (buf.isEmpty()) {
             return "0 с.";
         }
 

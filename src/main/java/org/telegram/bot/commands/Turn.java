@@ -3,7 +3,6 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -16,6 +15,7 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.ObjectCopier;
+import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class Turn implements Command, MessageAnalyzer {
         NOT_NEED_TURN_PATTERNS.addAll(
                 internationalizationService.internationalize("${command.turn.pattern}")
                         .stream()
-                        .filter(StringUtils::hasLength)
+                        .filter(TextUtils::isEmpty)
                         .map(Pattern::compile)
                         .collect(Collectors.toSet()));
     }

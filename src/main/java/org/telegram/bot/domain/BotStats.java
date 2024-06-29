@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.getDuration;
 
@@ -170,7 +169,7 @@ public class BotStats {
                     }
                     return setWorkParamByName(workParamList, botStatsField, value);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         workParamService.save(updatedWorkParamList);
     }

@@ -49,7 +49,7 @@ public interface Command {
             buf.append(responseText);
         }
 
-        if (buf.length() != 0) {
+        if (!buf.isEmpty()) {
             result.add(buildTextResponse(buf.toString(), message, responseSettings));
         }
 

@@ -3,8 +3,6 @@ package org.telegram.bot.commands;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -24,15 +22,18 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.LanguageResolver;
 
-import java.time.*;
-import java.util.*;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -54,7 +55,7 @@ class CalendarTest {
     @Mock
     private RestTemplate botRestTemplate;
     @Mock
-    private DaysOffProvider daysOffProvider = Mockito.mock(DaysOffProvider.class);
+    private final DaysOffProvider daysOffProvider = Mockito.mock(DaysOffProvider.class);
     @Mock
     private Clock clock;
     @Mock
@@ -70,16 +71,17 @@ class CalendarTest {
 
     @Test
     void printCurrentCalendarTest() {
-        final String expectedResponseText = "<b>January 2007</b>\n" +
-                "<code>${command.calendar.daysofweekstring}\n" +
-                " 1   2*  3*  4*  5*  6   7  \n" +
-                " 8   9  10  11  12  13  14  \n" +
-                "15  16  17  18  19  20  21  \n" +
-                "22  23  24  25  26  27  28  \n" +
-                "29  30  31  \n" +
-                "</code>\n" +
-                "<b>${command.calendar.holidayscaption}: </b>\n" +
-                "<b>01.01.2007</b> — test.";
+        final String expectedResponseText = """
+                <b>January 2007</b>
+                <code>${command.calendar.daysofweekstring}
+                 1   2*  3*  4*  5*  6   7 \s
+                 8   9  10  11  12  13  14 \s
+                15  16  17  18  19  20  21 \s
+                22  23  24  25  26  27  28 \s
+                29  30  31 \s
+                </code>
+                <b>${command.calendar.holidayscaption}: </b>
+                <b>01.01.2007</b> — test.""";
         LocalDate date = LocalDate.of(2007, 1, 1);
         Calendar.PublicHoliday publicHoliday = new Calendar.PublicHoliday();
         publicHoliday.setDate(date);
@@ -105,15 +107,17 @@ class CalendarTest {
 
     @Test
     void printCalendarForDateTest() {
-        final String expectedResponseText = "<b>January 2007</b>\n" +
-                "<code>${command.calendar.daysofweekstring}\n" +
-                " 1   2*  3*  4*  5*  6   7  \n" +
-                " 8   9  10  11  12  13  14  \n" +
-                "15  16  17  18  19  20  21  \n" +
-                "22  23  24  25  26  27  28  \n" +
-                "29  30  31  \n" +
-                "</code>\n" +
-                "<b>${command.calendar.holidayscaption}: </b>\n";
+        final String expectedResponseText = """
+                <b>January 2007</b>
+                <code>${command.calendar.daysofweekstring}
+                 1   2*  3*  4*  5*  6   7 \s
+                 8   9  10  11  12  13  14 \s
+                15  16  17  18  19  20  21 \s
+                22  23  24  25  26  27  28 \s
+                29  30  31 \s
+                </code>
+                <b>${command.calendar.holidayscaption}: </b>
+                """;
         LocalDate date = LocalDate.of(2007, 5, 1);
         Calendar.PublicHoliday publicHoliday = new Calendar.PublicHoliday();
         publicHoliday.setDate(date);
@@ -140,15 +144,17 @@ class CalendarTest {
 
     @Test
     void calendarWithRestClientExceptionTest() {
-        final String expectedResponseText = "<b>January 2007</b>\n" +
-                "<code>${command.calendar.daysofweekstring}\n" +
-                " 1   2*  3*  4*  5*  6   7  \n" +
-                " 8   9  10  11  12  13  14  \n" +
-                "15  16  17  18  19  20  21  \n" +
-                "22  23  24  25  26  27  28  \n" +
-                "29  30  31  \n" +
-                "</code>\n" +
-                "<b>${command.calendar.holidayscaption}: </b>\n";
+        final String expectedResponseText = """
+                <b>January 2007</b>
+                <code>${command.calendar.daysofweekstring}
+                 1   2*  3*  4*  5*  6   7 \s
+                 8   9  10  11  12  13  14 \s
+                15  16  17  18  19  20  21 \s
+                22  23  24  25  26  27  28 \s
+                29  30  31 \s
+                </code>
+                <b>${command.calendar.holidayscaption}: </b>
+                """;
         LocalDate date = LocalDate.of(2007, 5, 1);
         BotRequest request = getRequestFromGroup("calendar 01.2007");
 
@@ -170,15 +176,17 @@ class CalendarTest {
 
     @Test
     void calendarWithEmptyResponseTest() {
-        final String expectedResponseText = "<b>January 2007</b>\n" +
-                "<code>${command.calendar.daysofweekstring}\n" +
-                " 1   2   3   4   5   6   7  \n" +
-                " 8   9  10  11  12  13  14  \n" +
-                "15  16  17  18  19  20  21  \n" +
-                "22  23  24  25  26  27  28  \n" +
-                "29  30  31  \n" +
-                "</code>\n" +
-                "<b>${command.calendar.holidayscaption}: </b>\n";
+        final String expectedResponseText = """
+                <b>January 2007</b>
+                <code>${command.calendar.daysofweekstring}
+                 1   2   3   4   5   6   7 \s
+                 8   9  10  11  12  13  14 \s
+                15  16  17  18  19  20  21 \s
+                22  23  24  25  26  27  28 \s
+                29  30  31 \s
+                </code>
+                <b>${command.calendar.holidayscaption}: </b>
+                """;
         LocalDate date = LocalDate.of(2007, 5, 1);
         BotRequest request = getRequestFromGroup("calendar january 2007");
 

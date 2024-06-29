@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -217,13 +216,13 @@ public class LanguageSetter implements Setter<BotResponse> {
         buttonsList.add(availableLocales.stream().map(locale -> new KeyboardButton()
                 .setName(USER + locale)
                 .setCallback(CALLBACK_SET_LANG_COMMAND + USER + locale)
-        ).collect(Collectors.toList()));
+        ).toList());
 
         if (message.isGroupChat()) {
             buttonsList.add(availableLocales.stream().map(locale -> new KeyboardButton()
                     .setName(CHAT + locale)
                     .setCallback(CALLBACK_SET_LANG_COMMAND + CHAT + locale)
-            ).collect(Collectors.toList()));
+            ).toList());
         }
 
         buttonsList.add(List.of(

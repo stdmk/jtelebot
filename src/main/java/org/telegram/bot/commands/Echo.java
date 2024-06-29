@@ -12,16 +12,12 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.TalkerDegreeService;
-import org.telegram.bot.services.TalkerPhraseService;
-import org.telegram.bot.services.TalkerWordService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.utils.MathUtils;
 import org.telegram.bot.utils.ObjectCopier;
 
-import java.util.*;
 import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -144,7 +140,7 @@ public class Echo implements Command, MessageAnalyzer {
             List<String> talkerPhraseWithHighRatingList = phrasesRating.entrySet()
                     .stream()
                     .filter(entry -> entry.getValue() >= premaxValue)
-                    .map(Map.Entry::getKey).collect(Collectors.toList());
+                    .map(Map.Entry::getKey).toList();
 
             int talkerPhrasesWithHighRatingCount = talkerPhraseWithHighRatingList.size();
             if (talkerPhrasesWithHighRatingCount > 1) {

@@ -36,7 +36,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
     public void executeMethod(PartialBotApiMethod<?> method, BotRequest request) {
         Message message = request.getMessage();
         SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
-        log.info("To " + message.getChatId() + ": sending photos " + sendMediaGroup);
+        log.info("To {}: sending photos {}", message.getChatId(), sendMediaGroup);
 
         try {
             telegramClient.execute(sendMediaGroup);
@@ -51,7 +51,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
     @Override
     public void executeMethod(PartialBotApiMethod<?> method) {
         SendMediaGroup sendMediaGroup = (SendMediaGroup) method;
-        log.info("To " + sendMediaGroup.getChatId() + ": sending photos " + sendMediaGroup);
+        log.info("To {}: sending photos {}", sendMediaGroup.getChatId(), sendMediaGroup);
 
         try {
             telegramClient.execute(sendMediaGroup);

@@ -11,17 +11,12 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.repositories.UserStatsRepository;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.LastCommandService;
-import org.telegram.bot.services.LastMessageService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -150,7 +145,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         userStatsRepository.saveAll(getAllGroupStats()
                 .stream()
                 .map(this::clearUserStatsFields)
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     private UserStats clearUserStatsFields(UserStats userStats) {
@@ -176,7 +171,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         userStatsRepository.saveAll(getAllGroupStats()
                 .stream()
                 .map(this::clearUserStatsPerDayFields)
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     private UserStats clearUserStatsPerDayFields(UserStats userStats) {

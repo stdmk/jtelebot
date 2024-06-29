@@ -34,7 +34,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.telegram.bot.TestUtils.*;
 
@@ -207,10 +208,12 @@ class ExchangeTest {
     @Test
     void getRublesForCurrencyValueWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "${command.exchange.valutenotfound} <b>btlc</b>\n" +
-                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n" +
-                "Китайский юань - /exchange_cny\n";
+        final String expectedResponseText = """
+                ${command.exchange.valutenotfound} <b>btlc</b>
+                ${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd
+                Евро - /exchange_eur
+                Китайский юань - /exchange_cny
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("exchange 5 " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -250,10 +253,12 @@ class ExchangeTest {
     @Test
     void getValuteForRublesCountWithUnknownValuteTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "${command.exchange.valutenotfound} <b>btlc</b>\n" +
-                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n" +
-                "Китайский юань - /exchange_cny\n";
+        final String expectedResponseText = """
+                ${command.exchange.valutenotfound} <b>btlc</b>
+                ${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd
+                Евро - /exchange_eur
+                Китайский юань - /exchange_cny
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("exchange 5 rub " + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");
@@ -293,10 +298,12 @@ class ExchangeTest {
     @Test
     void getExchangeRatesForUnknownCodeTest() throws IOException {
         final String unknownValuteCode = "btlc";
-        final String expectedResponseText = "${command.exchange.valutenotfound} <b>BTLC</b>\n" +
-                "${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd\n" +
-                "Евро - /exchange_eur\n" +
-                "Китайский юань - /exchange_cny\n";
+        final String expectedResponseText = """
+                ${command.exchange.valutenotfound} <b>BTLC</b>
+                ${command.exchange.listofavailablevalute}: Доллар США - /exchange_usd
+                Евро - /exchange_eur
+                Китайский юань - /exchange_cny
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("exchange_" + unknownValuteCode);
         Exchange.ValCurs valCurs = getCurrentValCurs();
         CommandProperties commandProperties = new CommandProperties().setCommandName("exchange");

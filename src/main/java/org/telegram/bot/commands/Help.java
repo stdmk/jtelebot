@@ -3,8 +3,8 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -20,7 +20,7 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
-import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class Help implements Command {
         String commandArgument = message.getCommandArgument();
 
         String responseText;
-        if (StringUtils.isEmpty(commandArgument)) {
+        if (TextUtils.isEmpty(commandArgument)) {
             log.debug("Request to get general help");
             StringBuilder buf = new StringBuilder();
 

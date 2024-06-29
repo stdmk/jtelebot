@@ -23,11 +23,9 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -66,7 +64,7 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceAndTelegramApiException() throws SpeechParseException {
+    void analyzeRequestWithVoiceAndTelegramApiException() throws SpeechParseException {
         BotRequest requestWithVoice = getRequestWithVoice();
         when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
 
@@ -76,7 +74,7 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceAndTelegramIOException() throws SpeechParseException {
+    void analyzeRequestWithVoiceAndTelegramIOException() throws SpeechParseException {
         BotRequest requestWithVoice = getRequestWithVoice();
         when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
 
@@ -86,7 +84,7 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceAndSpeechParseException() throws TelegramApiException, IOException, SpeechParseException {
+    void analyzerequestWithVoiceAndSpeechParseException() throws SpeechParseException {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
         when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenReturn(file);
@@ -99,7 +97,7 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceTest() throws TelegramApiException, IOException, SpeechParseException {
+    void analyzerequestWithVoiceTest() throws SpeechParseException {
         final String expectedResponse = "response";
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
@@ -116,14 +114,16 @@ class VoiceTest {
 
     @Test
     void parseWithoutTextTest() {
-        final String expectedText = "${command.voice.commandwaitingstart}\n" +
-                "Наталья(ru)\n" +
-                "Борис(ru)\n" +
-                "Марфа(ru)\n" +
-                "Тарас(ru)\n" +
-                "Александра(ru)\n" +
-                "Сергей(ru)\n" +
-                "Kira(en)\n";
+        final String expectedText = """
+                ${command.voice.commandwaitingstart}
+                Наталья(ru)
+                Борис(ru)
+                Марфа(ru)
+                Тарас(ru)
+                Александра(ru)
+                Сергей(ru)
+                Kira(en)
+                """;
         BotRequest requestFromGroup = getRequestFromGroup();
         BotException botException = assertThrows((BotException.class), () -> voice.parse(requestFromGroup));
         assertEquals(expectedText, botException.getMessage());

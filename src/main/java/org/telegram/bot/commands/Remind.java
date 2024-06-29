@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandWaiting;
+import org.telegram.bot.domain.entities.Reminder;
+import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -26,8 +28,8 @@ import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.TemporalAmount;
-import java.util.*;
 import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -36,7 +38,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.time.temporal.ChronoUnit.*;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.telegram.bot.utils.DateUtils.*;
 
 @Component
@@ -173,7 +176,7 @@ public class Remind implements Command {
         }
 
         if (message.isCallback()) {
-            if (StringUtils.isEmpty(commandArgument) || UPDATE_COMMAND.equals(commandArgument)) {
+            if (TextUtils.isEmpty(commandArgument) || UPDATE_COMMAND.equals(commandArgument)) {
                 return returnResponse(getReminderListWithKeyboard(message, chat, user, FIRST_PAGE, false));
             } else if (commandArgument.equals(ADD_COMMAND)) {
                 return returnResponse(addReminderByCallback(message, chat, user));
@@ -504,7 +507,7 @@ public class Remind implements Command {
 
         if (setNotifiedMatcher.find()) {
             if (Boolean.TRUE.equals(reminder.getNotified())) {
-                if (!StringUtils.isEmpty(reminder.getRepeatability())) {
+                if (!TextUtils.isEmpty(reminder.getRepeatability())) {
                     LocalDateTime nextAlarmDateTime = reminderService.getNextAlarmDateTime(reminder);
                     reminder.setDate(nextAlarmDateTime.toLocalDate())
                             .setTime(nextAlarmDateTime.toLocalTime());
@@ -548,7 +551,7 @@ public class Remind implements Command {
 
                 LocalDateTime reminderDateTime = LocalDateTime.now(zoneIdOfUser).plus(temporalAmount);
 
-                if (StringUtils.isEmpty(reminder.getRepeatability())) {
+                if (TextUtils.isEmpty(reminder.getRepeatability())) {
                     reminder.setDate(reminderDateTime.toLocalDate())
                             .setTime(reminderDateTime.toLocalTime())
                             .setNotified(false);
@@ -619,7 +622,7 @@ public class Remind implements Command {
 
         String repeatability;
         String reminderRepeatability = reminder.getRepeatability();
-        if (StringUtils.isEmpty(reminderRepeatability)) {
+        if (TextUtils.isEmpty(reminderRepeatability)) {
             repeatability = "${command.remind.withoutrepeat}";
         } else {
             repeatability = getRepeatabilityInfo(reminderRepeatability);
@@ -646,7 +649,7 @@ public class Remind implements Command {
     }
 
     private String getRepeatabilityInfo(String reminderRepeatability) {
-        if (StringUtils.isEmpty(reminderRepeatability)) {
+        if (TextUtils.isEmpty(reminderRepeatability)) {
             return "";
         }
         return Arrays.stream(reminderRepeatability.split("\\s*,\\s*"))
@@ -746,7 +749,7 @@ public class Remind implements Command {
                         ReminderRepeatability.MINUTES15,
                         ReminderRepeatability.MINUTES30)
                     .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminder))
-                    .collect(Collectors.toList()));
+                    .toList());
 
         rows.add(
                 Stream.of(
@@ -756,7 +759,7 @@ public class Remind implements Command {
                         ReminderRepeatability.HOURS6,
                         ReminderRepeatability.HOURS12)
                 .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminder))
-                .collect(Collectors.toList()));
+                .toList());
 
         rows.add(
                 Stream.of(
@@ -768,7 +771,7 @@ public class Remind implements Command {
                         ReminderRepeatability.SATURDAY,
                         ReminderRepeatability.SUNDAY)
                 .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminder))
-                .collect(Collectors.toList()));
+                .toList());
 
         rows.add(
                 Stream.of(
@@ -777,7 +780,7 @@ public class Remind implements Command {
                         ReminderRepeatability.MONTH,
                         ReminderRepeatability.YEAR)
                 .map(reminderRepeatability -> generateRepeatButton(reminderRepeatability, reminder))
-                .collect(Collectors.toList()));
+                .toList());
 
         return rows;
     }
@@ -786,7 +789,7 @@ public class Remind implements Command {
         String callbackData;
         String currentRepeatability = reminder.getRepeatability();
         String ordinal = String.valueOf(reminderRepeatability.ordinal());
-        if (StringUtils.isEmpty(currentRepeatability)) {
+        if (TextUtils.isEmpty(currentRepeatability)) {
             callbackData = CALLBACK_SET_REMINDER + reminder.getId() + SET_REPEATABLE + currentRepeatability + ordinal;
         } else if (currentRepeatability.contains(ordinal)) {
             callbackData = CALLBACK_SET_REMINDER + reminder.getId() + SET_REPEATABLE +
@@ -884,7 +887,7 @@ public class Remind implements Command {
                 .stream()
                 .map(reminder -> {
                     LocalDateTime reminderDateTime = reminder.getDate().atTime(reminder.getTime());
-                    String additionally = StringUtils.isEmpty(reminder.getRepeatability()) ? "" : Emoji.CALENDAR.getSymbol();
+                    String additionally = TextUtils.isEmpty(reminder.getRepeatability()) ? "" : Emoji.CALENDAR.getSymbol();
                     additionally = " " + getConditionalEmoji(reminder) + additionally;
 
                     return DateUtils.formatShortDateTime(reminderDateTime) + " (" + getDayOfWeek(reminderDateTime, lang) + " )" +
@@ -918,7 +921,7 @@ public class Remind implements Command {
             return List.of(new KeyboardButton()
                     .setName(reminderText)
                     .setCallback(CALLBACK_INFO_REMINDER + reminder.getId()));
-        }).collect(Collectors.toList());
+        }).toList();
 
         addingMainRows(rows, page, reminderList.getTotalPages());
 
@@ -979,11 +982,11 @@ public class Remind implements Command {
 
         rows.add(Stream.of(1, 5, 10, 15, 30)
                 .map(minutes -> generatePostponeButton(reminderId, minutes + " ${command.remind.m}.", Duration.of(minutes, MINUTES)))
-                .collect(Collectors.toList()));
+                .toList());
 
         rows.add(Stream.of(1, 2, 3, 6, 12)
                 .map(hours -> generatePostponeButton(reminderId, hours + " ${command.remind.h}.", Duration.of(hours, HOURS)))
-                .collect(Collectors.toList()));
+                .toList());
 
         LocalDate dateNow = LocalDate.now(zoneId);
         rows.add(Arrays.stream(DayOfWeek.values())
@@ -991,7 +994,7 @@ public class Remind implements Command {
                         reminderId,
                         dayOfWeek.getDisplayName(TextStyle.SHORT, locale),
                         Period.between(dateNow, dateNow.with(TemporalAdjusters.next(dayOfWeek)))))
-                .collect(Collectors.toList()));
+                .toList());
 
         rows.add(
                 List.of(

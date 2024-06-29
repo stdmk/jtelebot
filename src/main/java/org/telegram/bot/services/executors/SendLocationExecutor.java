@@ -28,7 +28,7 @@ public class SendLocationExecutor implements MethodExecutor {
     public void executeMethod(PartialBotApiMethod<?> method, BotRequest request) {
         Message message = request.getMessage();
         SendLocation sendLocation = (SendLocation) method;
-        log.info("To " + message.getChatId() + ": " + sendLocation.getLatitude() + " " + sendLocation.getLongitude());
+        log.info("To {}: {} {}", message.getChatId(), sendLocation.getLatitude(), sendLocation.getLongitude());
 
         try {
             telegramClient.execute(sendLocation);
@@ -44,7 +44,7 @@ public class SendLocationExecutor implements MethodExecutor {
     @Override
     public void executeMethod(PartialBotApiMethod<?> method) {
         SendLocation sendLocation = (SendLocation) method;
-        log.info("To " + sendLocation.getChatId() + ": " + sendLocation.getLatitude() + " " + sendLocation.getLongitude());
+        log.info("To {}: {} {}", sendLocation.getChatId(), sendLocation.getLatitude(), sendLocation.getLongitude());
 
         try {
             telegramClient.execute(sendLocation);

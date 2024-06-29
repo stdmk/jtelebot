@@ -17,11 +17,16 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.AliasService;
+import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
+import org.telegram.bot.services.SpeechService;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
 import static org.telegram.bot.utils.TextUtils.getStartsWith;
@@ -53,7 +58,6 @@ public class AliasSetter implements Setter<BotResponse> {
     private final AliasService aliasService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
-    private final CommandPropertiesService commandPropertiesService;
     private final InternationalizationService internationalizationService;
 
     @PostConstruct
@@ -139,7 +143,7 @@ public class AliasSetter implements Setter<BotResponse> {
                 new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + alias.getName() + " — " + alias.getValue())
                         .setCallback(CALLBACK_DELETE_ALIAS_COMMAND + " " + alias.getId()))
-        ).collect(Collectors.toList());
+        ).toList();
 
         addingMainRows(rows, CALLBACK_DELETE_ALIAS_COMMAND, page, aliasList.getTotalPages());
 
@@ -333,7 +337,7 @@ public class AliasSetter implements Setter<BotResponse> {
                             .setName(buttonText)
                             .setCallback(CALLBACK_SELECT_ALIAS_COMMAND + " " + alias.getId()));
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         addingMainRows(rows, CALLBACK_SELECT_ALIAS_COMMAND, page, chatAliasList.getTotalPages());
 

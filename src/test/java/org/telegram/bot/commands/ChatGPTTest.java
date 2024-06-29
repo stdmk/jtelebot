@@ -18,6 +18,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
@@ -32,7 +33,6 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.bot.config.PropertiesConfig;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -41,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -392,7 +391,7 @@ class ChatGPTTest {
     }
 
     private List<ChatGPTMessage> getSomeMessageHistory(int size) {
-        return IntStream.range(0, size).mapToObj(i -> getSomeChatGptMessage()).collect(Collectors.toList());
+        return IntStream.range(0, size).mapToObj(i -> getSomeChatGptMessage()).toList();
     }
 
     private ChatGPTMessage getSomeChatGptMessage() {

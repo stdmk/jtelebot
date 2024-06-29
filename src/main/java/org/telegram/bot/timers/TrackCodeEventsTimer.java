@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -88,7 +87,7 @@ public class TrackCodeEventsTimer extends TimerParent {
         return parcelList
                 .stream()
                 .filter(parcel -> trackCode.getId().equals(parcel.getTrackCode().getId()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }

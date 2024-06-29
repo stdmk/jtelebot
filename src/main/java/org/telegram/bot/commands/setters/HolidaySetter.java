@@ -361,7 +361,7 @@ public class HolidaySetter implements Setter<BotResponse> {
         return monthsValues.entrySet().stream().map(entry -> new KeyboardButton()
                 .setName(entry.getKey())
                 .setCallback(CALLBACK_COMMAND + commandText + "." + entry.getValue()))
-                .collect(Collectors.toList());
+                .toList();
 
     }
 

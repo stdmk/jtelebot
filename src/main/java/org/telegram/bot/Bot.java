@@ -142,7 +142,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         Boolean spyMode = propertiesConfig.getSpyMode();
         Long chatId = message.getChatId();
         Long userId = user.getUserId();
-        log.info("From " + chatId + " (" + user.getUsername() + "-" + userId + "): " + textOfMessage);
+        log.info("From {} ({}-{}): {}", chatId, user.getUsername(), userId, textOfMessage);
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(user, textOfMessage);
         }

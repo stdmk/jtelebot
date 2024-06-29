@@ -33,7 +33,7 @@ public class TvChannelServiceImpl implements TvChannelService {
 
     @Override
     public Page<TvChannel> getAll(int page) {
-        log.debug("Request to get all TvChannels. Page " + page);
+        log.debug("Request to get all TvChannels. Page {}", page);
         return tvChannelRepository.findAll(PageRequest.of(page, 10));
     }
 

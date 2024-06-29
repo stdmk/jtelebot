@@ -12,7 +12,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
@@ -63,10 +66,12 @@ class KarmaTest {
 
     @Test
     void getKarmaOfUserTest() {
-        final String expectedResponseText = "<b><a href=\"tg://user?id=1\">username</a></b>\n" +
-                "\uD83D\uDE07${command.karma.caption}: <b>33</b> (35)\n" +
-                "❤️${command.karma.kindness}: <b>36</b> (38)\n" +
-                "\uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)\n";
+        final String expectedResponseText = """
+                <b><a href="tg://user?id=1">username</a></b>
+                \uD83D\uDE07${command.karma.caption}: <b>33</b> (35)
+                ❤️${command.karma.kindness}: <b>36</b> (38)
+                \uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)
+                """;
         BotRequest request = TestUtils.getRequestFromGroup();
 
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
@@ -80,10 +85,12 @@ class KarmaTest {
 
     @Test
     void getKarmaOfAnotherUser() {
-        final String expectedResponseText = "<b><a href=\"tg://user?id=1\">username</a></b>\n" +
-                "\uD83D\uDE08${command.karma.caption}: <b>-1</b> (35)\n" +
-                "❤️${command.karma.kindness}: <b>36</b> (38)\n" +
-                "\uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)\n";
+        final String expectedResponseText = """
+                <b><a href="tg://user?id=1">username</a></b>
+                \uD83D\uDE08${command.karma.caption}: <b>-1</b> (35)
+                ❤️${command.karma.kindness}: <b>36</b> (38)
+                \uD83D\uDC94${command.karma.wickedness}: <b>39</b> (41)
+                """;
         BotRequest request = TestUtils.getRequestWithRepliedMessage("");
 
         UserStats userStats = getSomeUserStats();

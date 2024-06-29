@@ -5,13 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Reminder;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.enums.ReminderRepeatability;
 import org.telegram.bot.repositories.ReminderRepository;
 import org.telegram.bot.services.ReminderService;
+import org.telegram.bot.utils.TextUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -72,7 +72,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     public LocalDateTime getNextAlarmDateTime(Reminder reminder) {
-        if (StringUtils.isEmpty(reminder.getRepeatability())) {
+        if (TextUtils.isEmpty(reminder.getRepeatability())) {
             return null;
         }
 

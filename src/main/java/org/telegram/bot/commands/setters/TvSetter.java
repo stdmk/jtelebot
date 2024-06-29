@@ -4,11 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.entities.TvChannel;
-import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.entities.UserTv;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -181,7 +177,7 @@ public class TvSetter implements Setter<BotResponse> {
         List<List<KeyboardButton>> tvChannelRows = userTvList.stream().map(userTv -> List.of(
                 new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + userTv.getTvChannel().getName())
-                        .setCallback(CALLBACK_DELETE_TV_COMMAND + " " + userTv.getId()))).collect(Collectors.toList());
+                        .setCallback(CALLBACK_DELETE_TV_COMMAND + " " + userTv.getId()))).toList();
 
         Keyboard keyboard = new Keyboard(addingMainRows(tvChannelRows));
 

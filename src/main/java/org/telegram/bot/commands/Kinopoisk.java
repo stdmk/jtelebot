@@ -3,7 +3,6 @@ package org.telegram.bot.commands;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -15,8 +14,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -25,7 +24,6 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.DateUtils;
 
 import java.math.BigDecimal;
@@ -79,8 +77,8 @@ public class Kinopoisk implements Command {
             movieData = getMovieSearchResult(token, commandArgument);
         }
 
-        String responseText = movieData.getText();
-        String photoUrl = movieData.getPhotoUrl();
+        String responseText = movieData.text();
+        String photoUrl = movieData.photoUrl();
 
         if (photoUrl != null) {
             return returnResponse(new FileResponse(message)
@@ -303,11 +301,7 @@ public class Kinopoisk implements Command {
         }
     }
 
-    @Value
-    public static class MovieData {
-        String text;
-        String photoUrl;
-    }
+    public record MovieData(String text, String photoUrl) {}
 
     @Data
     @Accessors(chain = true)

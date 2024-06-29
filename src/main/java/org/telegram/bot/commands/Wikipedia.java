@@ -26,11 +26,13 @@ import org.telegram.bot.services.WikiService;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
+import static org.telegram.bot.utils.TextUtils.reduceSpaces;
 
 @Component
 @RequiredArgsConstructor
@@ -168,7 +170,7 @@ public class Wikipedia implements Command {
             titles = ((List<?>) responseBody[1])
                     .stream()
                     .map(String.class::cast)
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         return titles;

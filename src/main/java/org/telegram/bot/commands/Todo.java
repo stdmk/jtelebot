@@ -16,7 +16,9 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.TodoService;
+import org.telegram.bot.services.TodoTagService;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.ArrayList;
@@ -147,7 +149,7 @@ public class Todo implements Command {
                         .setUser(user)
                         .setTag(tag)
                         .setTodo(todo))
-                .collect(Collectors.toList());
+                .toList();
         todo.setTags(todoTags);
 
         todoService.save(todo);

@@ -25,15 +25,15 @@ import org.telegram.bot.utils.TextUtils;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
 import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.removeCapital;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.removeCapital;
 
 @Component
 @RequiredArgsConstructor
@@ -322,7 +322,7 @@ public class Top implements Command {
 
                     return value;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         int maxValueLength = values.stream()
                 .max(Long::compareTo)

@@ -15,7 +15,6 @@ import org.telegram.bot.services.TrackCodeService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.commands.Parcel.DELIVERED_OPERATION_TYPE;
 
@@ -76,7 +75,7 @@ public class TrackCodeServiceImpl implements TrackCodeService {
                         .filter(event -> DELIVERED_OPERATION_TYPE.equalsIgnoreCase(event.getOperationType()))
                         .findFirst()
                         .isEmpty())
-                .collect(Collectors.toList());
+                .toList();
 
         Set<TrackCodeEvent> trackCodeEventSet = new HashSet<>();
         trackCodeList.forEach(trackCode -> {

@@ -69,7 +69,7 @@ public class SaluteSpeechSynthesizerImpl implements SpeechSynthesizer, SaluteSpe
     }
 
     private void checkTextLength(String text) throws SpeechSynthesizeException {
-        if (text == null || text.length() < 1) {
+        if (text == null || text.isEmpty()) {
             throw new SpeechSynthesizeException("Empty text");
         } else if (text.length() > TEXT_LENGTH_LIMIT) {
             throw new SpeechSynthesizeException("Too long text");

@@ -28,7 +28,7 @@ public class SendVoiceExecutor implements MethodExecutor {
     public void executeMethod(PartialBotApiMethod<?> method, BotRequest request) {
         Message message = request.getMessage();
         SendVoice sendVoice = (SendVoice) method;
-        log.info("To " + message.getChatId() + ": " + sendVoice.getCaption());
+        log.info("To {}: {}", message.getChatId(), sendVoice.getCaption());
 
         try {
             telegramClient.execute(sendVoice);
@@ -44,7 +44,7 @@ public class SendVoiceExecutor implements MethodExecutor {
     @Override
     public void executeMethod(PartialBotApiMethod<?> method) {
         SendVoice sendVoice = (SendVoice) method;
-        log.info("To " + sendVoice.getChatId() + ": " + sendVoice.getCaption());
+        log.info("To {}: {}", sendVoice.getChatId(), sendVoice.getCaption());
 
         try {
             telegramClient.execute(sendVoice);

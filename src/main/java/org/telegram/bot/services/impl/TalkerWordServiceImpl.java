@@ -22,7 +22,7 @@ public class TalkerWordServiceImpl implements TalkerWordService {
 
     @Override
     public void save(Set<TalkerWord> talkerWordSet) {
-        List<String> words = talkerWordSet.stream().map(TalkerWord::getWord).collect(Collectors.toList());
+        List<String> words = talkerWordSet.stream().map(TalkerWord::getWord).toList();
         log.debug("Request to save TalkerWords {}", words);
 
         Set<TalkerWord> storedTalkerWordList = talkerWordRepository.findAllByWordInIgnoreCase(words);
@@ -39,13 +39,13 @@ public class TalkerWordServiceImpl implements TalkerWordService {
                                 talkerWordSet
                                         .stream()
                                         .filter(talkerWord -> !storedWords.contains(talkerWord.getWord())))
-                        .collect(Collectors.toList()));
+                        .toList());
     }
 
     @Override
     public Set<TalkerWord> get(List<String> words, Long chatId) {
         log.debug("Request to get TalkerWord for chat {} by words {}", chatId, String.join(", ", words));
-        words = words.stream().map(String::toLowerCase).collect(Collectors.toList());
+        words = words.stream().map(String::toLowerCase).toList();
         return talkerWordRepository.findAllByWordInIgnoreCaseAndPhrasesChatIdEq(words, chatId);
     }
 }

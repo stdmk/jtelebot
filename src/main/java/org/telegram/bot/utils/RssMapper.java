@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
@@ -23,7 +22,7 @@ public class RssMapper {
         return entries
                 .stream()
                 .map(this::toNewsMessage)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public String toShortNewsMessageText(NewsMessage newsMessage, String sourceName) {

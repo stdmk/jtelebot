@@ -3,6 +3,7 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -14,14 +15,16 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.timers.TrackCodeEventsTimer;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -310,7 +313,7 @@ public class Parcel implements Command {
         List<TrackCodeEvent> trackCodeEventList = new ArrayList<>(trackCode.getEvents())
                 .stream()
                 .sorted(Comparator.comparing(TrackCodeEvent::getEventDateTime))
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> response = trackCodeEventList
                 .stream()
@@ -327,7 +330,7 @@ public class Parcel implements Command {
         List<org.telegram.bot.domain.entities.Parcel> parcelsOfTrackCode = parcelService.getAll(trackCode)
                 .stream()
                 .filter(parcel -> !user.getUserId().equals(parcel.getUser().getUserId()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (parcelsOfTrackCode.isEmpty()) {
             return;

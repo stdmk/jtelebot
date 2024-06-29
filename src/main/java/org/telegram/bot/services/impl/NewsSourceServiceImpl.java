@@ -35,7 +35,7 @@ public class NewsSourceServiceImpl implements NewsSourceService {
 
     @Override
     public Page<NewsSource> getAll(int page) {
-        log.debug("Request to get all NewsSource. Page " + page);
+        log.debug("Request to get all NewsSource. Page {}", page);
         return newsSourceRepository.findAll(PageRequest.of(page, 10));
     }
 

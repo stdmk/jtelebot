@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatLanguage;
-import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.repositories.ChatLanguageRepository;
 import org.telegram.bot.services.ChatLanguageService;
 

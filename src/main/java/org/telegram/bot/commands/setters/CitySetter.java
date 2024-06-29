@@ -4,11 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.commands.Set;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.City;
-import org.telegram.bot.domain.entities.CommandWaiting;
-import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -21,8 +17,10 @@ import org.telegram.bot.services.*;
 
 import javax.annotation.PostConstruct;
 import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.TimeZone;
 
 import static org.telegram.bot.utils.DateUtils.TimeZones;
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -300,7 +298,7 @@ public class CitySetter implements Setter<BotResponse> {
 
         List<List<KeyboardButton>> cityRows = cities.stream().map(city -> List.of(new KeyboardButton()
                 .setName(emoji + city.getNameRu())
-                .setCallback(callbackCommand + " " + city.getId()))).collect(Collectors.toList());
+                .setCallback(callbackCommand + " " + city.getId()))).toList();
 
         return new EditResponse(message)
                 .setText(title)
@@ -356,7 +354,7 @@ public class CitySetter implements Setter<BotResponse> {
                         new KeyboardButton()
                                 .setName(zone.getZone())
                                 .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone())))
-                .collect(Collectors.toList());
+                .toList();
 
         return new TextResponse(message)
                 .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)

@@ -15,15 +15,16 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.HolidayService;
-import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.LanguageResolver;
+import org.telegram.bot.services.SpeechService;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,11 +50,13 @@ class HolidaysTest {
 
     @Test
     void parseComingHolidaysTest() {
-        final String expectedResponseText = "<u>${command.holidays.caption}:</u>\n" +
-                "<b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
-                "/holidays_1\n" +
-                "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
-                "/holidays_2\n";
+        final String expectedResponseText = """
+                <u>${command.holidays.caption}:</u>
+                <b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
+                /holidays_1
+                <b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                /holidays_2
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays");
         List<Holiday> holidayList = getSomeHolidays();
 
@@ -90,9 +93,10 @@ class HolidaysTest {
 
     @Test
     void parseHolidayInfoTest() {
-        final String expectedResponseText = "<u>holiday1</u>\n" +
-                "<i>02.01.2006 Tue.</i> (1 ${command.holidays.years1})\n" +
-                "${command.holidays.author}: <a href=\"tg://user?id=1\">username</a>";
+        final String expectedResponseText = """
+                <u>holiday1</u>
+                <i>02.01.2006 Tue.</i> (1 ${command.holidays.years1})
+                ${command.holidays.author}: <a href="tg://user?id=1">username</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("holidays_1");
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -117,11 +121,13 @@ class HolidaysTest {
 
     @Test
     void parseWithSearchHolidaysByTextTest() {
-        final String expectedResponseText = "<u>${command.holidays.searchresults}:</u>\n" +
-                "<b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
-                "/holidays_1\n" +
-                "<b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
-                "/holidays_2\n";
+        final String expectedResponseText = """
+                <u>${command.holidays.searchresults}:</u>
+                <b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
+                /holidays_1
+                <b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                /holidays_2
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays test");
         List<Holiday> holidayList = getSomeHolidays();
 
@@ -174,11 +180,13 @@ class HolidaysTest {
 
     @Test
     void parseWithSearchHolidaysByDateTest() {
-        final String expectedResponseText = "<u>02.01.2007</u> (Tue.)\n" +
-                "<b>02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})\n" +
-                "/holidays_1\n" +
-                "<b>02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})\n" +
-                "/holidays_2\n";
+        final String expectedResponseText = """
+                <u>02.01.2007</u> (Tue.)
+                <b>02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
+                /holidays_1
+                <b>02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                /holidays_2
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays 02.01");
         List<Holiday> holidayList = getSomeHolidays();
 

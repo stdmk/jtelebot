@@ -148,7 +148,7 @@ public class TelegramObjectMapper {
     }
 
     private List<Attachment> toAttachments(List<PhotoSize> photoList) {
-        return photoList.stream().map(this::toAttachment).collect(Collectors.toList());
+        return photoList.stream().map(this::toAttachment).toList();
     }
 
     private Attachment toAttachment(PhotoSize photo) {
@@ -285,7 +285,7 @@ public class TelegramObjectMapper {
         return new InlineKeyboardMarkup(keyboard.getKeyboardButtonsList()
                 .stream()
                 .map(this::toInlineKeyboardRow)
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     private InlineKeyboardRow toInlineKeyboardRow(List<KeyboardButton> keyboardButtonList) {

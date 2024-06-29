@@ -3,6 +3,7 @@ package org.telegram.bot.commands.setters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.ChatGPTSettings;
@@ -14,7 +15,6 @@ import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.ChatGPTMessageService;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.ChatGPTSettingService;
 import org.telegram.bot.services.InternationalizationService;
 
@@ -136,7 +136,7 @@ public class ChatGPTSetter implements Setter<BotResponse> {
             selectModelButtons = availableModels
                     .stream()
                     .map(modelName -> new KeyboardButton().setName(modelName).setCallback(CALLBACK_SELECT_MODEL_COMMAND + modelName))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);

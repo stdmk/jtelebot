@@ -10,7 +10,6 @@ import org.telegram.bot.repositories.NewsMessageRepository;
 import org.telegram.bot.services.NewsMessageService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     @Override
     public List<NewsMessage> save(List<NewsMessage> newsMessageList) {
         log.debug("Request to save News {} ", newsMessageList);
-        return newsMessageList.stream().map(this::save).collect(Collectors.toList());
+        return newsMessageList.stream().map(this::save).toList();
     }
 
     @Override

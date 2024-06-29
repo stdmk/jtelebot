@@ -4,12 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.TvChannel;
-import org.telegram.bot.domain.entities.TvProgram;
-import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.entities.UserCity;
-import org.telegram.bot.domain.entities.UserTv;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -17,18 +12,12 @@ import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.TvChannelService;
-import org.telegram.bot.services.TvProgramService;
-import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.UserTvService;
+import org.telegram.bot.services.*;
 
 import java.time.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.*;
 
@@ -121,7 +110,7 @@ public class Tv implements Command {
         result.addAll(tvChannelList
                 .stream()
                 .map(tvChannel -> tvChannel.getName() + " - /" + Tv.COMMAND_NAME + "_ch" + tvChannel.getId() + "\n")
-                .collect(Collectors.toList()));
+                .toList());
 
         if (!tvProgramList.isEmpty()) {
             result.add("\n<u>${command.tv.foundprograms}:</u>\n");
@@ -133,7 +122,7 @@ public class Tv implements Command {
                             + "\n(<b>" + tvProgram.getChannel().getName() + "</b>)\n"
                             + formatTvDateTime(tvProgram.getStart(), zoneId) + "\n/" + Tv.COMMAND_NAME
                             + "_pr" + tvProgram.getId() + "\n\n")
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         return result;
@@ -206,7 +195,7 @@ public class Tv implements Command {
                 .skip(1)
                 .map(tvProgram -> "<b>[" + formatTvTime(tvProgram.getStart(), zoneId) + "]</b> " + tvProgram.getTitle() + "\n/"
                         + commandName + "_pr" + tvProgram.getId() + "\n")
-                .collect(Collectors.toList()));
+                .toList());
 
         result.add("\n");
 
@@ -229,7 +218,7 @@ public class Tv implements Command {
                 .map(tvChannel ->
                         buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_SHORT))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

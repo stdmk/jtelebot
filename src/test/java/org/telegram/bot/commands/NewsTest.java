@@ -31,9 +31,9 @@ import org.telegram.bot.utils.RssMapper;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -188,7 +188,7 @@ class NewsTest {
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
                 .map(NewsSource::getNewsMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenReturn(mock(SyndFeed.class));
@@ -216,7 +216,7 @@ class NewsTest {
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
                 .map(NewsSource::getNewsMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenReturn(mock(SyndFeed.class));
         when(rssMapper.toNewsMessage(anyList())).thenReturn(newsMessageList);
@@ -266,7 +266,7 @@ class NewsTest {
         List<NewsSource> sourceList = newsList
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
-                .collect(Collectors.toList());
+                .toList();
 
         when(newsSourceService.getAll()).thenReturn(sourceList);
 
@@ -291,12 +291,12 @@ class NewsTest {
         List<NewsSource> sourceList = newsList
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
-                .collect(Collectors.toList());
+                .toList();
         List<NewsMessage> newsMessageList = newsList
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
                 .map(NewsSource::getNewsMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         when(newsSourceService.getAll()).thenReturn(sourceList);
 

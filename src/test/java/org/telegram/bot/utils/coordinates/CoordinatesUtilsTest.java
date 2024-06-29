@@ -8,7 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 class CoordinatesUtilsTest {
@@ -19,8 +20,8 @@ class CoordinatesUtilsTest {
         Coordinates actualCoordinates = CoordinatesUtils.parseCoordinates(data);
 
         assertNotNull(actualCoordinates);
-        assertEquals(expectedCoordinates.getLatitude(), actualCoordinates.getLatitude());
-        assertEquals(expectedCoordinates.getLongitude(), actualCoordinates.getLongitude());
+        assertEquals(expectedCoordinates.latitude(), actualCoordinates.latitude());
+        assertEquals(expectedCoordinates.longitude(), actualCoordinates.longitude());
     }
 
     private static Stream<Arguments> provideCoordinates() {
