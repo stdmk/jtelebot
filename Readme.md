@@ -140,6 +140,8 @@ Java Telegram Bot (Spring)
 
 /word — access to Wiktionary.
 
+/random - get random in range or in list
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
