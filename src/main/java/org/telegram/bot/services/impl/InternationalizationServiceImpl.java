@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -50,8 +51,8 @@ public class InternationalizationServiceImpl implements InternationalizationServ
     }
 
     private void internationalize(ReplyKeyboard replyMarkup, String lang) {
-        if (replyMarkup instanceof InlineKeyboardMarkup) {
-            ((InlineKeyboardMarkup) replyMarkup).getKeyboard().forEach(buttons ->
+        if (replyMarkup instanceof InlineKeyboardMarkup replyMarkup1) {
+            replyMarkup1.getKeyboard().forEach(buttons ->
                     buttons.forEach(button -> {
                         button.setText(this.internationalize(button.getText(), lang));
                         button.setCallbackData(this.internationalize(button.getCallbackData(), lang));
@@ -91,7 +92,7 @@ public class InternationalizationServiceImpl implements InternationalizationServ
 
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(text);
 
-        List<MatchResult> results = matcher.results().collect(Collectors.toList());
+        List<MatchResult> results = matcher.results().toList();
         if (results.isEmpty()) {
             return text;
         }
@@ -101,7 +102,12 @@ public class InternationalizationServiceImpl implements InternationalizationServ
         Map<String, String> valuesMap = new HashMap<>();
         results.forEach(matchResult -> {
             String code = matchResult.group(1);
-            String message = messageSource.getMessage(code, null, locale);
+            String message;
+            try {
+                message = messageSource.getMessage(code, null, locale);
+            } catch (NoSuchMessageException e) {
+                return;
+            }
 
             if (message.contains(CSV_SEPARATOR)) {
                 message = getRandomMessageFromCsvString(message);
