@@ -7,6 +7,13 @@ import java.util.concurrent.ThreadLocalRandom;
 @UtilityClass
 public class MathUtils {
 
+    /**
+     * Get random value;
+     *
+     * @param from inclusive.
+     * @param to exclusive.
+     * @return random value.
+     */
     public static Integer getRandomInRange(int from, int to) {
         if (from == to) {
             return from;
@@ -15,6 +22,13 @@ public class MathUtils {
         return ThreadLocalRandom.current().nextInt(from, to);
     }
 
+    /**
+     * Get random value;
+     *
+     * @param from inclusive.
+     * @param to exclusive.
+     * @return random value.
+     */
     public static Long getRandomInRange(long from, long to) {
         if (from == to) {
             return from;
