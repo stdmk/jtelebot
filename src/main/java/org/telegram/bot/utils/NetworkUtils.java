@@ -21,7 +21,8 @@ import java.nio.charset.StandardCharsets;
 public class NetworkUtils {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
-    private static final Integer TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES = 52428800;
+    private static final int TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES = 52428800;
+    private static final int DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
 
     public InputStream getFileFromUrlWithLimit(String url) throws IOException {
         return getFileFromUrlWithLimit(url, TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES);
@@ -34,6 +35,8 @@ public class NetworkUtils {
     public InputStream getFileFromUrl(String url) throws IOException {
         URLConnection connection = new URL(url).openConnection();
         connection.setRequestProperty("User-Agent", USER_AGENT);
+        connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
+
         connection.connect();
 
         return connection.getInputStream();
