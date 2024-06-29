@@ -21,12 +21,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
 import org.telegram.bot.domain.entities.ChatGPTSettings;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
@@ -34,12 +34,12 @@ import org.telegram.bot.enums.ChatGPTRole;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -211,13 +211,29 @@ public class ChatGPT implements Command {
     private String getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "images/generations";
         CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
+
+        Optional.of(response)
+                .map(CreateImageResponse::getData)
+                .filter(imageUrls -> !imageUrls.isEmpty())
+                .map(imageUrls -> imageUrls.get(0))
+                .map(ImageUrl::getUrl)
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
+
         return response.getData().get(0).getUrl();
     }
 
     private String getResponse(ChatRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "chat/completions";
         ChatResponse response = getResponse(request, url, token, ChatResponse.class);
-        return "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + response.getChoices().get(0).getMessage().getContent();
+
+        return Optional.of(response)
+                .map(ChatResponse::getChoices)
+                .filter(choices -> !choices.isEmpty())
+                .map(choices -> choices.get(0))
+                .map(Choice::getMessage)
+                .map(Message::getContent)
+                .map(content -> "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + content)
+                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
     }
 
     private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {

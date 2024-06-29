@@ -221,6 +221,28 @@ class ChatGPTTest {
     }
 
     @Test
+    void requestWithNullableResponseTextTest() throws JsonProcessingException {
+        BotRequest request = getRequestFromGroup("chatgpt say hello");
+
+        ChatGPT.Message message = new ChatGPT.Message();
+        ChatGPT.Choice choice = new ChatGPT.Choice();
+        choice.setMessage(message);
+        ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(chatGPTSettingService.get(request.getMessage().getChat())).thenReturn(new ChatGPTSettings().setModel("model"));
+        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+
+        assertThrows(BotException.class, () -> chatGPT.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
     void messageFromChatWithEmptyHistoryTest() throws JsonProcessingException {
         final String expectedModel = "model";
         final String requestText = "say hello";
