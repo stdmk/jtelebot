@@ -433,7 +433,7 @@ public class NewsSetter implements Setter<BotResponse> {
         List<List<KeyboardButton>> rows = allNewsInChat.stream().map(news -> List.of(
                 new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + news.getNewsSource().getName())
-                        .setCallback(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId()))).toList();
+                        .setCallback(CALLBACK_DELETE_NEWS_COMMAND + " " + news.getId()))).collect(Collectors.toList());
 
         addingMainRows(rows);
 

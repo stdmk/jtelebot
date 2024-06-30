@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.TimeZones;
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -354,7 +355,7 @@ public class CitySetter implements Setter<BotResponse> {
                         new KeyboardButton()
                                 .setName(zone.getZone())
                                 .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone())))
-                .toList();
+                .collect(Collectors.toList());
 
         return new TextResponse(message)
                 .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)

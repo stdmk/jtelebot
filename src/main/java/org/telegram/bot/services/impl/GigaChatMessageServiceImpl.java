@@ -13,6 +13,7 @@ import org.telegram.bot.services.GigaChatMessageService;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class GigaChatMessageServiceImpl implements GigaChatMessageService {
                     .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
                     .sorted(Comparator.comparingLong(GigaChatMessage::getId))
                     .limit(deletingCount)
-                    .toList();
+                    .collect(Collectors.toList());
             messages.removeAll(chatGPTMessagesForDelete);
             gigaChatMessageRepository.deleteAll(chatGPTMessagesForDelete);
         }

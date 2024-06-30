@@ -921,7 +921,7 @@ public class Remind implements Command {
             return List.of(new KeyboardButton()
                     .setName(reminderText)
                     .setCallback(CALLBACK_INFO_REMINDER + reminder.getId()));
-        }).toList();
+        }).collect(Collectors.toList());
 
         addingMainRows(rows, page, reminderList.getTotalPages());
 
@@ -986,7 +986,7 @@ public class Remind implements Command {
 
         rows.add(Stream.of(1, 2, 3, 6, 12)
                 .map(hours -> generatePostponeButton(reminderId, hours + " ${command.remind.h}.", Duration.of(hours, HOURS)))
-                .toList());
+                .collect(Collectors.toList()));
 
         LocalDate dateNow = LocalDate.now(zoneId);
         rows.add(Arrays.stream(DayOfWeek.values())
