@@ -13,7 +13,6 @@ import org.telegram.bot.services.ChatGPTMessageService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +38,8 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
         if (messages.size() > chatGPTContextSize) {
             int deletingCount = messages.size() - chatGPTContextSize;
             update(messages, deletingCount);
+        } else {
+            chatGPTMessageRepository.saveAll(messages);
         }
     }
 
@@ -49,7 +50,7 @@ public class ChatGPTMessageServiceImpl implements ChatGPTMessageService {
                 .filter(chatGPTMessage -> chatGPTMessage.getId() != null)
                 .sorted(Comparator.comparingLong(ChatGPTMessage::getId))
                 .limit(deletingCount)
-                .collect(Collectors.toList());
+                .toList();
         messages.removeAll(chatGPTMessagesForDelete);
         chatGPTMessageRepository.deleteAll(chatGPTMessagesForDelete);
 
