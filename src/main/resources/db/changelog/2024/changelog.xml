@@ -13,4 +13,5 @@
     <include file="db/changelog/2024/20240303100900_added_command_Word.xml"/>
     <include file="db/changelog/2024/20240612092900_added_entity_ChatGPTSettings.xml"/>
     <include file="db/changelog/2024/20240629123456_added_command_Random.xml"/>
+    <include file="db/changelog/2024/20240713114000_added_command_Latin.xml"/>
 </databaseChangeLog>
