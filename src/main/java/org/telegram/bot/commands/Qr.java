@@ -1,13 +1,6 @@
 package org.telegram.bot.commands;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.WriterException;
+import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -17,11 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.request.MessageContentType;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
@@ -37,7 +29,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -96,7 +91,7 @@ public class Qr implements Command, MessageAnalyzer {
         Message message = request.getMessage();
 
         if (message.hasAttachment() && MessageContentType.PHOTO.equals(message.getMessageContentType())) {
-            message.getAttachments()
+            return message.getAttachments()
                     .stream()
                     .max(Comparator.comparing(Attachment::getSize))
                     .map(photo -> {
@@ -119,11 +114,11 @@ public class Qr implements Command, MessageAnalyzer {
                         }
 
                         return textFromQr;
-                    }).ifPresentOrElse(text ->
-                            returnResponse(new TextResponse(message)
-                                    .setText("QR: `" + text + "`")
-                                    .setResponseSettings(FormattingStyle.MARKDOWN)),
-                            this::returnResponse);
+                    })
+                    .map(textFromQr -> returnResponse(new TextResponse(message)
+                                            .setText("QR: `" + textFromQr + "`")
+                                            .setResponseSettings(FormattingStyle.MARKDOWN)))
+                    .orElse(returnResponse());
         }
 
         return returnResponse();
