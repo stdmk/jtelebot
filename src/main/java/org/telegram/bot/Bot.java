@@ -1,7 +1,6 @@
 package org.telegram.bot;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,6 +28,7 @@ import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -36,6 +36,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 @Component
@@ -225,7 +226,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
     public byte[] getFileFromTelegram(String fileId) {
         try (InputStream inputStream = getInputStreamFromTelegramFile(fileId)) {
-            return IOUtils.toByteArray(inputStream);
+            return inputStream.readAllBytes();
         } catch (IOException e) {
             log.error("Failed to get file from telegram", e);
             botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
@@ -235,8 +236,10 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
     public InputStream getInputStreamFromTelegramFile(String fileId) {
         try {
-            return telegramClient.downloadFileAsStream(telegramClient.execute(new GetFile(fileId)).getFilePath());
-        } catch (TelegramApiException e) {
+            String filePath = telegramClient.execute(new GetFile(fileId)).getFilePath();
+            String fileUrl = new File(null, null, null, filePath).getFileUrl(this.getBotToken());
+            return new URL(fileUrl).openStream();
+        } catch (TelegramApiException | IOException e) {
             log.error("Failed to get file from telegram", e);
             botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
