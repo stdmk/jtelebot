@@ -48,7 +48,7 @@ public class Turn implements Command, MessageAnalyzer {
         NOT_NEED_TURN_PATTERNS.addAll(
                 internationalizationService.internationalize("${command.turn.pattern}")
                         .stream()
-                        .filter(TextUtils::isEmpty)
+                        .filter(TextUtils::isNotEmpty)
                         .map(Pattern::compile)
                         .collect(Collectors.toSet()));
     }

@@ -310,6 +310,10 @@ public class TextUtils {
         return new URL(stringUrl);
     }
 
+    public static boolean isNotEmpty(String text) {
+        return !isEmpty(text);
+    }
+
     public static boolean isEmpty(String text) {
         return text == null || text.isEmpty();
     }

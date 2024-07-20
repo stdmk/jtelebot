@@ -229,9 +229,7 @@ public class ChatGPT implements Command {
         return Optional.of(response)
                 .map(ChatResponse::getChoices)
                 .filter(choices -> !choices.isEmpty())
-                .map(choices -> choices.get(0))
-                .map(Choice::getMessage)
-                .map(Message::getContent)
+                .flatMap(choices -> choices.stream().map(Choice::getMessage).map(Message::getContent).filter(org.springframework.util.StringUtils::hasLength).findFirst())
                 .map(content -> "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + content)
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
     }
