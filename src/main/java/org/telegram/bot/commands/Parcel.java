@@ -19,6 +19,7 @@ import org.telegram.bot.timers.TrackCodeEventsTimer;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class Parcel implements Command {
     private final Bot bot;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
+    private final Clock clock;
 
     private static final String EMPTY_COMMAND = "parcel";
     private static final String CALLBACK_COMMAND = EMPTY_COMMAND + " ";
@@ -61,7 +63,7 @@ public class Parcel implements Command {
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Chat chat = message.getChat();
         User user = message.getUser();
 
         CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
@@ -77,7 +79,7 @@ public class Parcel implements Command {
         }
 
         if (message.isCallback()) {
-            if (commandArgument.isEmpty()) {
+            if (commandArgument == null || commandArgument.isEmpty()) {
                 return returnResponse(getMainMenu(message, user, false));
             } else if (commandArgument.startsWith(DELETE_PARCEL_COMMAND)) {
                 return returnResponse(deleteParcelByCallback(message, user, commandArgument));
@@ -176,17 +178,16 @@ public class Parcel implements Command {
     }
 
     private TextResponse addParcelByCallback(Message message, Chat chat, User user, String textCommand) {
-        commandWaitingService.add(chat, user, org.telegram.bot.domain.entities.Parcel.class, CALLBACK_COMMAND + textCommand);
-        return new TextResponse()
-                .setChatId(message.getChatId())
+        commandWaitingService.add(chat, user, Parcel.class, CALLBACK_COMMAND + textCommand);
+        return new TextResponse(message)
                 .setText("${command.parcel.parceladdinghint}: <code>${command.parcel.parceladdingexample}</code>")
-                .setResponseSettings(FormattingStyle.HTML);
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
     }
 
     private BotResponse addParcel(Message message, User user, String textCommand, CommandWaiting commandWaiting) throws BotException {
-        checkFreeTrackCodeSlots(trackCodeService.getTrackCodesCount());
-
         commandWaitingService.remove(commandWaiting);
+
+        checkFreeTrackCodeSlots(trackCodeService.getTrackCodesCount());
 
         textCommand = textCommand.substring(ADD_PARCEL_COMMAND.length() + 1);
 
@@ -257,6 +258,10 @@ public class Parcel implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
+            if (params.isEmpty()) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
             parcel = parcelService.getByName(user, params);
             if (parcel == null) {
                 parcel = parcelService.getByBarcode(user, params);
@@ -300,12 +305,12 @@ public class Parcel implements Command {
                     .stream()
                     .map(TrackCodeEvent::getEventDateTime)
                     .max(LocalDateTime::compareTo)
-                    .orElse(LocalDateTime.now());
+                    .orElse(LocalDateTime.now(clock));
 
             trackCodeService.updateFromApi(trackCode);
 
             notifyOtherUsers(trackCode, user, lastEventUpdateDateTime);
-            lastUpdatesTimeInfo = buildStringUpdateTimesInformation(Instant.now());
+            lastUpdatesTimeInfo = buildStringUpdateTimesInformation(Instant.now(clock));
         } else {
             lastUpdatesTimeInfo = buildStringUpdateTimesInformation();
         }
@@ -389,7 +394,7 @@ public class Parcel implements Command {
                             .filter(trackCodeEvent -> DELIVERED_OPERATION_TYPE.equalsIgnoreCase(trackCodeEvent.getOperationType()))
                             .findFirst()
                             .map(TrackCodeEvent::getEventDateTime)
-                            .orElse(LocalDateTime.now());
+                            .orElse(LocalDateTime.now(clock));
                     String durationTime = DateUtils.durationToString(firstDateTime, lastDateTime);
 
                     buf.append("${command.parcel.trackinfo.daysway}: <b>").append(durationTime).append("</b>\n");

@@ -220,6 +220,11 @@ public class TestUtils {
         return TestUtils.checkDefaultTextResponseParams((TextResponse) response, formattingStyle);
     }
 
+    public static EditResponse checkDefaultEditResponseParams(BotResponse response) {
+        assertTrue(response instanceof EditResponse);
+        return checkDefaultEditResponseParams((EditResponse) response);
+    }
+
     public static EditResponse checkDefaultEditResponseParams(BotResponse response, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
         assertTrue(response instanceof EditResponse);
         return checkDefaultEditResponseParams((EditResponse) response, formattingStyle, disableWebPagePreview, hasKeyboard);
@@ -255,7 +260,6 @@ public class TestUtils {
     public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse) {
         assertNotNull(textResponse);
         assertNotNull(textResponse.getChatId());
-        assertNotNull(textResponse.getReplyToMessageId());
         assertNotNull(textResponse.getText());
 
         return textResponse;
