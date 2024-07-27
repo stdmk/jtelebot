@@ -218,7 +218,8 @@ public class LanguageSetter implements Setter<BotResponse> {
                 .setCallback(CALLBACK_SET_LANG_COMMAND + USER + locale)
         ).toList());
 
-        if (message.isGroupChat()) {
+        Integer userAccessLevel = userService.getUserAccessLevel(message.getUser().getUserId());
+        if (message.isGroupChat() && userService.isUserHaveAccessForCommand(userAccessLevel, AccessLevel.MODERATOR.getValue())) {
             buttonsList.add(availableLocales.stream().map(locale -> new KeyboardButton()
                     .setName(CHAT + locale)
                     .setCallback(CALLBACK_SET_LANG_COMMAND + CHAT + locale)
