@@ -345,11 +345,11 @@ public class TelegramObjectMapper {
             if (!responseSettings.isNotification()) {
                 sendPhoto.disableNotification();
             }
-            if (file.getFileSettings().isSpoiler()) {
-                sendPhoto.setHasSpoiler(true);
-            }
 
             sendPhoto.setParseMode(toParseMode(responseSettings.getFormattingStyle()));
+        }
+        if (file.getFileSettings().isSpoiler()) {
+            sendPhoto.setHasSpoiler(true);
         }
 
         return sendPhoto;
