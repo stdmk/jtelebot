@@ -644,7 +644,7 @@ public class Remind implements Command {
         return "<b>${command.remind.caption}</b>\n" +
                 reminder.getText() + "\n<i>" +
                 formatDate(reminderDate) + " " + formatTime(reminderTime) + " (" + getDayOfWeek(reminderDate, lang) + " )</i>\n" +
-                "Повтор: <b>" + repeatability + "</b>\n" +
+                "${command.remind.repeat}: <b>" + repeatability + "</b>\n" +
                 leftToRun;
     }
 
