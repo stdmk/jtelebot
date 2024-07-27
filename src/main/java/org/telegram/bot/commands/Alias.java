@@ -129,22 +129,24 @@ public class Alias implements Command, MessageAnalyzer {
             List<String> aliasValueList = getAliasValueList(alias.getValue());
             if (aliasValueList.size() > 1) {
                 List<BotResponse> resultList = new ArrayList<>(MAX_COMMANDS_IN_ALIAS);
-
                 for (String aliasValue : aliasValueList) {
-                    if (argument == null) {
-                        resultList.addAll(processUpdate(request, chat, user, aliasValue));
-                    } else {
-                        resultList.addAll(processUpdate(request, chat, user, aliasValue + argument));
-                    }
+                    resultList.addAll(processUpdate(request, chat, user, getMessageText(aliasValue, argument)));
                 }
-
                 return resultList;
-            } else if (argument == null) {
-                return processUpdate(request, chat, user, alias.getValue());
+            } else {
+                return processUpdate(request, chat, user, getMessageText(alias.getValue(), argument));
             }
         }
 
         return returnResponse();
+    }
+
+    private String getMessageText(String aliasValue, String argument) {
+        if (argument == null) {
+            return aliasValue;
+        }
+
+        return aliasValue + argument;
     }
 
     private List<String> getAliasValueList(String aliasValue) {
