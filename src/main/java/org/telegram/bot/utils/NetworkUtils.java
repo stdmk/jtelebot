@@ -46,8 +46,16 @@ public class NetworkUtils {
         return readStringFromURL(new URL(url).toString(), StandardCharsets.UTF_8);
     }
 
+    public String readStringFromURL(URL url) throws IOException {
+        return readStringFromURL(url.toString(), StandardCharsets.UTF_8);
+    }
+
     public String readStringFromURL(String url, Charset encoding) throws IOException {
-        return IOUtils.toString(new URL(url), encoding);
+        return readStringFromURL(new URL(url), encoding);
+    }
+
+    public String readStringFromURL(URL url, Charset encoding) throws IOException {
+        return IOUtils.toString(url, encoding);
     }
 
     public SyndFeed getRssFeedFromUrl(String url) throws IOException, FeedException {
