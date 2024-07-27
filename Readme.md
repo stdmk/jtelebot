@@ -142,6 +142,8 @@ Java Telegram Bot (Spring)
 
 /random - get random in range or in list
 
+/latin - search for non-Latin characters
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
