@@ -266,11 +266,15 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultFileResponseParams(BotResponse response) {
+        return checkDefaultFileResponseParams(response, FileType.FILE);
+    }
+
+    public static FileResponse checkDefaultFileResponseParams(BotResponse response, FileType fileType) {
         assertTrue(response instanceof FileResponse);
 
         FileResponse fileResponse = (FileResponse) response;
         assertFalse(fileResponse.getFiles().isEmpty());
-        assertEquals(FileType.FILE, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(fileType, fileResponse.getFiles().get(0).getFileType());
 
         return checkDefaultFileResponseParams(fileResponse);
     }
@@ -376,6 +380,10 @@ public class TestUtils {
 
     public static String getResourceAsString(String path) throws IOException {
         return IOUtils.toString(new FileInputStream("src/test/resources/" + path), StandardCharsets.UTF_8);
+    }
+
+    public static byte[] getResourceAsBytes(String path) throws IOException {
+        return IOUtils.toByteArray(new FileInputStream("src/test/resources/" + path));
     }
 
 }

@@ -20,7 +20,6 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -43,7 +42,6 @@ public class Qr implements Command, MessageAnalyzer {
     private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
     private final BotStats botStats;
-    private final NetworkUtils networkUtils;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -52,11 +50,13 @@ public class Qr implements Command, MessageAnalyzer {
         String commandArgument = commandWaitingService.getText(message);
 
         if (commandArgument == null) {
+            bot.sendTyping(message.getChatId());
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             return returnResponse(new TextResponse(message)
                     .setText("${command.qr.commandwaitingstart}"));
         } else {
+            bot.sendUploadPhoto(message.getChatId());
             return returnResponse(new FileResponse(message)
                     .setText(commandArgument)
                     .addFile(new File(FileType.IMAGE, generateQrFromText(commandArgument), "qr")));

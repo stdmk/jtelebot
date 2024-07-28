@@ -37,6 +37,11 @@ public class Shutdown implements Command {
 
         try {
             botStats.saveStats();
+        } catch (Exception e) {
+            log.error("Failed to shutdown normally: {}", e.getMessage());
+        }
+
+        try {
             fileManagerTimer.deleteAllFiles();
         } catch (Exception e) {
             log.error("Failed to shutdown normally: {}", e.getMessage());

@@ -49,7 +49,7 @@ public class Repeat implements Command, MessageAnalyzer {
                         return returnResponse();
                     }
 
-                    newRequest.getMessage().setText(lastCommand.getCommandProperties().getCommandName());
+                    newRequest.getMessage().setText(commandProperties.getCommandName());
                     userStatsService.incrementUserStatsCommands(chat, user);
                     return ((Command) context.getBean(commandProperties.getClassName())).parse(newRequest);
                 }
