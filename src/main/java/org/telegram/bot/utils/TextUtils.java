@@ -98,7 +98,7 @@ public class TextUtils {
 
     public static String removeDuplicateLineBreaks(String text) {
         while (text.contains("\n\n")) {
-            text = text.replace("\n\n", "");
+            text = text.replace("\n\n", "\n");
         }
 
         return text;
