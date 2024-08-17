@@ -54,6 +54,7 @@ class PhoneNumberTest {
 
         assertEquals(expectedResponseText, textResponse.getText());
         verify(commandWaitingService).add(request.getMessage(), PhoneNumber.class);
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -69,6 +70,25 @@ class PhoneNumberTest {
         assertThrows((BotException.class), () -> phoneNumber.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void parseWithRestClientExceptionJsonIncludesTest() {
+        final String errorText = "No data";
+        final String number = "123";
+        BotRequest request = TestUtils.getRequestFromGroup("number " + number);
+        Message message = request.getMessage();
+
+        when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
+        when(botRestTemplate.getForEntity(API_URL + number, PhoneNumber.ApiResponse.class))
+                .thenThrow(new RestClientException("404 Not Found: [{\"error\":\"" + errorText + "\"}]"));
+
+        BotResponse botResponse = phoneNumber.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(errorText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -84,6 +104,7 @@ class PhoneNumberTest {
         assertThrows((BotException.class), () -> phoneNumber.parse(request));
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -103,6 +124,7 @@ class PhoneNumberTest {
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(errorText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
@@ -126,6 +148,7 @@ class PhoneNumberTest {
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
 }

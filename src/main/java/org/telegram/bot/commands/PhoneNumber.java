@@ -22,6 +22,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,13 +75,35 @@ public class PhoneNumber implements Command {
         ResponseEntity<ApiResponse> response;
         try {
             response = botRestTemplate.getForEntity(API_URL + number, ApiResponse.class);
-        } catch (RestClientException e) {
+        } catch (RestClientException e) { //404 Not Found: [{"error":"Нет данных"}]
+            String errorText = findErrorTextInException(e);
+            if (errorText != null) {
+                return new ApiResponse().setError(errorText);
+            }
+
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
         return Optional.of(response)
                 .map(HttpEntity::getBody)
                 .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
+    }
+
+    @Nullable
+    private String findErrorTextInException(Exception e) {
+        String errorMessage = e.getMessage();
+        if (errorMessage != null) {
+            int errorFieldIndex = errorMessage.indexOf("\"error\":\"");
+            if (errorFieldIndex >= 0) {
+                String substring = errorMessage.substring(errorFieldIndex + 9);
+                int stopValueIndex = substring.indexOf("\"");
+                if (stopValueIndex > 0) {
+                    return substring.substring(0, stopValueIndex);
+                }
+            }
+        }
+
+        return null;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
