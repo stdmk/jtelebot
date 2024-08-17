@@ -17,10 +17,7 @@ import org.telegram.bot.services.*;
 
 import javax.annotation.PostConstruct;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.TimeZones;
@@ -276,7 +273,6 @@ public class CitySetter implements Setter<BotResponse> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.DATA_BASE_INTEGRITY));
         }
 
-
         cityService.remove(city);
 
         return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
@@ -299,7 +295,10 @@ public class CitySetter implements Setter<BotResponse> {
 
         List<List<KeyboardButton>> cityRows = cities.stream().map(city -> List.of(new KeyboardButton()
                 .setName(emoji + city.getNameRu())
-                .setCallback(callbackCommand + " " + city.getId()))).toList();
+                .setCallback(callbackCommand + " " + city.getId())))
+                .collect(Collectors.toList());
+
+        cityRows.addAll(prepareMainKeyboard());
 
         return new EditResponse(message)
                 .setText(title)
@@ -320,32 +319,32 @@ public class CitySetter implements Setter<BotResponse> {
         if (newMessage) {
             return new TextResponse(message)
                     .setText(responseText)
-                    .setKeyboard(prepareMainKeyboard());
+                    .setKeyboard(new Keyboard(prepareMainKeyboard()));
         }
 
         return new EditResponse(message)
                 .setText(responseText)
-                .setKeyboard(prepareMainKeyboard())
+                .setKeyboard(new Keyboard(prepareMainKeyboard()))
                 .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private Keyboard prepareMainKeyboard() {
-        return new Keyboard(
-                new KeyboardButton()
+    private List<List<KeyboardButton>> prepareMainKeyboard() {
+        return new ArrayList<>(List.of(
+                List.of(new KeyboardButton()
                         .setName(Emoji.RIGHT_ARROW_CURVING_UP.getSymbol() + "${setter.city.button.select}")
-                        .setCallback(CALLBACK_SELECT_CITY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_SELECT_CITY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.NEW.getSymbol() + "${setter.city.button.add}")
-                        .setCallback(CALLBACK_ADD_CITY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_ADD_CITY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + "${setter.city.button.remove}")
-                        .setCallback(CALLBACK_DELETE_CITY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_DELETE_CITY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.UPDATE.getSymbol() + "${setter.city.button.update}")
-                        .setCallback(CALLBACK_COMMAND + UPDATE_CITY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_COMMAND + UPDATE_CITY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.BACK.getSymbol() + "${setter.city.button.settings}")
-                        .setCallback(CALLBACK_COMMAND + "back"));
+                        .setCallback(CALLBACK_COMMAND + "back"))));
     }
 
     private TextResponse getKeyboardWithTimeZones(Message message, Long cityId) {
@@ -355,7 +354,7 @@ public class CitySetter implements Setter<BotResponse> {
                         new KeyboardButton()
                                 .setName(zone.getZone())
                                 .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone())))
-                .collect(Collectors.toList());
+                .toList();
 
         return new TextResponse(message)
                 .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)
