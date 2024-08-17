@@ -98,13 +98,13 @@ public class Exchange implements Command {
                 if (valuteToRubMatcher.find()) {
                     bot.sendTyping(chatId);
                     String currencyCode = valuteToRubMatcher.group(2);
-                    float amount =  Float.parseFloat(valuteToRubMatcher.group(1));
+                    float amount =  Float.parseFloat(valuteToRubMatcher.group(1).replace(",", "."));
                     log.debug("Request to get rubles count for currency {} amount {}", currencyCode, amount);
                     responseText = getRublesForCurrencyValue(currencyCode, amount);
                 } else if (ruToValuteMatcher.find()) {
                     bot.sendTyping(chatId);
                     String valuteCode = ruToValuteMatcher.group(3);
-                    float rublesAmount =  Float.parseFloat(ruToValuteMatcher.group(1));
+                    float rublesAmount =  Float.parseFloat(ruToValuteMatcher.group(1).replace(",", "."));
                     log.debug("Request to get valute {} count for rubles amount {}", valuteCode, rublesAmount);
                     responseText = getValuteForRublesAmount(valuteCode, rublesAmount);
                 } else if (monthsCountMatcher.find()) {

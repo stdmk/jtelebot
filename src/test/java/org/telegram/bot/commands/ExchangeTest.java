@@ -278,9 +278,9 @@ class ExchangeTest {
 
     @Test
     void getValuteForRublesCountTest() throws IOException {
-        //does not work. Possibly because of the ₽ symbol
-//        final String expectedResponseText = "<b>Рубли в Доллар США</b>\n1,0 ₽ = 0,0130 USD";
-        BotRequest request = TestUtils.getRequestFromGroup("exchange 1 rub usd");
+//        //does not work. Possibly because of the ₽ symbol
+//        final String expectedResponseText = "<b>${command.exchange.fromrub} Доллар США</b>\n1.1 ₽ = 0,0143 USD";
+        BotRequest request = TestUtils.getRequestFromGroup("exchange 1,1 rub usd");
         Exchange.ValCurs valCurs = getCurrentValCurs();
 
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -290,9 +290,10 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
         BotResponse response = exchange.parse(request).get(0);
-        verify(bot).sendTyping(request.getMessage().getChatId());
-        checkDefaultTextResponseParams(response);
+        TextResponse textResponse = checkDefaultTextResponseParams(response);
 //        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
     @Test
