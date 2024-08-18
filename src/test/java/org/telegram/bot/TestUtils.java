@@ -378,6 +378,18 @@ public class TestUtils {
         return fileResponse;
     }
 
+    public static DeleteResponse checkDefaultDeleteResponseParams(BotResponse botResponse) {
+        assertTrue(botResponse instanceof DeleteResponse);
+        return checkDefaultDeleteResponseParams((DeleteResponse) botResponse);
+    }
+
+    public static DeleteResponse checkDefaultDeleteResponseParams(DeleteResponse deleteResponse) {
+        assertNotNull(deleteResponse.getChatId());
+        assertNotNull(deleteResponse.getMessageId());
+
+        return deleteResponse;
+    }
+
     public static String getResourceAsString(String path) throws IOException {
         return IOUtils.toString(new FileInputStream("src/test/resources/" + path), StandardCharsets.UTF_8);
     }

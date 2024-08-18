@@ -35,6 +35,7 @@ public class ReminderTimer extends TimerParent {
             .setWebPagePreview(false);
 
     private final Bot bot;
+    private final Remind remind;
     private final ReminderService reminderService;
     private final UserCityService userCityService;
     private final LanguageResolver languageResolver;
@@ -69,8 +70,8 @@ public class ReminderTimer extends TimerParent {
 
                 bot.sendMessage(new TextResponse()
                         .setChatId(chat.getChatId())
-                        .setText(Remind.prepareTextOfReminder(reminder))
-                        .setKeyboard(Remind.preparePostponeKeyboard(reminder, zoneId, locale))
+                        .setText(remind.prepareTextOfReminder(reminder))
+                        .setKeyboard(remind.preparePostponeKeyboard(reminder, zoneId, locale))
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
 
                 String repeatability = reminder.getRepeatability();
