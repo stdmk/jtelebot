@@ -12,8 +12,6 @@
             <column name="enruname" value="vb"/>
             <column name="classname" value="me"/>
             <column name="accesslevel" value="0"/>
-            <column name="help" value="Ми, преобразование /me в *username"/>
-
         </insert>
     </changeSet>
 </databaseChangeLog>
