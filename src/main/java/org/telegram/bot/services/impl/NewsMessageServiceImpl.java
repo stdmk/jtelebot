@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
 import org.telegram.bot.services.NewsMessageService;
+import org.telegram.bot.utils.DateUtils;
 
 import java.util.List;
 
@@ -35,7 +36,6 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         log.debug("Request to save News {} ", newsMessage);
 
         String descHash;
-
         String description = newsMessage.getDescription();
         if (StringUtils.hasText(description)) {
             descHash = DigestUtils.sha256Hex(description);
@@ -44,7 +44,7 @@ public class NewsMessageServiceImpl implements NewsMessageService {
         }
 
         NewsMessage alreadyStoredNewsMessage = newsMessageRepository.findByDescHash(descHash);
-        if (alreadyStoredNewsMessage != null) {
+        if (alreadyStoredNewsMessage != null && DateUtils.isDatesTheSame(alreadyStoredNewsMessage.getPubDate(), newsMessage.getPubDate())) {
             log.debug("NewsMessage with this description already saved");
             return alreadyStoredNewsMessage;
         }

@@ -263,6 +263,18 @@ public class DateUtils {
         return localDateTime.toLocalDate().atStartOfDay(ZoneId.systemDefault()).toLocalDateTime();
     }
 
+    public static boolean isDatesTheSame(Date firstDate, Date secondDate) {
+        if (firstDate == null) {
+            return false;
+        }
+
+        if (secondDate == null) {
+            return false;
+        }
+
+        return firstDate.compareTo(secondDate) == 0;
+    }
+
     @Getter
     @RequiredArgsConstructor
     public enum TimeZones {
