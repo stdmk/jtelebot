@@ -19,12 +19,32 @@ public class Uuid implements Command {
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
-        if (request.getMessage().hasCommandArgument()) {
-            return returnResponse();
+        String responseText;
+
+        String commandArgument = request.getMessage().getCommandArgument();
+        if (commandArgument != null) {
+            if (isValidUuid(commandArgument)) {
+                responseText = "*${command.uuid.valid}*";
+            } else {
+                responseText = "*${command.uuid.invalid}*";
+            }
+        } else {
+            responseText = "`" + UUID.randomUUID() + "`";
         }
 
         return returnResponse(new TextResponse(request.getMessage())
-                .setText("`" + UUID.randomUUID() + "`")
+                .setText(responseText)
                 .setResponseSettings(FormattingStyle.MARKDOWN));
     }
+
+    private boolean isValidUuid(String uuid) {
+        try {
+            UUID.fromString(uuid);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

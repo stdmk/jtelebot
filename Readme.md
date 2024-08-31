@@ -106,7 +106,7 @@ Java Telegram Bot (Spring)
 
 /remind — reminder.
 
-/uuid — random uuid generation.
+/uuid — random uuid generation or checking.
 
 /download — download files via direct links and send them to chat
 
