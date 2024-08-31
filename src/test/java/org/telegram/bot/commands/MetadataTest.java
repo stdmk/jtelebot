@@ -77,7 +77,7 @@ class MetadataTest {
 
         assertThrows(BotException.class, () -> metadata.parse(request));
         verify(bot).sendTyping(request.getMessage().getChatId());
-        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);
     }
 
     @Test

@@ -449,96 +449,96 @@ class RemindTest {
         assertEquals(5, minutesRow.size());
 
         KeyboardButton button1 = minutesRow.get(0);
-        assertEquals("command.remind.repeatability.minutes1", button1.getName());
+        assertEquals("${command.remind.repeatability.minutes1}", button1.getName());
         assertEquals("remind s1r0", button1.getCallback());
 
         KeyboardButton button2 = minutesRow.get(1);
-        assertEquals("command.remind.repeatability.minutes5", button2.getName());
+        assertEquals("${command.remind.repeatability.minutes5}", button2.getName());
         assertEquals("remind s1r1", button2.getCallback());
 
         KeyboardButton button3 = minutesRow.get(2);
-        assertEquals("command.remind.repeatability.minutes10", button3.getName());
+        assertEquals("${command.remind.repeatability.minutes10}", button3.getName());
         assertEquals("remind s1r2", button3.getCallback());
 
         KeyboardButton button4 = minutesRow.get(3);
-        assertEquals("command.remind.repeatability.minutes15", button4.getName());
+        assertEquals("${command.remind.repeatability.minutes15}", button4.getName());
         assertEquals("remind s1r3", button4.getCallback());
 
         KeyboardButton button5 = minutesRow.get(4);
-        assertEquals("command.remind.repeatability.minutes30", button5.getName());
+        assertEquals("${command.remind.repeatability.minutes30}", button5.getName());
         assertEquals("remind s1r4", button5.getCallback());
 
         List<KeyboardButton> hoursRow = keyboardButtonsList.get(1);
         assertEquals(5, hoursRow.size());
 
         KeyboardButton button6 = hoursRow.get(0);
-        assertEquals("command.remind.repeatability.hours1", button6.getName());
+        assertEquals("${command.remind.repeatability.hours1}", button6.getName());
         assertEquals("remind s1r5", button6.getCallback());
 
         KeyboardButton button7 = hoursRow.get(1);
-        assertEquals("command.remind.repeatability.hours2", button7.getName());
+        assertEquals("${command.remind.repeatability.hours2}", button7.getName());
         assertEquals("remind s1r6", button7.getCallback());
 
         KeyboardButton button8 = hoursRow.get(2);
-        assertEquals("command.remind.repeatability.hours3", button8.getName());
+        assertEquals("${command.remind.repeatability.hours3}", button8.getName());
         assertEquals("remind s1r7", button8.getCallback());
 
         KeyboardButton button9 = hoursRow.get(3);
-        assertEquals("command.remind.repeatability.hours6", button9.getName());
+        assertEquals("${command.remind.repeatability.hours6}", button9.getName());
         assertEquals("remind s1r8", button9.getCallback());
 
         KeyboardButton button10 = hoursRow.get(4);
-        assertEquals("command.remind.repeatability.hours12", button10.getName());
+        assertEquals("${command.remind.repeatability.hours12}", button10.getName());
         assertEquals("remind s1r9", button10.getCallback());
 
         List<KeyboardButton> weekRow = keyboardButtonsList.get(2);
         assertEquals(7, weekRow.size());
 
         KeyboardButton button11 = weekRow.get(0);
-        assertEquals("command.remind.repeatability.monday", button11.getName());
+        assertEquals("${command.remind.repeatability.monday}", button11.getName());
         assertEquals("remind s1r10", button11.getCallback());
 
         KeyboardButton button12 = weekRow.get(1);
-        assertEquals("command.remind.repeatability.tuesday", button12.getName());
+        assertEquals("${command.remind.repeatability.tuesday}", button12.getName());
         assertEquals("remind s1r11", button12.getCallback());
 
         KeyboardButton button13 = weekRow.get(2);
-        assertEquals("command.remind.repeatability.wednesday", button13.getName());
+        assertEquals("${command.remind.repeatability.wednesday}", button13.getName());
         assertEquals("remind s1r12", button13.getCallback());
 
         KeyboardButton button14 = weekRow.get(3);
-        assertEquals("command.remind.repeatability.thursday", button14.getName());
+        assertEquals("${command.remind.repeatability.thursday}", button14.getName());
         assertEquals("remind s1r13", button14.getCallback());
 
         KeyboardButton button15 = weekRow.get(4);
-        assertEquals("command.remind.repeatability.friday", button15.getName());
+        assertEquals("${command.remind.repeatability.friday}", button15.getName());
         assertEquals("remind s1r14", button15.getCallback());
 
         KeyboardButton button16 = weekRow.get(5);
-        assertEquals("command.remind.repeatability.saturday", button16.getName());
+        assertEquals("${command.remind.repeatability.saturday}", button16.getName());
         assertEquals("remind s1r15", button16.getCallback());
 
         KeyboardButton button17 = weekRow.get(6);
-        assertEquals("command.remind.repeatability.sunday", button17.getName());
+        assertEquals("${command.remind.repeatability.sunday}", button17.getName());
         assertEquals("remind s1r16", button17.getCallback());
 
         List<KeyboardButton> othersRow = keyboardButtonsList.get(3);
         assertEquals(4, othersRow.size());
 
         KeyboardButton button18 = othersRow.get(0);
-        assertEquals("command.remind.repeatability.day", button18.getName());
+        assertEquals("${command.remind.repeatability.day}", button18.getName());
         assertEquals("remind s1r17", button18.getCallback());
 
         KeyboardButton button19 = othersRow.get(1);
-        assertEquals("command.remind.repeatability.week", button19.getName());
+        assertEquals("${command.remind.repeatability.week}", button19.getName());
         assertEquals("remind s1r18", button19.getCallback());
 
         KeyboardButton button20 = othersRow.get(2);
-        assertEquals("command.remind.repeatability.month", button20.getName());
+        assertEquals("${command.remind.repeatability.month}", button20.getName());
         assertEquals("remind s1r19", button20.getCallback());
 
         KeyboardButton button21 = othersRow.get(3);
-        assertEquals("command.remind.repeatability.year", button21.getName());
+        assertEquals("${command.remind.repeatability.year}", button21.getName());
         assertEquals("remind s1r20", button21.getCallback());
 
         assertControlRow(keyboardButtonsList.get(4), changingReminder);

@@ -109,7 +109,7 @@ public class Metadata implements Command {
 
     private void checkFileSizeLimit(Long fileSize) {
         if (fileSize > INCOME_FILE_SIZE_LIMIT_BYTES) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
         }
     }
 
