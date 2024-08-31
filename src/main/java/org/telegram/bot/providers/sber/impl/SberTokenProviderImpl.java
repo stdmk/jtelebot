@@ -42,8 +42,10 @@ public class SberTokenProviderImpl implements SberTokenProvider {
     @PostConstruct
     private void postConstruct() {
         long now = Instant.now().toEpochMilli();
-        Arrays.stream(SberScope.values()).forEach(sberScope ->
-                accessTokenMap.put(sberScope, new SberAccessTokenResponseDto().setAccessToken(null).setExpiresAt(now)));
+        Arrays.stream(SberScope.values())
+                .filter(sberScope -> !sberScope.getSecretFunction.apply(propertiesConfig).isBlank())
+                .forEach(sberScope ->
+                        accessTokenMap.put(sberScope, new SberAccessTokenResponseDto().setAccessToken(null).setExpiresAt(now)));
     }
 
     @Override
@@ -112,9 +114,9 @@ public class SberTokenProviderImpl implements SberTokenProvider {
         String secret = null;
 
         if (SALUTE_SPEECH_PERS.equals(sberScope)) {
-            secret = propertiesConfig.getSaluteSpeechSecret();
+            secret = sberScope.getSecretFunction.apply(propertiesConfig);
         } else if (GIGACHAT_API_PERS.equals(sberScope)) {
-            secret = propertiesConfig.getGigaChatSecret();
+            secret = sberScope.getSecretFunction.apply(propertiesConfig);
         }
         
         if (secret == null) {
