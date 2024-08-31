@@ -54,7 +54,7 @@ public class Uptime implements Command {
 
         buf.append("<b><u>${command.uptime.statistic}:</u></b>\n");
         buf.append("${command.uptime.incomingmessages}: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(formatLongValue(botStats.getTotalReceivedMessages())).append(")\n");
-        buf.append("${command.uptime.talkerphrases}: <b>").append(talkerPhraseRepository.countByChat(new Chat().setChatId(message.getChatId()))).append("</b> (").append(talkerPhraseRepository.count()).append(")\n");
+        buf.append("${command.uptime.talkerphrases}: <b>").append(talkerPhraseRepository.countByChat(new Chat().setChatId(message.getChatId()))).append("</b> (").append(formatLongValue(talkerPhraseRepository.count())).append(")\n");
         buf.append("${command.uptime.commandsprocessed}: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(formatLongValue(botStats.getTotalCommandsProcessed())).append(")\n");
         buf.append("${command.uptime.googlerequests}: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("${command.uptime.postrequests}: <b>").append(botStats.getRussianPostRequests()).append("</b>\n");
