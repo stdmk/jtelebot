@@ -84,6 +84,7 @@ public class SendPhotoExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
+            botStats.incrementErrors(sendMessage, e, "error sending message");
             log.error("Still failed to send response: {}", e.getMessage());
         }
     }

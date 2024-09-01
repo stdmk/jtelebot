@@ -41,6 +41,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendMediaGroup);
         } catch (TelegramApiException e) {
+            botStats.incrementErrors(sendMediaGroup, e, "Failed to send media group");
             tryToSendOnePhoto(sendMediaGroup);
         } catch (Exception e) {
             botStats.incrementErrors(request, method, e, "unexpected error");
@@ -56,6 +57,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendMediaGroup);
         } catch (TelegramApiException e) {
+            botStats.incrementErrors(sendMediaGroup, e, "Failed to send media group");
             tryToSendOnePhoto(sendMediaGroup);
         } catch (Exception e) {
             botStats.incrementErrors(method, e, "unexpected error");
@@ -81,6 +83,8 @@ public class SendMediaGroupExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendPhoto);
         } catch (TelegramApiException telegramApiException) {
+            botStats.incrementErrors(sendMediaGroup, telegramApiException, "Failed to send media group");
+
             SendMessage sendMessage = new SendMessage(sendMediaGroup.getChatId(), "${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
             sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
 
@@ -89,6 +93,7 @@ public class SendMediaGroupExecutor implements MethodExecutor {
             try {
                 telegramClient.execute(sendMessage);
             } catch (TelegramApiException e) {
+                botStats.incrementErrors(sendMediaGroup, e, "Failed to send media group");
                 log.error("Still failed to send response: {}", e.getMessage());
             }
         }
