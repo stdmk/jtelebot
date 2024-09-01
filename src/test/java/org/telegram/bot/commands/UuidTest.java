@@ -5,6 +5,7 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.Emoji;
 
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ class UuidTest {
         BotResponse botResponse = uuidCommand.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        assertEquals("*${command.uuid.invalid}*", textResponse.getText());
+        assertEquals(Emoji.DELETE.getSymbol() + " UUID *${command.uuid.invalid}*", textResponse.getText());
     }
 
     @Test
@@ -43,7 +44,7 @@ class UuidTest {
         BotResponse botResponse = uuidCommand.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        assertEquals("*${command.uuid.valid}*", textResponse.getText());
+        assertEquals(Emoji.CHECK_MARK.getSymbol() + " UUID *${command.uuid.valid}*", textResponse.getText());
     }
 
 }

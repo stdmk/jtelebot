@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 
 import java.util.List;
@@ -24,9 +25,9 @@ public class Uuid implements Command {
         String commandArgument = request.getMessage().getCommandArgument();
         if (commandArgument != null) {
             if (isValidUuid(commandArgument)) {
-                responseText = "*${command.uuid.valid}*";
+                responseText = Emoji.CHECK_MARK.getSymbol() + " UUID *${command.uuid.valid}*";
             } else {
-                responseText = "*${command.uuid.invalid}*";
+                responseText = Emoji.DELETE.getSymbol() + " UUID *${command.uuid.invalid}*";
             }
         } else {
             responseText = "`" + UUID.randomUUID() + "`";
