@@ -42,7 +42,7 @@ Java Telegram Bot (Spring)
 
 /picture — image search.
 
-/ping — bot health check.
+/ping — resources reachability.
 
 /webscreen — screenshots of web pages.
 
