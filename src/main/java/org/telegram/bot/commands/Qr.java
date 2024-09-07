@@ -105,30 +105,35 @@ public class Qr implements Command, MessageAnalyzer {
                             return null;
                         }
 
-                        String textFromQr;
+                        String decodeResult;
                         try {
-                            textFromQr = getTextFromQr(image);
+                            decodeResult = getDecodeResult(image);
                         } catch (NotFoundException e) {
                             log.debug("QR is missing");
                             return null;
                         }
 
-                        return textFromQr;
+                        return decodeResult;
                     })
-                    .map(textFromQr -> returnResponse(new TextResponse(message)
-                                            .setText("QR: `" + textFromQr + "`")
-                                            .setResponseSettings(FormattingStyle.MARKDOWN)))
+                    .map(decodeResult -> returnResponse(new TextResponse(message)
+                                            .setText(decodeResult)
+                                            .setResponseSettings(FormattingStyle.HTML)))
                     .orElse(returnResponse());
         }
 
         return returnResponse();
     }
 
-    private String getTextFromQr(BufferedImage image) throws NotFoundException {
+    private String getDecodeResult(BufferedImage image) throws NotFoundException {
         BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
         Result result = new MultiFormatReader().decode(binaryBitmap);
 
-        return result.getText();
+        BarcodeFormat barcodeFormat = result.getBarcodeFormat();
+        if (barcodeFormat == null) {
+            barcodeFormat = BarcodeFormat.QR_CODE;
+        }
+
+        return barcodeFormat.name() + ": <code>" + result.getText() + "</code>";
     }
 
 }

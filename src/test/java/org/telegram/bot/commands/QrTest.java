@@ -108,7 +108,7 @@ class QrTest {
 
     @Test
     void analyzeTest() throws IOException {
-        final String expectedResponseText = "QR: `test`";
+        final String expectedResponseText = "QR_CODE: <code>test</code>";
         final String fileId = "fileId";
         final byte[] attachment = TestUtils.getResourceAsBytes("qr/qr.png");
         BotRequest request = TestUtils.getRequestFromGroup();
