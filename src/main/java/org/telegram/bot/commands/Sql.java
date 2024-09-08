@@ -14,11 +14,13 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.TextUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText;
 
@@ -27,8 +29,11 @@ import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText
 @Slf4j
 public class Sql implements Command {
 
+    private static final List<String> SELECT_DATA_SQL_COMMANDS = List.of("select");
+    private static final List<String> UPDATE_DATA_SQL_COMMANDS = List.of("update", "delete", "insert");
+
     @PersistenceContext
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -47,43 +52,57 @@ public class Sql implements Command {
         bot.sendTyping(message.getChatId());
         log.debug("Request to execute sql request: {}", commandArgument);
         try {
-            if (commandArgument.toLowerCase().startsWith("select")) {
-                    StringBuilder buf = new StringBuilder();
-                    List<?> resultList = entityManager.createNativeQuery(commandArgument).getResultList();
-                    if (resultList.isEmpty()) {
-                        buf.append("${command.sql.emptyresponse}");
-                    } else {
-                        try {
-                            resultList.forEach(results -> {
-                                buf.append("[");
-                                Arrays.stream((Object[]) results).forEach(result -> buf.append(result.toString()).append(", "));
-                                buf.append("]\n");
-                            });
-                        } catch (Exception e) {
-                            buf.append("[");
-                            resultList.forEach(result -> buf.append(result.toString()).append(", "));
-                            buf.append("]");
-                        }
-                    }
-                    responseText = buf.toString();
-            }
-            else if (commandArgument.startsWith("update") || commandArgument.startsWith("insert") || commandArgument.startsWith("delete")) {
-                int updated;
-                updated = entityManager.createNativeQuery(commandArgument).executeUpdate();
-                responseText = "${command.sql.success}: " + updated;
+            if (isSelectDataQuery(commandArgument)) {
+                responseText = "```" + executeSelectQuery(commandArgument) + "```";
+            } else if (isUpdateDataQuery(commandArgument)) {
+                responseText = "${command.sql.success}: `" + executeUpdateQuery(commandArgument) + "`";
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
+        } catch (BotException be) {
+            throw be;
         } catch (Exception e) {
-            responseText = "${command.sql.error}: " + getInitialExceptionCauseText(e);
+            responseText = "${command.sql.error}: `" + getInitialExceptionCauseText(e) + "`";
             bot.sendMessage(new TextResponse(message)
-                    .setText("`" + responseText + "`")
+                    .setText(responseText)
                     .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
         return returnResponse(new TextResponse(message)
-                .setText("`" + responseText + "`")
+                .setText(responseText)
                 .setResponseSettings(FormattingStyle.MARKDOWN));
+    }
+
+    private boolean isSelectDataQuery(String query) {
+        String lowerCasedQuery = query.trim().toLowerCase();
+        return TextUtils.startsWithElementInList(lowerCasedQuery, SELECT_DATA_SQL_COMMANDS);
+    }
+
+    private boolean isUpdateDataQuery(String query) {
+        String lowerCasedQuery = query.trim().toLowerCase();
+        return TextUtils.startsWithElementInList(lowerCasedQuery, UPDATE_DATA_SQL_COMMANDS);
+    }
+
+    private String executeSelectQuery(String query) {
+        List<?> resultList = entityManager.createNativeQuery(query).getResultList();
+        if (resultList.isEmpty()) {
+            return "${command.sql.emptyresponse}";
+        } else {
+            if (resultList.stream().allMatch(Object[].class::isInstance)) {
+                return resultList
+                        .stream()
+                        .map(results -> Arrays.stream((Object[]) results)
+                                .map(Object::toString)
+                                .collect(Collectors.joining(", ", "[", "]")))
+                        .collect(Collectors.joining("\n"));
+            } else {
+                return resultList.stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]"));
+            }
+        }
+    }
+
+    private int executeUpdateQuery(String query) {
+        return entityManager.createNativeQuery(query).executeUpdate();
     }
 
 }
