@@ -2,6 +2,7 @@ package org.telegram.bot.commands;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ import java.util.List;
 @Slf4j
 public class Speller implements Command {
 
-    private static final String SPELLER_API_URL = "https://speller.yandex.net/services/spellservice.json/checkText?text=";
+    public static final String SPELLER_API_URL = "https://speller.yandex.net/services/spellservice.json/checkText?text=";
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -93,14 +94,15 @@ public class Speller implements Command {
 
         StringBuilder buf = new StringBuilder("<u>${command.speller.errorsfound}</u>\n");
         Arrays.asList(body).forEach(spellResult -> buf
-                .append("<s>").append(spellResult.getWord()).append("</s> — ").append(spellResult.getS().get(0)).append("\n")
+                .append("<s>").append(spellResult.getWord()).append("</s> — ").append(String.join(", ", spellResult.getS())).append("\n")
         );
 
         return buf.toString();
     }
 
     @Data
-    private static class SpellResult {
+    @Accessors(chain = true)
+    public static class SpellResult {
         private Integer code;
         private Integer pos;
         private Integer row;
