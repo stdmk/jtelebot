@@ -3,6 +3,7 @@ package org.telegram.bot.commands;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.DeleteResponse;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
 
@@ -28,6 +29,12 @@ public interface Command {
         return List.of(textResponse);
     }
 
+    default List<BotResponse> returnResponse(TextResponse textResponse, DeleteResponse deleteResponse) {
+        if (textResponse == null) {
+            return Collections.emptyList();
+        }
+        return List.of(textResponse, deleteResponse);
+    }
     default List<BotResponse> returnResponse(BotResponse botResponse) {
         if (botResponse == null) {
             return Collections.emptyList();
