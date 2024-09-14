@@ -22,7 +22,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.telegram.bot.utils.DateUtils.*;
+import static org.telegram.bot.utils.DateUtils.formatDateTime;
+import static org.telegram.bot.utils.DateUtils.formatTime;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
 
 @Component
@@ -77,7 +78,7 @@ public class UserTime implements Command {
             String dateTimeNow = formatTime(ZonedDateTime.now(userZoneId));
             responseText = "${command.usertime.at} " + getLinkToUser(user, false) + " ${command.usertime.now} *" + dateTimeNow + "*";
             if (repliedMessageDateTime != null) {
-                String pastDateTime = formatDateTime(ZonedDateTime.of(repliedMessageDateTime, userZoneId));
+                String pastDateTime = formatDateTime(repliedMessageDateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(userZoneId));
                 responseText = responseText + "\n" + "${command.usertime.was}: *" + pastDateTime + "*";
             }
         }
