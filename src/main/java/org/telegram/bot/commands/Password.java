@@ -68,7 +68,7 @@ public class Password implements Command {
     }
 
     private boolean isLooksLikePasswordCommandArgument(String argument) {
-        return TextUtils.isThatInteger(argument.substring(0, 1)) || argument.length() <= SPECIAL_SYMBOLS.length();
+        return TextUtils.isThatPositiveInteger(argument.substring(0, 1)) || argument.length() <= SPECIAL_SYMBOLS.length();
     }
 
     private PasswordParams getPasswordParams(String argument) {

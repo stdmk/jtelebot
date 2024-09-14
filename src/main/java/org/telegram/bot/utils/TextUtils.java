@@ -274,7 +274,7 @@ public class TextUtils {
         return null;
     }
 
-    public static boolean isThatInteger(String text) {
+    public static boolean isThatPositiveInteger(String text) {
         if (text == null) {
             return false;
         }

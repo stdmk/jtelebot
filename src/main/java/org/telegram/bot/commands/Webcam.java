@@ -17,7 +17,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.timers.FileManagerTimer;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -59,7 +60,7 @@ public class Webcam implements Command {
                 duration = commandArgument.substring(spaceIndex + 1);
             }
 
-            if (!TextUtils.isThatUrl(url) || !TextUtils.isThatInteger(duration) || Integer.parseInt(duration) > MAX_VIDEO_DURATION_IN_SECONDS) {
+            if (!TextUtils.isThatUrl(url) || !TextUtils.isThatPositiveInteger(duration) || Integer.parseInt(duration) > MAX_VIDEO_DURATION_IN_SECONDS) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 

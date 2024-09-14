@@ -419,6 +419,7 @@ public class TelegramObjectMapper {
         files.forEach(file -> {
             InputMediaPhoto inputMediaPhoto = new InputMediaPhoto(file.getUrl());
             inputMediaPhoto.setCaption(file.getName());
+            inputMediaPhoto.setHasSpoiler(file.getFileSettings().isSpoiler());
             images.add(inputMediaPhoto);
         });
 

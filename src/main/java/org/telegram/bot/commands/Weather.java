@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
-import static org.telegram.bot.utils.TextUtils.isThatInteger;
+import static org.telegram.bot.utils.TextUtils.isThatPositiveInteger;
 import static org.telegram.bot.utils.TextUtils.withCapital;
 
 @Component
@@ -162,7 +162,7 @@ public class Weather implements Command {
      * @return query parameter value.
      */
     private String getQueryParameter(String value) {
-        return isThatInteger(value) ? "id" : "q";
+        return isThatPositiveInteger(value) ? "id" : "q";
     }
 
     /**

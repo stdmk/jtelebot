@@ -39,12 +39,12 @@ class TextUtilsTest {
 
     @Test
     void isThatNotIntegerTest() {
-        assertFalse(isThatInteger("text"));
-        assertFalse(isThatInteger("1.1"));
-        assertFalse(isThatInteger("1,2"));
-        assertFalse(isThatInteger(""));
-        assertFalse(isThatInteger(null));
-        assertTrue(isThatInteger("1"));
+        assertFalse(isThatPositiveInteger("text"));
+        assertFalse(isThatPositiveInteger("1.1"));
+        assertFalse(isThatPositiveInteger("1,2"));
+        assertFalse(isThatPositiveInteger(""));
+        assertFalse(isThatPositiveInteger(null));
+        assertTrue(isThatPositiveInteger("1"));
     }
 
     @Test

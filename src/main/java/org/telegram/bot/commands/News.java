@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.isThatInteger;
+import static org.telegram.bot.utils.TextUtils.isThatPositiveInteger;
 import static org.telegram.bot.utils.TextUtils.isThatUrl;
 
 @Component
@@ -99,7 +99,7 @@ public class News implements Command {
                 if (spaceIndex > 0) {
                     url = commandArgument.substring(0, spaceIndex);
                     String potentialCount = commandArgument.substring(spaceIndex + 1);
-                    if (isThatInteger(potentialCount)) {
+                    if (isThatPositiveInteger(potentialCount)) {
                         count = Integer.parseInt(potentialCount);
                     }
                 } else {

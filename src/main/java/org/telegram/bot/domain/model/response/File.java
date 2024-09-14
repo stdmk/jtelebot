@@ -37,6 +37,16 @@ public class File {
         this.fileSettings = fileSettings;
     }
 
+    public File(FileType fileType, String url, String name, FileSettings fileSettings) {
+        this.fileId = null;
+        this.fileType = fileType;
+        this.url = url;
+        this.diskFile = null;
+        this.inputStream = null;
+        this.name = name;
+        this.fileSettings = fileSettings;
+    }
+
     public File(FileType fileType, java.io.File diskFile) {
         this.fileId = null;
         this.fileType = fileType;
