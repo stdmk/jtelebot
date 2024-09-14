@@ -23,7 +23,10 @@ import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +36,7 @@ import java.util.regex.Pattern;
 public class Word implements Command {
 
     private static final String API_URL = "https://%s.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&titles=";
+    private static final String SITE_URL = "https://ru.wiktionary.org/wiki/";
     private static final Pattern TITLE_PATTERN = Pattern.compile("=+ ([\\w ]+) =+", Pattern.UNICODE_CHARACTER_CLASS);
 
     private final Bot bot;
@@ -55,6 +59,7 @@ public class Word implements Command {
         } else {
             String lang = languageResolver.getChatLanguageCode(request);
             responseText = getData(commandArgument, lang);
+            responseText.add(TextUtils.buildLink(SITE_URL + commandArgument, "${command.word.gotosite}", true));
         }
 
         return mapToTextResponseList(responseText, message, new ResponseSettings().setFormattingStyle(FormattingStyle.HTML));

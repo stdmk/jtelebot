@@ -176,6 +176,13 @@ public class TextUtils {
         return "[" + caption + "](tg://user?id=" + userId + ")";
     }
 
+    public static String buildLink(String link, String caption, boolean htmlMode) {
+        if (htmlMode) {
+            return "<a href=\"" + link + "\">" + caption + "</a>";
+        }
+        return "[" + caption + "](" + link + ")";
+    }
+
     public static String wrapTextToSpoiler(String text) {
         return "<tg-spoiler>" + text + "</tg-spoiler>";
     }

@@ -146,3 +146,4 @@ IPA(key): /wɔrd/
 <b>Noun</b>
 word n
 word
+<a href="https://ru.wiktionary.org/wiki/word">${command.word.gotosite}</a>
