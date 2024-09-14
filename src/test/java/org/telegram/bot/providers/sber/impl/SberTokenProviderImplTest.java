@@ -43,6 +43,8 @@ class SberTokenProviderImplTest {
 
     @BeforeEach
     void init() {
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
+        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("salute");
         ReflectionTestUtils.invokeMethod(sberTokenProvider, "postConstruct");
     }
 
