@@ -16,6 +16,7 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
 import java.net.MalformedURLException;
@@ -423,8 +424,8 @@ public class NewsSetter implements Setter<BotResponse> {
         buf.append("<b>${setter.news.caption}:</b>\n");
 
         allNewsInChat.forEach(news -> buf
-                .append("<a href=\"").append(news.getNewsSource().getUrl()).append("\">")
-                .append(news.getNewsSource().getName()).append("</a>\n"));
+                .append(TextUtils.buildHtmlLink(news.getNewsSource().getUrl(), news.getNewsSource().getName()))
+                .append("\n"));
 
         return buf.toString();
     }

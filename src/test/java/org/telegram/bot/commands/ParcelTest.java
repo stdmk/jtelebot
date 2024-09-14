@@ -109,10 +109,10 @@ class ParcelTest {
     void parseCallbackEmptyWithStoredDataTest() {
         final String expectedCaption = """
                 <b>${command.parcel.caption}:</b>
-                <code>barcode1</code> — <b><a href='https://www.pochta.ru/tracking?barcode=barcode1'>parcel1 with very very very long name</a></b>
+                <code>barcode1</code> — <b><a href="https://www.pochta.ru/tracking?barcode=barcode1">parcel1 with very very very long name</a></b>
                 ${command.parcel.noinformation}
                 -----------------------------
-                <code>barcode2</code> — <b><a href='https://www.pochta.ru/tracking?barcode=barcode2'>parcel2</a></b>
+                <code>barcode2</code> — <b><a href="https://www.pochta.ru/tracking?barcode=barcode2">parcel2</a></b>
                 <u>item_name2</u> 124 г.
                 <i>01.01.2000 01:05:00</i>
                 <b>operationType2</b> operationDescription2
@@ -193,10 +193,10 @@ class ParcelTest {
     void parseCallbackDeleteEntityIdAsArgumentTest() {
         final String expectedCaption = """
                 <b>${command.parcel.caption}:</b>
-                <code>barcode1</code> — <b><a href='https://www.pochta.ru/tracking?barcode=barcode1'>parcel1 with very very very long name</a></b>
+                <code>barcode1</code> — <b><a href="https://www.pochta.ru/tracking?barcode=barcode1">parcel1 with very very very long name</a></b>
                 ${command.parcel.noinformation}
                 -----------------------------
-                <code>barcode2</code> — <b><a href='https://www.pochta.ru/tracking?barcode=barcode2'>parcel2</a></b>
+                <code>barcode2</code> — <b><a href="https://www.pochta.ru/tracking?barcode=barcode2">parcel2</a></b>
                 <u>item_name2</u> 124 г.
                 <i>01.01.2000 01:05:00</i>
                 <b>operationType2</b> operationDescription2
@@ -463,7 +463,7 @@ class ParcelTest {
     void getTrackDataByIdEconomyModeTest() {
         final String expectedResponse = """
                 <code>barcode1</code>
-                <a href='https://www.pochta.ru/tracking?barcode=barcode1'>${command.parcel.trackinfo.checkonwebsite}</a>
+                <a href="https://www.pochta.ru/tracking?barcode=barcode1">${command.parcel.trackinfo.checkonwebsite}</a>
                 -----------------------------
                 ${command.parcel.lastupdate}: <b>01.01 03:00</b>
                 ${command.parcel.nextupdate}: <b>01.01 06:00</b>
@@ -510,7 +510,7 @@ class ParcelTest {
                 ${command.parcel.trackinfo.tocountry}: <b>country_to1</b>
                 ${command.parcel.trackinfo.sender}: <b>sender1</b>
                 ${command.parcel.trackinfo.receiver}: <b>recipient1</b>
-                <a href='https://www.pochta.ru/tracking?barcode=barcode2'>${command.parcel.trackinfo.checkonwebsite}</a>
+                <a href="https://www.pochta.ru/tracking?barcode=barcode2">${command.parcel.trackinfo.checkonwebsite}</a>
                 -----------------------------
                 ${command.parcel.lastupdate}: <b>01.01 01:01</b>
                 ${command.parcel.nextupdate}: <b>01.01 06:00</b>
@@ -563,7 +563,7 @@ class ParcelTest {
                 ${command.parcel.trackinfo.tocountry}: <b>country_to1</b>
                 ${command.parcel.trackinfo.sender}: <b>sender1</b>
                 ${command.parcel.trackinfo.receiver}: <b>recipient1</b>
-                <a href='https://www.pochta.ru/tracking?barcode=barcode2'>${command.parcel.trackinfo.checkonwebsite}</a>
+                <a href="https://www.pochta.ru/tracking?barcode=barcode2">${command.parcel.trackinfo.checkonwebsite}</a>
                 -----------------------------
                 ${command.parcel.lastupdate}: <b>01.01 01:01</b>
                 ${command.parcel.nextupdate}: <b>01.01 06:00</b>

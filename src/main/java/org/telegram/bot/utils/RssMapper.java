@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
-import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
-import static org.telegram.bot.utils.TextUtils.reduceSpaces;
+import static org.telegram.bot.utils.TextUtils.*;
 
 @Component
 public class RssMapper {
@@ -26,7 +25,7 @@ public class RssMapper {
     }
 
     public String toShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
-        return "<b>" + newsMessage.getTitle() + "</b> <a href='" + newsMessage.getLink() + "'>(" + sourceName + ")</a>\n<i>" +
+        return "<b>" + newsMessage.getTitle() + "</b>" + buildHtmlLink(newsMessage.getLink(), sourceName) + "\n<i>" +
                 formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }
 
@@ -84,7 +83,7 @@ public class RssMapper {
         return "<b>" + newsMessage.getTitle() + "</b>\n" +
                 "<i>" + formatDate(newsMessage.getPubDate()) + "</i>\n" +
                 newsMessage.getDescription() +
-                "\n<a href=\"" + newsMessage.getLink() + "\">${command.news.readcompletely}</a>";
+                "\n" + TextUtils.buildHtmlLink(newsMessage.getLink(), "${command.news.readcompletely}");
     }
 
     private String getAttachUrl(SyndEntry syndEntry) {

@@ -170,16 +170,20 @@ public class TextUtils {
     }
 
     public static String getLinkToUser(Long userId, boolean htmlMode, String caption) {
+        String link = "tg://user?id=" + userId;
+
         if (htmlMode) {
-            return "<a href=\"tg://user?id=" + userId + "\">" + caption + "</a>";
+            return buildHtmlLink(link, caption);
         }
-        return "[" + caption + "](tg://user?id=" + userId + ")";
+
+        return buildMarkDownLink(link, caption);
     }
 
-    public static String buildLink(String link, String caption, boolean htmlMode) {
-        if (htmlMode) {
-            return "<a href=\"" + link + "\">" + caption + "</a>";
-        }
+    public static String buildHtmlLink(String link, Object caption) {
+        return "<a href=\"" + link + "\">" + caption + "</a>";
+    }
+
+    public static String buildMarkDownLink(String link, String caption) {
         return "[" + caption + "](" + link + ")";
     }
 

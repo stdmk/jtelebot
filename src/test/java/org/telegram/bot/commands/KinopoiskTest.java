@@ -131,12 +131,12 @@ class KinopoiskTest {
                 ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
 
                 ${command.kinopoisk.movieinfo.trailers}:\s
-                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+                <a href="url1">1 </a><a href="url2">2 </a><a href="url3">3 </a><a href="ur24">4 </a><a href="url5">5 </a><a href="url6">6 </a><a href="url7">7 </a><a href="url8">8 </a><a href="url9">9 </a><a href="ur10">10 </a>
 
                 ${command.kinopoisk.movieinfo.similar}:
                 /movie_20 — linkedMovieName1
                 /movie_21 — linkedMovieName2
-                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
+                <a href="https://www.kinopoisk.ru//film/123">${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
@@ -181,12 +181,12 @@ class KinopoiskTest {
                 ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
 
                 ${command.kinopoisk.movieinfo.trailers}:\s
-                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+                <a href="url1">1 </a><a href="url2">2 </a><a href="url3">3 </a><a href="ur24">4 </a><a href="url5">5 </a><a href="url6">6 </a><a href="url7">7 </a><a href="url8">8 </a><a href="url9">9 </a><a href="ur10">10 </a>
 
                 ${command.kinopoisk.movieinfo.similar}:
                 /movie_20 — linkedMovieName1
                 /movie_21 — linkedMovieName2
-                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
+                <a href="https://www.kinopoisk.ru//film/123">${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("movie_" + MOVIE_ID);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
@@ -239,12 +239,12 @@ class KinopoiskTest {
                 ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
 
                 ${command.kinopoisk.movieinfo.trailers}:\s
-                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+                <a href="url1">1 </a><a href="url2">2 </a><a href="url3">3 </a><a href="ur24">4 </a><a href="url5">5 </a><a href="url6">6 </a><a href="url7">7 </a><a href="url8">8 </a><a href="url9">9 </a><a href="ur10">10 </a>
 
                 ${command.kinopoisk.movieinfo.similar}:
                 /movie_20 — linkedMovieName1
                 /movie_21 — linkedMovieName2
-                <a href='https://www.kinopoisk.ru//film/123'>${command.kinopoisk.movieinfo.towebsite}</a>""";
+                <a href="https://www.kinopoisk.ru//film/123">${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName + "(" + movieYear + ")");
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(getSomeMovie()));
 
@@ -283,7 +283,7 @@ class KinopoiskTest {
                 ${command.kinopoisk.movieinfo.actors}: personName2, personName3, personName4, personName5, personName6, personName7, personName8, personName9, personName10
 
                 ${command.kinopoisk.movieinfo.trailers}:\s
-                <a href='url1'>1 </a><a href='url2'>2 </a><a href='url3'>3 </a><a href='ur24'>4 </a><a href='url5'>5 </a><a href='url6'>6 </a><a href='url7'>7 </a><a href='url8'>8 </a><a href='url9'>9 </a><a href='ur10'>10 </a>
+                <a href="url1">1 </a><a href="url2">2 </a><a href="url3">3 </a><a href="ur24">4 </a><a href="url5">5 </a><a href="url6">6 </a><a href="url7">7 </a><a href="url8">8 </a><a href="url9">9 </a><a href="ur10">10 </a>
 
                 ${command.kinopoisk.movieinfo.similar}:
                 /movie_20 — linkedMovieName1

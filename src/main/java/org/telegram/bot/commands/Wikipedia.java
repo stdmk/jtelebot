@@ -23,6 +23,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
+import org.telegram.bot.utils.TextUtils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -125,8 +126,10 @@ public class Wikipedia implements Command {
     private String getWikiPageDetails(Wiki wiki) {
         return "<b>" + wiki.getTitle() + "</b>\n" +
                 wiki.getText() + "\n" +
-                "<a href='https://ru.wikipedia.org/wiki/" + URLEncoder.encode(wiki.getTitle(), StandardCharsets.UTF_8)
-                    .replace("\\+", "_") + "'>${command.wikipedia.articlelink}</a>\n";
+                TextUtils.buildHtmlLink(
+                        "https://ru.wikipedia.org/wiki/" + URLEncoder.encode(wiki.getTitle(),
+                                StandardCharsets.UTF_8).replace("\\+", "_"), "${command.wikipedia.articlelink}") +
+                "\n";
     }
 
     /**

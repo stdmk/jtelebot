@@ -23,6 +23,7 @@ import org.telegram.bot.enums.Zodiac;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
+import org.telegram.bot.utils.TextUtils;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -116,7 +117,7 @@ public class Horoscope implements Command {
         result.add("${command.horoscope.caption} <b>" + horoscope.getRuName() + "</b>\n(" + horoscopeData.getDate().getToday() + ")\n\n");
         result.addAll(Arrays.stream(Zodiac.values())
                 .filter(zodiac -> !Zodiac.NOT_CHOSEN.equals(zodiac))
-                .map(zodiac -> "<u><a href=\"" + HOROSCOPE_CURRENT_DATA_URL + "\">" + zodiac.getEmoji() + zodiac.getName() + "</a></u>"
+                .map(zodiac -> "<u>" + TextUtils.buildHtmlLink(HOROSCOPE_CURRENT_DATA_URL, zodiac.getEmoji() + zodiac.getName()) + "</u>"
                         + getHoroscopeElementByZodiacName(horoscopeData, zodiac).getToday() + "\n")
                 .toList());
 
@@ -131,7 +132,7 @@ public class Horoscope implements Command {
 
         HoroscopeElement horoscopeElement = getHoroscopeElementByZodiacName(horoscopeData, zodiac);
 
-        buf.append("<u><a href=\"").append(HOROSCOPE_CURRENT_DATA_URL).append("\">").append(zodiac.getEmoji()).append(zodiac.getName()).append("</a></u>");
+        buf.append("<u>").append(TextUtils.buildHtmlLink(HOROSCOPE_CURRENT_DATA_URL, zodiac.getEmoji() + zodiac.getName())).append("</u>");
         buf.append(horoscopeElement.getToday());
 
         return buf.toString();

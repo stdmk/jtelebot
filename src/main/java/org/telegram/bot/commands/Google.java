@@ -13,10 +13,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.GoogleSearchResult;
 import org.telegram.bot.domain.entities.ImageUrl;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -27,7 +27,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.GoogleSearchResultService;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +86,7 @@ public class Google implements Command {
 
             responseText = "<b>" + googleSearchResult.getTitle() + "</b>\n" +
                             googleSearchResult.getSnippet() + "\n" +
-                            "<a href='" + googleSearchResult.getLink() + "'>" + googleSearchResult.getFormattedUrl() + "</a>\n";
+                    TextUtils.buildHtmlLink(googleSearchResult.getLink(), googleSearchResult.getFormattedUrl());
 
             ImageUrl imageUrl = googleSearchResult.getImageUrl();
             if (imageUrl != null) {
@@ -131,7 +131,7 @@ public class Google implements Command {
 
             StringBuilder buf = new StringBuilder();
             googleSearchResultService.save(googleSearchResults).forEach(googleSearchResult ->
-                    buf.append("<a href=\"").append(googleSearchResult.getLink()).append("\"><u>").append(googleSearchResult.getDisplayLink()).append("</u></a> ")
+                    buf.append("<u>").append(TextUtils.buildHtmlLink(googleSearchResult.getLink(), googleSearchResult.getDisplayLink())).append("</u> ")
                             .append(googleSearchResult.getTitle())
                             .append("\n/google_").append(googleSearchResult.getId()).append("\n\n")
             );

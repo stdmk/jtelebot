@@ -25,6 +25,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -228,7 +229,7 @@ public class Kinopoisk implements Command {
                         break;
                     }
                     i = i + 1;
-                    buf.append("<a href='").append(video.getUrl()).append("'>").append(i).append(" </a>");
+                    buf.append(TextUtils.buildHtmlLink(video.getUrl(), i + " "));
                 }
 
                 buf.append("\n\n");
@@ -242,7 +243,7 @@ public class Kinopoisk implements Command {
 
         Long movieId = movie.getId();
         if (movieId != null) {
-            buf.append("<a href='" + KINOPOISK_URL + "/film/").append(movieId).append("'>${command.kinopoisk.movieinfo.towebsite}</a>");
+            buf.append(TextUtils.buildHtmlLink(KINOPOISK_URL + "/film/" + movieId, "${command.kinopoisk.movieinfo.towebsite}"));
         }
 
         return buf.toString();

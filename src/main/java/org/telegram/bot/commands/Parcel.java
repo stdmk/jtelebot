@@ -110,7 +110,7 @@ public class Parcel implements Command {
                     .stream()
                     .max(Comparator.comparing(TrackCodeEvent::getEventDateTime));
             buf.append("<code>").append(barcode).append("</code> — <b>")
-                    .append("<a href='").append(TRACKING_ON_SITE_URL).append(barcode).append("'>").append(parcel.getName()).append("</a></b>\n");
+                    .append(TextUtils.buildHtmlLink(TRACKING_ON_SITE_URL + barcode, parcel.getName())).append("</b>\n");
 
             if (optionalLastTrackCodeEvent.isPresent()) {
                 buf.append(buildStringEventMessage(optionalLastTrackCodeEvent.get(), parcel.getId())).append(BORDER);
@@ -412,7 +412,7 @@ public class Parcel implements Command {
         getOptionalEventWithFieldFromEventList(trackCodeEventList, trackCodeEvent -> trackCodeEvent.getRecipient() != null)
                 .ifPresent(event -> buf.append("${command.parcel.trackinfo.receiver}: <b>").append(event.getRecipient()).append("</b>\n"));
 
-        buf.append("<a href='").append(TRACKING_ON_SITE_URL).append(barcode).append("'>${command.parcel.trackinfo.checkonwebsite}</a>\n");
+        buf.append(TextUtils.buildHtmlLink(TRACKING_ON_SITE_URL + barcode, "${command.parcel.trackinfo.checkonwebsite}")).append("\n");
 
         buf.append(BORDER);
 

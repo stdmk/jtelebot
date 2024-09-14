@@ -59,7 +59,7 @@ public class Word implements Command {
         } else {
             String lang = languageResolver.getChatLanguageCode(request);
             responseText = getData(commandArgument, lang);
-            responseText.add(TextUtils.buildLink(SITE_URL + commandArgument, "${command.word.gotosite}", true));
+            responseText.add(TextUtils.buildHtmlLink(SITE_URL + commandArgument, "${command.word.gotosite}"));
         }
 
         return mapToTextResponseList(responseText, message, new ResponseSettings().setFormattingStyle(FormattingStyle.HTML));
