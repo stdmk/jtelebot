@@ -25,7 +25,7 @@ public class RssMapper {
     }
 
     public String toShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
-        return "<b>" + newsMessage.getTitle() + "</b>" + buildHtmlLink(newsMessage.getLink(), sourceName) + "\n<i>" +
+        return "<b>" + newsMessage.getTitle() + " </b>" + buildHtmlLink(newsMessage.getLink(), sourceName) + "\n<i>" +
                 formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
     }
 
