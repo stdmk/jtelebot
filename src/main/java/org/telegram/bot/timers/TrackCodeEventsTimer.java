@@ -2,10 +2,10 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Parcel;
 import org.telegram.bot.domain.entities.TrackCode;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty({"russianPostLogin", "russianPostPassword"})
+@ConditionalOnPropertyNotEmpty({"russianPostLogin", "russianPostPassword"})
 public class TrackCodeEventsTimer extends TimerParent {
 
     private final Bot bot;

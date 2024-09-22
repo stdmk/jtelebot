@@ -3,9 +3,9 @@ package org.telegram.bot.timers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
@@ -37,7 +37,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty("xmlTvFileUrl")
+@ConditionalOnPropertyNotEmpty("xmlTvFileUrl")
 public class TvProgramDownloaderTimer extends TimerParent {
 
     private static final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";

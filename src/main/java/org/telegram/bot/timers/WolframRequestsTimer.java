@@ -2,9 +2,9 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.services.TimerService;
@@ -16,7 +16,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty("wolframAlphaToken")
+@ConditionalOnPropertyNotEmpty("wolframAlphaToken")
 public class WolframRequestsTimer extends TimerParent {
 
     private final TimerService timerService;
