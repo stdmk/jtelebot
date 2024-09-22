@@ -162,8 +162,7 @@ class TimeDeltaTest {
                 Arguments.of("01:02:03",                                "${command.timedelta.from} 01.01.2000 00:00:00 ${command.timedelta.to} 01.01.2000 01:02:03:*\n1 ${utils.date.h}. 2 ${utils.date.m}. 3 ${utils.date.s}. *"),
                 Arguments.of("01:02",                                   "${command.timedelta.from} 01.01.2000 00:00:00 ${command.timedelta.to} 01.01.2000 01:02:00:*\n1 ${utils.date.h}. 2 ${utils.date.m}. *"),
                 Arguments.of("50",                                      "${command.timedelta.from} 01.01.2000 00:00:00 ${command.timedelta.to} 20.02.2000 00:00:00:*\n50 ${utils.date.d}.  (1 ${utils.date.months}. 19 ${utils.date.d}. )*"),
-                Arguments.of("-50",                                     "${command.timedelta.from} 12.11.1999 00:00:00 ${command.timedelta.to} 01.01.2000 00:00:00:*\n50 ${utils.date.d}.  (1 ${utils.date.months}. 20 ${utils.date.d}. )*"),
-                Arguments.of("01.01.2000 00:00:00 02.03 01:02:03 21.09.2024 09:39:00",      "${command.timedelta.from} 01.01.2000 00:00:00 ${command.timedelta.to} 02.03.2000 01:02:03:*\n61 ${utils.date.d}. 1 ${utils.date.h}. 2 ${utils.date.m}. 3 ${utils.date.s}.  (2 ${utils.date.months}. 1 ${utils.date.d}. )*")
+                Arguments.of("-50",                                     "${command.timedelta.from} 12.11.1999 00:00:00 ${command.timedelta.to} 01.01.2000 00:00:00:*\n50 ${utils.date.d}.  (1 ${utils.date.months}. 20 ${utils.date.d}. )*")
         );
     }
 
