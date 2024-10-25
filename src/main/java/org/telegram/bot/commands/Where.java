@@ -19,6 +19,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.TelegramUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -43,7 +44,7 @@ public class Where implements Command {
     @Override
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
-        if (message.getChatId() > 0) {
+        if (TelegramUtils.isPrivateChat(message.getChat())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 

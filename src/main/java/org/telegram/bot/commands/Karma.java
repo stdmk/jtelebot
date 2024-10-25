@@ -22,13 +22,14 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.utils.ObjectCopier;
+import org.telegram.bot.utils.TelegramUtils;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 
 @Component
 @RequiredArgsConstructor
@@ -50,7 +51,7 @@ public class Karma implements Command, MessageAnalyzer {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
 
-        if (message.getChatId() > 0) {
+        if (TelegramUtils.isPrivateChat(message.getChat())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
         }
 

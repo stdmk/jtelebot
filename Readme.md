@@ -144,6 +144,8 @@ Java Telegram Bot (Spring)
 
 /latin - search for non-Latin characters
 
+/me - third person text (skype or irc /me command analog) (needs admin rights)
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  

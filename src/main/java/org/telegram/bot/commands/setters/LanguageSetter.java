@@ -16,6 +16,7 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
+import org.telegram.bot.utils.TelegramUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class LanguageSetter implements Setter<BotResponse> {
             userLanguageService.save(chat, user, lang);
         } else {
             if (chatNames.contains(entity)) {
-                if (chat.getChatId() > 0) {
+                if (TelegramUtils.isPrivateChat(message.getChat())) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.COMMAND_FOR_GROUP_CHATS));
                 }
                 chatLanguageService.save(chat, lang);
