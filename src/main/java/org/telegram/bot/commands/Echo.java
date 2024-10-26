@@ -66,6 +66,10 @@ public class Echo implements Command, MessageAnalyzer {
         }
         parseTalkerData(message);
 
+        if (isCommand(textMessage)) {
+            return returnResponse();
+        }
+
         boolean sendMessage = false;
         Message replyToMessage = message.getReplyToMessage();
         String botUsername = bot.getBotUsername();
@@ -93,6 +97,10 @@ public class Echo implements Command, MessageAnalyzer {
         }
 
         return returnResponse();
+    }
+
+    private boolean isCommand(String argument) {
+        return commandPropertiesService.getCommand(argument) != null;
     }
 
     public String getQuestionForText(String text, Long chatId) {
