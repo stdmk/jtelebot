@@ -22,8 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -156,11 +155,19 @@ class EchoTest {
     }
 
     @Test
+    void analyzeWithCommandTextMessageTest() {
+        BotRequest request = getRequestFromGroup();
+        when(commandPropertiesService.getCommand(anyString())).thenReturn(mock(CommandProperties.class));
+        assertDoesNotThrow(() -> echo.analyze(request));
+    }
+
+    @Test
     void analyzeWithoutReplyToMessageTest() {
         BotRequest request = getRequestFromGroup();
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(talkerDegreeService.get(anyLong())).thenReturn(new TalkerDegree().setDegree(1));
+        when(commandPropertiesService.getCommand(anyString())).thenReturn(null);
 
         assertDoesNotThrow(() -> echo.analyze(request));
     }
@@ -172,6 +179,7 @@ class EchoTest {
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(commandPropertiesService.getCommand(anyString())).thenReturn(null);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
         assertDoesNotThrow(() -> echo.analyze(request));
@@ -193,6 +201,7 @@ class EchoTest {
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(commandPropertiesService.getCommand(anyString())).thenReturn(null);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
         assertDoesNotThrow(() -> echo.analyze(request));
@@ -208,6 +217,7 @@ class EchoTest {
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
+        when(commandPropertiesService.getCommand(anyString())).thenReturn(null);
         when(talkerDegreeService.get(anyLong())).thenReturn(talkerDegree);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
