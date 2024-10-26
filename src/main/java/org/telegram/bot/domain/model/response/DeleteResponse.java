@@ -2,6 +2,7 @@ package org.telegram.bot.domain.model.response;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.model.request.Message;
 
 @Data
@@ -14,6 +15,11 @@ public class DeleteResponse implements BotResponse {
     public DeleteResponse(Message message) {
         this.chatId = message.getChatId();
         this.messageId = message.getMessageId();
+    }
+
+    public DeleteResponse(Chat chat, Integer messageId) {
+        this.chatId = chat.getChatId();
+        this.messageId = messageId;
     }
 
 }
