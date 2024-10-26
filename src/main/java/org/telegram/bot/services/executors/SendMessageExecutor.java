@@ -62,7 +62,7 @@ public class SendMessageExecutor implements MethodExecutor {
                 botStats.incrementErrors(botRequest, method, e, "error sending response");
             }
             log.error("Error: cannot send response: {}", e.getMessage());
-            tryToSendWithoutMarkdowns(sendMessage);
+            tryToSendAgain(sendMessage);
         } catch (Exception e) {
             botStats.incrementErrors(botRequest, method, e, "unexpected error");
             log.error("Unexpected error: ", e);
@@ -85,14 +85,20 @@ public class SendMessageExecutor implements MethodExecutor {
         } catch (TelegramApiException e) {
             botStats.incrementErrors(method, e, "error sending message");
             log.error("Error: cannot send response: {}", e.getMessage());
-            tryToSendWithoutMarkdowns(sendMessage);
+            tryToSendAgain(sendMessage);
         } catch (Exception e) {
             botStats.incrementErrors(method, e, "unexpected error");
             log.error("Unexpected error: ", e);
         }
     }
 
-    private void tryToSendWithoutMarkdowns(SendMessage sendMessage) {
+    private void tryToSendAgain(SendMessage sendMessage) {
+        if (!tryToSendMessageWithoutReplyTo(sendMessage)) {
+            tryToSendMessageWithoutMarkdown(sendMessage);
+        }
+    }
+
+    private boolean tryToSendMessageWithoutMarkdown(SendMessage sendMessage) {
         sendMessage.setParseMode(null);
 
         try {
@@ -100,6 +106,23 @@ public class SendMessageExecutor implements MethodExecutor {
         } catch (TelegramApiException e) {
             botStats.incrementErrors(sendMessage, e, "error sending message");
             log.error("Still failed to send response: {}", e.getMessage());
+            return false;
         }
+
+        return true;
+    }
+
+    private boolean tryToSendMessageWithoutReplyTo(SendMessage sendMessage) {
+        sendMessage.setReplyToMessageId(null);
+
+        try {
+            telegramClient.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            botStats.incrementErrors(sendMessage, e, "error sending message");
+            log.error("Still failed to send response: {}", e.getMessage());
+            return false;
+        }
+
+        return true;
     }
 }
