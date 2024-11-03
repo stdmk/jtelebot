@@ -85,7 +85,7 @@ public class AliasSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyAliasCommands.contains(lowerCaseCommandText) || updateAliasCommands.contains(lowerCaseCommandText)) {
@@ -154,7 +154,7 @@ public class AliasSetter implements Setter<BotResponse> {
     private EditResponse deleteAliasByCallback(Message message, Chat chat, User user, String command) {
         String selectPageCommand = getStartsWith(
                 internationalizationService.internationalize(DELETE_ALIAS_COMMAND + SELECT_PAGE),
-                command.toLowerCase());
+                command.toLowerCase(Locale.ROOT));
 
         if (selectPageCommand != null && command.startsWith(selectPageCommand)) {
             int page = Integer.parseInt(command.substring(selectPageCommand.length()));
@@ -163,7 +163,7 @@ public class AliasSetter implements Setter<BotResponse> {
 
         log.debug("Request to delete alias");
 
-        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase());
+        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase(Locale.ROOT));
         if (deleteAliasCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
@@ -185,7 +185,7 @@ public class AliasSetter implements Setter<BotResponse> {
     private TextResponse deleteAlias(Message message, Chat chat, User user, String command) throws BotException {
         log.debug("Request to delete alias");
 
-        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase());
+        String deleteAliasCommand = getStartsWith(deleteAliasCommands, command.toLowerCase(Locale.ROOT));
         if (deleteAliasCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
@@ -222,7 +222,7 @@ public class AliasSetter implements Setter<BotResponse> {
     private BotResponse selectAliasByCallback(Message message, Chat chat, User user, String command) {
         String selectPageCommand = getStartsWith(
                 internationalizationService.internationalize(SELECT_ALIAS_COMMAND + SELECT_PAGE),
-                command.toLowerCase());
+                command.toLowerCase(Locale.ROOT));
 
         if (selectPageCommand != null && command.startsWith(selectPageCommand)) {
             int page = Integer.parseInt(command.substring((selectPageCommand).length()));
@@ -233,7 +233,7 @@ public class AliasSetter implements Setter<BotResponse> {
                     .setKeyboard(prepareKeyboardWithAliasesForSelect(chatAliasList, userAliasList, page))
                     .setResponseSettings(FormattingStyle.HTML);
         } else {
-            String selectAliasCommand = getStartsWith(internationalizationService.internationalize(SELECT_ALIAS_COMMAND), command.toLowerCase());
+            String selectAliasCommand = getStartsWith(internationalizationService.internationalize(SELECT_ALIAS_COMMAND), command.toLowerCase(Locale.ROOT));
             if (selectAliasCommand == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
@@ -261,12 +261,12 @@ public class AliasSetter implements Setter<BotResponse> {
     private BotResponse addAlias(Message message, Chat chat, User user, String command) {
         log.debug("Request to add new alias");
 
-        String addAliasCommand = getStartsWith(addAliasCommands, command.toLowerCase());
+        String addAliasCommand = getStartsWith(addAliasCommands, command.toLowerCase(Locale.ROOT));
         if (addAliasCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        if (addAliasCommand.contains(command.toLowerCase())) {
+        if (addAliasCommand.contains(command.toLowerCase(Locale.ROOT))) {
             Page<Alias> allNewsInChat = aliasService.getByChatAndUser(chat, user, FIRST_PAGE);
             return new TextResponse(message)
                     .setText(prepareTextOfListAliases(allNewsInChat) + "\n" + ADDING_ALIAS_TEXT)

@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.FormattingStyle;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
@@ -103,7 +103,7 @@ public class Truth implements Command {
     private YesNo getYesNo(Answer answer) {
         ResponseEntity<YesNo> responseEntity;
         try {
-            responseEntity = botRestTemplate.getForEntity(API_URL + "?force=" + answer.name().toLowerCase(), YesNo.class);
+            responseEntity = botRestTemplate.getForEntity(API_URL + "?force=" + answer.name().toLowerCase(Locale.ROOT), YesNo.class);
         } catch (RestClientException e) {
             return null;
         }

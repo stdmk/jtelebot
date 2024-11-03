@@ -3,7 +3,9 @@ package org.telegram.bot.commands.setters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserZodiac;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -14,7 +16,10 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -60,7 +65,7 @@ public class ZodiacSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyZodiacCommands.contains(lowerCaseCommandText) || updateZodiacCommands.contains(lowerCaseCommandText)) {
@@ -173,7 +178,7 @@ public class ZodiacSetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(ZodiacSetter.SELECT_ZODIAC_COMMAND),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

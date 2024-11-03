@@ -1,7 +1,8 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,9 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
 import org.telegram.bot.services.InternationalizationService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.utils.DateUtils;
 
 import javax.annotation.PostConstruct;
@@ -33,8 +34,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
 import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -172,7 +173,7 @@ public class Calendar implements Command {
     }
 
     private Integer getMonthValueByMonthName(String name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
 
         for (Map.Entry<Integer, Set<String>> entry : monthValueNamesMap.entrySet()) {
             for (String data : entry.getValue()) {

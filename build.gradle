@@ -23,7 +23,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
-    implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.4.2'
+    implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.1'
     implementation 'org.telegram:telegrambots-client:7.4.2'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'

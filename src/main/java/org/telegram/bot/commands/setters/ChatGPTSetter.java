@@ -19,10 +19,7 @@ import org.telegram.bot.services.ChatGPTSettingService;
 import org.telegram.bot.services.InternationalizationService;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,7 +61,7 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {

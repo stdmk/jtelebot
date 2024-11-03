@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,7 +81,7 @@ public class LengthConverter implements UnitsConverter {
             Set<String> abbrList = entry.getValue();
 
             if (abbrList.contains(abbr)) {
-                return LengthUnit.valueOf(unitName.toUpperCase());
+                return LengthUnit.valueOf(unitName.toUpperCase(Locale.ROOT));
             }
         }
 

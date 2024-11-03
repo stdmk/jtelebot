@@ -23,6 +23,7 @@ import org.telegram.bot.services.UserService;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -72,7 +73,7 @@ public class Help implements Command {
             commandsList.forEach(commandProperties -> buf
                     .append("/")
                     .append(commandProperties.getCommandName())
-                    .append(" — ").append("${help.").append(commandProperties.getClassName().toLowerCase()).append(".name}")
+                    .append(" — ").append("${help.").append(commandProperties.getClassName().toLowerCase(Locale.ROOT)).append(".name}")
                     .append(" (").append(commandProperties.getAccessLevel()).append(")")
                     .append("\n"));
 
@@ -87,7 +88,7 @@ public class Help implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            responseText = formatHelpText(command.getClassName().toLowerCase(), command.getAccessLevel());
+            responseText = formatHelpText(command.getClassName().toLowerCase(Locale.ROOT), command.getAccessLevel());
         }
 
         return returnResponse(new TextResponse(message)

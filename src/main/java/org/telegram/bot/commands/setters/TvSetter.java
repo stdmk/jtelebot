@@ -71,7 +71,7 @@ public class TvSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyTvCommands.contains(lowerCaseCommandText) || updateTvCommands.contains(lowerCaseCommandText)) {
@@ -338,7 +338,7 @@ public class TvSetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

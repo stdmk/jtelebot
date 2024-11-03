@@ -37,10 +37,8 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -96,7 +94,7 @@ public class ChatGPT implements Command {
 
         String imageUrl = null;
         if (commandArgument != null) {
-            String lowerTextMessage = commandArgument.toLowerCase();
+            String lowerTextMessage = commandArgument.toLowerCase(Locale.ROOT);
 
             if (containsStartWith(imageCommands, lowerTextMessage)) {
                 bot.sendUploadPhoto(chatId);

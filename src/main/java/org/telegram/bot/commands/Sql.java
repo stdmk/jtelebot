@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.ExceptionUtils.getInitialExceptionCauseText;
@@ -74,12 +75,12 @@ public class Sql implements Command {
     }
 
     private boolean isSelectDataQuery(String query) {
-        String lowerCasedQuery = query.trim().toLowerCase();
+        String lowerCasedQuery = query.trim().toLowerCase(Locale.ROOT);
         return TextUtils.startsWithElementInList(lowerCasedQuery, SELECT_DATA_SQL_COMMANDS);
     }
 
     private boolean isUpdateDataQuery(String query) {
-        String lowerCasedQuery = query.trim().toLowerCase();
+        String lowerCasedQuery = query.trim().toLowerCase(Locale.ROOT);
         return TextUtils.startsWithElementInList(lowerCasedQuery, UPDATE_DATA_SQL_COMMANDS);
     }
 

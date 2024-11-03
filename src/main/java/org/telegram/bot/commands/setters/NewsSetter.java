@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -90,7 +91,7 @@ public class NewsSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyNewsCommands.contains(lowerCaseCommandText) || updateNewsCommands.contains(lowerCaseCommandText)) {
@@ -469,7 +470,7 @@ public class NewsSetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

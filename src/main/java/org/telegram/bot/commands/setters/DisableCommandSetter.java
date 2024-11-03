@@ -75,7 +75,7 @@ public class DisableCommandSetter implements Setter<BotResponse> {
     public BotResponse set(BotRequest request, String commandText) {
         Message message = request.getMessage();
         Chat chat = message.getChat();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyDisableCommands.contains(lowerCaseCommandText) || updateDisableCommands.contains(lowerCaseCommandText)) {
@@ -118,7 +118,7 @@ public class DisableCommandSetter implements Setter<BotResponse> {
     private EditResponse disableCommandByCallback(Message message, Chat chat, String command) throws BotException {
         String callbackCommand = getStartsWith(
                 internationalizationService.internationalize(CALLBACK_COMMAND),
-                command.toLowerCase());
+                command.toLowerCase(Locale.ROOT));
 
         if (callbackCommand != null) {
             command = command.replace(callbackCommand, "");
@@ -131,7 +131,7 @@ public class DisableCommandSetter implements Setter<BotResponse> {
 
         String selectPageCommand = getStartsWith(
                 internationalizationService.internationalize(SELECT_PAGE_COMMAND_LIST),
-                command.toLowerCase());
+                command.toLowerCase(Locale.ROOT));
         if (selectPageCommand != null && command.startsWith(selectPageCommand)) {
             int page = Integer.parseInt(command.substring(selectPageCommand.length()));
             return getKeyboardWithDisablingCommands(message, page);
@@ -315,7 +315,7 @@ public class DisableCommandSetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

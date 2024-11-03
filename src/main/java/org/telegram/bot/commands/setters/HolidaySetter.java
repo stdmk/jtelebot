@@ -82,7 +82,7 @@ public class HolidaySetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyHolidayCommands.contains(lowerCaseCommandText) || updateHolidayCommands.contains(lowerCaseCommandText)) {
@@ -183,13 +183,13 @@ public class HolidaySetter implements Setter<BotResponse> {
         String deleteHolidayCommand = getLocalizedCommand(command, DELETE_HOLIDAY_COMMAND);
         log.debug("Request to delete city");
 
-        if (command.toLowerCase().equals(deleteHolidayCommand)) {
+        if (command.toLowerCase(Locale.ROOT).equals(deleteHolidayCommand)) {
             return getKeyboardWithDeletingHolidays(message, chat, user, 0);
         }
 
         String selectPageCommand = getStartsWith(
                 internationalizationService.internationalize(SELECT_PAGE_HOLIDAY_LIST),
-                command.toLowerCase());
+                command.toLowerCase(Locale.ROOT));
         if (selectPageCommand != null && command.startsWith(SELECT_PAGE_HOLIDAY_LIST)) {
             return getKeyboardWithDeletingHolidays(message, chat, user, Integer.parseInt(command.substring(SELECT_PAGE_HOLIDAY_LIST.length())));
         }
@@ -451,7 +451,7 @@ public class HolidaySetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

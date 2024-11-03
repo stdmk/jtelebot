@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +33,7 @@ public class TextUtils {
         }
         String cuttedText = getPotentialCommandInText(text);
         if (cuttedText != null) {
-            if (text.toLowerCase().equals(cuttedText)) {
+            if (text.toLowerCase(Locale.ROOT).equals(cuttedText)) {
                 return null;
             }
             int i = text.indexOf("@");
@@ -68,9 +69,9 @@ public class TextUtils {
             String buf = matcher.group(0).trim();
             matcher = WORD_PATTERN.matcher(buf);
             if (matcher.find()) {
-                return buf.substring(0, buf.length() - 1).toLowerCase();
+                return buf.substring(0, buf.length() - 1).toLowerCase(Locale.ROOT);
             }
-            return buf.toLowerCase();
+            return buf.toLowerCase(Locale.ROOT);
         }
 
         return null;
@@ -105,11 +106,11 @@ public class TextUtils {
     }
 
     public static String withCapital(String text) {
-        return text.substring(0, 1).toUpperCase() + text.substring(1);
+        return text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
     }
 
     public static String removeCapital(String text) {
-        return text.substring(0, 1).toLowerCase() + text.substring(1);
+        return text.substring(0, 1).toLowerCase(Locale.ROOT) + text.substring(1);
     }
 
     public static boolean startsWithElementInList(String text, List<String> symbolsList) {

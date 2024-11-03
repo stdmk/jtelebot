@@ -23,6 +23,7 @@ import org.telegram.bot.services.TalkerDegreeService;
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
@@ -68,7 +69,7 @@ public class TalkerSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyTalkerCommands.contains(lowerCaseCommandText)) {
@@ -224,7 +225,7 @@ public class TalkerSetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.ImageUrl;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -101,7 +100,7 @@ public class Image implements Command {
         caption = caption + "/image_" + imageId + "\n\n" + getNextImageCommandText(imageId + 1);
 
         return returnResponse(new FileResponse(message)
-                .addFile(new File(FileType.IMAGE, image, "image"))
+                .addFile(new File(FileType.IMAGE, image, imageUrl.getUrl()))
                 .setText(caption));
     }
 

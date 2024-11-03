@@ -19,6 +19,7 @@ import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,7 +139,7 @@ public class TimeDownloading implements Command {
     }
 
     private Long getMultiplierFromMapByName(Map<Long, Set<String>> map, String name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
 
         for (Map.Entry<Long, Set<String>> entry : map.entrySet()) {
             for (String data : entry.getValue()) {

@@ -200,7 +200,7 @@ public class Top implements Command {
     private String getTopListOfUsers(Chat chat, String param) {
         log.debug("Request to top by {} for chat {}", param, chat);
 
-        final String loweredParam = param.toLowerCase();
+        final String loweredParam = param.toLowerCase(Locale.ROOT);
         String methodName = getMethodNameByParam(loweredParam);
         if (methodName == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -284,7 +284,7 @@ public class Top implements Command {
             return null;
         }
 
-        receivedParam = receivedParam.toLowerCase();
+        receivedParam = receivedParam.toLowerCase(Locale.ROOT);
 
         for (Map.Entry<String, Set<String>> entry : topListParamValuesMap.entrySet()) {
             for (String data : entry.getValue()) {

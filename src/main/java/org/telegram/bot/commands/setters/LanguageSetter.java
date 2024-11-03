@@ -19,10 +19,7 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +67,7 @@ public class LanguageSetter implements Setter<BotResponse> {
         User user = message.getUser();
         Long userId = user.getUserId();
 
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (chatId < 0) checkAccessLevelForGroupChat(userId);

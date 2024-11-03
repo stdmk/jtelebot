@@ -225,8 +225,12 @@ public class Weather implements Command {
         if (gust != null) {
             buf.append(buildWeatherItem("`${command.weather.gusts}", lang)).append(gust).append(" ${command.weather.meterspersecond} ").append("`\n");
         }
-        buf.append(buildWeatherItem("`${command.weather.cloudy}", lang)).append(weatherCurrent.getClouds().getAll()).append("%`\n");
-        buf.append(buildWeatherItem("`${command.weather.visibility}", lang)).append(weatherCurrent.getVisibility() / 1000).append(" ${command.weather.kilometers}.`\n");
+        if (weatherCurrent.getClouds() != null) {
+            buf.append(buildWeatherItem("`${command.weather.cloudy}", lang)).append(weatherCurrent.getClouds().getAll()).append("%`\n");
+        }
+        if (weatherCurrent.getVisibility() != null) {
+            buf.append(buildWeatherItem("`${command.weather.visibility}", lang)).append(weatherCurrent.getVisibility() / 1000).append(" ${command.weather.kilometers}.`\n");
+        }
         buf.append(buildWeatherItem("`${command.weather.pressure}", lang)).append(main.getPressure().intValue() * 0.75).append(" ${command.weather.mmhg}. `\n");
         buf.append(buildWeatherItem("`${command.weather.sunrise}", lang)).append(formatTime(sys.getSunrise() + weatherCurrent.getTimezone())).append("`\n");
         buf.append(buildWeatherItem("`${command.weather.sunset}", lang)).append(formatTime(sys.getSunset() + weatherCurrent.getTimezone())).append("`\n");

@@ -81,7 +81,7 @@ public class CitySetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase();
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
 
         if (message.isCallback()) {
             if (emptyCityCommands.contains(lowerCaseCommandText) || updateCityCommands.contains(lowerCaseCommandText)) {
@@ -111,7 +111,7 @@ public class CitySetter implements Setter<BotResponse> {
     private EditResponse selectCityByCallback(Message message, Chat chat, User user, String command) throws BotException {
         String selectCityCommand = getLocalizedCommand(command, SELECT_CITY_COMMAND);
 
-        if (command.toLowerCase().equals(selectCityCommand)) {
+        if (command.toLowerCase(Locale.ROOT).equals(selectCityCommand)) {
             return getKeyboardWithCities(message, user, CALLBACK_SELECT_CITY_COMMAND);
         }
 
@@ -144,7 +144,7 @@ public class CitySetter implements Setter<BotResponse> {
         String addCityCommand = getLocalizedCommand(command, ADD_CITY_COMMAND);
 
         log.debug("Request to add new city");
-        if (command.toLowerCase().equals(addCityCommand)) {
+        if (command.toLowerCase(Locale.ROOT).equals(addCityCommand)) {
             return addCityByCallback(message,  chat, user, true);
         }
 
@@ -252,7 +252,7 @@ public class CitySetter implements Setter<BotResponse> {
 
         log.debug("Request to delete city");
 
-        if (command.toLowerCase().equals(deleteCityCommand)) {
+        if (command.toLowerCase(Locale.ROOT).equals(deleteCityCommand)) {
             return getKeyboardWithCities(message, user, CALLBACK_DELETE_CITY_COMMAND);
         }
 
@@ -365,7 +365,7 @@ public class CitySetter implements Setter<BotResponse> {
     private String getLocalizedCommand(String text, String command) {
         String localizedCommand = getStartsWith(
                 internationalizationService.internationalize(command),
-                text.toLowerCase());
+                text.toLowerCase(Locale.ROOT));
 
         if (localizedCommand == null) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

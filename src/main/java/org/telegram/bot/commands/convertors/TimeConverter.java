@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,7 +80,7 @@ public class TimeConverter implements UnitsConverter {
             Set<String> abbrList = entry.getValue();
 
             if (abbrList.contains(abbr)) {
-                return TimeUnit.valueOf(unitName.toUpperCase());
+                return TimeUnit.valueOf(unitName.toUpperCase(Locale.ROOT));
             }
         }
 

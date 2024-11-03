@@ -3,7 +3,7 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.commands.setters.*;
+import org.telegram.bot.commands.setters.Setter;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
@@ -20,6 +20,7 @@ import org.telegram.bot.services.UserService;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -53,7 +54,7 @@ public class Set implements Command {
             commandArgument = message.getCommandArgument();
         }
 
-        if (commandArgument == null || commandArgument.toLowerCase().startsWith("back")) {
+        if (commandArgument == null || commandArgument.toLowerCase(Locale.ROOT).startsWith("back")) {
             if (message.isCallback()) {
                 return returnResponse(new EditResponse(message)
                         .setText("<b>${setter.set.caption}</b>")
@@ -66,7 +67,7 @@ public class Set implements Command {
                         .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
             }
         } else {
-            String lowerCasedTextMessage = commandArgument.toLowerCase();
+            String lowerCasedTextMessage = commandArgument.toLowerCase(Locale.ROOT);
             Setter<?> setter = setters
                     .stream()
                     .filter(setter1 -> setter1.canProcessed(lowerCasedTextMessage))

@@ -82,7 +82,7 @@ public class Dogs implements Command {
             return "";
         }
 
-        return url.substring(indexOfLastDot + 1).toLowerCase();
+        return url.substring(indexOfLastDot + 1).toLowerCase(Locale.ROOT);
     }
 
     private String getDogsImageUrl() {

@@ -20,6 +20,7 @@ import org.telegram.bot.utils.TextUtils;
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -113,7 +114,7 @@ public class Turn implements Command, MessageAnalyzer {
     public List<BotResponse> analyze(BotRequest request) {
         String textMessage = request.getMessage().getText();
 
-        if (textMessage == null || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase())) {
+        if (textMessage == null || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase(Locale.ROOT))) {
             return returnResponse();
         }
         log.debug("Initialization of unturned text search in {}", textMessage);
