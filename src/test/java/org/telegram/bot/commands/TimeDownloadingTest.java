@@ -113,8 +113,8 @@ class TimeDownloadingTest {
 
     private static Stream<Arguments> provideArguments() {
         return Stream.of(
-                Arguments.of("1 b 1000 mbit", "${command.timedownloading.file} *1,00 b* ${command.timedownloading.willdownload} *${command.timedownloading.instantly}*"),
-                Arguments.of("1 gb 50 mbit", "${command.timedownloading.file} *1024,00 Mb* ${command.timedownloading.willdownload} ${command.timedownloading.in} *2 ${utils.date.m}. 43 ${utils.date.s}. *")
+                Arguments.of("1 b 1000 mbit", "${command.timedownloading.file} *1.00 b* ${command.timedownloading.willdownload} *${command.timedownloading.instantly}*"),
+                Arguments.of("1 gb 50 mbit", "${command.timedownloading.file} *1024.00 Mb* ${command.timedownloading.willdownload} ${command.timedownloading.in} *2 ${utils.date.m}. 43 ${utils.date.s}. *")
         );
     }
 
