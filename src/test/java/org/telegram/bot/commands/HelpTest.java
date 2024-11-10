@@ -9,6 +9,7 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.entities.DisableCommand;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -16,11 +17,9 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.*;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +35,8 @@ class HelpTest {
     private Bot bot;
     @Mock
     private CommandPropertiesService commandPropertiesService;
+    @Mock
+    private DisableCommandService disableCommandService;
     @Mock
     private UserService userService;
     @Mock
@@ -59,6 +60,7 @@ class HelpTest {
                 .thenReturn(new User().setUserId(DEFAULT_USER_ID).setAccessLevel(AccessLevel.NEWCOMER.getValue()));
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.NEWCOMER.getValue());
         when(userService.getUserAccessLevel(anyLong())).thenReturn(AccessLevel.ADMIN.getValue());
+        when(disableCommandService.getByChat(request.getMessage().getChat())).thenReturn(Collections.emptyList());
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
                 .thenReturn(List.of(new CommandProperties().setClassName("className")));
 
@@ -76,14 +78,26 @@ class HelpTest {
 
     @Test
     void getHelpFromChatTest() {
-        final String currentLevelString = "${command.help.currentlevel} - <b>";
-        final String noPanic = "<b>${command.help.dontpanic}!</b>";
+        final String expectedResponseText = """
+                <b>${command.help.dontpanic}!</b>
+                ${command.help.currentlevel} - <b>5</b> (${command.help.user} - 0; ${command.help.chat} - 5)
+                ${command.help.countofdisabled}: 1
+                ${command.help.listofavailablecommands} (1):
+                /availableCommand — ${help.classname.name} (0)
+                ${command.help.specificcommandhelp}
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("help");
 
+        CommandProperties commandPropertiesOfAvailableCommand = new CommandProperties().setClassName("className").setId(1L).setCommandName("availableCommand").setAccessLevel(0);
+        CommandProperties commandPropertiesOfDisabledCommand = new CommandProperties().setClassName("className").setId(2L);
+        DisableCommand disabledCommand = new DisableCommand().setCommandProperties(commandPropertiesOfDisabledCommand);
         when(propertiesConfig.getAdminId()).thenReturn(ANOTHER_USER_ID);
         when(userService.get(anyLong()))
                 .thenReturn(new User().setUserId(DEFAULT_USER_ID).setAccessLevel(AccessLevel.NEWCOMER.getValue()));
         when(chatService.getChatAccessLevel(DEFAULT_CHAT_ID)).thenReturn(AccessLevel.TRUSTED.getValue());
+        when(disableCommandService.getByChat(request.getMessage().getChat())).thenReturn(List.of(disabledCommand));
+        when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
+                .thenReturn(List.of(commandPropertiesOfAvailableCommand, commandPropertiesOfDisabledCommand));
 
         BotResponse botResponse = help.parse(request).get(0);
 
@@ -92,9 +106,7 @@ class HelpTest {
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(textResponse);
 
-        String messageText = textResponse.getText();
-        assertTrue(messageText.startsWith(noPanic));
-        assertTrue(messageText.contains(currentLevelString + AccessLevel.TRUSTED.getValue()));
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
     @Test

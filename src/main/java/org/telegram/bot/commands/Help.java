@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.entities.DisableCommand;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -16,10 +18,7 @@ import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.CommandPropertiesService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
@@ -32,6 +31,7 @@ public class Help implements Command {
 
     private final Bot bot;
     private final CommandPropertiesService commandPropertiesService;
+    private final DisableCommandService disableCommandService;
     private final UserService userService;
     private final ChatService chatService;
     private final PropertiesConfig propertiesConfig;
@@ -40,20 +40,23 @@ public class Help implements Command {
     @Override
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
-        bot.sendTyping(message.getChatId());
-        String commandArgument = message.getCommandArgument();
+        Chat chat = message.getChat();
+        User user = message.getUser();
 
+        bot.sendTyping(message.getChatId());
+
+        String commandArgument = message.getCommandArgument();
         String responseText;
         if (TextUtils.isEmpty(commandArgument)) {
             log.debug("Request to get general help");
             StringBuilder buf = new StringBuilder();
 
-            if (checkIsThatAdmin(message.getUser().getUserId())) {
+            if (checkIsThatAdmin(user.getUserId())) {
                 buf.append("${command.help.grants}\n\n");
             }
 
             Integer accessLevel;
-            Integer userAccessLevel = userService.getUserAccessLevel(message.getUser().getUserId());
+            Integer userAccessLevel = userService.getUserAccessLevel(user.getUserId());
             Integer chatAccessLevel = chatService.getChatAccessLevel(message.getChatId());
             if (userAccessLevel > chatAccessLevel) {
                 accessLevel = userAccessLevel;
@@ -67,7 +70,19 @@ public class Help implements Command {
                     .append("; ${command.help.chat} - ").append(chatAccessLevel)
                     .append(")\n");
 
-            List<CommandProperties> commandsList = commandPropertiesService.getAvailableCommandsForLevel(accessLevel);
+            List<Long> disabledCommandsForThisChatIds = disableCommandService.getByChat(chat)
+                    .stream()
+                    .map(DisableCommand::getCommandProperties)
+                    .map(CommandProperties::getId)
+                    .toList();
+            List<CommandProperties> commandsList = commandPropertiesService.getAvailableCommandsForLevel(accessLevel)
+                    .stream()
+                    .filter(commandProperties -> !disabledCommandsForThisChatIds.contains(commandProperties.getId()))
+                    .toList();
+
+            if (!disabledCommandsForThisChatIds.isEmpty()) {
+                buf.append("${command.help.countofdisabled}: ").append(disabledCommandsForThisChatIds.size()).append("\n");
+            }
 
             buf.append("${command.help.listofavailablecommands} (").append(commandsList.size()).append("):\n");
             commandsList.forEach(commandProperties -> buf
