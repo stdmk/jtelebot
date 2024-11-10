@@ -41,6 +41,9 @@ public interface Command {
 
         StringBuilder buf = new StringBuilder();
         for (String responseText : responseTextList) {
+            if (responseText == null) {
+                continue;
+            }
             if (buf.length() + responseText.length() > TELEGRAM_MESSAGE_TEXT_MAX_LENGTH) {
                 result.add(buildTextResponse(buf.toString(), message, responseSettings));
                 buf = new StringBuilder();

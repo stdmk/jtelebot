@@ -7,7 +7,6 @@ import com.rometools.rome.io.FeedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
@@ -33,6 +32,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static org.telegram.bot.utils.TextUtils.isThatPositiveInteger;
 import static org.telegram.bot.utils.TextUtils.isThatUrl;
@@ -42,8 +42,9 @@ import static org.telegram.bot.utils.TextUtils.isThatUrl;
 @Slf4j
 public class News implements Command {
 
-    private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
+    private static final int MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT = 10;
     private static final String WORD_PATTERN_TEMPLATE = "\\b(?:%s)\\b";
+    private static final Pattern GET_ARRAY_OF_NEWS_PATTERN = Pattern.compile("_(\\d+)_(\\d+)");
     private static final Pattern PARAMS_PATTERN = Pattern.compile(
             "(?:\"([^\"]*?)\"|(\\b\\w+\\b))(?:\\s|$)",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
@@ -71,20 +72,25 @@ public class News implements Command {
         if (commandArgument == null) {
             responseTextList = getLastNewsForChat(chat);
         } else if (commandArgument.startsWith("_")) {
-            NewsMessage newsMessage = getNewsById(commandArgument.substring(1));
+            Matcher matcher = GET_ARRAY_OF_NEWS_PATTERN.matcher(commandArgument);
+            if (matcher.find()) {
+                responseTextList = getNewsByIds(matcher.group(1), matcher.group(2));
+            } else {
+                NewsMessage newsMessage = getNewsById(commandArgument.substring(1));
 
-            String responseText = rssMapper.toFullNewsMessageText(newsMessage);
+                String responseText = rssMapper.toFullNewsMessageText(newsMessage);
 
-            if (newsMessage.getAttachUrl() == null) {
-                return returnResponse(new TextResponse(message)
+                if (newsMessage.getAttachUrl() == null) {
+                    return returnResponse(new TextResponse(message)
+                            .setText(responseText)
+                            .setResponseSettings(responseSettings));
+                }
+
+                return returnResponse(new FileResponse(message)
+                        .addFile(new File(FileType.IMAGE, newsMessage.getAttachUrl()))
                         .setText(responseText)
                         .setResponseSettings(responseSettings));
             }
-
-            return returnResponse(new FileResponse(message)
-                    .addFile(new File(FileType.IMAGE, newsMessage.getAttachUrl()))
-                    .setText(responseText)
-                    .setResponseSettings(responseSettings));
         } else {
             log.debug("Request to get news from {}", commandArgument);
 
@@ -135,18 +141,63 @@ public class News implements Command {
         String words = splitParams(text).stream().collect(Collectors.joining("|", "", ""));
         Pattern wordsPattern = Pattern.compile(String.format(WORD_PATTERN_TEMPLATE, words), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
 
-        return newsSourceService.getAll()
-                .stream()
-                .map(newsSource -> {
-                    try {
-                        return searchNewsInNewsSource(newsSource, wordsPattern);
-                    } catch (Exception e) {
-                        return EMPTY_STRING_LIST;
+        Map<NewsSource, List<NewsMessage>> sourceNewsMessageMap = new HashMap<>();
+        newsSourceService.getAll()
+                .forEach(newsSource -> {
+                    List<NewsMessage> newsMessages = searchNewsInNewsSource(newsSource, wordsPattern);
+                    if (!newsMessages.isEmpty()) {
+                        sourceNewsMessageMap.put(newsSource, newsMessages);
                     }
-                })
-                .flatMap(Collection::stream)
-                .filter(StringUtils::hasText)
-                .toList();
+                });
+
+        List<String> response = new ArrayList<>(MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT + 1);
+        NewsMessage lastAddedToResponseNewsMessage = null;
+        for (Map.Entry<NewsSource, List<NewsMessage>> entry : sourceNewsMessageMap.entrySet()) {
+            NewsSource source = entry.getKey();
+            List<NewsMessage> newsMessages = entry.getValue();
+            NewsMessage firstNewsMessageOfSource = newsMessages.get(0);
+
+            if (response.size() == MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+                List<NewsMessage> allFoundMessages = sourceNewsMessageMap.values().stream().flatMap(Collection::stream).toList();
+                response.add(getNextMessagesArrayCommand(lastAddedToResponseNewsMessage.getId() + 1, allFoundMessages.size() - 1));
+                break;
+            }
+
+            String moreNews = "";
+            if (newsMessages.size() > 1) {
+                if (newsMessages.size() == 2) {
+                    moreNews = "${command.news.morenews}:" + " /news_" + newsMessages.get(1).getId();
+                } else {
+                    moreNews = getNextMessagesArrayCommand(newsMessages.get(1).getId(), newsMessages.get(newsMessages.size() - 1).getId());
+                }
+            }
+
+            response.add(rssMapper.toShortNewsMessageText(firstNewsMessageOfSource, source.getName(), moreNews));
+            lastAddedToResponseNewsMessage = firstNewsMessageOfSource;
+        }
+
+        if (response.size() < MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+            for (Map.Entry<NewsSource, List<NewsMessage>> entry : sourceNewsMessageMap.entrySet()) {
+                if (response.size() == MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+                    break;
+                }
+
+                List<NewsMessage> newsMessages = entry.getValue();
+                if (newsMessages.size() < 2) {
+                    continue;
+                }
+
+                for (int i = 1; i < newsMessages.size(); i++) {
+                    NewsMessage newsMessage = newsMessages.get(i);
+                    response.add(rssMapper.toShortNewsMessageText(newsMessage, entry.getKey().getName()));
+                    if (response.size() == MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return response;
     }
 
     private Set<String> splitParams(String text) {
@@ -164,8 +215,14 @@ public class News implements Command {
         return result;
     }
 
-    private List<String> searchNewsInNewsSource(NewsSource newsSource, Pattern pattern) {
-        SyndFeed syndFeed = getSyndFeedFromUrl(newsSource.getUrl());
+    private List<NewsMessage> searchNewsInNewsSource(NewsSource newsSource, Pattern pattern) {
+        SyndFeed syndFeed;
+
+        try {
+            syndFeed = getSyndFeedFromUrl(newsSource.getUrl());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
 
         List<NewsMessage> newsMessageList = syndFeed.getEntries()
                 .stream()
@@ -173,10 +230,7 @@ public class News implements Command {
                 .map(rssMapper::toNewsMessage)
                 .toList();
 
-        return newsMessageService.save(newsMessageList)
-                .stream()
-                .map(newsMessage -> rssMapper.toShortNewsMessageText(newsMessage, newsSource.getName()))
-                .toList();
+        return newsMessageService.save(newsMessageList);
     }
 
     private boolean entryMatchesPattern(SyndEntry syndEntry, Pattern pattern) {
@@ -205,6 +259,46 @@ public class News implements Command {
                 .toList());
 
         return result;
+    }
+
+    private List<String> getNewsByIds(String startOfArrayId, String endOfArrayId) {
+        long newsIdStart;
+        long newsIdEnd;
+        try {
+            newsIdStart = Long.parseLong(startOfArrayId);
+            newsIdEnd = Long.parseLong(endOfArrayId);
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        long countOffAllNews = newsMessageService.getLastNewsMessage().getId();
+        if (countOffAllNews < newsIdEnd || newsIdEnd - newsIdStart <= 0 || newsIdEnd - newsIdStart > MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        List<Long> ids = LongStream.range(newsIdStart, newsIdEnd + 1).boxed().toList();
+        List<NewsMessage> newsMessages = newsMessageService.getAll(ids);
+        if (newsMessages.isEmpty()) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        List<String> response = newsMessages.stream().map(rssMapper::toShortNewsMessageText).collect(Collectors.toList());
+        if (countOffAllNews != newsIdEnd) {
+            response.add(getNextMessagesArrayCommand(newsIdEnd + 1, countOffAllNews));
+        }
+
+        return response;
+    }
+
+    private String getNextMessagesArrayCommand(long start, long count) {
+        long end;
+        if (count - start > MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
+            end = start + MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT - 1;
+        } else {
+            end = count;
+        }
+
+        return "${command.news.morenews}:" + " /news_" + start + "_" + end;
     }
 
     private NewsMessage getNewsById(String id) {

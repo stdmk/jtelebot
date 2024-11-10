@@ -8,4 +8,5 @@ import org.telegram.bot.domain.entities.NewsMessage;
  */
 public interface NewsMessageRepository extends JpaRepository<NewsMessage, Long> {
     NewsMessage findByDescHash(String descHash);
+    NewsMessage findFirstByOrderByIdDesc();
 }

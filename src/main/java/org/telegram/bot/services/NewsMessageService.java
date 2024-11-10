@@ -8,6 +8,14 @@ import java.util.List;
  * Service Interface for managing {@link NewsMessage}.
  */
 public interface NewsMessageService {
+
+    /**
+     * Get last NewsMessage entity.
+     *
+     * @return the persisted entity.
+     */
+    NewsMessage getLastNewsMessage();
+
     /**
      * Get a NewsMessage.
      *
@@ -15,6 +23,14 @@ public interface NewsMessageService {
      * @return the persisted entity.
      */
     NewsMessage get(Long newsId);
+
+    /**
+     * Get a NewsMessages.
+     *
+     * @param newsIds list of News id to get.
+     * @return the persisted entities.
+     */
+    List<NewsMessage> getAll(List<Long> newsIds);
 
     /**
      * Save a list of NewsMessage.

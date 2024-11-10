@@ -20,9 +20,21 @@ public class NewsMessageServiceImpl implements NewsMessageService {
     private final NewsMessageRepository newsMessageRepository;
 
     @Override
+    public NewsMessage getLastNewsMessage() {
+        log.debug("Request to get last NewsMessage");
+        return newsMessageRepository.findFirstByOrderByIdDesc();
+    }
+
+    @Override
     public NewsMessage get(Long newsId) {
         log.debug("Request to get News by id: {} ", newsId);
         return newsMessageRepository.findById(newsId).orElse(null);
+    }
+
+    @Override
+    public List<NewsMessage> getAll(List<Long> newsIds) {
+        log.debug("Request to get News by ids: {} ", newsIds);
+        return newsMessageRepository.findAllById(newsIds);
     }
 
     @Override

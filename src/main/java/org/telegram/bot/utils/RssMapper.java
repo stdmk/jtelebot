@@ -25,8 +25,16 @@ public class RssMapper {
     }
 
     public String toShortNewsMessageText(NewsMessage newsMessage, String sourceName) {
+        return toShortNewsMessageText(newsMessage, sourceName, "");
+    }
+
+    public String toShortNewsMessageText(NewsMessage newsMessage, String sourceName, String moreNews) {
+        if (moreNews != null && !moreNews.isEmpty()) {
+            moreNews = "\n" + moreNews;
+        }
+
         return "<b>" + newsMessage.getTitle() + " </b>" + buildHtmlLink(newsMessage.getLink(), sourceName) + "\n<i>" +
-                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + "\n\n";
+                formatDate(newsMessage.getPubDate()) + "</i> /news_" + newsMessage.getId() + moreNews + "\n\n";
     }
 
     public String toShortNewsMessageText(NewsMessage newsMessage) {

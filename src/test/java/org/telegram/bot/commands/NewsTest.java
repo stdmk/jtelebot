@@ -6,6 +6,8 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,7 +32,9 @@ import org.telegram.bot.utils.RssMapper;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -131,6 +135,56 @@ class NewsTest {
 
         assertEquals(expectedResponseText, photo.getText());
         verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"21_22", "19_18", "1_19"})
+    void parseWithNewsArrayAsArgumentWrongInputTest(String argument) {
+        BotRequest request = TestUtils.getRequestFromGroup("news_" + argument);
+
+        when(newsMessageService.getLastNewsMessage()).thenReturn(new NewsMessage().setId(20L));
+
+        assertThrows(BotException.class, () -> news.parse(request));
+
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void parseWithNewsArrayAsArgumentNotExistenceTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("news_10_11");
+
+        when(newsMessageService.getLastNewsMessage()).thenReturn(new NewsMessage().setId(20L));
+        when(newsMessageService.getAll(anyList())).thenReturn(Collections.emptyList());
+
+        assertThrows(BotException.class, () -> news.parse(request));
+
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void parseWithNewsArrayAsArgumentTest() {
+        final String expectedResponse = "news message1news message2news message3news message4news message5news message6news message7news message8news message9news message10${command.news.morenews}: /news_12_20";
+        BotRequest request = TestUtils.getRequestFromGroup("news_10_11");
+        List<NewsMessage> newsMessages = LongStream.range(1, 11).mapToObj(this::getNewsMessage).toList();
+
+        when(newsMessageService.getLastNewsMessage()).thenReturn(new NewsMessage().setId(20L));
+        when(newsMessageService.getAll(anyList())).thenReturn(newsMessages);
+        when(rssMapper.toShortNewsMessageText(any(NewsMessage.class))).thenAnswer(answer -> "news message" + ((NewsMessage) answer.getArgument(0)).getId());
+
+        BotResponse botResponse = news.parse(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(expectedResponse, textResponse.getText());
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    private NewsMessage getNewsMessage(long id) {
+        NewsMessage newsMessage = new NewsMessage();
+        newsMessage.setId(id);
+        return newsMessage;
     }
 
     @Test
@@ -316,11 +370,13 @@ class NewsTest {
 
         SyndFeed syndFeed = mock(SyndFeed.class);
         when(syndFeed.getEntries()).thenReturn(List.of(firstMatchesSyndEntry, secondMatchesSyndEntry, notMatchesSyndEntry));
-        when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new BotException("")).thenReturn(syndFeed);
+        SyndFeed syndFeed2 = mock(SyndFeed.class);
+        when(syndFeed2.getEntries()).thenReturn(List.of(secondMatchesSyndEntry, firstMatchesSyndEntry, notMatchesSyndEntry));
+        when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenReturn(syndFeed).thenReturn(syndFeed2);
         when(rssMapper.toNewsMessage(firstMatchesSyndEntry)).thenReturn(newsMessageList.get(0));
         when(rssMapper.toNewsMessage(secondMatchesSyndEntry)).thenReturn(newsMessageList.get(1));
         when(newsMessageService.save(anyList())).thenReturn(newsMessageList);
-        when(rssMapper.toShortNewsMessageText(any(NewsMessage.class), anyString()))
+        when(rssMapper.toShortNewsMessageText(any(NewsMessage.class), anyString(), anyString()))
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
