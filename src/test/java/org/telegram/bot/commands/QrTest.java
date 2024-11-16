@@ -2,6 +2,9 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,12 +18,15 @@ import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,8 +97,32 @@ class QrTest {
         assertTrue(botResponseList.isEmpty());
     }
 
+    @ParameterizedTest
+    @MethodSource("provideTelegramExceptions")
+    void analyzeRequestWithTelegramException(Exception exception, String expectedText) throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("");
+        Message message = request.getMessage();
+        message.setAttachments(List.of(attachment));
+        message.setMessageContentType(MessageContentType.PHOTO);
+
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+
+        List<BotResponse> botResponseList = qr.analyze(request);
+        assertTrue(botResponseList.isEmpty());
+
+        verify(botStats).incrementErrors(request, exception, expectedText);
+    }
+
+    private static Stream<Arguments> provideTelegramExceptions() {
+        return Stream.of(
+                Arguments.of(new TelegramApiException(""), "Failed to get file from telegram"),
+                Arguments.of(new IOException(""), "Failed to read image")
+        );
+    }
+
     @Test
-    void analyzeNotQrTest() throws IOException {
+    void analyzeNotQrTest() throws IOException, TelegramApiException {
         final String fileId = "fileId";
         final byte[] attachment = TestUtils.getResourceAsBytes("qr/empty.png");
         BotRequest request = TestUtils.getRequestFromGroup();
@@ -107,7 +137,7 @@ class QrTest {
     }
 
     @Test
-    void analyzeTest() throws IOException {
+    void analyzeTest() throws IOException, TelegramApiException {
         final String expectedResponseText = "QR_CODE: <code>test</code>";
         final String fileId = "fileId";
         final byte[] attachment = TestUtils.getResourceAsBytes("qr/qr.png");

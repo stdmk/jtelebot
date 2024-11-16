@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -23,8 +24,9 @@ import org.telegram.bot.exception.virus.VirusScanNoResponseException;
 import org.telegram.bot.providers.virus.VirusScanner;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
@@ -45,7 +47,7 @@ class VirusTest {
     @Mock
     private CommandWaitingService commandWaitingService;
     @Mock
-    private NetworkUtils networkUtils;
+    private BotStats botStats;
     @Mock
     private SpeechService speechService;
     @Mock
@@ -55,7 +57,7 @@ class VirusTest {
     private Virus virus;
 
     @Test
-    void parseWithFailedToGetTelegramFileIdTest() {
+    void parseWithFailedToGetTelegramFileIdTest() throws TelegramApiException, IOException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
@@ -68,7 +70,7 @@ class VirusTest {
 
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
-    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws VirusScanException {
+    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws VirusScanException, TelegramApiException, IOException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
@@ -97,6 +99,28 @@ class VirusTest {
                 Arguments.of(new VirusScanApiKeyMissingException(""), BotSpeechTag.UNABLE_TO_FIND_TOKEN),
                 Arguments.of(new VirusScanNoResponseException(""), BotSpeechTag.NO_RESPONSE),
                 Arguments.of(new VirusScanException(""), BotSpeechTag.INTERNAL_ERROR)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideTelegramExceptions")
+    void parseFileWithTelegramExceptionTest(Exception exception) throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("virus http://example.com");
+        request.getMessage().setAttachments(List.of(attachment));
+
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+
+        assertThrows((BotException.class), () -> virus.parse(request));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        verify(botStats).incrementErrors(request, exception, "Failed to get file from telegram");
+        verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+    }
+
+    private static Stream<Exception> provideTelegramExceptions() {
+        return Stream.of(
+                new TelegramApiException(""),
+                new IOException("")
         );
     }
 
@@ -137,7 +161,7 @@ class VirusTest {
     }
 
     @Test
-    void parseWithDocumentInRepliedMessageTest() throws VirusScanException {
+    void parseWithDocumentInRepliedMessageTest() throws VirusScanException, TelegramApiException, IOException {
         final String expectedResponseText = "response_text";
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestWithRepliedMessage("abv");

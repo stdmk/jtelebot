@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -19,8 +20,8 @@ import org.telegram.bot.exception.virus.VirusScanNoResponseException;
 import org.telegram.bot.providers.virus.VirusScanner;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +36,7 @@ public class Virus implements Command {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
-    private final NetworkUtils networkUtils;
+    private final BotStats botStats;
     private final SpeechService speechService;
     private final VirusScanner virusScanner;
 
@@ -76,7 +77,13 @@ public class Virus implements Command {
 
         String responseText;
         if (attachment != null) {
-            responseText = sendFileToScan(attachment);
+            try {
+                responseText = sendFileToScan(attachment);
+            } catch (TelegramApiException | IOException e) {
+                log.error("Failed to get file from telegram", e);
+                botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
         } else if (commandArgument != null) {
             responseText = sendUrlToScan(commandArgument);
         } else {
@@ -94,12 +101,10 @@ public class Virus implements Command {
                         .setWebPagePreview(false)));
     }
 
-    private String sendFileToScan(Attachment attachment) {
+    private String sendFileToScan(Attachment attachment) throws TelegramApiException, IOException {
         String scanResult;
         try (InputStream file = bot.getInputStreamFromTelegramFile(attachment.getFileId())) {
             scanResult = virusScanner.scan(file);
-        } catch (IOException e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         } catch (VirusScanException e) {
             return handleException(e);
         }

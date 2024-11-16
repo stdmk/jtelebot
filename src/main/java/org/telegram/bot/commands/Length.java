@@ -15,7 +15,9 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -43,7 +45,13 @@ public class Length implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            length = getFileLength(message.getAttachments().get(0));
+            try {
+                length = getFileLength(message.getAttachments().get(0));
+            } catch (TelegramApiException | IOException e) {
+                log.error("Failed to get file from telegram", e);
+                botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
         } else {
             length = commandArgument.length();
         }
@@ -53,9 +61,9 @@ public class Length implements Command {
                 .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private int getFileLength(Attachment attachment) {
+    private int getFileLength(Attachment attachment) throws IOException, TelegramApiException {
         checkMimeType(attachment.getMimeType());
-        byte[] file = bot.getFileFromTelegram(attachment.getFileId());
+        byte[] file = bot.getInputStreamFromTelegramFile(attachment.getFileId()).readAllBytes();
         return new String(file, StandardCharsets.UTF_8).length();
     }
 

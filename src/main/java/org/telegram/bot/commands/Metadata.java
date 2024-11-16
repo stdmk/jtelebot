@@ -21,6 +21,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.coordinates.Coordinates;
 import org.telegram.bot.utils.coordinates.CoordinatesUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,6 +89,10 @@ public class Metadata implements Command {
                 log.error("Failed to get metadata from file", e);
                 botStats.incrementErrors(request, e, "Failed to get metadata from file");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            } catch (TelegramApiException e) {
+                log.error("Failed to get file from telegram", e);
+                botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
         }
 
@@ -98,7 +103,7 @@ public class Metadata implements Command {
                 .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private InputStream getFileFromMessage(Attachment attachment) {
+    private InputStream getFileFromMessage(Attachment attachment) throws TelegramApiException, IOException {
         String fileId = attachment.getFileId();
         long fileSize = attachment.getSize();
 

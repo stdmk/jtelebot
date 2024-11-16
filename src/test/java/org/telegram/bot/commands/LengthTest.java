@@ -2,6 +2,8 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,15 +19,17 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LengthTest {
@@ -38,8 +42,6 @@ class LengthTest {
     private CommandWaitingService commandWaitingService;
     @Mock
     private SpeechService speechService;
-    @Mock
-    private NetworkUtils networkUtils;
 
     @InjectMocks
     private Length length;
@@ -67,27 +69,52 @@ class LengthTest {
     }
 
     @Test
-    void parseRequestWithDocumentWithTelegramApiExceptionTest() {
+    void parseRequestWithDocumentWithTelegramApiExceptionTest() throws TelegramApiException, IOException {
         Attachment attachment = TestUtils.getDocument("text");
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getFileFromTelegram(anyString())).thenThrow(new BotException("internal error"));
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> length.parse(request));
         verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
+    @ParameterizedTest
+    @MethodSource("provideTelegramExceptions")
+    void parseRequestWithTelegramExceptionTest(Exception exception) throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        attachment.setMimeType("text");
+        BotRequest request = TestUtils.getRequestFromGroup("length");
+        request.getMessage().setAttachments(List.of(attachment));
+
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+
+        assertThrows((BotException.class), () -> length.parse(request));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        verify(botStats).incrementErrors(request, exception, "Failed to get file from telegram");
+        verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+    }
+
+    private static Stream<Exception> provideTelegramExceptions() {
+        return Stream.of(
+                new TelegramApiException(""),
+                new IOException("")
+        );
+    }
+
     @Test
-    void parseRequestWithDocumentTest() {
+    void parseRequestWithDocumentTest() throws TelegramApiException, IOException {
         final String fileContent = "test";
         final String expectedResponse = "${command.length.responselength} <b>" + fileContent.length() + "</b> ${command.length.symbols}";
         Attachment attachment = TestUtils.getDocument("application");
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getFileFromTelegram(anyString())).thenReturn(fileContent.getBytes());
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(fileContent.getBytes());
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
 
         BotResponse botResponse = length.parse(request).get(0);
 

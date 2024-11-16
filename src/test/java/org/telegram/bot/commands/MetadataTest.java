@@ -19,10 +19,10 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -38,8 +38,6 @@ class MetadataTest {
     private SpeechService speechService;
     @Mock
     private Bot bot;
-    @Mock
-    private NetworkUtils networkUtils;
     @Mock
     private BotStats botStats;
 
@@ -81,7 +79,7 @@ class MetadataTest {
     }
 
     @Test
-    void parseFileWithApiExceptionTest() {
+    void parseFileWithApiExceptionTest() throws TelegramApiException, IOException {
         BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
         Attachment attachment = TestUtils.getDocument();
@@ -95,7 +93,7 @@ class MetadataTest {
     }
 
     @Test
-    void parseFileWithLibExceptionTest() {
+    void parseFileWithLibExceptionTest() throws TelegramApiException, IOException {
         BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
         Attachment attachment = TestUtils.getDocument();
@@ -110,7 +108,37 @@ class MetadataTest {
     }
 
     @Test
-    void parseTest() throws FileNotFoundException {
+    void parseFileWithIOExceptionTest() throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
+        request.getMessage().setAttachments(List.of(attachment));
+
+        IOException exception = new IOException();
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+
+        assertThrows((BotException.class), () -> metadata.parse(request));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(botStats).incrementErrors(request, exception, "Failed to get metadata from file");
+        verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+    }
+
+    @Test
+    void parseFileWithTelegramExceptionTest() throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("metadata");
+        request.getMessage().setAttachments(List.of(attachment));
+
+        TelegramApiException exception = new TelegramApiException();
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+
+        assertThrows((BotException.class), () -> metadata.parse(request));
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+        verify(botStats).incrementErrors(request, exception, "Failed to get file from telegram");
+        verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+    }
+
+    @Test
+    void parseTest() throws IOException, TelegramApiException {
         Attachment attachment = TestUtils.getDocument();
         Message message = TestUtils.getMessage();
         message.setAttachments(List.of(attachment));

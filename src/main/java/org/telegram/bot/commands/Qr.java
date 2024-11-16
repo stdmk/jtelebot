@@ -20,6 +20,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -102,6 +103,10 @@ public class Qr implements Command, MessageAnalyzer {
                         } catch (IOException e) {
                             log.error("Failed to read image", e);
                             botStats.incrementErrors(request, e, "Failed to read image");
+                            return null;
+                        } catch (TelegramApiException e) {
+                            log.error("Failed to get file from telegram", e);
+                            botStats.incrementErrors(request, e, "Failed to get file from telegram");
                             return null;
                         }
 

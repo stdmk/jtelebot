@@ -2,13 +2,18 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
@@ -22,10 +27,14 @@ import org.telegram.bot.providers.sber.impl.SaluteSpeechSynthesizerImpl;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -40,8 +49,6 @@ class VoiceTest {
     private SpeechService speechService;
     @Mock
     private CommandWaitingService commandWaitingService;
-    @Mock
-    private NetworkUtils networkUtils;
     @Mock
     private SaluteSpeechSynthesizerImpl speechSynthesizer;
     @Mock
@@ -64,30 +71,47 @@ class VoiceTest {
     }
 
     @Test
-    void analyzeRequestWithVoiceAndTelegramApiException() throws SpeechParseException {
+    void analyzeRequestWithVoiceAndTelegramApiException() throws SpeechParseException, TelegramApiException, IOException {
         BotRequest requestWithVoice = getRequestWithVoice();
-        when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> voice.analyze(requestWithVoice));
 
         verify(speechParser, never()).parse(any(), anyInt());
     }
 
-    @Test
-    void analyzeRequestWithVoiceAndTelegramIOException() throws SpeechParseException {
-        BotRequest requestWithVoice = getRequestWithVoice();
-        when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
+    @ParameterizedTest
+    @MethodSource("provideTelegramExceptions")
+    void analyzeRequestWithTelegramException(Exception exception) throws TelegramApiException, IOException {
+        Attachment attachment = TestUtils.getDocument();
+        BotRequest request = TestUtils.getRequestFromGroup("");
+        Message message = request.getMessage();
+        message.setAttachments(List.of(attachment));
+        message.setMessageContentType(MessageContentType.VOICE);
 
-        assertThrows(BotException.class, () -> voice.analyze(requestWithVoice));
+        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
 
-        verify(speechParser, never()).parse(any(), anyInt());
+        List<BotResponse> botResponseList = voice.analyze(request);
+        assertTrue(botResponseList.isEmpty());
+
+        verify(botStats).incrementErrors(request, exception, "Failed to get file from telegram");
+    }
+
+    private static Stream<Exception> provideTelegramExceptions() {
+        return Stream.of(
+                new TelegramApiException(""),
+                new IOException("")
+        );
     }
 
     @Test
-    void analyzerequestWithVoiceAndSpeechParseException() throws SpeechParseException {
+    void analyzerequestWithVoiceAndSpeechParseException() throws SpeechParseException, TelegramApiException, IOException {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
-        when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenReturn(file);
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new SpeechParseException("error"));
 
         voice.analyze(requestWithVoice);
@@ -97,11 +121,14 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceTest() throws SpeechParseException {
+    void analyzerequestWithVoiceTest() throws SpeechParseException, TelegramApiException, IOException {
         final String expectedResponse = "response";
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
-        when(bot.getFileFromTelegram(DEFAULT_FILE_ID)).thenReturn(file);
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
 
         BotResponse botResponse = voice.analyze(requestWithVoice).get(0);

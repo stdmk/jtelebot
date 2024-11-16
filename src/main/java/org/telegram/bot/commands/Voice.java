@@ -23,8 +23,10 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -110,7 +112,14 @@ public class Voice implements Command, MessageAnalyzer {
                         .stream()
                         .findFirst()
                         .map(voice -> {
-                            byte[] file = bot.getFileFromTelegram(voice.getFileId());
+                            byte[] file;
+                            try {
+                                file = bot.getInputStreamFromTelegramFile(voice.getFileId()).readAllBytes();
+                            } catch (TelegramApiException | IOException e) {
+                                log.error("Failed to get file from telegram", e);
+                                botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                                return null;
+                            }
 
                             String response;
                             try {

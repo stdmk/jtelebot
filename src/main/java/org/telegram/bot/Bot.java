@@ -16,8 +16,6 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
-import org.telegram.bot.enums.BotSpeechTag;
-import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.TelegramObjectMapper;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
@@ -53,7 +51,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
     private final DisableCommandService disableCommandService;
-    private final SpeechService speechService;
     private final SpyModeService spyModeService;
     private final Parser parser;
     private final TelegramClient telegramClient;
@@ -67,7 +64,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
                UserService userService, UserStatsService userStatsService,
                CommandWaitingService commandWaitingService,
                DisableCommandService disableCommandService,
-               SpeechService speechService,
                SpyModeService spyModeService,
                Parser parser,
                TelegramClient telegramClient) {
@@ -82,7 +78,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         this.userStatsService = userStatsService;
         this.commandWaitingService = commandWaitingService;
         this.disableCommandService = disableCommandService;
-        this.speechService = speechService;
         this.spyModeService = spyModeService;
         this.parser = parser;
         this.telegramClient = telegramClient;
@@ -224,26 +219,10 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         parser.executeAsync(fileResponse);
     }
 
-    public byte[] getFileFromTelegram(String fileId) {
-        try (InputStream inputStream = getInputStreamFromTelegramFile(fileId)) {
-            return inputStream.readAllBytes();
-        } catch (IOException e) {
-            log.error("Failed to get file from telegram", e);
-            botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-        }
-    }
-
-    public InputStream getInputStreamFromTelegramFile(String fileId) {
-        try {
-            String filePath = telegramClient.execute(new GetFile(fileId)).getFilePath();
-            String fileUrl = new File(null, null, null, filePath).getFileUrl(this.getBotToken());
-            return new URL(fileUrl).openStream();
-        } catch (TelegramApiException | IOException e) {
-            log.error("Failed to get file from telegram", e);
-            botStats.incrementErrors(fileId, e, "Failed to get file from telegram");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-        }
+    public InputStream getInputStreamFromTelegramFile(String fileId) throws TelegramApiException, IOException {
+        String filePath = telegramClient.execute(new GetFile(fileId)).getFilePath();
+        String fileUrl = new File(null, null, null, filePath).getFileUrl(this.getBotToken());
+        return new URL(fileUrl).openStream();
     }
 
     public void sendUploadPhoto(Long chatId) {
