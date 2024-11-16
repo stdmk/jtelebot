@@ -141,6 +141,8 @@ public class HolidaySetter implements Setter<BotResponse> {
             holidayRows.add(pagesRow);
         }
 
+        holidayRows.addAll(prepareMainKeyboard());
+
         return new EditResponse(message)
                 .setText("Список добавленных праздников")
                 .setKeyboard(new Keyboard(holidayRows))
@@ -300,16 +302,17 @@ public class HolidaySetter implements Setter<BotResponse> {
         log.debug("Request to list all user tv for chat {} and user {}", chat.getChatId(), user.getUserId());
         List<Holiday> holidayList = holidayService.get(chat, user);
 
+        Keyboard keyboard = new Keyboard(prepareMainKeyboard());
         if (newMessage) {
             return new TextResponse(message)
                     .setText(prepareTextOfUsersHolidays(holidayList))
-                    .setKeyboard(prepareKeyboardWithUserHolidayList())
+                    .setKeyboard(keyboard)
                     .setResponseSettings(FormattingStyle.HTML);
         }
 
         return new EditResponse(message)
                 .setText(prepareTextOfUsersHolidays(holidayList))
-                .setKeyboard(prepareKeyboardWithUserHolidayList())
+                .setKeyboard(keyboard)
                 .setResponseSettings(FormattingStyle.HTML);
     }
 
@@ -398,20 +401,20 @@ public class HolidaySetter implements Setter<BotResponse> {
         return new Keyboard(rows);
     }
 
-    private Keyboard prepareKeyboardWithUserHolidayList() {
-        return new Keyboard(
-                new KeyboardButton()
+    private List<List<KeyboardButton>> prepareMainKeyboard() {
+        return List.of(
+                List.of(new KeyboardButton()
                         .setName(Emoji.DELETE.getSymbol() + "${setter.holiday.button.delete}")
-                        .setCallback(CALLBACK_DELETE_HOLIDAY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_DELETE_HOLIDAY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.NEW.getSymbol() + "${setter.holiday.button.add}")
-                        .setCallback(CALLBACK_ADD_HOLIDAY_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_ADD_HOLIDAY_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.UPDATE.getSymbol() + "${setter.holiday.button.update}")
-                        .setCallback(CALLBACK_COMMAND + UPDATE_TV_COMMAND),
-                new KeyboardButton()
+                        .setCallback(CALLBACK_COMMAND + UPDATE_TV_COMMAND)),
+                List.of(new KeyboardButton()
                         .setName(Emoji.BACK.getSymbol() + "${setter.holiday.button.settings}")
-                        .setCallback(CALLBACK_COMMAND + "back")
+                        .setCallback(CALLBACK_COMMAND + "back"))
         );
     }
 
