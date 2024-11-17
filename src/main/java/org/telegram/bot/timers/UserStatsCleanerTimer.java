@@ -9,13 +9,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Top;
+import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.TimerService;
 import org.telegram.bot.services.UserStatsService;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
@@ -30,6 +34,7 @@ public class UserStatsCleanerTimer extends TimerParent {
     private final UserStatsService userStatsService;
     private final ChatService chatService;
     private final Top top;
+    private final BotStats botStats;
 
     @Autowired
     @Lazy
@@ -80,10 +85,15 @@ public class UserStatsCleanerTimer extends TimerParent {
         if (dateTimeNow.isAfter(nextAlarm)) {
             log.info("Timer for cleaning top by month");
 
-            List<TextResponse> sendMessageListWithMonthlyTop = chatService.getAllGroups()
-                    .stream()
-                    .map(top::getTopByChat)
-                    .toList();
+            List<TextResponse> sendMessageListWithMonthlyTop = new ArrayList<>();
+            for (Chat chat : chatService.getAllGroups()) {
+                try {
+                    sendMessageListWithMonthlyTop.add(top.getTopByChat(chat));
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    log.error("Failed to get monthly top for chat {} {}", chat, e.getMessage());
+                    botStats.incrementErrors(chat, e, "Failed to get monthly top");
+                }
+            }
 
             userStatsService.clearMonthlyStats();
 

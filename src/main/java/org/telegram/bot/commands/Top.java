@@ -20,7 +20,6 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
-import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
@@ -28,8 +27,6 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.getLinkToUser;
@@ -39,6 +36,8 @@ import static org.telegram.bot.utils.TextUtils.removeCapital;
 @RequiredArgsConstructor
 @Slf4j
 public class Top implements Command {
+
+    private static final long MIN_SPACES_AFTER_NUMBER_OF_MESSAGE_COUNT = 6L;
 
     private final Bot bot;
     private final UserStatsService userStatsService;
@@ -75,7 +74,7 @@ public class Top implements Command {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
         String responseText;
-        Chat chat = new Chat().setChatId(message.getChatId());
+        Chat chat = request.getMessage().getChat();
 
         User user;
         String commandArgument = message.getCommandArgument();
@@ -95,7 +94,11 @@ public class Top implements Command {
                 responseText = getTopOfUser(chat, user);
             } else {
                 log.debug("Request to get top of users for chat {} by param {}", chat, commandArgument);
-                responseText = getTopListOfUsers(chat, commandArgument);
+                try {
+                    responseText = getTopListOfUsers(chat, commandArgument);
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                }
             }
         }
 
@@ -106,7 +109,7 @@ public class Top implements Command {
                         .setNotification(false)));
     }
 
-    public TextResponse getTopByChat(Chat chat) {
+    public TextResponse getTopByChat(Chat chat) throws InvocationTargetException, IllegalAccessException {
         return new TextResponse()
                 .setChatId(chat.getChatId())
                 .setText(getTopListOfUsers(chat, topListMonthlyParam) + "\n${command.top.monthlyclearcaption}")
@@ -151,11 +154,11 @@ public class Top implements Command {
         fieldsOfStats.put(Emoji.ROBOT.getSymbol() + "${command.top.userstats.commands}", userStats.getNumberOfCommands().toString());
 
         buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n").append("<u>${command.top.permonth}:</u>\n");
-        fieldsOfStats.forEach((key, value) -> {
-            if (!value.equals(valueForSkip)) {
-                buf.append(key).append(": <b>").append(value).append("</b>\n");
-            }
-        });
+
+        fieldsOfStats.entrySet()
+                .stream()
+                .filter(entry -> !valueForSkip.equals(entry.getValue()))
+                .forEach(entry -> buf.append(entry.getKey()).append(": <b>").append(entry.getValue()).append("</b>\n"));
         buf.append("\n");
 
         fieldsOfStats.clear();
@@ -197,7 +200,7 @@ public class Top implements Command {
      * @param param param of user stats.
      * @return top of users.
      */
-    private String getTopListOfUsers(Chat chat, String param) {
+    private String getTopListOfUsers(Chat chat, String param) throws InvocationTargetException, IllegalAccessException {
         log.debug("Request to top by {} for chat {}", param, chat);
 
         final String loweredParam = param.toLowerCase(Locale.ROOT);
@@ -246,35 +249,33 @@ public class Top implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
         int spacesAfterSerialNumberCount = String.valueOf(userStatsList.size()).length() + 2;
-        int spacesAfterNumberOfMessageCount = getSpacesAfterNumberOfMessageCount(method, userStatsList);
+        int spacesAfterNumberOfMessageCount = getMinSpacesAfterNumberOfMessageCount(method, userStatsList);
 
         StringBuilder responseText = new StringBuilder("<b>${command.top.list.caption} ").append(param).append(":</b>\n");
-        AtomicInteger counter = new AtomicInteger(1);
-        AtomicLong total = new AtomicLong(0L);
+        int counter = 1;
+        long total = 0L;
 
-        userStatsList.forEach(userStats -> {
-            long value;
-            try {
-                value = Long.parseLong(method.invoke(userStats).toString());
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-            }
+        for (UserStats userStats : userStatsList) {
+            long value = Long.parseLong(method.invoke(userStats).toString());
 
             if (value != 0) {
-                total.set(total.get() + value);
+                total = total + value;
                 User user = userStats.getUser();
                 String username = user.getUsername();
 
                 responseText
-                        .append(TextUtils.getLinkToUser(user, true, "@")).append(" ")
+                        .append(getLinkToUser(user, true, "@")).append(" ")
                         .append("<code>")
-                        .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter.getAndIncrement() + ")"))
+                        .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter + ")"))
                         .append(String.format("%-" + spacesAfterNumberOfMessageCount + "s", value))
                         .append(username)
                         .append("</code>\n");
+
+                counter = counter + 1;
             }
-        });
-        responseText.append("${command.top.list.totalcaption}: <b>").append(total.get()).append("</b>");
+        }
+
+        responseText.append("${command.top.list.totalcaption}: <b>").append(total).append("</b>");
 
         return responseText.toString();
     }
@@ -308,33 +309,26 @@ public class Top implements Command {
      * @param userStatsList list of UserStats.
      * @return count of spaces.
      */
-    private Integer getSpacesAfterNumberOfMessageCount(Method method, List<UserStats> userStatsList) {
-        List<Long> values = userStatsList
+    private Integer getMinSpacesAfterNumberOfMessageCount(Method method, List<UserStats> userStatsList) throws InvocationTargetException, IllegalAccessException {
+        List<Long> values = new ArrayList<>(userStatsList.size());
+        for (UserStats userStats : userStatsList) {
+            Long parseLong = Long.parseLong(method.invoke(userStats).toString());
+            values.add(parseLong);
+        }
+
+        int maxValueLength = values
                 .stream()
-                .map(userStats -> {
-                    long value;
-
-                    try {
-                        value = Long.parseLong(method.invoke(userStats).toString());
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                    }
-
-                    return value;
-                })
-                .toList();
-
-        int maxValueLength = values.stream()
                 .max(Long::compareTo)
-                .orElse(6L)
+                .orElse(MIN_SPACES_AFTER_NUMBER_OF_MESSAGE_COUNT)
                 .toString()
                 .length();
 
-        boolean valuesHasNegative = values.stream().filter(value -> value < 0).findFirst().orElse(null) != null;
+        boolean valuesHasNegative = values.stream().anyMatch(value -> value < 0);
         if (valuesHasNegative) {
-            int minValueLength = values.stream()
+            int minValueLength = values
+                    .stream()
                     .min(Long::compareTo)
-                    .orElse(6L)
+                    .orElse(MIN_SPACES_AFTER_NUMBER_OF_MESSAGE_COUNT)
                     .toString()
                     .length();
 
@@ -345,4 +339,5 @@ public class Top implements Command {
 
         return maxValueLength + 1;
     }
+
 }
