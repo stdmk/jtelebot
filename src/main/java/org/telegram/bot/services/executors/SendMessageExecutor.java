@@ -3,6 +3,7 @@ package org.telegram.bot.services.executors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -19,6 +20,8 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Service
 @Slf4j
 public class SendMessageExecutor implements MethodExecutor {
+
+    private static final String DEFAULT_ERROR_MESSAGE = "error sending message";
 
     private final BotStats botStats;
     private final LanguageResolver languageResolver;
@@ -38,6 +41,13 @@ public class SendMessageExecutor implements MethodExecutor {
         SendMessage sendMessage = internationalizationService.internationalize((SendMessage) method, lang);
 
         String messageText = sendMessage.getText();
+        if (!StringUtils.hasLength(messageText)) {
+            String errorMessage = "attempt to send empty message";
+            log.error(errorMessage);
+            botStats.incrementErrors(request, errorMessage);
+            return;
+        }
+
         log.info("To {}: {}", message.getChatId(), messageText);
 
         if (TextUtils.isNotTextLengthIncludedInLimit(messageText)) {
@@ -78,12 +88,19 @@ public class SendMessageExecutor implements MethodExecutor {
 
         sendMessage = internationalizationService.internationalize(sendMessage, lang);
 
-        log.info("To {}: {}", chatId, sendMessage.getText());
+        String messageText = sendMessage.getText();
+        if (!StringUtils.hasLength(messageText)) {
+            String errorMessage = "attempt to send empty message";
+            log.error(errorMessage);
+            botStats.incrementErrors(sendMessage, errorMessage);
+            return;
+        }
+        log.info("To {}: {}", chatId, messageText);
 
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(method, e, "error sending message");
+            botStats.incrementErrors(method, e, DEFAULT_ERROR_MESSAGE);
             log.error("Error: cannot send response: {}", e.getMessage());
             tryToSendAgain(sendMessage);
         } catch (Exception e) {
@@ -104,8 +121,8 @@ public class SendMessageExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(sendMessage, e, "error sending message");
-            log.error("Still failed to send response: {}", e.getMessage());
+            botStats.incrementErrors(sendMessage, e, DEFAULT_ERROR_MESSAGE);
+            log.error("Failed to send response after clearing markdown: {}", e.getMessage());
             return false;
         }
 
@@ -118,8 +135,8 @@ public class SendMessageExecutor implements MethodExecutor {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(sendMessage, e, "error sending message");
-            log.error("Still failed to send response: {}", e.getMessage());
+            botStats.incrementErrors(sendMessage, e, DEFAULT_ERROR_MESSAGE);
+            log.error("Failed to send response after clearing replying message: {}", e.getMessage());
             return false;
         }
 
