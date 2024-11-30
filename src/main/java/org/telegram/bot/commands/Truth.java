@@ -2,6 +2,8 @@ package org.telegram.bot.commands;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -19,6 +21,7 @@ import static org.telegram.bot.utils.MathUtils.getRandomInRange;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Truth implements Command {
 
     private static final String API_URL = "https://yesno.wtf/api";
@@ -30,11 +33,11 @@ public class Truth implements Command {
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String textMessage = message.getText();
+        String commandArgument = message.getCommandArgument();
         Integer messageIdToReply = message.getMessageId();
 
         Message repliedMessage = message.getReplyToMessage();
-        if (repliedMessage != null && textMessage == null) {
+        if (repliedMessage != null && commandArgument == null) {
             messageIdToReply = repliedMessage.getMessageId();
         }
 
@@ -105,6 +108,7 @@ public class Truth implements Command {
         try {
             responseEntity = botRestTemplate.getForEntity(API_URL + "?force=" + answer.name().toLowerCase(Locale.ROOT), YesNo.class);
         } catch (RestClientException e) {
+            log.error("Failed to get gif from api: {}", e.getMessage());
             return null;
         }
 
@@ -112,7 +116,8 @@ public class Truth implements Command {
     }
 
     @Data
-    private static class YesNo {
+    @Accessors(chain = true)
+    public static class YesNo {
         private String answer;
         private Boolean forced;
         private String image;
