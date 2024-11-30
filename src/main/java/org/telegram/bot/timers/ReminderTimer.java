@@ -43,7 +43,7 @@ public class ReminderTimer extends TimerParent {
     private boolean isFirstExecute = true;
 
     @Override
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 5000)
     public void execute() {
         Map<User, ZoneId> userDateTimeMap = new HashMap<>();
         LocalDateTime dateTimeNow = LocalDateTime.now();
