@@ -24,9 +24,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.telegram.bot.enums.SberScope.GIGACHAT_API_PERS;
-import static org.telegram.bot.enums.SberScope.SALUTE_SPEECH_PERS;
-
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -111,13 +108,7 @@ public class SberTokenProviderImpl implements SberTokenProvider {
     }
 
     private String getSecret(SberScope sberScope) throws GettingSberAccessTokenException {
-        String secret = null;
-
-        if (SALUTE_SPEECH_PERS.equals(sberScope)) {
-            secret = sberScope.getSecretFunction.apply(propertiesConfig);
-        } else if (GIGACHAT_API_PERS.equals(sberScope)) {
-            secret = sberScope.getSecretFunction.apply(propertiesConfig);
-        }
+        String secret = sberScope.getSecretFunction.apply(propertiesConfig);
         
         if (secret == null) {
             throw new GettingSberAccessTokenException("Unable to find " + sberScope + " token");
