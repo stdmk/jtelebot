@@ -103,7 +103,7 @@ public class Turn implements Command, MessageAnalyzer {
             try {
                 buf.append(toLayout.charAt(fromLayout.indexOf(textChar)));
             } catch (Exception ignored) {
-                // something wrong
+                log.error("Unexpected error in Turn command");
             }
         }
 
@@ -114,7 +114,7 @@ public class Turn implements Command, MessageAnalyzer {
     public List<BotResponse> analyze(BotRequest request) {
         String textMessage = request.getMessage().getText();
 
-        if (textMessage == null || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase(Locale.ROOT))) {
+        if (textMessage == null || textMessage.isEmpty() || textMessage.startsWith(this.getClass().getSimpleName().toLowerCase(Locale.ROOT))) {
             return returnResponse();
         }
         log.debug("Initialization of unturned text search in {}", textMessage);
