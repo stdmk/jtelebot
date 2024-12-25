@@ -97,7 +97,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
         Chat chatEntity = message.getChat();
-        org.telegram.bot.domain.entities.User userEntity = new org.telegram.bot.domain.entities.User().setUserId(userId);
+        org.telegram.bot.domain.entities.User userEntity = message.getUser();
 
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(userId, chatId);
         if (userAccessLevel.equals(AccessLevel.BANNED)) {
@@ -107,10 +107,21 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
         userStatsService.updateEntitiesInfo(message);
 
+        processRequest(botRequest, chatEntity, userEntity, userAccessLevel);
+    }
+
+    public void processRequest(BotRequest botRequest) {
+        Message message = botRequest.getMessage();
+        AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getUser().getUserId(), message.getChatId());
+
+        processRequest(botRequest, message.getChat(), message.getUser(), userAccessLevel);
+    }
+
+    public void processRequest(BotRequest botRequest, Chat chat, org.telegram.bot.domain.entities.User user, AccessLevel userAccessLevel) {
         analyzeMessage(botRequest, userAccessLevel);
 
-        CommandProperties commandProperties = getCommandProperties(chatEntity, userEntity, message.getText());
-        if (commandProperties == null || disableCommandService.get(chatEntity, commandProperties) != null) {
+        CommandProperties commandProperties = getCommandProperties(chat, user, botRequest.getMessage().getText());
+        if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
             return;
         }
 
@@ -120,7 +131,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         }
 
         if (userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandProperties.getAccessLevel())) {
-            userStatsService.incrementUserStatsCommands(chatEntity, userEntity, commandProperties);
+            userStatsService.incrementUserStatsCommands(chat, user, commandProperties);
             parser.parseAsync(botRequest, command);
         }
     }

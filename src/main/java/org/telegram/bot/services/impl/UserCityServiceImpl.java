@@ -2,6 +2,7 @@ package org.telegram.bot.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
@@ -45,6 +46,17 @@ public class UserCityServiceImpl implements UserCityService {
     }
 
     @Override
+    @NotNull
+    public ZoneId getZoneIdOfUserOrDefault(Chat chat, User user) {
+        ZoneId zoneId = getZoneIdOfUser(chat, user);
+        if (zoneId == null) {
+            zoneId = ZoneId.systemDefault();
+        }
+
+        return zoneId;
+    }
+
+    @Override
     public ZoneId getZoneIdOfUser(Chat chat, User user) {
         log.debug("Request to get ZoneId of User {} for Chat {}", user, chat);
 
@@ -55,4 +67,5 @@ public class UserCityServiceImpl implements UserCityService {
 
         return null;
     }
+
 }
