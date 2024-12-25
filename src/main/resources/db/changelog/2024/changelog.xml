@@ -17,4 +17,6 @@
     <include file="db/changelog/2024/20240727102400_added_command_Retrieve.xml"/>
     <include file="db/changelog/2024/20241025205900_added_command_Me.xml"/>
     <include file="db/changelog/2024/20241026095100_added_command_Delete.xml"/>
+    <include file="db/changelog/2024/20241225110200_added_entity_DelayCommand.xml"/>
+    <include file="db/changelog/2024/20241225110400_added_command_Delay.xml"/>
 </databaseChangeLog>

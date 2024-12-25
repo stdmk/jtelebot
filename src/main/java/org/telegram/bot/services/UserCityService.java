@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.jetbrains.annotations.NotNull;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
@@ -44,6 +45,9 @@ public interface UserCityService {
      * @param userCity the entity to save.
      */
     void save(UserCity userCity);
+
+    @NotNull
+    ZoneId getZoneIdOfUserOrDefault(Chat chat, User user);
 
     /**
      * @param chat Chat entity of UserCity to get.

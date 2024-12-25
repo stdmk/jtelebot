@@ -50,6 +50,14 @@ public interface UserService {
 
     /**
      * Сhecks if the access level is sufficient for command.
+     * @param user User entity
+     * @param commandAccessLevel access level to command
+     * @return true if sufficient
+     */
+    boolean isUserHaveAccessForCommand(User user, Integer commandAccessLevel);
+
+    /**
+     * Сhecks if the access level is sufficient for command.
      * @param userAccessLevel access level of User
      * @param commandAccessLevel access level to command
      * @return true if sufficient

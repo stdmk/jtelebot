@@ -67,6 +67,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isUserHaveAccessForCommand(User user, Integer commandAccessLevel) {
+        user = userRepository.findByUserId(user.getUserId());
+        return this.isUserHaveAccessForCommand(user.getAccessLevel(), commandAccessLevel);
+    }
+
+    @Override
     public boolean isUserHaveAccessForCommand(AccessLevel userAccessLevel, AccessLevel commandAccessLevel) {
         return this.isUserHaveAccessForCommand(userAccessLevel.getValue(), commandAccessLevel.getValue());
     }

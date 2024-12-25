@@ -20,10 +20,8 @@ import org.telegram.bot.utils.TextUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -45,7 +43,6 @@ public class ReminderTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 5000)
     public void execute() {
-        Map<User, ZoneId> userDateTimeMap = new HashMap<>();
         LocalDateTime dateTimeNow = LocalDateTime.now();
 
         List<Reminder> notNotifiedRemindersList;
@@ -62,7 +59,7 @@ public class ReminderTimer extends TimerParent {
             Chat chat = reminder.getChat();
 
             LocalDateTime reminderDateTime = LocalDateTime.of(reminder.getDate(), reminder.getTime());
-            ZoneId zoneId = getDateTimeOfUser(userDateTimeMap, chat, user);
+            ZoneId zoneId = userCityService.getZoneIdOfUserOrDefault(chat, user);
             ZonedDateTime zonedDateTime = reminderDateTime.atZone(zoneId);
 
             if (zonedDateTimeNow.isAfter(zonedDateTime)) {
@@ -89,18 +86,4 @@ public class ReminderTimer extends TimerParent {
         }
     }
 
-    private ZoneId getDateTimeOfUser(Map<User, ZoneId> userDateTimeMap, Chat chat, User user) {
-        ZoneId zoneId = userDateTimeMap.get(user);
-        if (zoneId == null) {
-            zoneId = userCityService.getZoneIdOfUser(chat, user);
-
-            if (zoneId == null) {
-                zoneId = ZoneId.systemDefault();
-            }
-
-            userDateTimeMap.put(user, zoneId);
-        }
-
-        return zoneId;
-    }
 }

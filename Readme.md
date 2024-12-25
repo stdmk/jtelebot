@@ -146,6 +146,10 @@ Java Telegram Bot (Spring)
 
 /me - third person text (skype or irc /me command analog) (needs admin rights)
 
+/delete - deleting messages
+
+/delay - delayed execution of commands
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
