@@ -15,7 +15,7 @@ public class TelegramUtils {
     public static boolean isUnsupportedMessage(Message message) {
         return message == null
                 || (MessageKind.EDIT.equals(message.getMessageKind())
-                        && message.getEditDateTime().plusSeconds(MESSAGE_EXPIRATION_TIME_SECONDS).isBefore(LocalDateTime.now()));
+                        && message.getDateTime().plusSeconds(MESSAGE_EXPIRATION_TIME_SECONDS).isBefore(LocalDateTime.now()));
     }
 
     public static boolean isPrivateChat(Chat chat) {
