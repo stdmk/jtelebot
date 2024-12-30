@@ -26,18 +26,18 @@ import static org.telegram.bot.utils.DateUtils.*;
 @Slf4j
 public class Tv implements Command {
 
-    private final Bot bot;
-    private final TvChannelService tvChannelService;
-    private final TvProgramService tvProgramService;
-    private final UserTvService userTvService;
-    private final CommandPropertiesService commandPropertiesService;
-    private final UserCityService userCityService;
-    private final SpeechService speechService;
-
     private static final String COMMAND_NAME = "tv";
     private static final int HOURS_NUMBER_SHORT = 3;
     private static final int HOURS_NUMBER_DEFAULT = 6;
     private static final int HOURS_NUMBER_LONG = 12;
+
+    private final Bot bot;
+    private final TvChannelService tvChannelService;
+    private final TvProgramService tvProgramService;
+    private final UserTvService userTvService;
+    private final UserCityService userCityService;
+    private final SpeechService speechService;
+    private final Clock clock;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -46,21 +46,16 @@ public class Tv implements Command {
         String commandArgument = message.getCommandArgument();
         List<String> responseTextList;
 
-        ZoneId zoneId = getUserZoneId(message);
+        ZoneId zoneId = userCityService.getZoneIdOfUserOrDefault(message);
 
         if (commandArgument == null) {
             responseTextList = buildResponseTextWithShortProgramsToChannels(message, zoneId);
         } else if (commandArgument.startsWith("_ch")) {
-            responseTextList = buildResponseTextWithProgramsToChannel(
-                    getTvChannel(commandArgument),
-                    getUserZoneId(message),
-                    commandPropertiesService.getCommand(this.getClass()).getCommandName(),
-                    HOURS_NUMBER_LONG);
+            TvChannel tvChannel = getTvChannel(commandArgument);
+            responseTextList = buildResponseTextWithProgramsToChannel(tvChannel, zoneId, HOURS_NUMBER_LONG);
         } else if (commandArgument.startsWith("_pr")) {
-            responseTextList = List.of(buildResponseTextWithProgramDetails(
-                    getTvProgram(commandArgument),
-                    getUserZoneId(message),
-                    commandPropertiesService.getCommand(this.getClass()).getCommandName()));
+            TvProgram tvProgram = getTvProgram(commandArgument);
+            responseTextList = List.of(buildResponseTextWithProgramDetails(tvProgram, zoneId));
         } else {
             responseTextList = searchForChannelsAndPrograms(commandArgument, zoneId);
         }
@@ -73,7 +68,7 @@ public class Tv implements Command {
         List<TvChannel> tvChannelList = tvChannelService.get(searchText);
         if (tvChannelList.size() == 1) {
             TvChannel tvChannel = tvChannelList.get(0);
-            return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_LONG);
+            return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, HOURS_NUMBER_LONG);
         } else {
             TvChannel tvChannel = tvChannelList
                     .stream()
@@ -81,11 +76,11 @@ public class Tv implements Command {
                     .findFirst()
                     .orElse(null);
             if (tvChannel != null) {
-                return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_LONG);
+                return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, HOURS_NUMBER_LONG);
             } else {
                 List<TvProgram> tvProgramList = tvProgramService.get(
                         searchText,
-                        ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(),
+                        ZonedDateTime.of(LocalDateTime.now(clock), zoneId).toLocalDateTime(),
                         HOURS_NUMBER_DEFAULT);
                 if (tvChannelList.isEmpty() && tvProgramList.isEmpty()) {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
@@ -118,7 +113,7 @@ public class Tv implements Command {
             result.addAll(tvProgramList
                     .stream()
                     .map(tvProgram -> tvProgram.getTitle() + " "
-                            + getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), zoneId.getRules().getOffset(LocalDateTime.now()))
+                            + getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), zoneId.getRules().getOffset(LocalDateTime.now(clock)))
                             + "\n(<b>" + tvProgram.getChannel().getName() + "</b>)\n"
                             + formatTvDateTime(tvProgram.getStart(), zoneId) + "\n/" + Tv.COMMAND_NAME
                             + "_pr" + tvProgram.getId() + "\n\n")
@@ -133,10 +128,9 @@ public class Tv implements Command {
      *
      * @param tvProgram TvProgram entity.
      * @param zoneId time-zone ID.
-     * @param commandName name of tv command.
      * @return formatted string with tv-program details.
      */
-    private String buildResponseTextWithProgramDetails(TvProgram tvProgram, ZoneId zoneId, String commandName) {
+    private String buildResponseTextWithProgramDetails(TvProgram tvProgram, ZoneId zoneId) {
         String category = tvProgram.getCategory();
         String desc = tvProgram.getDesc();
 
@@ -152,10 +146,10 @@ public class Tv implements Command {
             desc = "\n<i>" + desc + "</i>";
         }
 
-        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
+        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now(clock));
         Duration programDuration = getDuration(tvProgram.getStart(), tvProgram.getStop(), zoneId);
 
-        return "<u>" + tvProgram.getChannel().getName() + "</u> /" + commandName + "_ch" + tvProgram.getChannel().getId() + "\n" +
+        return "<u>" + tvProgram.getChannel().getName() + "</u> /" + COMMAND_NAME + "_ch" + tvProgram.getChannel().getId() + "\n" +
                 "<b>" + tvProgram.getTitle() + "</b> " +
                 getProgramProgress(tvProgram.getStart(), tvProgram.getStop(), programDuration.toMillis(), zoneOffSet) + "\n" + category +
                 "${command.tv.start}: " + formatTvTime(tvProgram.getStart(), zoneId) + "\n" +
@@ -169,32 +163,31 @@ public class Tv implements Command {
      *
      * @param tvChannel TvChannel entity.
      * @param zoneId time-zone ID.
-     * @param commandName name of tv command.
      * @param hours count of hours tv-program.
      * @return formatted string with list of tv-program.
      */
-    private List<String> buildResponseTextWithProgramsToChannel(TvChannel tvChannel, ZoneId zoneId, String commandName, int hours) {
-        List<TvProgram> tvProgramList = tvProgramService.get(tvChannel, ZonedDateTime.of(LocalDateTime.now(), zoneId).toLocalDateTime(), hours);
+    private List<String> buildResponseTextWithProgramsToChannel(TvChannel tvChannel, ZoneId zoneId, int hours) {
+        List<TvProgram> tvProgramList = tvProgramService.get(tvChannel, ZonedDateTime.of(LocalDateTime.now(clock), zoneId).toLocalDateTime(), hours);
         if (tvProgramList.isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
         
         List<String> result = new ArrayList<>();
-        result.add("<u>" + tvChannel.getName() + "</u>" + " /" + commandName + "_ch" + tvChannel.getId() + "\n");
+        result.add("<u>" + tvChannel.getName() + "</u>" + " /" + COMMAND_NAME + "_ch" + tvChannel.getId() + "\n");
 
-        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now());
+        ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now(clock));
         TvProgram currentTvProgram = tvProgramList.get(0);
 
         result.add("<b>[" + formatTvTime(currentTvProgram.getStart(), zoneId) + "]</b> "
                 + currentTvProgram.getTitle()
                 + " " + getProgramProgress(currentTvProgram.getStart(), currentTvProgram.getStop(), zoneOffSet) + "\n"
-                + "/" + commandName + "_pr" + currentTvProgram.getId() + "\n");
+                + "/" + COMMAND_NAME + "_pr" + currentTvProgram.getId() + "\n");
 
         result.addAll(tvProgramList
                 .stream()
                 .skip(1)
                 .map(tvProgram -> "<b>[" + formatTvTime(tvProgram.getStart(), zoneId) + "]</b> " + tvProgram.getTitle() + "\n/"
-                        + commandName + "_pr" + tvProgram.getId() + "\n")
+                        + COMMAND_NAME + "_pr" + tvProgram.getId() + "\n")
                 .toList());
 
         result.add("\n");
@@ -216,7 +209,7 @@ public class Tv implements Command {
                 .stream()
                 .map(UserTv::getTvChannel)
                 .map(tvChannel ->
-                        buildResponseTextWithProgramsToChannel(tvChannel, zoneId, Tv.COMMAND_NAME, HOURS_NUMBER_SHORT))
+                        buildResponseTextWithProgramsToChannel(tvChannel, zoneId, HOURS_NUMBER_SHORT))
                 .flatMap(Collection::stream)
                 .toList();
     }
@@ -244,7 +237,7 @@ public class Tv implements Command {
      * @return tv-program progress.
      */
     private String getProgramProgress(LocalDateTime dateTimeStart, LocalDateTime dateTimeEnd, Long programDuration, ZoneOffset zoneOffset) {
-        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime dateTimeNow = LocalDateTime.now(clock);
         if (dateTimeNow.isAfter(dateTimeEnd) || dateTimeNow.isBefore(dateTimeStart)) {
             return "";
         }
@@ -293,22 +286,4 @@ public class Tv implements Command {
         }
     }
 
-
-    /**
-     * Getting Zone id for User.
-     *
-     * @param message telegram message.
-     * @return Zone id of User.
-     */
-    private ZoneId getUserZoneId(Message message) {
-        ZoneId zoneId;
-        UserCity userCity = userCityService.get(message.getUser(), message.getChat());
-        if (userCity == null) {
-            zoneId = ZoneId.systemDefault();
-        } else {
-            zoneId = ZoneId.of(userCity.getCity().getTimeZone());
-        }
-
-        return zoneId;
-    }
 }

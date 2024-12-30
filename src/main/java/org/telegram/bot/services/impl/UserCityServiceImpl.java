@@ -8,6 +8,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.repositories.UserCityRepository;
 import org.telegram.bot.services.UserCityService;
 
@@ -43,6 +44,12 @@ public class UserCityServiceImpl implements UserCityService {
     public void save(UserCity userCity) {
         log.debug("Request to save UserCity: {}", userCity);
         userCityRepository.save(userCity);
+    }
+
+    @NotNull
+    @Override
+    public ZoneId getZoneIdOfUserOrDefault(Message message) {
+        return this.getZoneIdOfUserOrDefault(message.getChat(), message.getUser());
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
+import org.telegram.bot.domain.model.request.Message;
 
 import javax.annotation.Nullable;
 import java.time.ZoneId;
@@ -45,6 +46,9 @@ public interface UserCityService {
      * @param userCity the entity to save.
      */
     void save(UserCity userCity);
+
+    @NotNull
+    ZoneId getZoneIdOfUserOrDefault(Message message);
 
     @NotNull
     ZoneId getZoneIdOfUserOrDefault(Chat chat, User user);

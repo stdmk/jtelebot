@@ -107,7 +107,7 @@ public class Delay implements Command {
 
     private void delayCommand(String text, BotRequest request) {
         Message message = request.getMessage();
-        ZoneId zoneId = userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser());
+        ZoneId zoneId = userCityService.getZoneIdOfUserOrDefault(message);
 
         ArgumentAndDateTime argumentAndDateTime = Optional.ofNullable(getDateTimeByPattern(text, zoneId))
                 .or(() -> Optional.ofNullable(getDateTimeByDuration(text)))
