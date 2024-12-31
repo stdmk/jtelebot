@@ -106,7 +106,7 @@ class DelayTest {
         when(userService.isUserHaveAccessForCommand(message.getUser(), commandProperties.getAccessLevel())).thenReturn(true);
         when(objectMapper.writeValueAsString(request)).thenReturn(expectedRequestJson);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotResponse botResponse = delay.parse(request).get(0);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -149,7 +149,7 @@ class DelayTest {
         when(userService.isUserHaveAccessForCommand(message.getUser(), commandProperties.getAccessLevel())).thenReturn(true);
         when(objectMapper.writeValueAsString(request)).thenReturn(expectedRequestJson);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotResponse botResponse = delay.parse(request).get(0);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -202,7 +202,7 @@ class DelayTest {
         Message message = request.getMessage();
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -217,7 +217,7 @@ class DelayTest {
         Message message = request.getMessage();
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -232,7 +232,7 @@ class DelayTest {
         Message message = request.getMessage();
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -252,7 +252,7 @@ class DelayTest {
         when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(commandProperties);
         when(disableCommandService.get(message.getChat(), commandProperties)).thenReturn(new DisableCommand());
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -272,7 +272,7 @@ class DelayTest {
         when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(commandProperties);
         when(userService.isUserHaveAccessForCommand(message.getUser(), commandProperties.getAccessLevel())).thenReturn(false);
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -294,7 +294,7 @@ class DelayTest {
         JsonProcessingException jsonProcessingException = mock(JsonProcessingException.class);
         when(objectMapper.writeValueAsString(request)).thenThrow(jsonProcessingException);
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedErrorText);
-        when(userCityService.getZoneIdOfUserOrDefault(message.getChat(), message.getUser())).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows(BotException.class, () -> delay.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
