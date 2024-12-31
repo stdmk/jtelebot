@@ -53,7 +53,8 @@ class NewYearTest {
         BotRequest request = TestUtils.getRequestFromGroup("newyear");
 
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.of(DEFAULT_TIME_ZONE)).toInstant());
-        when(clock.getZone()).thenReturn(ZoneId.of(DEFAULT_TIME_ZONE));
+        when(clock.withZone(ZoneId.of(DEFAULT_TIME_ZONE))).thenReturn(clock);
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         BotResponse botResponse = newYear.parse(request).get(0);
 
@@ -67,9 +68,11 @@ class NewYearTest {
         final String expectedResponseText = "${command.newyear.caption}: *331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. * (GMT+04:00)";
         BotRequest request = TestUtils.getRequestFromGroup("newyear");
 
+        ZoneId userZoneId = ZoneId.of("GMT+04:00");
         when(userCityService.get(request.getMessage().getUser(), request.getMessage().getChat())).thenReturn(new UserCity().setCity(new City().setTimeZone("GMT+04:00")));
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.of(DEFAULT_TIME_ZONE)).toInstant());
-        when(clock.getZone()).thenReturn(ZoneId.of(DEFAULT_TIME_ZONE));
+        when(clock.withZone(userZoneId)).thenReturn(clock);
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
         BotResponse botResponse = newYear.parse(request).get(0);
 

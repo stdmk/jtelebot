@@ -14,7 +14,6 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.UserCityService;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -50,7 +49,7 @@ public class NewYear implements Command {
             userTimeZone = ZoneId.of(userCity.getCity().getTimeZone());
         }
 
-        ZonedDateTime dateTimeNow = LocalDateTime.now(clock).atZone(userTimeZone);
+        ZonedDateTime dateTimeNow = ZonedDateTime.now(clock.withZone(userTimeZone));
         String duration = durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay());
 
         return returnResponse(new TextResponse(message)
