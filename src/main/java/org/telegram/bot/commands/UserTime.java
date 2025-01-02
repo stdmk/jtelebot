@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
@@ -12,11 +11,15 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CityService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.UserService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,6 +38,8 @@ public class UserTime implements Command {
     private final UserService userService;
     private final UserCityService userCityService;
     private final CityService cityService;
+    private final SpeechService speechService;
+    private final Clock clock;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -57,25 +62,25 @@ public class UserTime implements Command {
             user = userService.get(commandArgument);
         }
 
-        UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
+        UserCity userCity = userCityService.get(user, message.getChat());
         if (userCity == null) {
             City city = cityService.get(commandArgument);
             if (city == null) {
                 if (user == null) {
                     log.debug("Unable to find user or city {}", commandArgument);
-                    return returnResponse();
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-                responseText = "У " + getLinkToUser(user, false) + " ${command.usertime.citynotset}";
+                responseText = getLinkToUser(user, false) + " ${command.usertime.citynotset}";
             } else {
                 log.debug("Request to get time of city {}", city.getNameEn());
-                String dateTimeNow = formatTime(ZonedDateTime.now(ZoneId.of(city.getTimeZone())));
+                String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(ZoneId.of(city.getTimeZone())));
                 responseText = "${command.usertime.incity} " + city.getNameRu() + " ${command.usertime.now}: *" + dateTimeNow + "*";
             }
         } else {
             log.debug("Request to get time of user {}", user);
 
             ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
-            String dateTimeNow = formatTime(ZonedDateTime.now(userZoneId));
+            String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(userZoneId));
             responseText = "${command.usertime.at} " + getLinkToUser(user, false) + " ${command.usertime.now} *" + dateTimeNow + "*";
             if (repliedMessageDateTime != null) {
                 String pastDateTime = formatDateTime(repliedMessageDateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(userZoneId));
