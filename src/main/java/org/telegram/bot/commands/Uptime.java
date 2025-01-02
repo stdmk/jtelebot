@@ -4,15 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.providers.system.SystemInfoProvider;
 import org.telegram.bot.repositories.TalkerPhraseRepository;
 
-import java.io.File;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,33 +28,34 @@ public class Uptime implements Command {
     private final Bot bot;
     private final BotStats botStats;
     private final TalkerPhraseRepository talkerPhraseRepository;
+    private final SystemInfoProvider systemInfoProvider;
+    private final Clock clock;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
-        bot.sendTyping(message.getChatId());
 
         if (message.hasCommandArgument()) {
             return returnResponse();
         }
+        bot.sendTyping(message.getChatId());
 
-        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime dateTimeNow = LocalDateTime.now(clock);
         LocalDateTime botDateTimeStart = botStats.getBotStartDateTime();
-        File dbFile = new File("db.mv.db");
 
         StringBuilder buf = new StringBuilder();
         buf.append("<b>${command.uptime.launch}:</b>\n").append(formatDateTime(botDateTimeStart)).append("\n");
         buf.append("<b>${command.uptime.uptime}:</b>\n").append(durationToString(botDateTimeStart, dateTimeNow)).append("\n");
         buf.append("<b>${command.uptime.totaltime}:</b>\n").append(durationToString(botStats.getTotalRunningTime())).append("\n");
 
-        long heapMaxSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
-        long heapSize = Runtime.getRuntime().totalMemory() / 1024 / 1024;
-        long heapOccupiedSize = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024;
+        long heapMaxSize = systemInfoProvider.getMaxMemory() / 1024 / 1024;
+        long heapSize = systemInfoProvider.getTotalMemory() / 1024 / 1024;
+        long heapOccupiedSize = (systemInfoProvider.getTotalMemory() - systemInfoProvider.getFreeMemory()) / 1024 / 1024;
         buf.append("<b>Heap:</b>\n").append(heapOccupiedSize).append("/").append(heapSize).append("/").append(heapMaxSize).append(" мб.\n");
 
         buf.append("<b><u>${command.uptime.statistic}:</u></b>\n");
         buf.append("${command.uptime.incomingmessages}: <b>").append(botStats.getReceivedMessages()).append("</b> (").append(formatLongValue(botStats.getTotalReceivedMessages())).append(")\n");
-        buf.append("${command.uptime.talkerphrases}: <b>").append(talkerPhraseRepository.countByChat(new Chat().setChatId(message.getChatId()))).append("</b> (").append(formatLongValue(talkerPhraseRepository.count())).append(")\n");
+        buf.append("${command.uptime.talkerphrases}: <b>").append(talkerPhraseRepository.countByChat(message.getChat())).append("</b> (").append(formatLongValue(talkerPhraseRepository.count())).append(")\n");
         buf.append("${command.uptime.commandsprocessed}: <b>").append(botStats.getCommandsProcessed()).append("</b> (").append(formatLongValue(botStats.getTotalCommandsProcessed())).append(")\n");
         buf.append("${command.uptime.googlerequests}: <b>").append(botStats.getGoogleRequests()).append("</b>\n");
         buf.append("${command.uptime.postrequests}: <b>").append(botStats.getRussianPostRequests()).append("</b>\n");
@@ -63,11 +64,12 @@ public class Uptime implements Command {
         buf.append("${command.uptime.unexpectederrors}: <b>").append(botStats.getErrors()).append("</b>\n");
         buf.append("${command.uptime.tvupdate}: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTvUpdate()))).append("</b>\n");
         buf.append("${command.uptime.trackcodeupdate}: <b>").append(formatShortDateTime(Instant.ofEpochMilli(botStats.getLastTracksUpdate()))).append("</b>\n");
-        buf.append("${command.uptime.dbsize}: <b>").append(formatFileSize(dbFile.length())).append(" </b>\n");
-        buf.append("${command.uptime.freeondisk}: <b>").append(formatFileSize(dbFile.getFreeSpace())).append(" </b>\n");
+        buf.append("${command.uptime.dbsize}: <b>").append(formatFileSize(systemInfoProvider.getDbFileSize())).append(" </b>\n");
+        buf.append("${command.uptime.freeondisk}: <b>").append(formatFileSize(systemInfoProvider.getFreeSystemSpace())).append(" </b>\n");
 
         return returnResponse(new TextResponse(message)
                 .setText(buf.toString())
                 .setResponseSettings(FormattingStyle.HTML));
     }
+
 }
