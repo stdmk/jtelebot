@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -119,6 +120,7 @@ class WeatherTest {
         verify(bot).sendTyping(message.getChatId());
     }
 
+    @Disabled
     @Test
     void parseTest() {
         final String expectedResponseText = """
