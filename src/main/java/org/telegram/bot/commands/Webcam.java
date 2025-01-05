@@ -12,13 +12,13 @@ import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.exception.ffmpeg.FfmpegException;
+import org.telegram.bot.providers.ffmpeg.FfmpegProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.timers.FileManagerTimer;
 import org.telegram.bot.utils.TextUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -28,11 +28,9 @@ public class Webcam implements Command {
 
     private final Bot bot;
     private final SpeechService speechService;
-    private final FileManagerTimer fileManagerTimer;
+    private final FfmpegProvider ffmpegProvider;
     private final CommandWaitingService commandWaitingService;
 
-    private static final String FILE_NAME_PREFIX = "file";
-    private static final String FILE_NAME_POSTFIX = ".mp4";
     private static final int DEFAULT_VIDEO_DURATION_IN_SECONDS = 5;
     private static final int MAX_VIDEO_DURATION_IN_SECONDS = 20;
 
@@ -43,12 +41,12 @@ public class Webcam implements Command {
         String commandArgument = commandWaitingService.getText(message);
 
         if (commandArgument == null) {
+            bot.sendTyping(message.getChatId());
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
             return returnResponse(new TextResponse(message)
                     .setText("${command.webcam.commandwaitingstart}"));
         } else {
-            bot.sendUploadVideo(message.getChatId());
             String duration;
             String url;
             int spaceIndex = commandArgument.indexOf(" ");
@@ -64,24 +62,12 @@ public class Webcam implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            String fileName = fileManagerTimer.addFile(FILE_NAME_PREFIX, FILE_NAME_POSTFIX);
-            final String command = "ffmpeg -re -t " + duration + " -i " + url + " -c:v copy -c:a copy -bsf:a aac_adtstoasc -t " + duration + " " + fileName;
+            bot.sendUploadVideo(message.getChatId());
 
+            File videoFile;
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command.split(" "));
-
-                Process process = processBuilder.start();
-                process.waitFor();
-            } catch (IOException | InterruptedException e) {
-                log.error("Failed to call command {}: {}", command, e.getMessage());
-                Thread.currentThread().interrupt();
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-            }
-
-            File videoFile = new File(fileName);
-            if (!videoFile.exists()) {
-                fileManagerTimer.deleteFile(fileName);
-                log.error("File {} does not exists", fileName);
+                videoFile = ffmpegProvider.getVideo(url, duration);
+            } catch (FfmpegException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
