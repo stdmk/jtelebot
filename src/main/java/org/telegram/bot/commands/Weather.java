@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -14,7 +15,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -45,14 +45,28 @@ import static org.telegram.bot.utils.TextUtils.withCapital;
 public class Weather implements Command {
 
     private static final String OPEN_WEATHER_SITE_URL = "https://openweathermap.org/city/";
-    private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=";
-    private static final String FORECAST_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=%s&units=metric&appid=%s&%s=";
+    private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=%s";
+    private static final String FORECAST_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=%s&units=metric&appid=%s&%s=%s";
     private static final String PRECIPITATION_CAPTION_FORMAT = "%-12s";
     private static final String WEATHER_CAPTION_FORMAT = "%-15s";
+    private static final String TEMPERATURE_CAPTION_FORMAT = "%+.0f";
     private static final int HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS = 2;
     private static final int HOURLY_FORECAST_MIN_LENGTH_OF_TEMP = 2;
     private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 8;
     private static final int DAILY_FORECAST_MINIMUM_REQUIRED_SPACE_COUNT = 3;
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setFormattingStyle(FormattingStyle.MARKDOWN)
+            .setWebPagePreview(false);
+    private static final String[] WIND_DIRECTIONS = {
+            Emoji.DOWN_ARROW.getSymbol(), // с севера from north
+            Emoji.DOWN_LEFT_ARROW.getSymbol(),
+            Emoji.LEFT_ARROW.getSymbol(), //с востока from east
+            Emoji.UP_LEFT_ARROW.getSymbol(),
+            Emoji.UP_ARROW.getSymbol(), //с юга from south
+            Emoji.UP_RIGHT_ARROW.getSymbol(),
+            Emoji.RIGHT_ARROW.getSymbol(), //с запада from west
+            Emoji.DOWN_RIGHT_ARROW.getSymbol()
+    };
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -80,7 +94,7 @@ public class Weather implements Command {
 
         if (commandArgument == null) {
             log.debug("Empty request. Searching for users city");
-            UserCity userCity = userCityService.get(user, new Chat().setChatId(message.getChatId()));
+            UserCity userCity = userCityService.get(user, message.getChat());
             if (userCity == null) {
                 log.debug("City in not set. Turning on command waiting");
                 commandWaitingService.add(message, this.getClass());
@@ -106,9 +120,7 @@ public class Weather implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(new ResponseSettings()
-                        .setFormattingStyle(FormattingStyle.MARKDOWN)
-                        .setWebPagePreview(false)));
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
     }
 
     /**
@@ -121,16 +133,8 @@ public class Weather implements Command {
      * @throws BotException if get an error from service.
      */
     private WeatherCurrent getWeatherCurrent(String token, String city, String lang) throws BotException {
-        String weatherApiUrl = String.format(CURRENT_WEATHER_API_URL, lang, token, getQueryParameter(city));
-
-        ResponseEntity<WeatherCurrent> response;
-        try {
-            response = botRestTemplate.getForEntity(weatherApiUrl + city, WeatherCurrent.class);
-        } catch (HttpClientErrorException e) {
-            throw new BotException("${command.weather.apiresponse}: " + getErrorMessage(e));
-        }
-
-        return response.getBody();
+        String weatherApiUrl = String.format(CURRENT_WEATHER_API_URL, lang, token, getQueryParameter(city), city);
+        return getWeatherData(weatherApiUrl, WeatherCurrent.class);
     }
 
     /**
@@ -143,11 +147,14 @@ public class Weather implements Command {
      * @throws BotException if get an error from service.
      */
     private WeatherForecast getWeatherForecast(String token, String city, String lang) throws BotException {
-        String forecastApiUrl = String.format(FORECAST_WEATHER_API_URL, lang, token, getQueryParameter(city));
+        String forecastApiUrl = String.format(FORECAST_WEATHER_API_URL, lang, token, getQueryParameter(city), city);
+        return getWeatherData(forecastApiUrl, WeatherForecast.class);
+    }
 
-        ResponseEntity<WeatherForecast> response;
+    private <T> T getWeatherData(String apiUrl, Class<T> dataType) throws BotException {
+        ResponseEntity<T> response;
         try {
-            response = botRestTemplate.getForEntity(forecastApiUrl + city, WeatherForecast.class);
+            response = botRestTemplate.getForEntity(apiUrl, dataType);
         } catch (HttpClientErrorException e) {
             throw new BotException("${command.weather.apiresponse}: " + getErrorMessage(e));
         }
@@ -192,8 +199,8 @@ public class Weather implements Command {
         buf.append("[").append(weatherCurrent.getName()).append("](" + OPEN_WEATHER_SITE_URL).append(weatherCurrent.getId()).append(")(")
                 .append(sys.getCountry()).append(")\n");
         buf.append(withCapital(weather.getDescription())).append(getWeatherEmoji(weather.getId())).append("\n");
-        Rain rain = weatherCurrent.getRain();
-        Snow snow = weatherCurrent.getSnow();
+        HourlyForecast rain = weatherCurrent.getRain();
+        HourlyForecast snow = weatherCurrent.getSnow();
         if (rain != null) {
             String precipitations = getPrecipitations(rain, 1, true, lang);
             if (precipitations != null) {
@@ -257,14 +264,14 @@ public class Weather implements Command {
 
         int maxLengthOfTemp = weatherForecastList
                 .stream()
-                .mapToInt(data -> String.format("%+.0f", data.getMain().getTemp()).length())
+                .mapToInt(data -> String.format(TEMPERATURE_CAPTION_FORMAT, data.getMain().getTemp()).length())
                 .max()
                 .orElse(HOURLY_FORECAST_MIN_LENGTH_OF_TEMP) + HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS;
 
         weatherForecastList
                 .forEach(forecast -> buf.append("`").append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
-                    .append(String.format("%-" + maxLengthOfTemp + "s", String.format("%+.0f", forecast.getMain().getTemp()) + "°"))
+                    .append(String.format("%-" + maxLengthOfTemp + "s", String.format(TEMPERATURE_CAPTION_FORMAT, forecast.getMain().getTemp()) + "°"))
                     .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
                     .append(String.format("%.0f", forecast.getWind().getSpeed())).append("${command.weather.meterspersecond} ")
                     .append("`\n"));
@@ -318,9 +325,9 @@ public class Weather implements Command {
 
         return "`" + String.format("%02d", date.getDayOfMonth()) + " " + getDayOfWeek(date, lang) + " " +
                 getWeatherEmoji(max.getWeather().get(0).getId()) + " " +
-                String.format("%-" + spaceCount + "s", String.format("%+.0f", max.getMain().getTemp()) + "°") +
+                String.format("%-" + spaceCount + "s", String.format(TEMPERATURE_CAPTION_FORMAT, max.getMain().getTemp()) + "°") +
                 getWeatherEmoji(min.getWeather().get(0).getId()) + " " +
-                String.format("%+.0f", min.getMain().getTemp()) + "°" + "`\n";
+                String.format(TEMPERATURE_CAPTION_FORMAT, min.getMain().getTemp()) + "°" + "`\n";
     }
 
     private int getSpaceCount(List<List<WeatherForecastData>> forecastListList) {
@@ -348,18 +355,7 @@ public class Weather implements Command {
             return "";
         }
 
-        String[] directions = {
-                Emoji.DOWN_ARROW.getSymbol(), // с севера from north
-                Emoji.DOWN_LEFT_ARROW.getSymbol(),
-                Emoji.LEFT_ARROW.getSymbol(), //с востока from east
-                Emoji.UP_LEFT_ARROW.getSymbol(),
-                Emoji.UP_ARROW.getSymbol(), //с юга from south
-                Emoji.UP_RIGHT_ARROW.getSymbol(),
-                Emoji.RIGHT_ARROW.getSymbol(), //с запада from west
-                Emoji.DOWN_RIGHT_ARROW.getSymbol()
-        };
-
-        return directions[ (int)Math.round((  ((double) degree % 360) / 45)) % 8 ];
+        return WIND_DIRECTIONS[(int)Math.round((((double) degree % 360) / 45)) % 8];
     }
 
     /**
@@ -371,11 +367,11 @@ public class Weather implements Command {
     private String getWeatherEmoji(Integer weatherId) {
         if (weatherId >= 200 && weatherId < 300) {
             return Emoji.ZAP.getSymbol();
-        } else if (weatherId >= 300 && weatherId < 400) {
+        } else if (weatherId >= 300 && weatherId <= 400) {
             return Emoji.UMBRELLA.getSymbol();
         } else if (weatherId >= 500 && weatherId < 600) {
             return Emoji.UMBRELLA_WITH_RAIN_DROPS.getSymbol();
-        } else if (weatherId >= 600 && weatherId < 700) {
+        } else if (weatherId >= 600 && weatherId <= 700) {
             return Emoji.SNOWFLAKE.getSymbol();
         } else if (weatherId.equals(701) || weatherId.equals(741)) {
             return "\uD83C\uDF2B";
@@ -394,15 +390,8 @@ public class Weather implements Command {
         }
     }
 
-    /**
-     * Getting precipitation string of weather.
-     *
-     * @param precipitations precipitations data.
-     * @param hours count of hours.
-     * @param rain rain?
-     * @return precipitation info.
-     */
-    private String getPrecipitations(Precipitations precipitations, Integer hours, boolean rain, String lang) {
+
+    private String getPrecipitations(HourlyForecast precipitations, Integer hours, boolean rain, String lang) {
         String emoji;
         if (rain) {
             emoji = Emoji.DROPLET.getSymbol();
@@ -445,7 +434,8 @@ public class Weather implements Command {
     }
 
     @Data
-    private static class WeatherForecast {
+    @Accessors(chain = true)
+    public static class WeatherForecast {
         private String cod;
         private Integer message;
         private Integer cnt;
@@ -455,14 +445,15 @@ public class Weather implements Command {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class WeatherForecastData {
+    @Accessors(chain = true)
+    public static class WeatherForecastData {
         private Integer dt;
         private Main main;
         private List<WeatherData> weather;
         private Clouds clouds;
         private Wind wind;
-        private Rain rain;
-        private Snow snow;
+        private HourlyForecast rain;
+        private HourlyForecast snow;
         private Integer visibility;
         private Integer pop;
         @JsonIgnore
@@ -472,22 +463,9 @@ public class Weather implements Command {
         private LocalDateTime normalizedDate;
     }
 
-    private static class Rain extends Precipitations {}
-
-    private static class Snow extends Precipitations {}
-
     @Data
-    private static class Precipitations {
-        @JsonProperty("1h")
-        private Double oneHours;
-        @JsonProperty("3h")
-        private Double threeHours;
-        @JsonProperty("6h")
-        private Double sixHours;
-    }
-
-    @Data
-    private static class City {
+    @Accessors(chain = true)
+    public static class City {
         private Integer id;
         private String name;
         private Coord coord;
@@ -499,7 +477,8 @@ public class Weather implements Command {
     }
 
     @Data
-    private static class WeatherCurrent {
+    @Accessors(chain = true)
+    public static class WeatherCurrent {
         private Coord coord;
         private List<WeatherData> weather;
         private String base;
@@ -507,8 +486,8 @@ public class Weather implements Command {
         private Double visibility;
         private Wind wind;
         private Clouds clouds;
-        private Rain rain;
-        private Snow snow;
+        private HourlyForecast rain;
+        private HourlyForecast snow;
         private Integer dt;
         private Sys sys;
         private Integer timezone;
@@ -518,13 +497,26 @@ public class Weather implements Command {
     }
 
     @Data
-    private static class Coord {
+    @Accessors(chain = true)
+    public static class HourlyForecast {
+        @JsonProperty("1h")
+        private Double oneHours;
+        @JsonProperty("3h")
+        private Double threeHours;
+        @JsonProperty("6h")
+        private Double sixHours;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class Coord {
         private Double lon;
         private Double lat;
     }
 
     @Data
-    private static class Main {
+    @Accessors(chain = true)
+    public static class Main {
         private Double temp;
 
         @JsonProperty("feels_like")
@@ -551,19 +543,22 @@ public class Weather implements Command {
     }
 
     @Data
-    private static class Wind {
+    @Accessors(chain = true)
+    public static class Wind {
         private Double speed;
         private Integer deg;
         private Double gust;
     }
 
     @Data
-    private static class Clouds {
+    @Accessors(chain = true)
+    public static class Clouds {
         private Integer all;
     }
 
     @Data
-    private static class Sys {
+    @Accessors(chain = true)
+    public static class Sys {
         private Integer type;
         private Integer id;
         private Double message;
@@ -573,7 +568,8 @@ public class Weather implements Command {
     }
 
     @Data
-    private static class WeatherData {
+    @Accessors(chain = true)
+    public static class WeatherData {
         private Integer id;
         private String main;
         private String description;
