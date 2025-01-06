@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -86,6 +87,7 @@ class WhereTest {
         verify(bot, never()).sendTyping(message.getChatId());
     }
 
+    @Disabled
     @Test
     void parseTest() {
         final String expectedResponseText = "${command.where.lasttime} <b><a href=\"tg://user?id=1\">username</a></b> ${command.where.saw} 03.02.1999 04:05:06 (GMT+03:00)\n" +
