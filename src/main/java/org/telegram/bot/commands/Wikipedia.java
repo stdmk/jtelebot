@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -27,10 +29,8 @@ import org.telegram.bot.utils.TextUtils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.cutHtmlTags;
 import static org.telegram.bot.utils.TextUtils.reduceSpaces;
@@ -42,6 +42,9 @@ public class Wikipedia implements Command {
 
     private static final String WIKI_API_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=";
     private static final String WIKI_SEARCH_URL = "https://%s.wikipedia.org/w/api.php?format=json&action=opensearch&search=";
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setFormattingStyle(FormattingStyle.HTML)
+            .setWebPagePreview(false);
 
     private final Bot bot;
     private final WikiService wikiService;
@@ -78,9 +81,7 @@ public class Wikipedia implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(new ResponseSettings()
-                        .setFormattingStyle(FormattingStyle.HTML)
-                        .setWebPagePreview(false)));
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
     }
 
     private String getWikiTextById(String id) {
@@ -140,15 +141,13 @@ public class Wikipedia implements Command {
      * @return formatted text with list of pages.
      */
     private String buildSearchResponseText(List<String> titles, String lang) {
-        StringBuilder buf = new StringBuilder();
-        titles
+        return titles
                 .stream()
                 .map(title -> getWiki(title, lang))
                 .filter(Objects::nonNull)
                 .map(wikiService::save)
-                .forEach(wiki -> buf.append(wiki.getTitle()).append("\n").append("/wiki_").append(wiki.getPageId()).append("\n"));
-
-        return buf.toString();
+                .map(wiki -> wiki.getTitle() + "\n/wiki_" + wiki.getPageId())
+                .collect(Collectors.joining("\n"));
     }
 
     /**
@@ -159,24 +158,18 @@ public class Wikipedia implements Command {
      * @return list of found titles.
      */
     private List<String> searchPageTitles(String searchText, String lang) {
-        List<String> titles = new ArrayList<>();
-
         String url = String.format(WIKI_SEARCH_URL, lang) + searchText;
         ResponseEntity<Object[]> response = botRestTemplate.getForEntity(url, Object[].class);
         Object[] responseBody = response.getBody();
 
-        if (responseBody == null) {
-            return titles;
+        if (responseBody != null && responseBody[1] instanceof List) {
+                return ((List<?>) responseBody[1])
+                        .stream()
+                        .map(String.class::cast)
+                        .toList();
         }
 
-        if (responseBody[1] instanceof List) {
-            titles = ((List<?>) responseBody[1])
-                    .stream()
-                    .map(String.class::cast)
-                    .toList();
-        }
-
-        return titles;
+        return Collections.emptyList();
     }
 
     /**
@@ -194,41 +187,38 @@ public class Wikipedia implements Command {
         } catch (RestClientException e) {
             return null;
         }
-        WikiData wikiData = response.getBody();
 
-        if (wikiData == null) {
-            return null;
-        }
-
-        WikiPage wikiPage;
-        try {
-            wikiPage = wikiData.getQuery().getPages().getWikiPage();
-        } catch (Exception e) {
-            return null;
-        }
-
-        return new Wiki()
-                .setPageId(wikiPage.getPageid())
-                .setTitle(wikiPage.getTitle())
-                .setText(cutHtmlTags(wikiPage.getExtract()));
+        return Optional.of(response)
+                .map(HttpEntity::getBody)
+                .map(WikiData::getQuery)
+                .map(WikiQuery::getPages)
+                .map(WikiPages::getWikiPage)
+                .map(wikiPage -> new Wiki()
+                        .setPageId(wikiPage.getPageid())
+                        .setTitle(wikiPage.getTitle())
+                        .setText(cutHtmlTags(wikiPage.getExtract())))
+                .orElse(null);
     }
 
     @Data
-    private static class WikiData {
+    @Accessors(chain = true)
+    public static class WikiData {
         @JsonIgnore
         private Object batchcomplete;
         private WikiQuery query;
     }
 
     @Data
-    private static class WikiQuery {
+    @Accessors(chain = true)
+    public static class WikiQuery {
         @JsonIgnore
         private Object normalized;
         private WikiPages pages;
     }
 
     @Data
-    private static class WikiPages {
+    @Accessors(chain = true)
+    public static class WikiPages {
         private WikiPage wikiPage;
 
         @JsonAnySetter
@@ -248,7 +238,8 @@ public class Wikipedia implements Command {
     }
 
     @Data
-    private static class WikiPage {
+    @Accessors(chain = true)
+    public static class WikiPage {
         private Integer pageid;
         private Integer ns;
         private String title;
