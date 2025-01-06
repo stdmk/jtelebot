@@ -23,6 +23,10 @@ public class PropertiesConfig {
     private String googleToken;
     private String googleTranslateToken;
     private String screenshotMachineToken;
+    private String screenshotMachineDevice;
+    private String screenshotMachineDimension;
+    private String screenshotMachineFormat;
+    private String screenshotMachineTimeoutMs;
     private String wolframAlphaToken;
     private String kinopoiskToken;
     private String chatGPTToken;

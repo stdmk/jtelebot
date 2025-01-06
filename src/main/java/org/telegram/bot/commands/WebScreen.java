@@ -5,15 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
@@ -29,14 +28,7 @@ import java.util.List;
 @Slf4j
 public class WebScreen implements Command {
 
-    private static final String DIMENSION = "1350x950";
-    private static final String TIMEOUT_MS = "5000";
-    private static final String API_URL = "https://api.screenshotmachine.com?" +
-            "device=desktop" +
-            "&dimension=" + DIMENSION +
-            "&format=png" +
-            "&cacheLimit=0" +
-            "&timeout=" + TIMEOUT_MS;
+    private static final String API_URL_TEMPLATE = "https://api.screenshotmachine.com?device=%s&dimension=%s&format=%s&cacheLimit=0&timeout=%s&key=%s&url=%s";
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -47,8 +39,7 @@ public class WebScreen implements Command {
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
-        String token = propertiesConfig.getScreenshotMachineToken();
-        if (StringUtils.isEmpty(token)) {
+        if (StringUtils.isEmpty(propertiesConfig.getScreenshotMachineToken())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
@@ -58,27 +49,22 @@ public class WebScreen implements Command {
         String commandArgument = commandWaitingService.getText(message);
 
         URL url;
-        if (commandArgument == null) {
+        if (commandArgument != null) {
+            url = findFirstUrlInText(commandArgument);
+        } else {
             Message replyToMessage = message.getReplyToMessage();
-            if (replyToMessage != null) {
-                if (replyToMessage.hasText()) {
-                    url = findFirstUrlInText(replyToMessage.getText());
-                } else {
-                    commandWaitingService.add(message, this.getClass());
-                    return returnResponse(new TextResponse(message).setText("${command.webscreen.commandwaitingstart}"));
-                }
+            if (replyToMessage != null && replyToMessage.hasText()) {
+                url = findFirstUrlInText(replyToMessage.getText());
             } else {
                 commandWaitingService.add(message, this.getClass());
                 return returnResponse(new TextResponse(message).setText("${command.webscreen.commandwaitingstart}"));
             }
-        } else {
-            url = findFirstUrlInText(commandArgument);
         }
 
         log.debug("Request to get screen of url: {}", url);
         InputStream screen;
         try {
-            screen = networkUtils.getFileFromUrlWithLimit(API_URL + "&key=" + token + "&url=" + url);
+            screen = networkUtils.getFileFromUrlWithLimit(buildApiUrl(url));
         } catch (IOException e) {
             log.debug("Error getting screen ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -96,6 +82,16 @@ public class WebScreen implements Command {
         } catch (MalformedURLException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
+    }
+
+    private String buildApiUrl(URL url) {
+        return String.format(API_URL_TEMPLATE,
+                propertiesConfig.getScreenshotMachineDevice(),
+                propertiesConfig.getScreenshotMachineDimension(),
+                propertiesConfig.getScreenshotMachineFormat(),
+                propertiesConfig.getScreenshotMachineTimeoutMs(),
+                propertiesConfig.getScreenshotMachineToken(),
+                url);
     }
 
 }
