@@ -21,9 +21,9 @@ import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.UserStatsService;
 import org.telegram.bot.utils.TelegramUtils;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
@@ -40,6 +40,7 @@ public class Where implements Command {
     private final UserService userService;
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
+    private final Clock clock;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -49,7 +50,6 @@ public class Where implements Command {
         }
 
         Integer messageId = message.getMessageId();
-
         String commandArgument = commandWaitingService.getText(message);
 
         String responseText;
@@ -58,10 +58,10 @@ public class Where implements Command {
             responseText = "${command.where.commandwaitingstart}";
         } else {
             User user = userService.get(commandArgument);
-            Chat chat = new Chat().setChatId(message.getChatId());
+            Chat chat = message.getChat();
 
             if (user == null) {
-                return Collections.emptyList();
+                return returnResponse();
             }
 
             bot.sendTyping(message.getChatId());
@@ -75,7 +75,7 @@ public class Where implements Command {
 
             responseText = "${command.where.lasttime} <b>" + getLinkToUser(user, true) +
                     "</b> ${command.where.saw} " + formatDateTime(dateOfMessage) + " (" + zoneId.getId() + ")\n" +
-                    "${command.where.silent} " + deltaDatesToString(dateOfMessage, LocalDateTime.now());
+                    "${command.where.silent} " + deltaDatesToString(dateOfMessage, LocalDateTime.now(clock));
         }
 
         return returnResponse(new TextResponse()
