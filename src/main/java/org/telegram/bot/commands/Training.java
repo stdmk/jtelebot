@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -45,6 +46,7 @@ public class Training implements Command {
     private final SpeechService speechService;
     private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
+    private final Clock clock;
 
     private static final String COMMAND_NAME = "training";
     private static final String ADD_COMMAND = "_add";
@@ -70,6 +72,8 @@ public class Training implements Command {
     private static final String DOWNLOAD_REPORT_ALL_TIME_COMMAND = DOWNLOAD_COMMAND + "all";
     private static final String CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND = COMMAND_NAME + DOWNLOAD_REPORT_ALL_TIME_COMMAND;
 
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings().setFormattingStyle(FormattingStyle.HTML);
+
     @Override
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
@@ -85,199 +89,221 @@ public class Training implements Command {
             commandArgument = message.getCommandArgument();
         }
 
-        Keyboard keyboard = null;
-        String responseText;
+        Response response;
         if (commandArgument != null) {
             if (commandArgument.startsWith(ADD_COMMAND)) {
-                Long trainingId = null;
-                try {
-                    trainingId = Long.parseLong(commandArgument.substring(ADD_COMMAND.length()));
-                } catch (NumberFormatException ignored) {
-                    // not training id
-                }
-
-                LocalDateTime dateTimeNow = LocalDateTime.now();
-                if (trainingId != null && message.isCallback()) {
-                    org.telegram.bot.domain.entities.Training training = trainingService.get(user, trainingId);
-                    if (training.getTimeStart().isAfter(dateTimeNow.toLocalTime())) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-
-                    TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
-                    if (subscription != null) {
-                        subscription.setCountLeft(subscription.getCountLeft() - 1);
-                        trainSubscriptionService.save(subscription);
-                    }
-
-                    trainingEventService.save(new TrainingEvent()
-                            .setUser(user)
-                            .setTraining(training)
-                            .setTrainSubscription(subscription)
-                            .setDateTime(dateTimeNow)
-                            .setCanceled(false)
-                            .setUnplanned(true));
-
-                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED) + "\n" + BORDER + getMainMenuText(user);
-                    keyboard = getMainKeyboard();
-                } else {
-                    responseText = "<b>${command.training.choosetraining}:</b>";
-                    List<org.telegram.bot.domain.entities.Training> trainingList = trainingService.get(user);
-                    if (trainingList.isEmpty()) {
-                        responseText = responseText + "${command.training.emptynomenclature} /set";
-                        keyboard = getMainKeyboard();
-                    } else {
-                        keyboard = getKeyboardWithTrainingList(trainingList);
-                    }
-                }
+                response = add(commandArgument, user, message.isCallback());
             } else if (commandArgument.startsWith(CANCEL_COMMAND)) {
-                commandWaitingService.remove(chat, user);
-
-                String cancellationReason = null;
-                String eventIdString;
-                if (commandArgument.contains(CANCEL_REASON_COMMAND)) {
-                    int cancellationReasonCommandIndex = commandArgument.indexOf(CANCEL_REASON_COMMAND);
-                    eventIdString = commandArgument.substring(CANCEL_COMMAND.length(), cancellationReasonCommandIndex);
-                    cancellationReason = commandArgument.substring(cancellationReasonCommandIndex + 4);
-                } else {
-                    eventIdString = commandArgument.substring(CANCEL_COMMAND.length());
-                }
-
-                long eventId;
-                try {
-                    eventId = Long.parseLong(eventIdString);
-                } catch (NumberFormatException e) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
-
-                if (cancellationReason != null) {
-                    TrainingEvent trainingEvent = trainingEventService.get(user, eventId);
-                    if (trainingEvent == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                    }
-
-                    TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
-                    if (subscription != null) {
-                        subscription.setCountLeft(subscription.getCountLeft() + trainingEvent.getTraining().getCost());
-                        trainSubscriptionService.save(subscription);
-                    }
-
-                    trainingEvent.setCanceled(true);
-                    trainingEvent.setCancellationReason(cancellationReason);
-
-                    trainingEventService.save(trainingEvent);
-
-                    responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
-                } else {
-                    commandWaitingService.add(chat, user, Training.class, COMMAND_NAME + CANCEL_COMMAND + eventId + CANCEL_REASON_COMMAND);
-                    responseText = "${command.training.rejectionreason}";
-                }
+                response = cancel(commandArgument, chat, user);
             } else if (commandArgument.startsWith(REPORT_COMMAND)) {
-                int page = 0;
-                LocalDate dateNow = LocalDate.now();
-                String reportDownloadCommand = null;
-
-                if (commandArgument.startsWith(REPORT_ALL_TIME_COMMAND)) {
-                    responseText = getReportStatistic(trainingEventService.getAll(user));
-                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND;
-                } else if (commandArgument.startsWith(REPORT_YEAR_COMMAND)) {
-                    responseText = getReportStatistic(trainingEventService.getAllOfYear(user, dateNow.getYear()));
-                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_YEAR_COMMAND;
-                } else if (commandArgument.startsWith(REPORT_MONTH_COMMAND)) {
-                    responseText = getReportStatistic(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()));
-                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_MONTH_COMMAND;
-                } else if (commandArgument.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
-                    long subscriptionId;
-                    try {
-                        subscriptionId = Long.parseLong(commandArgument.substring(REPORT_SUBSCRIPTION_COMMAND.length()));
-                    } catch (NumberFormatException e) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                    }
-
-                    TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
-                    if (subscription == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                    }
-
-                    responseText = getReportStatistic(trainingEventService.getAll(user, subscription));
-                    reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND + subscriptionId;
-                } else {
-                    try {
-                        page = Integer.parseInt(commandArgument.substring(REPORT_COMMAND.length()));
-                    } catch (NumberFormatException ignored) {
-                        // not page
-                    }
-
-                    responseText = "<b>${command.training.choosereport}:</b>\n";
-                }
-
-                keyboard = getReportKeyboard(user, page, reportDownloadCommand);
+                response = report(commandArgument, user);
             } else if (commandArgument.startsWith(DOWNLOAD_COMMAND)) {
-                LocalDate dateNow = LocalDate.now();
                 String languageCode = languageResolver.getChatLanguageCode(message, user);
-                File file;
-                String caption;
-
-                if (commandArgument.startsWith(DOWNLOAD_REPORT_ALL_TIME_COMMAND)) {
-                    file = getReportFile(trainingEventService.getAll(user), "all", languageCode);
-                    caption = "{command.training.alltimereport}";
-                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_YEAR_COMMAND)) {
-                    int year = dateNow.getYear();
-                    file = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year), languageCode);
-                    caption = "{command.training.yearreport} " + year;
-                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
-                    String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, languageResolver.getLocale(chat));
-                    file = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName, languageCode);
-                    caption = "{command.training.monthly} " + monthName;
-                } else if (commandArgument.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
-                    long subscriptionId;
-                    try {
-                        subscriptionId = Long.parseLong(commandArgument.substring(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND.length()));
-                    } catch (NumberFormatException e) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                    }
-
-                    TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
-                    if (subscription == null) {
-                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                    }
-
-                    String subscriptionName = formatDate(subscription.getStartDate()) + " — " +
-                            formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
-                            " (" + subscription.getCount() + ")";
-                    file = getReportFile(trainingEventService.getAll(user, subscription), subscriptionName, languageCode);
-                    caption = "${command.training.subscriptionreport} " + subscriptionName;
-                } else {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                return returnResponse(new FileResponse(message)
-                        .addFile(file)
-                        .setText(caption));
+                response = download(commandArgument, chat, user, languageCode);
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } else {
-            responseText = getMainMenuText(user);
-            keyboard = getMainKeyboard();
+            response = new Response(getMainMenuText(user), getMainKeyboard());
+        }
+
+        if (response.hasFile()) {
+            return returnResponse(new FileResponse(message)
+                    .addFile(response.getFile())
+                    .setText(response.getText()));
         }
 
         if (message.isCallback()) {
             return returnResponse(new EditResponse(message)
-                    .setText(responseText)
-                    .setKeyboard(keyboard)
-                    .setResponseSettings(new ResponseSettings()
-                            .setFormattingStyle(FormattingStyle.HTML)));
+                    .setText(response.getText())
+                    .setKeyboard(response.getKeyboard())
+                    .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
         }
 
         return returnResponse(new TextResponse(message)                    
-                .setText(responseText)
-                .setKeyboard(keyboard)
-                .setResponseSettings(new ResponseSettings()
-                        .setFormattingStyle(FormattingStyle.HTML)));
+                .setText(response.getText())
+                .setKeyboard(response.getKeyboard())
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
+    }
+
+    private Response add(String commandArgument, User user, boolean callback) {
+        Long trainingId = null;
+        try {
+            trainingId = Long.parseLong(commandArgument.substring(ADD_COMMAND.length()));
+        } catch (NumberFormatException ignored) {
+            // not training id
+        }
+
+        if (trainingId != null && callback) {
+            LocalDateTime dateTimeNow = LocalDateTime.now(clock);
+            org.telegram.bot.domain.entities.Training training = trainingService.get(user, trainingId);
+            if (training.getTimeStart().isAfter(dateTimeNow.toLocalTime())) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
+            if (subscription != null) {
+                subscription.setCountLeft(subscription.getCountLeft() - 1);
+                trainSubscriptionService.save(subscription);
+            }
+
+            trainingEventService.save(new TrainingEvent()
+                    .setUser(user)
+                    .setTraining(training)
+                    .setTrainSubscription(subscription)
+                    .setDateTime(dateTimeNow)
+                    .setCanceled(false)
+                    .setUnplanned(true));
+
+            return new Response(
+                    speechService.getRandomMessageByTag(BotSpeechTag.SAVED) + "\n" + BORDER + getMainMenuText(user),
+                    getMainKeyboard());
+        } else {
+            String responseText = "<b>${command.training.choosetraining}:</b>";
+            Keyboard keyboard;
+
+            List<org.telegram.bot.domain.entities.Training> trainingList = trainingService.get(user);
+            if (trainingList.isEmpty()) {
+                responseText = responseText + "${command.training.emptynomenclature} /set";
+                keyboard = getMainKeyboard();
+            } else {
+                keyboard = getKeyboardWithTrainingList(trainingList);
+            }
+
+            return new Response(responseText, keyboard);
+        }
+    }
+
+    private Response cancel(String commandArgument, Chat chat, User user) {
+        commandWaitingService.remove(chat, user);
+
+        String cancellationReason = null;
+        String eventIdString;
+        if (commandArgument.contains(CANCEL_REASON_COMMAND)) {
+            int cancellationReasonCommandIndex = commandArgument.indexOf(CANCEL_REASON_COMMAND);
+            eventIdString = commandArgument.substring(CANCEL_COMMAND.length(), cancellationReasonCommandIndex);
+            cancellationReason = commandArgument.substring(cancellationReasonCommandIndex + 4);
+        } else {
+            eventIdString = commandArgument.substring(CANCEL_COMMAND.length());
+        }
+
+        long eventId;
+        try {
+            eventId = Long.parseLong(eventIdString);
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        if (cancellationReason != null) {
+            TrainingEvent trainingEvent = trainingEventService.get(user, eventId);
+            if (trainingEvent == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            TrainSubscription subscription = trainSubscriptionService.getFirstActive(user);
+            if (subscription != null) {
+                subscription.setCountLeft(subscription.getCountLeft() + trainingEvent.getTraining().getCost());
+                trainSubscriptionService.save(subscription);
+            }
+
+            trainingEvent.setCanceled(true);
+            trainingEvent.setCancellationReason(cancellationReason);
+
+            trainingEventService.save(trainingEvent);
+
+            return new Response(speechService.getRandomMessageByTag(BotSpeechTag.SAVED));
+        } else {
+            commandWaitingService.add(chat, user, Training.class, COMMAND_NAME + CANCEL_COMMAND + eventId + CANCEL_REASON_COMMAND);
+            return new Response("${command.training.rejectionreason}");
+        }
+    }
+
+    private Response report(String commandArgument, User user) {
+        int page = 0;
+        String reportDownloadCommand = null;
+
+        String responseText;
+        if (commandArgument.startsWith(REPORT_ALL_TIME_COMMAND)) {
+            responseText = getReportStatistic(trainingEventService.getAll(user));
+            reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_ALL_COMMAND;
+        } else if (commandArgument.startsWith(REPORT_YEAR_COMMAND)) {
+            responseText = getReportStatistic(trainingEventService.getAllOfYear(user, LocalDate.now(clock).getYear()));
+            reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_YEAR_COMMAND;
+        } else if (commandArgument.startsWith(REPORT_MONTH_COMMAND)) {
+            responseText = getReportStatistic(trainingEventService.getAllOfMonth(user, LocalDate.now(clock).getMonthValue()));
+            reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_MONTH_COMMAND;
+        } else if (commandArgument.startsWith(REPORT_SUBSCRIPTION_COMMAND)) {
+            long subscriptionId;
+            try {
+                subscriptionId = Long.parseLong(commandArgument.substring(REPORT_SUBSCRIPTION_COMMAND.length()));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
+            if (subscription == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            responseText = getReportStatistic(trainingEventService.getAll(user, subscription));
+            reportDownloadCommand = CALLBACK_DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND + subscriptionId;
+        } else {
+            try {
+                page = Integer.parseInt(commandArgument.substring(REPORT_COMMAND.length()));
+            } catch (NumberFormatException ignored) {
+                // not page
+            }
+
+            responseText = "<b>${command.training.choosereport}:</b>\n";
+        }
+
+        return new Response(responseText, getReportKeyboard(user, page, reportDownloadCommand));
+    }
+
+    private Response download(String commandArgument, Chat chat, User user, String lang) {
+        File file;
+        String caption;
+
+        if (commandArgument.startsWith(DOWNLOAD_REPORT_ALL_TIME_COMMAND)) {
+            file = getReportFile(trainingEventService.getAll(user), "all", lang);
+            caption = "{command.training.alltimereport}";
+        } else if (commandArgument.startsWith(DOWNLOAD_REPORT_YEAR_COMMAND)) {
+            LocalDate dateNow = LocalDate.now(clock);
+            int year = dateNow.getYear();
+            file = getReportFile(trainingEventService.getAllOfYear(user, year), String.valueOf(year), lang);
+            caption = "{command.training.yearreport} " + year;
+        } else if (commandArgument.startsWith(DOWNLOAD_REPORT_MONTH_COMMAND)) {
+            LocalDate dateNow = LocalDate.now(clock);
+            String monthName = dateNow.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, languageResolver.getLocale(chat));
+            file = getReportFile(trainingEventService.getAllOfMonth(user, dateNow.getMonthValue()), monthName, lang);
+            caption = "{command.training.monthly} " + monthName;
+        } else if (commandArgument.startsWith(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND)) {
+            long subscriptionId;
+            try {
+                subscriptionId = Long.parseLong(commandArgument.substring(DOWNLOAD_REPORT_SUBSCRIPTION_COMMAND.length()));
+            } catch (NumberFormatException e) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            TrainSubscription subscription = trainSubscriptionService.get(subscriptionId, user);
+            if (subscription == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            String subscriptionName = formatDate(subscription.getStartDate()) + " — " +
+                                      formatDate(subscription.getStartDate().plus(subscription.getPeriod())) +
+                                      " (" + subscription.getCount() + ")";
+            file = getReportFile(trainingEventService.getAll(user, subscription), subscriptionName, lang);
+            caption = "${command.training.subscriptionreport} " + subscriptionName;
+        } else {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        return new Response(caption, file);
     }
 
     private File getReportFile(List<TrainingEvent> trainingEventList, String fileName, String lang) {
-        StringBuilder buf = new StringBuilder("Отчёт " + fileName + "\n\n");
+        StringBuilder buf = new StringBuilder("{command.training.report} " + fileName + "\n\n");
 
         buf.append(cutHtmlTags(getReportStatistic(trainingEventList))).append(BORDER).append("\n");
 
@@ -386,7 +412,7 @@ public class Training implements Command {
     }
 
     private String getMainMenuText(User user) {
-        LocalDate dateNow = LocalDate.now();
+        LocalDate dateNow = LocalDate.now(clock);
 
         DayOfWeek dayOfWeekToday = DayOfWeek.from(dateNow);
 
@@ -472,7 +498,7 @@ public class Training implements Command {
             return null;
         }
 
-        LocalDate expirationDate = LocalDate.now();
+        LocalDate expirationDate = LocalDate.now(clock);
         float countLeft = subscription.getCountLeft();
 
         while (countLeft >= 0) {
@@ -490,7 +516,6 @@ public class Training implements Command {
             expirationDate = expirationDate.plusDays(1);
         }
 
-
         return expirationDate;
     }
 
@@ -502,7 +527,7 @@ public class Training implements Command {
     }
 
     private Keyboard getKeyboardWithTrainingList(List<org.telegram.bot.domain.entities.Training> trainingList) {
-        LocalTime timeNow = LocalTime.now();
+        LocalTime timeNow = LocalTime.now(clock);
         List<List<KeyboardButton>> rows = new ArrayList<>();
         trainingList
                 .stream()
@@ -566,6 +591,7 @@ public class Training implements Command {
 
     private List<KeyboardButton> getTrainingMainInfoButtonRow() {
         List<KeyboardButton> infoButtonRow = new ArrayList<>();
+
         KeyboardButton infoButton = new KeyboardButton();
         infoButton.setName(Emoji.WEIGHT_LIFTER.getSymbol() + "${command.training.button.trainings}");
         infoButton.setCallback(COMMAND_NAME);
@@ -586,4 +612,35 @@ public class Training implements Command {
                         .setName(Emoji.GEAR.getSymbol() + "${command.training.button.settings}")
                         .setCallback("${setter.command} ${setter.set.trainings}"));
     }
+
+    @Getter
+    @RequiredArgsConstructor
+    private static class Response {
+        private final String text;
+        private final Keyboard keyboard;
+        private final File file;
+
+        private Response(String text, Keyboard keyboard) {
+            this.text = text;
+            this.keyboard = keyboard;
+            this.file = null;
+        }
+
+        private Response(String text, File file) {
+            this.text = text;
+            this.keyboard = null;
+            this.file = file;
+        }
+
+        private Response(String text) {
+            this.text = text;
+            this.keyboard = null;
+            this.file = null;
+        }
+
+        public boolean hasFile() {
+            return this.file != null;
+        }
+    }
+
 }
