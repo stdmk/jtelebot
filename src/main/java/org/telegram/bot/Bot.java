@@ -107,18 +107,27 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
         userStatsService.updateEntitiesInfo(message);
 
-        processRequest(botRequest, chatEntity, userEntity, userAccessLevel);
+        processRequest(botRequest, chatEntity, userEntity, userAccessLevel, true);
+    }
+
+    public void processRequestWithoutAnalyze(BotRequest botRequest) {
+        Message message = botRequest.getMessage();
+        AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getUser().getUserId(), message.getChatId());
+
+        processRequest(botRequest, message.getChat(), message.getUser(), userAccessLevel, false);
     }
 
     public void processRequest(BotRequest botRequest) {
         Message message = botRequest.getMessage();
         AccessLevel userAccessLevel = userService.getCurrentAccessLevel(message.getUser().getUserId(), message.getChatId());
 
-        processRequest(botRequest, message.getChat(), message.getUser(), userAccessLevel);
+        processRequest(botRequest, message.getChat(), message.getUser(), userAccessLevel, true);
     }
 
-    public void processRequest(BotRequest botRequest, Chat chat, org.telegram.bot.domain.entities.User user, AccessLevel userAccessLevel) {
-        analyzeMessage(botRequest, userAccessLevel);
+    public void processRequest(BotRequest botRequest, Chat chat, org.telegram.bot.domain.entities.User user, AccessLevel userAccessLevel, boolean analyze) {
+        if (analyze) {
+            analyzeMessage(botRequest, userAccessLevel);
+        }
 
         CommandProperties commandProperties = getCommandProperties(chat, user, botRequest.getMessage().getText());
         if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
@@ -189,10 +198,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         }
 
         return null;
-    }
-
-    public void parseAsync(BotRequest botRequest, Command command) {
-        parser.parseAsync(botRequest, command);
     }
 
     public String getBotUsername() {

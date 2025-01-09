@@ -2,11 +2,9 @@ package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -16,7 +14,8 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.*;
+import org.telegram.bot.services.AliasService;
+import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.ObjectCopier;
 
 import java.util.*;
@@ -29,14 +28,9 @@ public class Alias implements Command, MessageAnalyzer {
 
     public static final int MAX_COMMANDS_IN_ALIAS = 5;
 
-    private final ApplicationContext context;
     private final Bot bot;
     private final ObjectCopier objectCopier;
-
     private final AliasService aliasService;
-    private final UserService userService;
-    private final UserStatsService userStatsService;
-    private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
 
     @Override
@@ -106,11 +100,11 @@ public class Alias implements Command, MessageAnalyzer {
     @Override
     public List<BotResponse> analyze(BotRequest request) {
         Message message = request.getMessage();
-        String textMessage = message.getText();
-        if (textMessage == null) {
+        if (!message.hasText()) {
             return returnResponse();
         }
 
+        String textMessage = message.getText();
         Chat chat = request.getMessage().getChat();
         User user = request.getMessage().getUser();
 
@@ -130,11 +124,11 @@ public class Alias implements Command, MessageAnalyzer {
             if (aliasValueList.size() > 1) {
                 List<BotResponse> resultList = new ArrayList<>(MAX_COMMANDS_IN_ALIAS);
                 for (String aliasValue : aliasValueList) {
-                    resultList.addAll(processUpdate(request, chat, user, getMessageText(aliasValue, argument)));
+                    resultList.addAll(processRequest(request, getMessageText(aliasValue, argument)));
                 }
                 return resultList;
             } else {
-                return processUpdate(request, chat, user, getMessageText(alias.getValue(), argument));
+                return processRequest(request, getMessageText(alias.getValue(), argument));
             }
         }
 
@@ -160,24 +154,15 @@ public class Alias implements Command, MessageAnalyzer {
         return List.of(aliasValue);
     }
 
-    private List<BotResponse> processUpdate(BotRequest botRequest, Chat chat, User user, String messageText) {
+    private List<BotResponse> processRequest(BotRequest botRequest, String messageText) {
         BotRequest newBotRequest = objectCopier.copyObject(botRequest, BotRequest.class);
         if (newBotRequest == null) {
-            log.error("Failed to get a copy of update");
+            log.error("Failed to get a copy of request");
             return returnResponse();
         }
+        newBotRequest.getMessage().setText(messageText);
 
-        CommandProperties commandProperties = commandPropertiesService.findCommandInText(messageText, bot.getBotUsername());
-
-        if (commandProperties != null &&
-                (userService.isUserHaveAccessForCommand(
-                        userService.getCurrentAccessLevel(user.getUserId(), chat.getChatId()).getValue(),
-                        commandProperties.getAccessLevel()))) {
-            Message newMessage = newBotRequest.getMessage();
-            newMessage.setText(messageText);
-            userStatsService.incrementUserStatsCommands(chat, user);
-            bot.parseAsync(newBotRequest, (Command) context.getBean(commandProperties.getClassName()));
-        }
+        bot.processRequestWithoutAnalyze(newBotRequest);
 
         return returnResponse();
     }

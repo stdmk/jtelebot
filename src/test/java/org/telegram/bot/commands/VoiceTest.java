@@ -10,10 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
-import org.telegram.bot.domain.model.request.Attachment;
-import org.telegram.bot.domain.model.request.BotRequest;
-import org.telegram.bot.domain.model.request.Message;
-import org.telegram.bot.domain.model.request.MessageContentType;
+import org.telegram.bot.domain.entities.CommandProperties;
+import org.telegram.bot.domain.model.request.*;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
@@ -22,11 +20,14 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.speech.SpeechParseException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeNoApiResponseException;
+import org.telegram.bot.exception.speech.TooLongSpeechException;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.impl.SaluteSpeechSynthesizerImpl;
+import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
@@ -50,6 +51,8 @@ class VoiceTest {
     @Mock
     private CommandWaitingService commandWaitingService;
     @Mock
+    private CommandPropertiesService commandPropertiesService;
+    @Mock
     private SaluteSpeechSynthesizerImpl speechSynthesizer;
     @Mock
     private SpeechParser speechParser;
@@ -59,19 +62,21 @@ class VoiceTest {
     private BotStats botStats;
     @Mock
     private Bot bot;
+    @Mock
+    private ObjectCopier objectCopier;
 
     @InjectMocks
     private Voice voice;
 
     @Test
-    void analyzerequestWithoutVoiceTest() throws SpeechParseException {
+    void analyzeRequestWithoutVoiceTest() throws SpeechParseException {
         BotRequest requestFromGroup = getRequestFromGroup();
         voice.analyze(requestFromGroup);
         verify(speechParser, never()).parse(any(), anyInt());
     }
 
     @Test
-    void analyzeRequestWithVoiceAndTelegramApiException() throws SpeechParseException, TelegramApiException, IOException {
+    void analyzeRequestWithVoiceAndTelegramApiExceptionTest() throws SpeechParseException, TelegramApiException, IOException {
         BotRequest requestWithVoice = getRequestWithVoice();
         when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
 
@@ -82,7 +87,7 @@ class VoiceTest {
 
     @ParameterizedTest
     @MethodSource("provideTelegramExceptions")
-    void analyzeRequestWithTelegramException(Exception exception) throws TelegramApiException, IOException {
+    void analyzeRequestWithTelegramExceptionTest(Exception exception) throws TelegramApiException, IOException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("");
         Message message = request.getMessage();
@@ -105,7 +110,7 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceAndSpeechParseException() throws SpeechParseException, TelegramApiException, IOException {
+    void analyzeRequestWithVoiceAndSpeechParseExceptionTest() throws SpeechParseException, TelegramApiException, IOException {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
@@ -121,7 +126,40 @@ class VoiceTest {
     }
 
     @Test
-    void analyzerequestWithVoiceTest() throws SpeechParseException, TelegramApiException, IOException {
+    void analyzeRequestWithVoiceAndTooLongSpeechExceptionPrivateChatTest() throws SpeechParseException, TelegramApiException, IOException {
+        final String expectedResponseText = "${command.voice.speechistoolong}";
+        BotRequest requestWithVoice = getRequestWithVoice();
+        requestWithVoice.getMessage().getChat().setChatId(requestWithVoice.getMessage().getUser().getUserId());
+        byte[] file = "123".getBytes();
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new TooLongSpeechException("error"));
+
+        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
+    }
+
+    @Test
+    void analyzeRequestWithVoiceAndTooLongSpeechExceptionGroupChatTest() throws SpeechParseException, TelegramApiException, IOException {
+        BotRequest requestWithVoice = getRequestWithVoice();
+        byte[] file = "123".getBytes();
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new TooLongSpeechException("error"));
+
+        List<BotResponse> botResponses = voice.analyze(requestWithVoice);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
+    void analyzeRequestWithVoiceTest() throws SpeechParseException, TelegramApiException, IOException {
         final String expectedResponse = "response";
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
@@ -136,7 +174,55 @@ class VoiceTest {
         assertEquals(expectedResponse, textResponse.getText());
 
         verify(speechParser).parse(file, DEFAULT_VOICE_DURATION);
+    }
 
+    @Test
+    void analyzeRequestWithVoiceCommandCopyErrorTest() throws SpeechParseException, TelegramApiException, IOException {
+        final String expectedResponse = "echo";
+        BotRequest requestWithVoice = getRequestWithVoice();
+        byte[] file = "123".getBytes();
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());
+
+        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponse, textResponse.getText());
+
+        verify(speechParser).parse(file, DEFAULT_VOICE_DURATION);
+        verify(bot, never()).processRequestWithoutAnalyze(any(BotRequest.class));
+    }
+
+    @Test
+    void analyzeRequestWithVoiceCommandTest() throws SpeechParseException, TelegramApiException, IOException {
+        final String expectedResponse = "echo";
+        final String notNormalizedResponse = "echo .";
+        BotRequest requestWithVoice = getRequestWithVoice();
+        Message message = requestWithVoice.getMessage();
+        byte[] file = "123".getBytes();
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(notNormalizedResponse);
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());
+        when(objectCopier.copyObject(requestWithVoice, BotRequest.class)).thenReturn(requestWithVoice);
+
+        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
+        assertEquals(notNormalizedResponse, textResponse.getText());
+
+        assertEquals(MessageKind.COMMON, message.getMessageKind());
+        assertEquals(MessageContentType.TEXT, message.getMessageContentType());
+        assertEquals(expectedResponse, message.getText());
+
+        verify(speechParser).parse(file, DEFAULT_VOICE_DURATION);
+        verify(bot).processRequestWithoutAnalyze(any(BotRequest.class));
     }
 
     @Test
@@ -194,7 +280,7 @@ class VoiceTest {
     }
 
     @Test
-    void parseText() throws SpeechSynthesizeException {
+    void parseTextTest() throws SpeechSynthesizeException {
         final byte[] expectedFile = "test".getBytes();
         BotRequest requestFromGroup = getRequestFromGroup("voice test");
 
@@ -207,7 +293,7 @@ class VoiceTest {
     }
 
     @Test
-    void parseWithVoiceParameterText() throws SpeechSynthesizeException {
+    void parseWithVoiceParameterTextTest() throws SpeechSynthesizeException {
         final byte[] expectedFile = "test".getBytes();
         BotRequest requestFromGroup = getRequestFromGroup("voice kira test");
 

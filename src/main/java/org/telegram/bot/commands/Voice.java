@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
+import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.SaluteSpeechVoice;
@@ -19,9 +21,11 @@ import org.telegram.bot.exception.speech.TooLongSpeechException;
 import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SpeechParser;
 import org.telegram.bot.providers.sber.SpeechSynthesizer;
+import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -39,11 +43,13 @@ public class Voice implements Command, MessageAnalyzer {
 
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final CommandPropertiesService commandPropertiesService;
     private final SpeechSynthesizer speechSynthesizer;
     private final SpeechParser speechParser;
     private final LanguageResolver languageResolver;
     private final BotStats botStats;
     private final Bot bot;
+    private final ObjectCopier objectCopier;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -136,12 +142,38 @@ public class Voice implements Command, MessageAnalyzer {
                                 return null;
                             }
 
+                            checkTextForCommands(response, request);
+
                             return response;
                         }))
                 .map(optionalText -> optionalText
                         .map(textOfVoice -> returnResponse(new TextResponse(message).setText(textOfVoice)))
                         .orElse(returnResponse()))
                 .orElse(returnResponse());
+    }
+
+    private void checkTextForCommands(String text, BotRequest botRequest) {
+        String command = normalizeCommand(text);
+
+        CommandProperties commandProperties = commandPropertiesService.findCommandInText(command, bot.getBotUsername());
+        if (commandProperties != null) {
+            BotRequest newBotRequest = objectCopier.copyObject(botRequest, BotRequest.class);
+            if (newBotRequest != null) {
+                newBotRequest.getMessage()
+                        .setMessageKind(MessageKind.COMMON)
+                        .setMessageContentType(MessageContentType.TEXT)
+                        .setText(command);
+                bot.processRequestWithoutAnalyze(newBotRequest);
+            }
+        }
+    }
+
+    private String normalizeCommand(String command) {
+        if (command.endsWith(".")) {
+            command = command.substring(0, command.length() - 1);
+        }
+
+        return command.trim();
     }
 
 }
