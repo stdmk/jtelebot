@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -88,91 +89,102 @@ public class ChatGPT implements Command {
 
         org.telegram.bot.domain.model.request.Message message = request.getMessage();
         Long chatId = message.getChatId();
-        String responseText;
 
         String commandArgument = commandWaitingService.getText(message);
 
-        String imageUrl = null;
+        Response response;
         if (commandArgument != null) {
             String lowerTextMessage = commandArgument.toLowerCase(Locale.ROOT);
-
             if (containsStartWith(imageCommands, lowerTextMessage)) {
                 bot.sendUploadPhoto(chatId);
-
-                String imageCommand = getStartsWith(
-                        internationalizationService.internationalize("${command.chatgpt.imagecommand}"),
-                        lowerTextMessage);
-                if (imageCommand == null) {
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-                }
-
-                commandArgument = commandArgument.substring(imageCommand.length() + 1);
-                responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
-
-                try {
-                    imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
-                } catch (ChatGptApiException e) {
-                    throw toBotApiException(e);
-                }
+                response = getImageResponse(commandArgument, lowerTextMessage, token);
             } else {
                 bot.sendTyping(chatId);
-                Chat chat = message.getChat();
-                User user = message.getUser();
-                List<ChatGPTMessage> messagesHistory;
-
-                if (chatId < 0) {
-                    messagesHistory = chatGPTMessageService.getMessages(chat);
-                } else {
-                    messagesHistory = chatGPTMessageService.getMessages(user);
-                }
-
-                String model = getModel(chat);
-
-                try {
-                    responseText = getResponse(
-                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
-                            token);
-                } catch (ChatGptApiException e) {
-                    Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
-                    if (messagesHistory.size() >= chatGPTContextSize) {
-                        int deletingMessages = chatGPTContextSize / 2;
-                        messagesHistory = chatGPTMessageService.update(messagesHistory, deletingMessages);
-
-                        try {
-                            responseText = getResponse(
-                                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
-                                    token);
-                        } catch (ChatGptApiException ex) {
-                            throw toBotApiException(e);
-                        }
-                    } else {
-                        throw toBotApiException(e);
-                    }
-                }
-
-                messagesHistory.addAll(
-                        List.of(
-                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(commandArgument),
-                                new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
-                chatGPTMessageService.update(messagesHistory);
+                response = getTextResponse(message, commandArgument, token);
             }
         } else {
             bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
-            responseText = "${command.chatgpt.commandwaitingstart}";
+            response = new Response("${command.chatgpt.commandwaitingstart}");
         }
 
-        if (imageUrl != null) {
+        if (response.getImageUrl() != null) {
             return returnResponse(new FileResponse(message)
-                    .setText(responseText)
-                    .addFile(new File(FileType.IMAGE, imageUrl))
+                    .setText(response.getResponseText())
+                    .addFile(new File(FileType.IMAGE, response.getImageUrl()))
                     .setResponseSettings(FormattingStyle.MARKDOWN));
         }
 
         return returnResponse(new TextResponse(message)
-                .setText(responseText)
+                .setText(response.getResponseText())
                 .setResponseSettings(FormattingStyle.MARKDOWN));
+    }
+
+    private Response getImageResponse(String commandArgument, String lowerTextMessage, String token) {
+        String imageCommand = getStartsWith(
+                internationalizationService.internationalize("${command.chatgpt.imagecommand}"),
+                lowerTextMessage);
+        if (imageCommand == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+        }
+
+        commandArgument = commandArgument.substring(imageCommand.length() + 1);
+        String responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
+
+        String imageUrl;
+        try {
+            imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
+        } catch (ChatGptApiException e) {
+            throw toBotApiException(e);
+        }
+
+        return new Response(responseText, imageUrl);
+    }
+
+    private Response getTextResponse(org.telegram.bot.domain.model.request.Message message, String commandArgument, String token) {
+        Chat chat = message.getChat();
+        User user = message.getUser();
+        List<ChatGPTMessage> messagesHistory;
+
+        if (message.getChatId() < 0) {
+            messagesHistory = chatGPTMessageService.getMessages(chat);
+        } else {
+            messagesHistory = chatGPTMessageService.getMessages(user);
+        }
+
+        String model = getModel(chat);
+
+        String responseText;
+        try {
+            responseText = getResponse(
+                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
+                    token);
+        } catch (ChatGptApiException e) {
+            Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
+            if (messagesHistory.size() >= chatGPTContextSize) {
+                int deletingMessages = chatGPTContextSize / 2;
+                messagesHistory = chatGPTMessageService.update(messagesHistory, deletingMessages);
+
+                try {
+                    responseText = getResponse(
+                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
+                            token);
+                } catch (ChatGptApiException ex) {
+                    throw toBotApiException(e);
+                }
+            } else {
+                throw toBotApiException(e);
+            }
+        }
+
+        messagesHistory.addAll(
+                List.of(
+                        new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.USER).setContent(commandArgument),
+                        new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
+        chatGPTMessageService.update(messagesHistory);
+
+        return new Response(responseText);
     }
 
     @NotNull
@@ -285,6 +297,22 @@ public class ChatGPT implements Command {
 
     private BotException toBotApiException(ChatGptApiException e) {
         return new BotException("${command.chatgpt.apiresponse}: " + e.getMessage());
+    }
+
+    @Getter
+    private static class Response {
+        private final String responseText;
+        private final String imageUrl;
+
+        private Response(String responseText, String imageUrl) {
+            this.responseText = responseText;
+            this.imageUrl = imageUrl;
+        }
+
+        private Response(String responseText) {
+            this.imageUrl = null;
+            this.responseText = responseText;
+        }
     }
 
     @Data
