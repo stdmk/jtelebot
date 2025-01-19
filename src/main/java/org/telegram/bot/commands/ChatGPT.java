@@ -263,6 +263,10 @@ public class ChatGPT implements Command {
         } catch (RestClientException e) {
             log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        } catch (Exception e) {
+            log.error("Unknown error while trying to get response from chatgpt");
+            botStats.incrementErrors(request, e, "Unknown error while trying to get response from chatgpt");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
         T response = responseEntity.getBody();

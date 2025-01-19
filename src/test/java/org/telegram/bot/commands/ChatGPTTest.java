@@ -134,6 +134,22 @@ class ChatGPTTest {
     }
 
     @Test
+    void requestWithUnknownExceptionError() throws JsonProcessingException {
+        BotRequest request = getRequestFromGroup("chatgpt say hello");
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any())).thenThrow(new RuntimeException("test"));
+
+        assertThrows(BotException.class, () -> chatGPT.parse(request));
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        verify(botStats).incrementErrors(any(Object.class), any(RuntimeException.class), anyString());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+    }
+
+    @Test
     void requestWithHttpClientErrorExceptionTest() throws JsonProcessingException {
         final String errorMessage = "error";
         final String expectedErrorText = "${command.chatgpt.apiresponse}: " + errorMessage;
