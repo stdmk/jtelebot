@@ -44,7 +44,7 @@ public class DbUtils {
                 newsMessageRepository.saveAll(
                         newsMessageWithoutDescHash
                                 .stream()
-                                .map(newsMessage -> newsMessage.setDescHash(DigestUtils.sha256Hex(newsMessage.getDescription())))
+                                .map(newsMessage -> newsMessage.setDescHash(DigestUtils.sha256Hex(newsMessage.getDescription() + newsMessage.getTitle() + newsMessage.getLink())))
                                 .toList());
                 newsMessageWithoutDescHash = getNewsMessageWithoutDescHash();
             }

@@ -53,19 +53,6 @@ public class RssMapper {
             }
         }
 
-        String descHash;
-        String description;
-        if (syndEntry.getDescription() == null) {
-            description = "";
-            descHash = DigestUtils.sha256Hex(title);
-        } else {
-            description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
-            if (description.length() > 768) {
-                description = description.substring(0, 767) + "...";
-            }
-            descHash = DigestUtils.sha256Hex(description);
-        }
-
         Date publishedDate = syndEntry.getPublishedDate();
         if (publishedDate == null) {
             publishedDate = syndEntry.getUpdatedDate();
@@ -73,6 +60,18 @@ public class RssMapper {
                 publishedDate = Date.from(Instant.now());
             }
         }
+
+        String description;
+        if (syndEntry.getDescription() == null) {
+            description = "";
+        } else {
+            description = reduceSpaces(cutHtmlTags(syndEntry.getDescription().getValue()));
+            if (description.length() > 768) {
+                description = description.substring(0, 767) + "...";
+            }
+        }
+
+        String descHash = DigestUtils.sha256Hex(description + title + syndEntry.getLink());
 
         return new NewsMessage()
                 .setLink(syndEntry.getLink())

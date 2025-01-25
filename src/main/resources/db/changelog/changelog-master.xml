@@ -168,4 +168,5 @@
     <include file="db/changelog/20231124182000_added_command_GigaChat.xml"/>
     <include file="db/changelog/20231125123900_added_command_Voice.xml"/>
     <include file="db/changelog/2024/changelog.xml"/>
+    <include file="db/changelog/2025/changelog.xml"/>
 </databaseChangeLog>
