@@ -13,7 +13,6 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -28,7 +27,6 @@ public class Length implements Command {
 
     private final Bot bot;
     private final BotStats botStats;
-    private final CommandWaitingService commandWaitingService;
     private final SpeechService speechService;
 
     @Override
@@ -37,7 +35,7 @@ public class Length implements Command {
         Long chatId = message.getChatId();
         bot.sendTyping(chatId);
 
-        String commandArgument = commandWaitingService.getText(message);
+        String commandArgument = message.getCommandArgument();
 
         int length;
         if (commandArgument == null) {

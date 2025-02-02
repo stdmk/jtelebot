@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20250202094800" author="stdmk">
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="76"/>
+            <column name="commandname" value="json"/>
+            <column name="russifiedname" value="json"/>
+            <column name="enruname" value="json"/>
+            <column name="classname" value="json"/>
+            <column name="accesslevel" value="1"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

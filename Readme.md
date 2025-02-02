@@ -150,6 +150,10 @@ Java Telegram Bot (Spring)
 
 /delay - delayed execution of commands
 
+/json - json validation and formatting
+
+/xml - xml validation and formatting
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
