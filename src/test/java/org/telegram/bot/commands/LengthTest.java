@@ -12,12 +12,10 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
-import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -28,7 +26,8 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,8 +37,6 @@ class LengthTest {
     private Bot bot;
     @Mock
     private BotStats botStats;
-    @Mock
-    private CommandWaitingService commandWaitingService;
     @Mock
     private SpeechService speechService;
 
@@ -52,7 +49,6 @@ class LengthTest {
 
         assertThrows(BotException.class, () -> length.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
@@ -64,7 +60,6 @@ class LengthTest {
 
         assertThrows(BotException.class, () -> length.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-        verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
@@ -77,7 +72,6 @@ class LengthTest {
         when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> length.parse(request));
-        verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
@@ -120,7 +114,6 @@ class LengthTest {
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
-        verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 
@@ -130,13 +123,10 @@ class LengthTest {
         final String expectedResponse = "${command.length.responselength} <b>" + textParam.length() + "</b> ${command.length.symbols}";
         BotRequest request = TestUtils.getRequestFromGroup("length " + textParam);
 
-        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-
         BotResponse botResponse = length.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
-        verify(commandWaitingService).getText(any(Message.class));
         verify(bot).sendTyping(anyLong());
     }
 

@@ -4,4 +4,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <include file="db/changelog/2025/20250125092500_NewsMessage_descHash_fix.xml"/>
+    <include file="db/changelog/2025/20250202094800_added_command_Json.xml"/>
+    <include file="db/changelog/2025/20250202095000_added_command_Xml.xml"/>
 </databaseChangeLog>

@@ -97,6 +97,10 @@ public class TextUtils {
         return text.replace("<", "");
     }
 
+    public static boolean hasLineBreaks(String text) {
+        return text.contains("\n") || text.contains("\r");
+    }
+
     public static String removeDuplicateLineBreaks(String text) {
         while (text.contains("\n\n")) {
             text = text.replace("\n\n", "\n");
