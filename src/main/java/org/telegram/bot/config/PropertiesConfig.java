@@ -42,6 +42,7 @@ public class PropertiesConfig {
     private String saluteSpeechSecret;
     private String gigaChatSecret;
     private String virusTotalApiKey;
+    private String ftpBackupUrl;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {

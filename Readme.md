@@ -264,6 +264,10 @@ To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get
 Virus Total API key  
 To get a key go to: https://www.virustotal.com/
 
+**ftpBackupUrl** (ftp backup)
+Url of the ftp server where backups will be uploaded
+`ftp://username:password@host:port[/path]`
+
 ### System
 Java 17 is required to run the bot  
 To use the /webcam command, you need to install ffmpeg on your system
