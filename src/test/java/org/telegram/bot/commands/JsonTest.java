@@ -77,8 +77,8 @@ class JsonTest {
 
     @Test
     void parseCompressedJsonTest() {
-        final String expectedResponseText = "```json\n{\r\n" +
-                "  \"field\" : \"value\"\r\n" +
+        final String expectedResponseText = "```json\n{" + System.lineSeparator() +
+                "  \"field\" : \"value\"" + System.lineSeparator() +
                 "}```";
         BotRequest request = TestUtils.getRequestFromGroup("json {\"field\":\"value\"}");
 

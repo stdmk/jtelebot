@@ -71,7 +71,7 @@ class XmlTest {
 
     @Test
     void parseCorruptedXmlTest() {
-        final String expectedResponseText = "`Unexpected end of input block in end tag\r\n" +
+        final String expectedResponseText = "`Unexpected end of input block in end tag" + System.lineSeparator() +
                 " at [row,col {unknown-source}]: [1,17]\n" +
                 " at [Source: (StringReader); line: 1, column: 18]`";
         BotRequest request = TestUtils.getRequestFromGroup("xml <test>value</test");
@@ -84,9 +84,9 @@ class XmlTest {
 
     @Test
     void parseCompressedXmlTest() {
-        final String expectedResponseText = "```xml\n<test>\r\n" +
-                "  <test2>value</test2>\r\n" +
-                "</test>\r\n" +
+        final String expectedResponseText = "```xml\n<test>" + System.lineSeparator() +
+                "  <test2>value</test2>" + System.lineSeparator() +
+                "</test>" + System.lineSeparator() +
                 "```";
         BotRequest request = TestUtils.getRequestFromGroup("xml <test><test2>value</test2></test>");
 
