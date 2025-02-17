@@ -126,6 +126,8 @@ public class ChatGPT implements Command {
                 internationalizationService.internationalize("${command.chatgpt.imagecommand}"),
                 lowerTextMessage);
         if (imageCommand == null) {
+            log.error("Unable to find image command in text {}", lowerTextMessage);
+            botStats.incrementErrors(lowerTextMessage, "Unable to find image command in text");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
@@ -220,28 +222,38 @@ public class ChatGPT implements Command {
 
     private String getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "images/generations";
-        CreateImageResponse response = getResponse(request, url, token, CreateImageResponse.class);
+        CreateImageResponse createImageResponse = getResponse(request, url, token, CreateImageResponse.class);
 
-        Optional.of(response)
+        Optional<String> response = Optional.of(createImageResponse)
                 .map(CreateImageResponse::getData)
                 .filter(imageUrls -> !imageUrls.isEmpty())
                 .map(imageUrls -> imageUrls.get(0))
-                .map(ImageUrl::getUrl)
-                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
+                .map(ImageUrl::getUrl);
 
-        return response.getData().get(0).getUrl();
+        if (response.isEmpty()) {
+            log.error("Unable to find response text inside the api-response");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        return response.get();
     }
 
     private String getResponse(ChatRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "chat/completions";
-        ChatResponse response = getResponse(request, url, token, ChatResponse.class);
+        ChatResponse chatResponse = getResponse(request, url, token, ChatResponse.class);
 
-        return Optional.of(response)
+        Optional<String> response = Optional.of(chatResponse)
                 .map(ChatResponse::getChoices)
                 .filter(choices -> !choices.isEmpty())
                 .flatMap(choices -> choices.stream().map(Choice::getMessage).map(Message::getContent).filter(org.springframework.util.StringUtils::hasLength).findFirst())
-                .map(content -> "*" + RESPONSE_CAPTION + "* (" + response.getModel() + "):\n" + content)
-                .orElseThrow(() -> new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)));
+                .map(content -> "*" + RESPONSE_CAPTION + "* (" + chatResponse.getModel() + "):\n" + content);
+
+        if (response.isEmpty()) {
+            log.error("Unable to find response text inside the api-response");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        return response.get();
     }
 
     private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {
@@ -250,6 +262,7 @@ public class ChatGPT implements Command {
             json = objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             botStats.incrementErrors(request, e, "object serialization error");
+            log.error("Failed to send request to ChatGPT API: {}", e.getMessage());
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
@@ -283,6 +296,7 @@ public class ChatGPT implements Command {
 
         T response = responseEntity.getBody();
         if (response == null) {
+            log.error("Empty response from ChatGPT API");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
