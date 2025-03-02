@@ -162,16 +162,28 @@ public class TextUtils {
         return text;
     }
 
-    public static String getLinkToUser(User user, boolean htmlMode) {
-        return getLinkToUser(user.getUserId(), htmlMode, user.getUsername());
+    public static String getHtmlLinkToUser(User user) {
+        return getLinkToUser(user.getUserId(), true, user.getUsername());
     }
 
-    public static String getLinkToUser(org.telegram.telegrambots.meta.api.objects.User user, boolean htmlMode) {
-        return getLinkToUser(user.getId(), htmlMode, user.getUserName());
+    public static String getMarkdownLinkToUser(User user) {
+        return getLinkToUser(user.getUserId(), false, user.getUsername());
     }
 
-    public static String getLinkToUser(User user, boolean htmlMode, String caption) {
-        return getLinkToUser(user.getUserId(), htmlMode, caption);
+    public static String getHtmlLinkToUser(org.telegram.telegrambots.meta.api.objects.User user) {
+        return getLinkToUser(user.getId(), true, user.getUserName());
+    }
+
+    public static String getMarkdownLinkToUser(org.telegram.telegrambots.meta.api.objects.User user) {
+        return getLinkToUser(user.getId(), false, user.getUserName());
+    }
+
+    public static String getMarkdownLinkToUser(User user, String caption) {
+        return getLinkToUser(user.getUserId(), false, caption);
+    }
+
+    public static String getHtmlLinkToUser(User user, String caption) {
+        return getLinkToUser(user.getUserId(), true, caption);
     }
 
     public static String getLinkToUser(Long userId, boolean htmlMode, String caption) {
@@ -182,6 +194,10 @@ public class TextUtils {
         }
 
         return buildMarkDownLink(link, caption);
+    }
+
+    public static String getHtmlLinkToMessage(Long chatId, Integer messageId, String caption) {
+        return "<a href=\"https://t.me/c/" + Math.abs(chatId) + "/" + messageId + "\">" + caption + "</a>";
     }
 
     public static String buildHtmlLink(String link, Object caption) {
@@ -332,6 +348,18 @@ public class TextUtils {
 
     public static boolean isEmpty(String text) {
         return text == null || text.isEmpty();
+    }
+
+    public static String getLessThanCount(String text, int count) {
+        if (text == null) {
+            return null;
+        }
+
+        if (text.length() > count) {
+            return text.substring(0, count) + "...";
+        }
+
+        return text;
     }
 
 }

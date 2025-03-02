@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
+import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -37,8 +38,16 @@ public class TelegramObjectMapper {
     private final BotStats botStats;
 
     public BotRequest toBotRequest(Update update) {
-        return new BotRequest()
-                .setMessage(getMessage(update));
+        Message message;
+
+        MessageReactionUpdated messageReaction = update.getMessageReaction();
+        if (messageReaction != null) {
+            message = getMessage(messageReaction);
+        } else {
+            message = getMessage(update);
+        }
+
+        return new BotRequest().setMessage(message);
     }
 
     private Message getMessage(Update update) {
@@ -86,6 +95,17 @@ public class TelegramObjectMapper {
                 .setMessageKind(messageKind)
                 .setMessageContentType(messageContent.getKey())
                 .setAttachments(messageContent.getValue());
+    }
+
+    private Message getMessage(MessageReactionUpdated messageReactionUpdated) {
+        return new Message()
+                .setChat(toChat(messageReactionUpdated.getChat()))
+                .setUser(toUser(messageReactionUpdated.getUser()))
+                .setMessageId(messageReactionUpdated.getMessageId())
+                .setDateTime(messageReactionUpdated.getDate() == null ? null : unixTimeToLocalDateTime(messageReactionUpdated.getDate()))
+                .setMessageKind(MessageKind.COMMON)
+                .setMessageContentType(MessageContentType.REACTION)
+                .setReactionsCount(messageReactionUpdated.getNewReaction().size());
     }
 
     private Message toMessage(org.telegram.telegrambots.meta.api.objects.message.Message telegramMessage) {

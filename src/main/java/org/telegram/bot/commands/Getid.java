@@ -17,7 +17,7 @@ import org.telegram.bot.services.UserService;
 
 import java.util.List;
 
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getMarkdownLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -42,14 +42,14 @@ public class Getid implements Command {
             if (user == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-            responseText.append("${command.getid.id} ").append(getLinkToUser(user, false)).append(": `").append(user.getUserId()).append("`\n");
+            responseText.append("${command.getid.id} ").append(getMarkdownLinkToUser(user)).append(": `").append(user.getUserId()).append("`\n");
         }
 
         Message repliedMessage = message.getReplyToMessage();
         if (repliedMessage != null) {
             User repliedUser = repliedMessage.getUser();
             log.debug("Request to getting telegram id of {}", repliedUser);
-            responseText.append("${command.getid.id} ").append(getLinkToUser(repliedUser, false)).append(": `").append(repliedUser.getUserId()).append("`\n");
+            responseText.append("${command.getid.id} ").append(getMarkdownLinkToUser(repliedUser)).append(": `").append(repliedUser.getUserId()).append("`\n");
         }
 
         if (chatId < 0) {

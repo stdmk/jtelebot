@@ -71,6 +71,7 @@ public enum Emoji {
     CALENDAR("\uD83D\uDCC6"),
     TROPHY("🏆"),
     WASTEBASKET("\uD83D\uDDD1️"),
+    BEAMING_FACE_WITH_SMILING_EYES("\uD83D\uDE01")
     ;
 
     private final String symbol;

@@ -268,6 +268,17 @@ To get a key go to: https://www.virustotal.com/
 Url of the ftp server where backups will be uploaded
 `ftp://username:password@host:port[/path]`
 
+**today** (/today command)
+
+*minRepliesToGetTheTop* 
+Minimum message replies required to get to the /today command.
+
+*messagesCountInTheTop*
+Messages count in /today command.
+
+*messageExpirationDays*
+number of days to store messages
+
 ### System
 Java 17 is required to run the bot  
 To use the /webcam command, you need to install ffmpeg on your system

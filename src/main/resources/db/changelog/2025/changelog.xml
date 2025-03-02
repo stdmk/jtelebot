@@ -6,4 +6,9 @@
     <include file="db/changelog/2025/20250125092500_NewsMessage_descHash_fix.xml"/>
     <include file="db/changelog/2025/20250202094800_added_command_Json.xml"/>
     <include file="db/changelog/2025/20250202095000_added_command_Xml.xml"/>
+    <include file="db/changelog/2025/20250222115500_added_command_Today.xml"/>
+    <include file="db/changelog/2025/20250222120000_added_entity_Message.xml"/>
+    <include file="db/changelog/2025/20250222120200_added_entity_MessageStats.xml"/>
+    <include file="db/changelog/2025/20250223115500_update_UserStats_add_reactionsfield.xml"/>
+    <include file="db/changelog/2025/20250301100800_added_entity_ChatResultsSettings.xml"/>
 </databaseChangeLog>

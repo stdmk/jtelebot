@@ -23,54 +23,59 @@ import java.util.function.Consumer;
 @Slf4j
 public class UserStatsServiceImpl implements UserStatsService {
 
-    private final Map<MessageContentType, Consumer<UserStats>> contentTypeUserStatsConsumerMap = Map.of(
-        MessageContentType.TEXT,
-            userStats -> userStats
-                    .setNumberOfMessages(userStats.getNumberOfMessages() + 1)
-                    .setNumberOfMessagesPerDay(userStats.getNumberOfMessagesPerDay() + 1)
-                    .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1),
+    private final Map<MessageContentType, Consumer<UserStats>> contentTypeUserStatsConsumerMap = Map.ofEntries(
+            Map.entry(MessageContentType.TEXT,
+                    userStats -> userStats
+                            .setNumberOfMessages(userStats.getNumberOfMessages() + 1)
+                            .setNumberOfMessagesPerDay(userStats.getNumberOfMessagesPerDay() + 1)
+                            .setNumberOfAllMessages(userStats.getNumberOfAllMessages() + 1)),
 
-        MessageContentType.STICKER, userStats ->
-        userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
-                .setNumberOfStickersPerDay(userStats.getNumberOfStickersPerDay() + 1)
-                .setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1),
+            Map.entry(MessageContentType.STICKER, userStats ->
+                    userStats.setNumberOfStickers(userStats.getNumberOfStickers() + 1)
+                            .setNumberOfStickersPerDay(userStats.getNumberOfStickersPerDay() + 1)
+                            .setNumberOfAllStickers(userStats.getNumberOfAllStickers() + 1)),
 
-        MessageContentType.PHOTO, userStats ->
+            Map.entry(MessageContentType.PHOTO, userStats ->
                     userStats.setNumberOfPhotos(userStats.getNumberOfPhotos() + 1)
-                .setNumberOfPhotosPerDay(userStats.getNumberOfPhotosPerDay() + 1)
-                .setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1),
+                            .setNumberOfPhotosPerDay(userStats.getNumberOfPhotosPerDay() + 1)
+                            .setNumberOfAllPhotos(userStats.getNumberOfAllPhotos() + 1)),
 
-        MessageContentType.ANIMATION, userStats ->
+            Map.entry(MessageContentType.ANIMATION, userStats ->
                     userStats.setNumberOfAnimations(userStats.getNumberOfAnimations() + 1)
-                .setNumberOfAnimationsPerDay(userStats.getNumberOfAnimationsPerDay() + 1)
-                .setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1),
+                            .setNumberOfAnimationsPerDay(userStats.getNumberOfAnimationsPerDay() + 1)
+                            .setNumberOfAllAnimations(userStats.getNumberOfAllAnimations() + 1)),
 
-        MessageContentType.AUDIO, userStats ->
+            Map.entry(MessageContentType.AUDIO, userStats ->
                     userStats.setNumberOfAudio(userStats.getNumberOfAudio() + 1)
-                .setNumberOfAudioPerDay(userStats.getNumberOfAudioPerDay() + 1)
-                .setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1),
+                            .setNumberOfAudioPerDay(userStats.getNumberOfAudioPerDay() + 1)
+                            .setNumberOfAllAudio(userStats.getNumberOfAllAudio() + 1)),
 
-        MessageContentType.FILE, userStats ->
+            Map.entry(MessageContentType.FILE, userStats ->
                     userStats.setNumberOfDocuments(userStats.getNumberOfDocuments() + 1)
-                .setNumberOfDocumentsPerDay(userStats.getNumberOfDocumentsPerDay() + 1)
-                .setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1),
+                            .setNumberOfDocumentsPerDay(userStats.getNumberOfDocumentsPerDay() + 1)
+                            .setNumberOfAllDocuments(userStats.getNumberOfAllDocuments() + 1)),
 
-        MessageContentType.VIDEO, userStats ->
-        userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1)
-                .setNumberOfVideosPerDay(userStats.getNumberOfVideosPerDay() + 1)
-                .setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1),
+            Map.entry(MessageContentType.VIDEO, userStats ->
+                    userStats.setNumberOfVideos(userStats.getNumberOfVideos() + 1)
+                            .setNumberOfVideosPerDay(userStats.getNumberOfVideosPerDay() + 1)
+                            .setNumberOfAllVideos(userStats.getNumberOfAllVideos() + 1)),
 
-        MessageContentType.VIDEO_NOTE, userStats ->
-        userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1)
-                .setNumberOfVideoNotesPerDay(userStats.getNumberOfVideoNotesPerDay() + 1)
-                .setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1),
+            Map.entry(MessageContentType.VIDEO_NOTE, userStats ->
+                    userStats.setNumberOfVideoNotes(userStats.getNumberOfVideoNotes() + 1)
+                            .setNumberOfVideoNotesPerDay(userStats.getNumberOfVideoNotesPerDay() + 1)
+                            .setNumberOfAllVideoNotes(userStats.getNumberOfAllVideoNotes() + 1)),
 
-        MessageContentType.VOICE, userStats ->
-        userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
-                .setNumberOfVoicesPerDay(userStats.getNumberOfVoicesPerDay() + 1)
-                .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1),
+            Map.entry(MessageContentType.VOICE, userStats ->
+                    userStats.setNumberOfVoices(userStats.getNumberOfVoices() + 1)
+                            .setNumberOfVoicesPerDay(userStats.getNumberOfVoicesPerDay() + 1)
+                            .setNumberOfAllVoices(userStats.getNumberOfAllVoices() + 1)),
 
-        MessageContentType.UNKNOWN, userStats -> log.warn("Unknown message content type"));
+            Map.entry(MessageContentType.REACTION, userStats ->
+                    userStats.setNumberOfReactions(userStats.getNumberOfReactions() + 1)
+                            .setNumberOfReactionsPerDay(userStats.getNumberOfReactionsPerDay() + 1)
+                            .setNumberOfAllReactions(userStats.getNumberOfAllReactions() + 1)),
+
+            Map.entry(MessageContentType.UNKNOWN, userStats -> log.warn("Unknown message content type")));
 
     private final UserStatsRepository userStatsRepository;
 
@@ -78,6 +83,7 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final ChatService chatService;
     private final LastMessageService lastMessageService;
     private final LastCommandService lastCommandService;
+    private final MessageService messageService;
 
     @Override
     public UserStats get(Chat chat, User user) {
@@ -113,6 +119,8 @@ public class UserStatsServiceImpl implements UserStatsService {
         if (!message.isEditMessage()) {
             updateUserStats(chat, user, message);
         }
+
+        messageService.save(message);
     }
 
     @Override
@@ -161,7 +169,8 @@ public class UserStatsServiceImpl implements UserStatsService {
                 .setNumberOfStickers(0)
                 .setNumberOfKarma(0)
                 .setNumberOfGoodness(0)
-                .setNumberOfWickedness(0);
+                .setNumberOfWickedness(0)
+                .setNumberOfReactions(0);
     }
 
     @Override
@@ -187,7 +196,8 @@ public class UserStatsServiceImpl implements UserStatsService {
                 .setNumberOfStickersPerDay(0)
                 .setNumberOfKarmaPerDay(0)
                 .setNumberOfGoodnessPerDay(0)
-                .setNumberOfWickednessPerDay(0);
+                .setNumberOfWickednessPerDay(0)
+                .setNumberOfReactionsPerDay(0);
     }
 
     @Override
@@ -234,9 +244,7 @@ public class UserStatsServiceImpl implements UserStatsService {
                     .setUsername(username)
                     .setAccessLevel(AccessLevel.NEWCOMER.getValue());
             user = userService.save(user);
-        }
-
-        else if (!user.getUsername().equals(username)) {
+        } else if (!user.getUsername().equals(username)) {
             user.setUsername(username);
             user = userService.save(user);
         }
@@ -265,8 +273,8 @@ public class UserStatsServiceImpl implements UserStatsService {
     /**
      * Updating user stats by his message.
      *
-     * @param chat Chat entity.
-     * @param user User entity.
+     * @param chat    Chat entity.
+     * @param user    User entity.
      * @param message telegram Message.
      */
     private void updateUserStats(Chat chat, User user, Message message) {
@@ -316,7 +324,10 @@ public class UserStatsServiceImpl implements UserStatsService {
                     .setNumberOfAllGoodness(0L)
                     .setNumberOfWickedness(0)
                     .setNumberOfWickednessPerDay(0)
-                    .setNumberOfAllWickedness(0L);
+                    .setNumberOfAllWickedness(0L)
+                    .setNumberOfReactions(0)
+                    .setNumberOfReactionsPerDay(0)
+                    .setNumberOfAllReactions(0L);
         }
 
         contentTypeUserStatsConsumerMap.get(message.getMessageContentType()).accept(userStats);

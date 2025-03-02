@@ -28,7 +28,7 @@ import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.deltaDatesToString;
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -73,7 +73,7 @@ public class Where implements Command {
             LocalDateTime dateOfMessage = lastMessage.getDate();
             ZoneId zoneId = ZoneId.systemDefault();
 
-            responseText = "${command.where.lasttime} <b>" + getLinkToUser(user, true) +
+            responseText = "${command.where.lasttime} <b>" + getHtmlLinkToUser(user) +
                     "</b> ${command.where.saw} " + formatDateTime(dateOfMessage) + " (" + zoneId.getId() + ")\n" +
                     "${command.where.silent} " + deltaDatesToString(dateOfMessage, LocalDateTime.now(clock));
         }

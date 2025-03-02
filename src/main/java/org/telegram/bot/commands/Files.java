@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.TextUtils.formatFileSize;
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -275,7 +275,7 @@ public class Files implements Command {
         }
 
         String fileInfo = "<b>" + file.getName() + "</b>\n" +
-                            "${command.files.fileinfo.author}: " + getLinkToUser(file.getUser(), true) + "\n" +
+                            "${command.files.fileinfo.author}: " + getHtmlLinkToUser(file.getUser()) + "\n" +
                             "${command.files.fileinfo.created}: " + formatDate(file.getDate()) + "\n" +
                             "${command.files.fileinfo.type}: " + file.getType() + "\n" +
                             "${command.files.fileinfo.size}: " + formatFileSize(file.getSize()) + "\n";

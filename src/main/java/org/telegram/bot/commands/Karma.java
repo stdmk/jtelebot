@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 import static org.telegram.bot.utils.TextUtils.startsWithElementInList;
 
 @Component
@@ -84,7 +84,7 @@ public class Karma implements Command, MessageAnalyzer {
             karmaEmoji = Emoji.SMILING_FACE_WITH_HORNS.getSymbol();
         }
 
-        return "<b>" + getLinkToUser(userStats.getUser(), true) + "</b>\n" +
+        return "<b>" + getHtmlLinkToUser(userStats.getUser()) + "</b>\n" +
                 karmaEmoji + "${command.karma.caption}: <b>" + userStats.getNumberOfKarma() + "</b> (" + userStats.getNumberOfAllKarma() + ")" + "\n" +
                 Emoji.RED_HEART.getSymbol() + "${command.karma.kindness}: <b>" + userStats.getNumberOfGoodness() + "</b> (" + userStats.getNumberOfAllGoodness() + ")" + "\n" +
                 Emoji.BROKEN_HEART.getSymbol() + "${command.karma.wickedness}: <b>" + userStats.getNumberOfWickedness() + "</b> (" + userStats.getNumberOfAllWickedness() + ")" + "\n";
@@ -140,7 +140,7 @@ public class Karma implements Command, MessageAnalyzer {
         userStatsService.save(Arrays.asList(anotherUserStats, userStats));
 
 
-        StringBuilder buf = new StringBuilder("${command.karma.userskarma} <b>" + getLinkToUser(anotherUser, true) + "</b> ");
+        StringBuilder buf = new StringBuilder("${command.karma.userskarma} <b>" + getHtmlLinkToUser(anotherUser) + "</b> ");
         if (value < 0) {
             buf.append("${command.karma.reduced} ").append(Emoji.THUMBS_DOWN.getSymbol());
         } else {

@@ -10,5 +10,6 @@ public enum MessageContentType {
     VIDEO,
     VIDEO_NOTE,
     VOICE,
+    REACTION,
     UNKNOWN,
 }
