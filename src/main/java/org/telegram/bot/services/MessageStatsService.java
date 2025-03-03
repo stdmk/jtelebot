@@ -3,6 +3,7 @@ package org.telegram.bot.services;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.MessageStats;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public interface MessageStatsService {
     void incrementReplies(int messageId);
     void setReactions(int messageId, int reactionsCount);
-    List<MessageStats> getByRepliesCountTop(Chat chat);
-    List<MessageStats> getByReactionsCountTop(Chat chat);
+    List<MessageStats> getByRepliesCountTop(Chat chat, LocalDate date);
+    List<MessageStats> getByReactionsCountTop(Chat chat, LocalDate date);
     void removeAll(LocalDateTime expirationDateTime);
 }

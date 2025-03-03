@@ -15,4 +15,10 @@
             <column name="reactions" type="int"/>
         </createTable>
     </changeSet>
+
+    <changeSet id="20250222120200-2" author="stdmk">
+        <addColumn schemaName= "bot" tableName="messagestats" >
+            <column name="date" type="date" />
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

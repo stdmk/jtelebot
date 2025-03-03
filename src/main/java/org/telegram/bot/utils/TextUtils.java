@@ -197,7 +197,7 @@ public class TextUtils {
     }
 
     public static String getHtmlLinkToMessage(Long chatId, Integer messageId, String caption) {
-        return "<a href=\"https://t.me/c/" + Math.abs(chatId) + "/" + messageId + "\">" + caption + "</a>";
+        return "<a href=\"https://t.me/c/" + chatId.toString().substring(4) + "/" + messageId + "\">" + caption + "</a>";
     }
 
     public static String buildHtmlLink(String link, Object caption) {

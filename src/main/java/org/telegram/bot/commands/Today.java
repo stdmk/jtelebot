@@ -20,6 +20,7 @@ import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.Nullable;
+import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -62,8 +63,11 @@ public class Today implements Command, MessageAnalyzer {
 
     @Nullable
     public String getResponseText(Chat chat) {
-        List<MessageStats> byRepliesCountTop = messageStatsService.getByRepliesCountTop(chat);
-        List<MessageStats> byReactionsCountTop = messageStatsService.getByReactionsCountTop(chat);
+        LocalDate date = LocalDate.now();
+
+        List<MessageStats> byRepliesCountTop = messageStatsService.getByRepliesCountTop(chat, date);
+        List<MessageStats> byReactionsCountTop = messageStatsService.getByReactionsCountTop(chat, date);
+
         if (byRepliesCountTop.isEmpty() && byReactionsCountTop.isEmpty()) {
             return null;
         } else {

@@ -15,4 +15,16 @@
             <column name="numberofallreactions" type="bigint" />
         </addColumn>
     </changeSet>
+
+    <changeSet id="20250223115500-2" author="stdmk">
+        <update schemaName= "bot" tableName="userstats" >
+            <column name="numberofreactions" value="0" />
+        </update>
+        <update schemaName= "bot" tableName="userstats" >
+            <column name="numberofreactionsperday" value="0" />
+        </update>
+        <update schemaName= "bot" tableName="userstats" >
+            <column name="numberofallreactions" value="0" />
+        </update>
+    </changeSet>
 </databaseChangeLog>

@@ -6,6 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 /**
  * MessageStats entity.
@@ -25,6 +26,9 @@ public class MessageStats {
     @OneToOne
     @JoinColumn(name = "messageid", nullable = false)
     private Message message;
+
+    @Column(name = "date")
+    private LocalDate date;
 
     @Column(name = "replies")
     private Integer replies;

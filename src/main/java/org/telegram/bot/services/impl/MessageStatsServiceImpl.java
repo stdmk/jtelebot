@@ -13,6 +13,7 @@ import org.telegram.bot.services.MessageService;
 import org.telegram.bot.services.MessageStatsService;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -44,13 +45,13 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     }
 
     @Override
-    public List<MessageStats> getByRepliesCountTop(Chat chat) {
-        return messageStatsRepository.findByMessageChatAndRepliesGreaterThanEqualOrderByReactionsDesc(chat, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
+    public List<MessageStats> getByRepliesCountTop(Chat chat, LocalDate date) {
+        return messageStatsRepository.findByMessageChatAndDateAndRepliesGreaterThanEqualOrderByReactionsDesc(chat, date, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
     }
 
     @Override
-    public List<MessageStats> getByReactionsCountTop(Chat chat) {
-        return messageStatsRepository.findByMessageChatAndReactionsGreaterThanEqualOrderByRepliesDesc(chat, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
+    public List<MessageStats> getByReactionsCountTop(Chat chat, LocalDate date) {
+        return messageStatsRepository.findByMessageChatAndDateAndReactionsGreaterThanEqualOrderByRepliesDesc(chat, date, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
     }
 
     @Override
@@ -71,7 +72,8 @@ public class MessageStatsServiceImpl implements MessageStatsService {
             messageStats = new MessageStats()
                     .setMessage(message)
                     .setReplies(0)
-                    .setReactions(0);
+                    .setReactions(0)
+                    .setDate(LocalDate.now());
         }
 
         return Optional.of(messageStats);
