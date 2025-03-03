@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface MessageStatsService {
     void incrementReplies(int messageId);
-    void setReactions(int messageId, int reactionsCount);
+    void incrementReactions(int messageId, int reactionsCount);
     List<MessageStats> getByRepliesCountTop(Chat chat, LocalDate date);
     List<MessageStats> getByReactionsCountTop(Chat chat, LocalDate date);
     void removeAll(LocalDateTime expirationDateTime);

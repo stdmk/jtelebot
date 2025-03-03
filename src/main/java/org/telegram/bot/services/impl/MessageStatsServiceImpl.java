@@ -39,7 +39,7 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     }
 
     @Override
-    public void setReactions(int messageId, int reactionsCount) {
+    public void incrementReactions(int messageId, int reactionsCount) {
         getMessageStats(messageId).ifPresent(messageStats ->
                 messageStatsRepository.save(messageStats.setReactions(messageStats.getReactions() + reactionsCount)));
     }

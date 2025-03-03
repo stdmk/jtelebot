@@ -125,7 +125,7 @@ public class Today implements Command, MessageAnalyzer {
             if (message.hasReplyToMessage()) {
                 messageStatsService.incrementReplies(message.getReplyToMessage().getMessageId());
             } else if (message.hasReactions()) {
-                messageStatsService.setReactions(message.getMessageId(), message.getReactionsCount() - 1);
+                messageStatsService.incrementReactions(message.getMessageId(), message.getReactionsCount());
             }
         }
 

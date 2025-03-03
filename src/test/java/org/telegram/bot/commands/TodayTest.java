@@ -174,7 +174,7 @@ class TodayTest {
         List<BotResponse> botResponseList = today.analyze(request);
 
         verify(messageStatsService, never()).incrementReplies(anyInt());
-        verify(messageStatsService, never()).setReactions(anyInt(), anyInt());
+        verify(messageStatsService, never()).incrementReactions(anyInt(), anyInt());
 
         assertTrue(botResponseList.isEmpty());
     }
@@ -186,7 +186,7 @@ class TodayTest {
         List<BotResponse> botResponseList = today.analyze(request);
 
         verify(messageStatsService, never()).incrementReplies(anyInt());
-        verify(messageStatsService, never()).setReactions(anyInt(), anyInt());
+        verify(messageStatsService, never()).incrementReactions(anyInt(), anyInt());
 
         assertTrue(botResponseList.isEmpty());
     }
@@ -198,7 +198,7 @@ class TodayTest {
         List<BotResponse> botResponseList = today.analyze(request);
 
         verify(messageStatsService).incrementReplies(request.getMessage().getReplyToMessage().getMessageId());
-        verify(messageStatsService, never()).setReactions(anyInt(), anyInt());
+        verify(messageStatsService, never()).incrementReactions(anyInt(), anyInt());
 
         assertTrue(botResponseList.isEmpty());
     }
@@ -214,7 +214,7 @@ class TodayTest {
         List<BotResponse> botResponseList = today.analyze(request);
 
         verify(messageStatsService, never()).incrementReplies(anyInt());
-        verify(messageStatsService).setReactions(message.getMessageId(), reactionsCount - 1);
+        verify(messageStatsService).incrementReactions(message.getMessageId(), reactionsCount - 1);
 
         assertTrue(botResponseList.isEmpty());
     }

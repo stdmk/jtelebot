@@ -105,7 +105,7 @@ public class TelegramObjectMapper {
                 .setDateTime(messageReactionUpdated.getDate() == null ? null : unixTimeToLocalDateTime(messageReactionUpdated.getDate()))
                 .setMessageKind(MessageKind.COMMON)
                 .setMessageContentType(MessageContentType.REACTION)
-                .setReactionsCount(messageReactionUpdated.getNewReaction().size());
+                .setReactionsCount(messageReactionUpdated.getNewReaction().size() - messageReactionUpdated.getOldReaction().size());
     }
 
     private Message toMessage(org.telegram.telegrambots.meta.api.objects.message.Message telegramMessage) {
