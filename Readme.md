@@ -154,6 +154,8 @@ Java Telegram Bot (Spring)
 
 /xml - xml validation and formatting
 
+/today - statistics on replies and reactions to messages
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
