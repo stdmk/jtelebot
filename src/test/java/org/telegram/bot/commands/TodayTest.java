@@ -214,7 +214,7 @@ class TodayTest {
         List<BotResponse> botResponseList = today.analyze(request);
 
         verify(messageStatsService, never()).incrementReplies(anyInt());
-        verify(messageStatsService).incrementReactions(message.getMessageId(), reactionsCount - 1);
+        verify(messageStatsService).incrementReactions(message.getMessageId(), reactionsCount);
 
         assertTrue(botResponseList.isEmpty());
     }
