@@ -110,11 +110,14 @@ public class Today implements Command, MessageAnalyzer {
     }
 
     private String buildResponseString(int count, org.telegram.bot.domain.entities.Message message, Long chatId) {
-        return TextUtils.getHtmlLinkToMessage(
-                        chatId,
-                        message.getMessageId(),
-                        TextUtils.getLessThanCount(message.getText(), MESSAGE_TEXT_MAX_LENGTH))
-                + " (" + count + ")\n";
+        String messageText = message.getText();
+        if (messageText == null) {
+            messageText = "...";
+        } else {
+            messageText = TextUtils.getLessThanCount(messageText, MESSAGE_TEXT_MAX_LENGTH);
+        }
+
+        return TextUtils.getHtmlLinkToMessage(chatId, message.getMessageId(), messageText) + " (" + count + ")\n";
     }
 
     @Override

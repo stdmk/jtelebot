@@ -138,6 +138,7 @@ class TodayTest {
                 <b>${command.today.caption}:</b>
                 <u>${command.today.byreplies}:</u>
                 1) <a href="https://t.me/c/1272607487/1">message1Text</a> (5)
+                2) <a href="https://t.me/c/1272607487/3">...</a> (4)
 
                 <u>${command.today.byreactions}:</u>
                 1) <a href="https://t.me/c/1272607487/2">message2Text</a> (3)
@@ -146,18 +147,23 @@ class TodayTest {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         chat.setChatId(-1001272607487L);
-        MessageStats messageStatsReplies = new MessageStats()
+        MessageStats messageStatsReplies1 = new MessageStats()
                 .setId(1L)
                 .setReplies(5)
                 .setReactions(0)
                 .setMessage(new org.telegram.bot.domain.entities.Message().setMessageId(1).setText("message1Text"));
+        MessageStats messageStatsReplies2 = new MessageStats()
+                .setId(3L)
+                .setReplies(4)
+                .setReactions(0)
+                .setMessage(new org.telegram.bot.domain.entities.Message().setMessageId(3));
         MessageStats messageStatsReactions = new MessageStats()
                 .setId(2L)
                 .setReplies(0)
                 .setReactions(3)
                 .setMessage(new org.telegram.bot.domain.entities.Message().setMessageId(2).setText("message2Text"));
 
-        when(messageStatsService.getByRepliesCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of(messageStatsReplies));
+        when(messageStatsService.getByRepliesCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of(messageStatsReplies1, messageStatsReplies2));
         when(messageStatsService.getByReactionsCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of(messageStatsReactions));
 
         BotResponse botResponse = today.parse(request).get(0);
