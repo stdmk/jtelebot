@@ -37,7 +37,7 @@ public class MessagesCleanerTimer extends TimerParent {
     private Integer messageExpirationDays;
 
     @Override
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 55 23 * * ?")
     public void execute() {
         chatResultsSettingsService.getAllEnabled().forEach(chatResultsSettings -> sendResults(chatResultsSettings.getChat()));
         clearData();
