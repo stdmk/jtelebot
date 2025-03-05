@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Message;
@@ -46,12 +47,20 @@ public class MessageStatsServiceImpl implements MessageStatsService {
 
     @Override
     public List<MessageStats> getByRepliesCountTop(Chat chat, LocalDate date) {
-        return messageStatsRepository.findByMessageChatAndDateAndRepliesGreaterThanEqualOrderByReactionsDesc(chat, date, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
+        return messageStatsRepository.findByMessageChatAndDateAndRepliesGreaterThanEqualOrderByReactionsDesc(
+                chat,
+                date,
+                minRepliesToGetTheTop,
+                PageRequest.of(0,  messagesCountInTheTop, Sort.by(Sort.Direction.DESC, "replies")));
     }
 
     @Override
     public List<MessageStats> getByReactionsCountTop(Chat chat, LocalDate date) {
-        return messageStatsRepository.findByMessageChatAndDateAndReactionsGreaterThanEqualOrderByRepliesDesc(chat, date, minRepliesToGetTheTop, PageRequest.of(0,  messagesCountInTheTop));
+        return messageStatsRepository.findByMessageChatAndDateAndReactionsGreaterThanEqualOrderByRepliesDesc(
+                chat,
+                date,
+                minRepliesToGetTheTop,
+                PageRequest.of(0,  messagesCountInTheTop, Sort.by(Sort.Direction.DESC, "reactions")));
     }
 
     @Override
