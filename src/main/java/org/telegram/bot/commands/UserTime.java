@@ -27,7 +27,7 @@ import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
 import static org.telegram.bot.utils.DateUtils.formatTime;
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getMarkdownLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -70,7 +70,7 @@ public class UserTime implements Command {
                     log.debug("Unable to find user or city {}", commandArgument);
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-                responseText = getLinkToUser(user, false) + " ${command.usertime.citynotset}";
+                responseText = getMarkdownLinkToUser(user) + " ${command.usertime.citynotset}";
             } else {
                 log.debug("Request to get time of city {}", city.getNameEn());
                 String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(ZoneId.of(city.getTimeZone())));
@@ -81,7 +81,7 @@ public class UserTime implements Command {
 
             ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
             String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(userZoneId));
-            responseText = "${command.usertime.at} " + getLinkToUser(user, false) + " ${command.usertime.now} *" + dateTimeNow + "*";
+            responseText = "${command.usertime.at} " + getMarkdownLinkToUser(user) + " ${command.usertime.now} *" + dateTimeNow + "*";
             if (repliedMessageDateTime != null) {
                 String pastDateTime = formatDateTime(repliedMessageDateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(userZoneId));
                 responseText = responseText + "\n" + "${command.usertime.was}: *" + pastDateTime + "*";

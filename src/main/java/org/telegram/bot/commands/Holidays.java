@@ -25,7 +25,7 @@ import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.formatDate;
 import static org.telegram.bot.utils.DateUtils.getDayOfWeek;
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 
 @Service
 @RequiredArgsConstructor
@@ -182,7 +182,7 @@ public class Holidays implements Command {
 
         return "<u>" + holiday.getName() + "</u>\n" +
                 "<i>" + date + " " + getDayOfWeek(dateOfHoliday, lang) + "</i> " + getNumberOfYear(storedDate, dateOfHoliday) + "\n" +
-                "${command.holidays.author}: " + getLinkToUser(holiday.getUser(), true);
+                "${command.holidays.author}: " + getHtmlLinkToUser(holiday.getUser());
     }
 
     /**

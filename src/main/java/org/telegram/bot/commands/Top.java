@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.TextUtils.getLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 import static org.telegram.bot.utils.TextUtils.removeCapital;
 
 @Component
@@ -65,6 +65,7 @@ public class Top implements Command {
         topListParamValuesMap.put("getNumberOfCommands", internationalizationService.getAllTranslations("command.top.list.commands"));
         topListParamValuesMap.put("getNumberOfGoodness", internationalizationService.getAllTranslations("command.top.list.goodness"));
         topListParamValuesMap.put("getNumberOfWickedness", internationalizationService.getAllTranslations("command.top.list.wickedness"));
+        topListParamValuesMap.put("getNumberOfReactions", internationalizationService.getAllTranslations("command.top.list.reactions"));
 
         this.topListMonthlyParam = internationalizationService.internationalize("${command.top.list.monthly}", null);
     }
@@ -151,9 +152,10 @@ public class Top implements Command {
         fieldsOfStats.put(Emoji.MOVIE_CAMERA.getSymbol() + "${command.top.userstats.videos}", userStats.getNumberOfVideos().toString());
         fieldsOfStats.put(Emoji.VHS.getSymbol() + "${command.top.userstats.videomessages}", userStats.getNumberOfVideoNotes().toString());
         fieldsOfStats.put(Emoji.PLAY_BUTTON.getSymbol() + "${command.top.userstats.voices}", userStats.getNumberOfVoices().toString());
+        fieldsOfStats.put(Emoji.BEAMING_FACE_WITH_SMILING_EYES.getSymbol() + "${command.top.userstats.reactions}", userStats.getNumberOfReactions().toString());
         fieldsOfStats.put(Emoji.ROBOT.getSymbol() + "${command.top.userstats.commands}", userStats.getNumberOfCommands().toString());
 
-        buf.append("<b>").append(getLinkToUser(userStats.getUser(), true)).append("</b>\n").append("<u>${command.top.permonth}:</u>\n");
+        buf.append("<b>").append(getHtmlLinkToUser(userStats.getUser())).append("</b>\n").append("<u>${command.top.permonth}:</u>\n");
 
         fieldsOfStats.entrySet()
                 .stream()
@@ -182,6 +184,7 @@ public class Top implements Command {
         fieldsOfStats.put(Emoji.MOVIE_CAMERA.getSymbol() + "${command.top.userstats.videos}", userStats.getNumberOfAllVideos().toString());
         fieldsOfStats.put(Emoji.VHS.getSymbol() + "${command.top.userstats.videomessages}", userStats.getNumberOfAllVideoNotes().toString());
         fieldsOfStats.put(Emoji.PLAY_BUTTON.getSymbol() + "${command.top.userstats.voices}", userStats.getNumberOfAllVoices().toString());
+        fieldsOfStats.put(Emoji.BEAMING_FACE_WITH_SMILING_EYES.getSymbol() + "${command.top.userstats.reactions}", userStats.getNumberOfAllReactions().toString());
         fieldsOfStats.put(Emoji.ROBOT.getSymbol() + "${command.top.userstats.commands}", userStats.getNumberOfAllCommands().toString());
 
         fieldsOfStats.forEach((key, value) -> {
@@ -264,7 +267,7 @@ public class Top implements Command {
                 String username = user.getUsername();
 
                 responseText
-                        .append(getLinkToUser(user, true, "@")).append(" ")
+                        .append(getHtmlLinkToUser(user, "@")).append(" ")
                         .append("<code>")
                         .append(String.format("%-" + spacesAfterSerialNumberCount + "s", counter + ")"))
                         .append(String.format("%-" + spacesAfterNumberOfMessageCount + "s", value))

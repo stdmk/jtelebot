@@ -71,6 +71,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 
                 <u>${command.top.userstats.total}:</u>
@@ -86,6 +87,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("top");
@@ -129,6 +131,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 
                 <u>${command.top.userstats.total}:</u>
@@ -144,6 +147,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 """;
         BotRequest request = TestUtils.getRequestWithRepliedMessage("top");
@@ -175,6 +179,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 
                 <u>${command.top.userstats.total}:</u>
@@ -190,6 +195,7 @@ class TopTest {
                 🎥${command.top.userstats.videos}: <b>1</b>
                 📼${command.top.userstats.videomessages}: <b>1</b>
                 ▶${command.top.userstats.voices}: <b>1</b>
+                😁${command.top.userstats.reactions}: <b>1</b>
                 🤖${command.top.userstats.commands}: <b>1</b>
                 """;
         final String username = "username";
@@ -277,6 +283,7 @@ class TopTest {
         when(internationalizationService.getAllTranslations("command.top.list.commands")).thenReturn(java.util.Set.of("command", "commands"));
         when(internationalizationService.getAllTranslations("command.top.list.goodness")).thenReturn(java.util.Set.of("good", "goodness", "kindness"));
         when(internationalizationService.getAllTranslations("command.top.list.wickedness")).thenReturn(java.util.Set.of("wicked", "wickedness"));
+        when(internationalizationService.getAllTranslations("command.top.list.reactions")).thenReturn(java.util.Set.of("reaction", "reactions"));
 
         when(internationalizationService.internationalize("${command.top.list.monthly}", null)).thenReturn("monthly");
 
@@ -306,6 +313,7 @@ class TopTest {
                 Arguments.of("video", String.format(responseTextTemplate, "video")),
                 Arguments.of("videonote", String.format(responseTextTemplate, "videonote")),
                 Arguments.of("voice", String.format(responseTextTemplate, "voice")),
+                Arguments.of("reactions", String.format(responseTextTemplate, "reactions")),
                 Arguments.of("command", String.format(responseTextTemplate, "command")),
                 Arguments.of("good", String.format(responseTextTemplate, "good")),
                 Arguments.of("wicked", String.format(responseTextTemplate, "wicked")),
@@ -339,6 +347,7 @@ class TopTest {
                 .setNumberOfVideoNotes(i)
                 .setNumberOfVoices(i)
                 .setNumberOfCommands(i)
+                .setNumberOfReactions(i)
                 .setNumberOfAllMessages((long) i)
                 .setNumberOfAllKarma((long) i)
                 .setNumberOfAllGoodness((long) i)
@@ -352,6 +361,7 @@ class TopTest {
                 .setNumberOfAllVideoNotes((long) i)
                 .setNumberOfAllVoices((long) i)
                 .setNumberOfAllCommands((long) i)
+                .setNumberOfAllReactions((long) i)
                 .setNumberOfMessagesPerDay(i)
                 .setNumberOfKarmaPerDay(i)
                 .setNumberOfGoodnessPerDay(i)
@@ -365,6 +375,7 @@ class TopTest {
                 .setNumberOfVideoNotesPerDay(i)
                 .setNumberOfVoicesPerDay(i)
                 .setNumberOfCommandsPerDay(i)
+                .setNumberOfReactionsPerDay(i)
                 .setUser(user);
     }
 

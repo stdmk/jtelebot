@@ -36,7 +36,7 @@ public class Me implements Command {
         if (commandArgument != null) {
             result.add(new TextResponse()
                     .setChatId(message.getChatId())
-                    .setText("* " + TextUtils.getLinkToUser(message.getUser(), true) + " " + commandArgument)
+                    .setText("* " + TextUtils.getHtmlLinkToUser(message.getUser()) + " " + commandArgument)
                     .setResponseSettings(FormattingStyle.HTML));
         }
 

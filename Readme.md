@@ -154,6 +154,8 @@ Java Telegram Bot (Spring)
 
 /xml - xml validation and formatting
 
+/today - statistics on replies and reactions to messages
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
@@ -267,6 +269,17 @@ To get a key go to: https://www.virustotal.com/
 **ftpBackupUrl** (ftp backup)
 Url of the ftp server where backups will be uploaded
 `ftp://username:password@host:port[/path]`
+
+**today** (/today command)
+
+*minRepliesToGetTheTop* 
+Minimum message replies required to get to the /today command.
+
+*messagesCountInTheTop*
+Messages count in /today command.
+
+*messageExpirationDays*
+number of days to store messages
 
 ### System
 Java 17 is required to run the bot  

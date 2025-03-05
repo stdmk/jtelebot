@@ -93,7 +93,7 @@ public class Level implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        return "${command.level.userlevel} " + TextUtils.getLinkToUser(user, false) + " - " + user.getAccessLevel();
+        return "${command.level.userlevel} " + TextUtils.getMarkdownLinkToUser(user) + " - " + user.getAccessLevel();
     }
 
     private void changeUserLevel(String username, int level) {

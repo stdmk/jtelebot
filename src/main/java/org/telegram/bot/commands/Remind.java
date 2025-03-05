@@ -874,7 +874,7 @@ public class Remind implements Command {
         Page<Reminder> reminderList = reminderService.getByChatAndUser(chat, user, page);
 
         String languageCode = languageResolver.getChatLanguageCode(message, user);
-        String caption = TextUtils.getLinkToUser(user, true) + "<b> ${command.remind.yourreminders}:</b>\n" + buildTextReminderList(reminderList.toList(), languageCode);
+        String caption = TextUtils.getHtmlLinkToUser(user) + "<b> ${command.remind.yourreminders}:</b>\n" + buildTextReminderList(reminderList.toList(), languageCode);
         Keyboard keyboard = prepareKeyboardWithRemindersForSetting(reminderList, page, languageCode);
 
         if (newMessage) {

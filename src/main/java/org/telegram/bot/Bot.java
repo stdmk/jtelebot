@@ -89,10 +89,12 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
         BotRequest botRequest = telegramObjectMapper.toBotRequest(update);
         Message message = botRequest.getMessage();
+
+        logReceivedMessage(botRequest);
+
         if (TelegramUtils.isUnsupportedMessage(message)) {
             return;
         }
-        logReceivedMessage(botRequest);
 
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
@@ -104,8 +106,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
             log.info("Banned user. Ignoring...");
             return;
         }
-
-        userStatsService.updateEntitiesInfo(message);
 
         processRequest(botRequest, chatEntity, userEntity, userAccessLevel, true);
     }
@@ -153,6 +153,8 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     private void logReceivedMessage(BotRequest botRequest) {
         Message message = botRequest.getMessage();
         org.telegram.bot.domain.entities.User user = message.getUser();
+
+        userStatsService.updateEntitiesInfo(message);
 
         String textOfMessage = message.getText();
         Boolean spyMode = propertiesConfig.getSpyMode();

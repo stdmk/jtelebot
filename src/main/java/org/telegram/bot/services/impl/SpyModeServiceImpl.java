@@ -3,12 +3,12 @@ package org.telegram.bot.services.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.SpyModeService;
-import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.utils.TextUtils;
 
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ public class SpyModeServiceImpl implements SpyModeService {
 
         return new TextResponse()
                 .setChatId(propertiesConfig.getAdminId())
-                .setText("Received a message from " + TextUtils.getLinkToUser(user, false) + ": `" + textMessage + "`")
+                .setText("Received a message from " + TextUtils.getMarkdownLinkToUser(user) + ": `" + textMessage + "`")
                 .setResponseSettings(responseSettings);
     }
 }
