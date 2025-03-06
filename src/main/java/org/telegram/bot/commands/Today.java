@@ -114,7 +114,7 @@ public class Today implements Command, MessageAnalyzer {
         if (messageText == null) {
             messageText = "...";
         } else {
-            messageText = TextUtils.getLessThanCount(messageText, MESSAGE_TEXT_MAX_LENGTH);
+            messageText = TextUtils.getLessThanCount(TextUtils.reduceSpaces(messageText), MESSAGE_TEXT_MAX_LENGTH);
         }
 
         return TextUtils.getHtmlLinkToMessage(chatId, message.getMessageId(), messageText) + " (" + count + ")\n";
