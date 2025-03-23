@@ -159,7 +159,7 @@ class DelayTest {
         verify(delayCommandService).save(delayCommandArgumentCaptor.capture());
 
         DelayCommand delayCommand = delayCommandArgumentCaptor.getValue();
-        assertEquals(expectedDateTime.withNano(0), delayCommand.getDateTime().withNano(0));
+        assertEquals(expectedDateTime.withSecond(0).withNano(0), delayCommand.getDateTime().withSecond(0).withNano(0));
         assertEquals(expectedRequestJson, delayCommand.getRequestJson());
 
         verify(bot).sendTyping(message.getChatId());

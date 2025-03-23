@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.domain.entities.Message;
+import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.repositories.MessageRepository;
 import org.telegram.bot.services.MessageService;
 
@@ -24,7 +25,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void save(org.telegram.bot.domain.model.request.Message message) {
-        if (message.hasReactions()) {
+        if (message.hasReactions() || MessageKind.CALLBACK.equals(message.getMessageKind())) {
             return;
         }
 

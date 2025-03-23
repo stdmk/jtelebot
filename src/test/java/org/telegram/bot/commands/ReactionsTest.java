@@ -2,6 +2,8 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,6 +16,7 @@ import org.telegram.bot.domain.model.ReactionsStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
+import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
@@ -283,6 +286,20 @@ class ReactionsTest {
     @Test
     void analyzePrivateMessageTest() {
         BotRequest request = TestUtils.getRequestFromPrivate("test");
+
+        List<BotResponse> botResponseList = reactions.analyze(request);
+
+        verify(messageStatsService, never()).incrementReplies(any(org.telegram.bot.domain.entities.Message.class));
+        verify(messageStatsService, never()).incrementReactions(any(org.telegram.bot.domain.entities.Message.class), anyInt());
+
+        assertTrue(botResponseList.isEmpty());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MessageKind.class, mode = EnumSource.Mode.INCLUDE, names = {"CALLBACK", "EDIT"})
+    void analyzeUnsupportedKindOfMessageTest(MessageKind messageKind) {
+        BotRequest request = TestUtils.getRequestFromGroup("test");
+        request.getMessage().setMessageKind(messageKind);
 
         List<BotResponse> botResponseList = reactions.analyze(request);
 

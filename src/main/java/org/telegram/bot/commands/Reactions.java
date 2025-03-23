@@ -12,6 +12,7 @@ import org.telegram.bot.domain.model.CustomReactionsStats;
 import org.telegram.bot.domain.model.ReactionsStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
@@ -310,33 +311,40 @@ public class Reactions implements Command, MessageAnalyzer {
     @Override
     public List<BotResponse> analyze(BotRequest request) {
         Message message = request.getMessage();
+        if (shouldNotBeAnalyzed(message)) {
+            return returnResponse();
+        }
 
-        Chat chat = message.getChat();
-        if (!TelegramUtils.isPrivateChat(chat)) {
-            if (message.hasReplyToMessage()) {
-                org.telegram.bot.domain.entities.Message replyToMessage = messageService.get(message.getReplyToMessage().getMessageId());
-                messageStatsService.incrementReplies(replyToMessage);
-            } else if (message.hasReactions()) {
-                org.telegram.bot.domain.entities.Message reactionsToMessage = messageService.get(message.getMessageId());
-                if (reactionsToMessage == null || message.getUser().getUserId().equals(reactionsToMessage.getUser().getUserId())) {
-                    return returnResponse();
-                }
-
-                org.telegram.bot.domain.model.request.Reactions reactions = message.getReactions();
-                List<String> newEmojis = reactions.getNewEmojis();
-                List<String> newCustomEmojisIds = reactions.getNewCustomEmojisIds();
-                List<String> oldEmojis = reactions.getOldEmojis();
-                List<String> oldCustomEmojisIds = reactions.getOldCustomEmojisIds();
-                int reactionsCount = (newEmojis.size() + newCustomEmojisIds.size()) - (oldEmojis.size() + oldCustomEmojisIds.size());
-                messageStatsService.incrementReactions(reactionsToMessage, reactionsCount);
-
-                User recepientUser = reactionsToMessage.getUser();
-                reactionsStatsService.update(chat, recepientUser, oldEmojis, newEmojis);
-                customReactionsStatsService.update(chat, recepientUser, oldCustomEmojisIds, newCustomEmojisIds);
+        if (message.hasReplyToMessage()) {
+            org.telegram.bot.domain.entities.Message replyToMessage = messageService.get(message.getReplyToMessage().getMessageId());
+            messageStatsService.incrementReplies(replyToMessage);
+        } else if (message.hasReactions()) {
+            org.telegram.bot.domain.entities.Message reactionsToMessage = messageService.get(message.getMessageId());
+            if (reactionsToMessage == null || message.getUser().getUserId().equals(reactionsToMessage.getUser().getUserId())) {
+                return returnResponse();
             }
+
+            org.telegram.bot.domain.model.request.Reactions reactions = message.getReactions();
+            List<String> newEmojis = reactions.getNewEmojis();
+            List<String> newCustomEmojisIds = reactions.getNewCustomEmojisIds();
+            List<String> oldEmojis = reactions.getOldEmojis();
+            List<String> oldCustomEmojisIds = reactions.getOldCustomEmojisIds();
+            int reactionsCount = (newEmojis.size() + newCustomEmojisIds.size()) - (oldEmojis.size() + oldCustomEmojisIds.size());
+            messageStatsService.incrementReactions(reactionsToMessage, reactionsCount);
+
+            Chat chat = message.getChat();
+            User recepientUser = reactionsToMessage.getUser();
+            reactionsStatsService.update(chat, recepientUser, oldEmojis, newEmojis);
+            customReactionsStatsService.update(chat, recepientUser, oldCustomEmojisIds, newCustomEmojisIds);
         }
 
         return returnResponse();
+    }
+
+    private boolean shouldNotBeAnalyzed(Message message) {
+        return TelegramUtils.isPrivateChat(message.getChat())
+                || MessageKind.CALLBACK.equals(message.getMessageKind())
+                || MessageKind.EDIT.equals(message.getMessageKind());
     }
 
     @Getter
