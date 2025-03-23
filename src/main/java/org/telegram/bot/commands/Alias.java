@@ -120,8 +120,8 @@ public class Alias implements Command, MessageAnalyzer {
 
         org.telegram.bot.domain.entities.Alias alias = aliasService.get(chat, user, aliasName);
         if (alias != null) {
-            List<String> aliasValueList = getAliasValueList(alias.getValue());
-            if (aliasValueList.size() > 1) {
+            if (alias.getValue().contains("{")) {
+                List<String> aliasValueList = getAliasValueList(alias.getValue());
                 List<BotResponse> resultList = new ArrayList<>(MAX_COMMANDS_IN_ALIAS);
                 for (String aliasValue : aliasValueList) {
                     resultList.addAll(processRequest(request, getMessageText(aliasValue, argument)));

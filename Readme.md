@@ -156,6 +156,8 @@ Java Telegram Bot (Spring)
 
 /reactions - reaction statistic
 
+/increment - counting increments
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  

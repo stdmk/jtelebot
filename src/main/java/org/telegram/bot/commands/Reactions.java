@@ -356,7 +356,7 @@ public class Reactions implements Command, MessageAnalyzer {
         private long total;
 
         public void calculateTotal() {
-            this.total = this.emojiCountMap.values().stream().mapToInt(count -> count).sum() + customEmojiCount;
+            this.total = this.emojiCountMap.values().stream().mapToLong(count -> count).sum() + customEmojiCount;
         }
     }
 
