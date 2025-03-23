@@ -19,4 +19,6 @@
     <include file="db/changelog/2025/20250316075300_added_entity_CustomReactionMonthStats.xml"/>
     <include file="db/changelog/2025/20250316075400_added_entity_CustomReactionDayStats.xml"/>
     <include file="db/changelog/2025/20250316101400_update_Message_add_type_field.xml"/>
+    <include file="db/changelog/2025/20250323095100_added_entity_Increment.xml"/>
+    <include file="db/changelog/2025/20250323095300_added_command_Increment.xml"/>
 </databaseChangeLog>
