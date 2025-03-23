@@ -11,4 +11,12 @@
     <include file="db/changelog/2025/20250222120200_added_entity_MessageStats.xml"/>
     <include file="db/changelog/2025/20250223115500_update_UserStats_add_reactionsfield.xml"/>
     <include file="db/changelog/2025/20250301100800_added_entity_ChatResultsSettings.xml"/>
+    <include file="db/changelog/2025/20250306171700_update_command_reactions.xml"/>
+    <include file="db/changelog/2025/20250316074500_added_entity_ReactionStats.xml"/>
+    <include file="db/changelog/2025/20250316075000_added_entity_ReactionMonthStats.xml"/>
+    <include file="db/changelog/2025/20250316075100_added_entity_ReactionDayStats.xml"/>
+    <include file="db/changelog/2025/20250316075200_added_entity_CustomReactionStats.xml"/>
+    <include file="db/changelog/2025/20250316075300_added_entity_CustomReactionMonthStats.xml"/>
+    <include file="db/changelog/2025/20250316075400_added_entity_CustomReactionDayStats.xml"/>
+    <include file="db/changelog/2025/20250316101400_update_Message_add_type_field.xml"/>
 </databaseChangeLog>

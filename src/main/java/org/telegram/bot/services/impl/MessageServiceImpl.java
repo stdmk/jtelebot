@@ -41,6 +41,7 @@ public class MessageServiceImpl implements MessageService {
         return new org.telegram.bot.domain.entities.Message()
                 .setChat(message.getChat())
                 .setUser(message.getUser())
+                .setMessageContentType(message.getMessageContentType())
                 .setMessageId(message.getMessageId())
                 .setText(message.getText())
                 .setDateTime(message.getDateTime());

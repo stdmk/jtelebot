@@ -34,14 +34,14 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     private Integer messagesCountInTheTop;
 
     @Override
-    public void incrementReplies(int messageId) {
-        getMessageStats(messageId).ifPresent(messageStats ->
+    public void incrementReplies(Message message) {
+        getMessageStats(message).ifPresent(messageStats ->
                 messageStatsRepository.save(messageStats.setReplies(messageStats.getReplies() + 1)));
     }
 
     @Override
-    public void incrementReactions(int messageId, int reactionsCount) {
-        getMessageStats(messageId).ifPresent(messageStats ->
+    public void incrementReactions(Message message, int reactionsCount) {
+        getMessageStats(message).ifPresent(messageStats ->
                 messageStatsRepository.save(messageStats.setReactions(messageStats.getReactions() + reactionsCount)));
     }
 
@@ -69,15 +69,9 @@ public class MessageStatsServiceImpl implements MessageStatsService {
         messageStatsRepository.deleteAllByMessageDateTimeGreaterThanEqual(expirationDateTime);
     }
 
-    private Optional<MessageStats> getMessageStats(int messageId) {
-        MessageStats messageStats = messageStatsRepository.findByMessageMessageId(messageId);
+    private Optional<MessageStats> getMessageStats(Message message) {
+        MessageStats messageStats = messageStatsRepository.findByMessage(message);
         if (messageStats == null) {
-            Message message = messageService.get(messageId);
-            if (message == null) {
-                log.debug("Message with id {} not found", messageId);
-                return Optional.empty();
-            }
-
             messageStats = new MessageStats()
                     .setMessage(message)
                     .setReplies(0)

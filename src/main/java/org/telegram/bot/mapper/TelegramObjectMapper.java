@@ -20,6 +20,9 @@ import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
+import org.telegram.telegrambots.meta.api.objects.reactions.ReactionType;
+import org.telegram.telegrambots.meta.api.objects.reactions.ReactionTypeCustomEmoji;
+import org.telegram.telegrambots.meta.api.objects.reactions.ReactionTypeEmoji;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -105,7 +108,35 @@ public class TelegramObjectMapper {
                 .setDateTime(messageReactionUpdated.getDate() == null ? null : unixTimeToLocalDateTime(messageReactionUpdated.getDate()))
                 .setMessageKind(MessageKind.COMMON)
                 .setMessageContentType(MessageContentType.REACTION)
-                .setReactionsCount(messageReactionUpdated.getNewReaction().size() - messageReactionUpdated.getOldReaction().size());
+                .setReactions(toReactions(messageReactionUpdated.getOldReaction(), messageReactionUpdated.getNewReaction()));
+    }
+
+    private Reactions toReactions(List<ReactionType> oldReactions, List<ReactionType> newReactions) {
+        Reactions reactions = new Reactions();
+
+        for (ReactionType oldReaction : oldReactions) {
+            String reactionType = oldReaction.getType();
+            if (ReactionType.EMOJI_TYPE.equals(reactionType)) {
+                reactions.getOldEmojis().add(((ReactionTypeEmoji) oldReaction).getEmoji());
+            } else if (ReactionType.CUSTOM_EMOJI_TYPE.equals(reactionType)) {
+                reactions.getOldCustomEmojisIds().add(((ReactionTypeCustomEmoji) oldReaction).getCustomEmojiId());
+            } else if (ReactionType.PAID_TYPE.equals(reactionType)) {
+                // nothing
+            }
+        }
+
+        for (ReactionType newReaction : newReactions) {
+            String reactionType = newReaction.getType();
+            if (ReactionType.EMOJI_TYPE.equals(reactionType)) {
+                reactions.getNewEmojis().add(((ReactionTypeEmoji) newReaction).getEmoji());
+            } else if (ReactionType.CUSTOM_EMOJI_TYPE.equals(reactionType)) {
+                reactions.getNewCustomEmojisIds().add(((ReactionTypeCustomEmoji) newReaction).getCustomEmojiId());
+            } else if (ReactionType.PAID_TYPE.equals(reactionType)) {
+                // nothing
+            }
+        }
+
+        return reactions;
     }
 
     private Message toMessage(org.telegram.telegrambots.meta.api.objects.message.Message telegramMessage) {

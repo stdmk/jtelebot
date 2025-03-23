@@ -6,14 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.commands.Today;
+import org.telegram.bot.commands.Reactions;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
-import org.telegram.bot.services.ChatResultsSettingsService;
-import org.telegram.bot.services.MessageService;
-import org.telegram.bot.services.MessageStatsService;
+import org.telegram.bot.services.*;
 
 import java.time.LocalDateTime;
 
@@ -28,23 +26,25 @@ public class MessagesCleanerTimer extends TimerParent {
             .setWebPagePreview(false);
 
     private final ChatResultsSettingsService chatResultsSettingsService;
-    private final Today today;
+    private final Reactions reactions;
     private final Bot bot;
     private final MessageService messageService;
     private final MessageStatsService messageStatsService;
+    private final ReactionDayStatsService reactionDayStatsService;
+    private final CustomReactionDayStatsService customReactionDayStatsService;
 
     @Value("${today.messageExpirationDays:2}")
     private Integer messageExpirationDays;
 
     @Override
-    @Scheduled(cron = "0 55 23 * * ?")
+    @Scheduled(cron = "0 59 23 * * ?")
     public void execute() {
         chatResultsSettingsService.getAllEnabled().forEach(chatResultsSettings -> sendResults(chatResultsSettings.getChat()));
         clearData();
     }
 
     private void sendResults(Chat chat) {
-        String responseText = today.getResponseText(chat);
+        String responseText = reactions.getTodayTop(chat);
         if (responseText == null) {
             return;
         }
@@ -59,6 +59,9 @@ public class MessagesCleanerTimer extends TimerParent {
         LocalDateTime expirationDateTime = LocalDateTime.now().minusDays(messageExpirationDays);
         messageStatsService.removeAll(expirationDateTime);
         messageService.removeAll(expirationDateTime);
+
+        reactionDayStatsService.removeAll();
+        customReactionDayStatsService.removeAll();
     }
 
 }

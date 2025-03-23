@@ -13,9 +13,7 @@ import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.model.response.TextResponse;
-import org.telegram.bot.services.ChatService;
-import org.telegram.bot.services.TimerService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
@@ -35,6 +33,8 @@ public class UserStatsCleanerTimer extends TimerParent {
     private final ChatService chatService;
     private final Top top;
     private final BotStats botStats;
+    private final ReactionMonthStatsService reactionMonthStatsService;
+    private final CustomReactionMonthStatsService customReactionMonthStatsService;
 
     @Autowired
     @Lazy
@@ -101,6 +101,9 @@ public class UserStatsCleanerTimer extends TimerParent {
 
             timer.setLastAlarmDt(nextAlarm.withDayOfMonth(1));
             timerService.save(timer);
+
+            reactionMonthStatsService.removeAll();
+            customReactionMonthStatsService.removeAll();
         }
     }
 }

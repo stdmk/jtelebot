@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.telegram.bot.domain.model.request.MessageContentType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -30,6 +31,10 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "userid", nullable = false)
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private MessageContentType messageContentType;
 
     @Column(name = "text")
     private String text;

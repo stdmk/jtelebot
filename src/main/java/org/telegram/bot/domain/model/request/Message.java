@@ -23,7 +23,7 @@ public class Message {
     private MessageKind messageKind;
     private MessageContentType messageContentType;
     private List<Attachment> attachments;
-    private Integer reactionsCount;
+    private Reactions reactions;
 
     @JsonIgnore
     public Long getChatId() {
@@ -57,7 +57,7 @@ public class Message {
     }
 
     public boolean hasReactions() {
-        return this.reactionsCount != null;
+        return this.reactions != null;
     }
 
     @JsonIgnore

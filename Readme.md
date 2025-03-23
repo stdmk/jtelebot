@@ -154,7 +154,7 @@ Java Telegram Bot (Spring)
 
 /xml - xml validation and formatting
 
-/today - statistics on replies and reactions to messages
+/reactions - reaction statistic
 
 ### Properties
 **telegramBotApiToken**  
@@ -270,13 +270,13 @@ To get a key go to: https://www.virustotal.com/
 Url of the ftp server where backups will be uploaded
 `ftp://username:password@host:port[/path]`
 
-**today** (/today command)
+**reactions** (/reactions command)
 
 *minRepliesToGetTheTop* 
-Minimum message replies required to get to the /today command.
+Minimum message replies required to get to the /reactions command.
 
 *messagesCountInTheTop*
-Messages count in /today command.
+Messages count in /reactions command.
 
 *messageExpirationDays*
 number of days to store messages
