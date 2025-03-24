@@ -27,8 +27,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
 import org.telegram.bot.utils.TextUtils;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,9 +126,8 @@ public class Wikipedia implements Command {
         return "<b>" + wiki.getTitle() + "</b>\n" +
                 wiki.getText() + "\n" +
                 TextUtils.buildHtmlLink(
-                        "https://ru.wikipedia.org/wiki/" + URLEncoder.encode(wiki.getTitle(),
-                                StandardCharsets.UTF_8).replace("\\+", "_"), "${command.wikipedia.articlelink}") +
-                "\n";
+                        "https://ru.wikipedia.org/wiki/" + wiki.getTitle().replace(" ", "_"),
+                        "${command.wikipedia.articlelink}") + "\n";
     }
 
     /**
