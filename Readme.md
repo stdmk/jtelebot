@@ -158,6 +158,8 @@ Java Telegram Bot (Spring)
 
 /increment - counting increments
 
+/http - HTTP status code description
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
