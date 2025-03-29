@@ -21,4 +21,5 @@
     <include file="db/changelog/2025/20250316101400_update_Message_add_type_field.xml"/>
     <include file="db/changelog/2025/20250323095100_added_entity_Increment.xml"/>
     <include file="db/changelog/2025/20250323095300_added_command_Increment.xml"/>
+    <include file="db/changelog/2025/20250329101900_added_command_Http.xml"/>
 </databaseChangeLog>
