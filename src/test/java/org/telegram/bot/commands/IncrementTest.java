@@ -86,7 +86,7 @@ class IncrementTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", " ", "tratatam-tratatam", "0"})
+    @ValueSource(strings = {"", " ", "tratatam-tratatam"})
     void parseWithWrongIncrementValueAsArgumentTest(String value) {
         final String expectedErrorText = "error";
         final String incrementName = "test";
@@ -121,6 +121,25 @@ class IncrementTest {
         assertEquals(message.getChat(), entity.getChat());
         assertEquals(incrementName, entity.getName());
         assertEquals(incrementValue, entity.getCount());
+    }
+
+    @Test
+    void parseWithKnownIncrementNameAndZeroValueAsArgumentTest() {
+        final String expectedResponseText = "${command.increment.deleted}: <b>test</b>";
+        final String incrementName = "test";
+        final BigDecimal incrementValue = BigDecimal.ZERO;
+        BotRequest request = TestUtils.getRequestFromGroup("increment " + incrementName + " " + incrementValue.toPlainString());
+        Message message = request.getMessage();
+
+        org.telegram.bot.domain.entities.Increment entity = getSomeIncrement(incrementName, BigDecimal.ZERO);
+        when(incrementService.get(message.getChat(), message.getUser(), incrementName)).thenReturn(entity);
+
+        BotResponse botResponse = increment.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(incrementService).remove(entity);
     }
 
     @ParameterizedTest

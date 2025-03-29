@@ -10,4 +10,5 @@ public interface IncrementService {
     Increment get(Chat chat, User user, String name);
     List<Increment> get(Chat chat, User user);
     void save(Increment increment);
+    void remove(Increment increment);
 }

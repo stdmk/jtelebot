@@ -31,4 +31,9 @@ public class IncrementServiceImpl implements IncrementService {
     public void save(Increment increment) {
         incrementRepository.save(increment);
     }
+
+    @Override
+    public void remove(Increment increment) {
+        incrementRepository.delete(increment);
+    }
 }

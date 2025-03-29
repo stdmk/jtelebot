@@ -60,17 +60,18 @@ public class Increment implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        validateIncrementValue(incrementValue);
-
         String response;
         org.telegram.bot.domain.entities.Increment increment = incrementService.get(chat, user, incrementName);
         if (increment == null) {
             response = "${command.increment.new}" + " <b>" + incrementName + "</b>: ${command.increment.withvalue} <b>" + incrementValue.toPlainString() + "</b>";
-            increment = new org.telegram.bot.domain.entities.Increment()
+            incrementService.save(new org.telegram.bot.domain.entities.Increment()
                     .setChat(chat)
                     .setUser(user)
                     .setName(incrementName.toLowerCase(Locale.ROOT))
-                    .setCount(incrementValue);
+                    .setCount(incrementValue));
+        } else if (BigDecimal.ZERO.equals(incrementValue)) {
+            response = "${command.increment.deleted}:" + " <b>" + incrementName + "</b>";
+            incrementService.remove(increment);
         } else {
             BigDecimal oldCount = increment.getCount();
             BigDecimal newCount;
@@ -90,17 +91,11 @@ public class Increment implements Command {
             response = "${command.increment.increment} " + "<b>" + incrementName + "</b> " + operation + " ${command.increment.to} <b>" + newCount.toPlainString() + "</b>";
 
             increment.setCount(newCount);
-        }
 
-        incrementService.save(increment);
+            incrementService.save(increment);
+        }
 
         return response;
-    }
-
-    private void validateIncrementValue(BigDecimal value) {
-        if (BigDecimal.ZERO.equals(value)) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
     }
 
     private String getIncrementInfo(Chat chat, User user, String incrementName) {
