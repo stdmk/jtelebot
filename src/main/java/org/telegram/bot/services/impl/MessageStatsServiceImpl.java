@@ -72,11 +72,11 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     private Optional<MessageStats> getMessageStats(Message message) {
         MessageStats messageStats = messageStatsRepository.findByMessage(message);
         if (messageStats == null) {
-            messageStats = new MessageStats()
+            messageStats = messageStatsRepository.save(new MessageStats()
                     .setMessage(message)
                     .setReplies(0)
                     .setReactions(0)
-                    .setDate(LocalDate.now());
+                    .setDate(LocalDate.now()));
         }
 
         return Optional.of(messageStats);

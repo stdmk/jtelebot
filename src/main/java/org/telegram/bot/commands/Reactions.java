@@ -317,7 +317,9 @@ public class Reactions implements Command, MessageAnalyzer {
 
         if (message.hasReplyToMessage()) {
             org.telegram.bot.domain.entities.Message replyToMessage = messageService.get(message.getReplyToMessage().getMessageId());
-            messageStatsService.incrementReplies(replyToMessage);
+            if (replyToMessage != null) {
+                messageStatsService.incrementReplies(replyToMessage);
+            }
         } else if (message.hasReactions()) {
             org.telegram.bot.domain.entities.Message reactionsToMessage = messageService.get(message.getMessageId());
             if (reactionsToMessage == null || message.getUser().getUserId().equals(reactionsToMessage.getUser().getUserId())) {
