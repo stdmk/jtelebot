@@ -4,7 +4,9 @@ import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.common.GlobalHistogramBinarizer;
+import com.google.zxing.multi.GenericMultipleBarcodeReader;
+import com.google.zxing.multi.MultipleBarcodeReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,6 +40,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class Qr implements Command, MessageAnalyzer {
+
+    private static final Map<DecodeHintType, Boolean> HINTS = Map.of(DecodeHintType.TRY_HARDER, Boolean.TRUE);
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -121,8 +125,8 @@ public class Qr implements Command, MessageAnalyzer {
                         return decodeResult;
                     })
                     .map(decodeResult -> returnResponse(new TextResponse(message)
-                                            .setText(decodeResult)
-                                            .setResponseSettings(FormattingStyle.HTML)))
+                            .setText(decodeResult)
+                            .setResponseSettings(FormattingStyle.HTML)))
                     .orElse(returnResponse());
         }
 
@@ -130,15 +134,27 @@ public class Qr implements Command, MessageAnalyzer {
     }
 
     private String getDecodeResult(BufferedImage image) throws NotFoundException {
-        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
-        Result result = new MultiFormatReader().decode(binaryBitmap);
+        LuminanceSource source = new BufferedImageLuminanceSource(image);
+        BinaryBitmap bitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
 
-        BarcodeFormat barcodeFormat = result.getBarcodeFormat();
-        if (barcodeFormat == null) {
-            barcodeFormat = BarcodeFormat.QR_CODE;
+        Reader reader = new MultiFormatReader();
+        MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(reader);
+        Result[] results = multiReader.decodeMultiple(bitmap, HINTS);
+        if (results != null) {
+            StringBuilder buf = new StringBuilder();
+            for (Result result : results) {
+                BarcodeFormat barcodeFormat = result.getBarcodeFormat();
+                if (barcodeFormat == null) {
+                    barcodeFormat = BarcodeFormat.QR_CODE;
+                }
+
+                buf.append(barcodeFormat.name()).append(": <code>").append(result.getText()).append("</code>\n");
+            }
+
+            return buf.toString();
         }
 
-        return barcodeFormat.name() + ": <code>" + result.getText() + "</code>";
+        return null;
     }
 
 }

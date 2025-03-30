@@ -138,7 +138,7 @@ class QrTest {
 
     @Test
     void analyzeTest() throws IOException, TelegramApiException {
-        final String expectedResponseText = "QR_CODE: <code>test</code>";
+        final String expectedResponseText = "QR_CODE: <code>test</code>\n";
         final String fileId = "fileId";
         final byte[] attachment = TestUtils.getResourceAsBytes("qr/qr.png");
         BotRequest request = TestUtils.getRequestFromGroup();
