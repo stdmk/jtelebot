@@ -215,6 +215,7 @@ public class Reactions implements Command, MessageAnalyzer {
         AtomicInteger i = new AtomicInteger(0);
         userStatsMap.entrySet()
                 .stream()
+                .filter(userStatsEntry -> userStatsEntry.getValue().getTotal() != 0)
                 .sorted(Comparator.comparing((Map.Entry<User, Stats> userStats) -> userStats.getValue().getTotal()).reversed())
                 .limit(MAX_TOP_LIST_LENGTH)
                 .forEach(userStatsEntry -> {

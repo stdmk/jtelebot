@@ -22,10 +22,7 @@ import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
@@ -48,6 +45,8 @@ class TopTest {
     private UserService userService;
     @Mock
     private SpeechService speechService;
+    @Mock
+    private LanguageResolver languageResolver;
     @Mock
     private InternationalizationService internationalizationService;
 
@@ -258,10 +257,14 @@ class TopTest {
             ${command.top.monthlyclearcaption}""";
         setParams();
 
+        final String lang = "en";
+        Chat chat = TestUtils.getChat();
+        when(languageResolver.getChatLanguageCode(chat)).thenReturn(lang);
+        when(internationalizationService.internationalize("${command.top.list.monthly}", lang)).thenReturn("monthly");
         when(userStatsService.getSortedUserStatsListForChat(any(Chat.class), anyString(), anyInt()))
                 .thenReturn(Stream.of(-30, 0, 30, 60, 90, 120, 150).map(this::getSomeUserStats).toList());
 
-        TextResponse textResponse = top.getTopByChat(TestUtils.getChat());
+        TextResponse textResponse = top.getTopByChat(chat);
         TestUtils.checkDefaultTextResponseParams(textResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -284,8 +287,6 @@ class TopTest {
         when(internationalizationService.getAllTranslations("command.top.list.goodness")).thenReturn(java.util.Set.of("good", "goodness", "kindness"));
         when(internationalizationService.getAllTranslations("command.top.list.wickedness")).thenReturn(java.util.Set.of("wicked", "wickedness"));
         when(internationalizationService.getAllTranslations("command.top.list.reactions")).thenReturn(java.util.Set.of("reaction", "reactions"));
-
-        when(internationalizationService.internationalize("${command.top.list.monthly}", null)).thenReturn("monthly");
 
         ReflectionTestUtils.invokeMethod(top, "postConstruct");
     }

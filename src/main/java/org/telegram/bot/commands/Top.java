@@ -16,10 +16,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.services.*;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
@@ -38,15 +35,19 @@ import static org.telegram.bot.utils.TextUtils.removeCapital;
 public class Top implements Command {
 
     private static final long MIN_SPACES_AFTER_NUMBER_OF_MESSAGE_COUNT = 6L;
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setFormattingStyle(FormattingStyle.HTML)
+            .setNotification(false)
+            .setWebPagePreview(false);
 
     private final Bot bot;
     private final UserStatsService userStatsService;
     private final UserService userService;
     private final SpeechService speechService;
+    private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
 
     private final Map<String, Set<String>> topListParamValuesMap = new ConcurrentHashMap<>();
-    private String topListMonthlyParam;
 
     @PostConstruct
     private void postConstruct() {
@@ -66,8 +67,6 @@ public class Top implements Command {
         topListParamValuesMap.put("getNumberOfGoodness", internationalizationService.getAllTranslations("command.top.list.goodness"));
         topListParamValuesMap.put("getNumberOfWickedness", internationalizationService.getAllTranslations("command.top.list.wickedness"));
         topListParamValuesMap.put("getNumberOfReactions", internationalizationService.getAllTranslations("command.top.list.reactions"));
-
-        this.topListMonthlyParam = internationalizationService.internationalize("${command.top.list.monthly}", null);
     }
 
     @Override
@@ -105,16 +104,17 @@ public class Top implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(new ResponseSettings()
-                        .setFormattingStyle(FormattingStyle.HTML)
-                        .setNotification(false)));
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
     }
 
     public TextResponse getTopByChat(Chat chat) throws InvocationTargetException, IllegalAccessException {
+        String lang = languageResolver.getChatLanguageCode(chat);
+        String topListMonthlyParam = internationalizationService.internationalize("${command.top.list.monthly}", lang);
+
         return new TextResponse()
                 .setChatId(chat.getChatId())
                 .setText(getTopListOfUsers(chat, topListMonthlyParam) + "\n${command.top.monthlyclearcaption}")
-                .setResponseSettings(FormattingStyle.HTML);
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS);
     }
 
     /**
