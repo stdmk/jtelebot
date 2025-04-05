@@ -37,7 +37,7 @@ public class LengthUnit implements Unit {
         metricUnitAbbreviaturesSetMap.put(new MetricUnit("${command.converter.length.yard}", new BigDecimal("914400000000000").setScale(3, ROUNDING_MODE)), internationalizationService.getAllTranslations("command.converter.length.yd"));
         metricUnitAbbreviaturesSetMap.put(new MetricUnit("${command.converter.length.foor}", new BigDecimal("304800000000000").setScale(3, ROUNDING_MODE)), internationalizationService.getAllTranslations("command.converter.length.ft"));
         metricUnitAbbreviaturesSetMap.put(new MetricUnit("${command.converter.length.inch}", new BigDecimal("25400000000000").setScale(3, ROUNDING_MODE)), internationalizationService.getAllTranslations("command.converter.length.nch"));
-        metricUnitAbbreviaturesSetMap.put(new MetricUnit("${command.converter.length.nautical_mile}", new BigDecimal("1852000000000000000").setScale(3, ROUNDING_MODE)), internationalizationService.getAllTranslations("command.converter.length.mn"));
+        metricUnitAbbreviaturesSetMap.put(new MetricUnit("${command.converter.length.mn}", new BigDecimal("1852000000000000000").setScale(3, ROUNDING_MODE)), internationalizationService.getAllTranslations("command.converter.length.mn"));
     }
 
 

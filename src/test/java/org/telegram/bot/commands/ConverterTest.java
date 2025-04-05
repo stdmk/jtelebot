@@ -113,9 +113,9 @@ class ConverterTest {
                 ${command.converter.length.mile} — mi
                 ${command.converter.length.decimeter} — dm
                 ${command.converter.length.picometer} — pm
+                ${command.converter.length.mn} — mn
                 ${command.converter.length.micrometer} — mk
                 ${command.converter.length.millimeter} — mm
-                ${command.converter.length.nautical_mile} — mn
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("convert" + arguments);
 
@@ -147,7 +147,7 @@ class ConverterTest {
                 Arguments.of(BigDecimal.ONE, "mi", "m", "1 ${command.converter.length.mile} = <b>1609.34 ${command.converter.length.meter}</b>\n( * 1609.34)"),
                 Arguments.of(BigDecimal.ONE, "yd", "m", "1 ${command.converter.length.yard} = <b>0.9141 ${command.converter.length.meter}</b>\n( / 1.094)"),
                 Arguments.of(BigDecimal.ONE, "ft", "m", "1 ${command.converter.length.foor} = <b>0.3048 ${command.converter.length.meter}</b>\n( / 3.281)"),
-                Arguments.of(BigDecimal.ONE, "mn", "m", "1 ${command.converter.length.nautical_mile} = <b>1852 ${command.converter.length.meter}</b>\n( * 1852)"),
+                Arguments.of(BigDecimal.ONE, "mn", "m", "1 ${command.converter.length.mn} = <b>1852 ${command.converter.length.meter}</b>\n( * 1852)"),
                 Arguments.of(BigDecimal.ONE, "inch", "cm", "1 ${command.converter.length.inch} = <b>2.54 ${command.converter.length.centimeter}</b>\n( * 2.54)"),
                 Arguments.of(new BigDecimal("1000000000000000000"), "km", "fm", "1000000000000000000 ${command.converter.length.kilometer} = <b>1000000000000000000000000000000000000 ${command.converter.length.femtometer}</b>\n( * 1000000000000000000)")
         );
