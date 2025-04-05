@@ -1,37 +1,78 @@
 package org.telegram.bot.commands;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.commands.convertors.UnitsConverter;
+import org.telegram.bot.commands.convertors.LengthUnit;
+import org.telegram.bot.commands.convertors.TimeUnit;
+import org.telegram.bot.commands.convertors.Unit;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class ConverterTest {
 
-    @Mock
-    private Bot bot;
-    @Mock
-    private SpeechService speechService;
+    private final Bot bot = mock(Bot.class);
+    private final SpeechService speechService = mock(SpeechService.class);
+    private final InternationalizationService internationalizationService = mock(InternationalizationService.class);
+    private final List<Unit> units = List.of(
+            new TimeUnit(internationalizationService),
+            new LengthUnit(internationalizationService));
 
-    @InjectMocks
-    private Converter converter;
+    private final Converter converter = new Converter(units, bot, speechService);
+
+    @BeforeEach
+    void init() {
+        when(internationalizationService.getAllTranslations("command.converter.time.fs")).thenReturn(Set.of("fs"));
+        when(internationalizationService.getAllTranslations("command.converter.time.ps")).thenReturn(Set.of("ps"));
+        when(internationalizationService.getAllTranslations("command.converter.time.ns")).thenReturn(Set.of("ns"));
+        when(internationalizationService.getAllTranslations("command.converter.time.mks")).thenReturn(Set.of("mks"));
+        when(internationalizationService.getAllTranslations("command.converter.time.ms")).thenReturn(Set.of("ms"));
+        when(internationalizationService.getAllTranslations("command.converter.time.cs")).thenReturn(Set.of("cs"));
+        when(internationalizationService.getAllTranslations("command.converter.time.s")).thenReturn(Set.of("s"));
+        when(internationalizationService.getAllTranslations("command.converter.time.m")).thenReturn(Set.of("m"));
+        when(internationalizationService.getAllTranslations("command.converter.time.h")).thenReturn(Set.of("h"));
+        when(internationalizationService.getAllTranslations("command.converter.time.d")).thenReturn(Set.of("d"));
+        when(internationalizationService.getAllTranslations("command.converter.time.y")).thenReturn(Set.of("y"));
+        when(internationalizationService.getAllTranslations("command.converter.time.c")).thenReturn(Set.of("c"));
+
+        when(internationalizationService.getAllTranslations("command.converter.length.fm")).thenReturn(Set.of("fm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.pm")).thenReturn(Set.of("pm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.nm")).thenReturn(Set.of("nm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.mk")).thenReturn(Set.of("mk"));
+        when(internationalizationService.getAllTranslations("command.converter.length.mm")).thenReturn(Set.of("mm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.cm")).thenReturn(Set.of("cm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.dm")).thenReturn(Set.of("dm"));
+        when(internationalizationService.getAllTranslations("command.converter.length.m")).thenReturn(Set.of("m"));
+        when(internationalizationService.getAllTranslations("command.converter.length.km")).thenReturn(Set.of("km"));
+        when(internationalizationService.getAllTranslations("command.converter.length.mi")).thenReturn(Set.of("mi"));
+        when(internationalizationService.getAllTranslations("command.converter.length.yd")).thenReturn(Set.of("yd"));
+        when(internationalizationService.getAllTranslations("command.converter.length.ft")).thenReturn(Set.of("ft"));
+        when(internationalizationService.getAllTranslations("command.converter.length.nch")).thenReturn(Set.of("inch"));
+        when(internationalizationService.getAllTranslations("command.converter.length.mn")).thenReturn(Set.of("mn"));
+
+        units.forEach(unit -> ReflectionTestUtils.invokeMethod(unit, "postConstruct"));
+    }
 
     @Test
     void parseWithWrongInputTest() {
@@ -41,42 +82,75 @@ class ConverterTest {
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
     }
 
-    @Test
-    void parseWithUnknownUnitsTest() {
-        final String expectedInfo = "info";
-        BotRequest requestFromGroup = TestUtils.getRequestFromGroup("конверт 1,23 с в");
+    @ParameterizedTest
+    @EmptySource
+    @ValueSource(strings = {" 123 fs klmn", " 123 klmn fs"})
+    void parseWithUnknownArgumentsTest(String arguments) {
+        final String expectedResponseText = """
+                <b>${command.converter.time.caption}</b>
+                ${command.converter.time.microsecond} — mks
+                ${command.converter.time.second} — s
+                ${command.converter.time.femtosecond} — fs
+                ${command.converter.time.centisecond} — cs
+                ${command.converter.time.hour} — h
+                ${command.converter.time.millisecond} — ms
+                ${command.converter.time.year} — y
+                ${command.converter.time.picosecond} — ps
+                ${command.converter.time.century} — c
+                ${command.converter.time.nanosecond} — ns
+                ${command.converter.time.day} — d
+                ${command.converter.time.minute} — m
 
-        UnitsConverter unitsConverter = Mockito.mock(UnitsConverter.class);
-        when(unitsConverter.getInfo()).thenReturn(expectedInfo);
-        Converter converter2 = new Converter(List.of(unitsConverter), bot, speechService);
+                <b>${command.converter.length.caption}</b>
+                ${command.converter.length.kilometer} — km
+                ${command.converter.length.yard} — yd
+                ${command.converter.length.foor} — ft
+                ${command.converter.length.centimeter} — cm
+                ${command.converter.length.femtometer} — fm
+                ${command.converter.length.meter} — m
+                ${command.converter.length.inch} — inch
+                ${command.converter.length.nanometer} — nm
+                ${command.converter.length.mile} — mi
+                ${command.converter.length.decimeter} — dm
+                ${command.converter.length.picometer} — pm
+                ${command.converter.length.micrometer} — mk
+                ${command.converter.length.millimeter} — mm
+                ${command.converter.length.nautical_mile} — mn
+                """;
+        BotRequest request = TestUtils.getRequestFromGroup("convert" + arguments);
 
-        BotResponse botResponse = converter2.parse(requestFromGroup).get(0);
-
+        BotResponse botResponse = converter.parse(request).get(0);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        verify(bot).sendTyping(requestFromGroup.getMessage().getChatId());
-
-        TestUtils.checkDefaultTextResponseParams(textResponse);
-        assertEquals(expectedInfo, textResponse.getText());
+        assertEquals(expectedResponseText, textResponse.getText());
     }
 
-    @Test
-    void parseWithMultipleResults() {
-        final String expectedResult1 = "result1";
-        final String expectedResult2 = "result2";
-        BotRequest requestFromGroup = TestUtils.getRequestFromGroup("конверт 1,23 с в");
+    @ParameterizedTest
+    @MethodSource("provideValues")
+    void parseTest(BigDecimal value, String from, String to, String expected) {
+        BotRequest request = TestUtils.getRequestFromGroup("convert " + value + " " + from + " " + to);
 
-        UnitsConverter unitsConverter1 = Mockito.mock(UnitsConverter.class);
-        when(unitsConverter1.getInfo()).thenReturn(expectedResult1);
-        UnitsConverter unitsConverter2 = Mockito.mock(UnitsConverter.class);
-        when(unitsConverter2.getInfo()).thenReturn(expectedResult2);
-        Converter converter2 = new Converter(List.of(unitsConverter1, unitsConverter2), bot, speechService);
-
-        BotResponse botResponse = converter2.parse(requestFromGroup).get(0);
+        BotResponse botResponse = converter.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        verify(bot).sendTyping(requestFromGroup.getMessage().getChatId());
-
-        TestUtils.checkDefaultTextResponseParams(textResponse);
-        assertEquals(expectedResult1 + "\n" + expectedResult2, textResponse.getText());
+        assertEquals(expected, textResponse.getText());
     }
+
+    private static Stream<Arguments> provideValues() {
+        return Stream.of(
+                Arguments.of(BigDecimal.ONE, "s", "mks", "1 ${command.converter.time.second} = <b>1000000 ${command.converter.time.microsecond}</b>\n( * 1000000)"),
+                Arguments.of(BigDecimal.ONE, "mks", "s", "1 ${command.converter.time.microsecond} = <b>0.000001 ${command.converter.time.second}</b>\n( / 1000000)"),
+                Arguments.of(BigDecimal.ONE, "s", "s", "1 ${command.converter.time.second} = <b>1 ${command.converter.time.second}</b>\n( * 1)"),
+
+                Arguments.of(BigDecimal.ONE, "km", "mm", "1 ${command.converter.length.kilometer} = <b>1000000 ${command.converter.length.millimeter}</b>\n( * 1000000)"),
+                Arguments.of(BigDecimal.ONE, "mm", "km", "1 ${command.converter.length.millimeter} = <b>0.000001 ${command.converter.length.kilometer}</b>\n( / 1000000)"),
+                Arguments.of(BigDecimal.ONE, "mm", "mm", "1 ${command.converter.length.millimeter} = <b>1 ${command.converter.length.millimeter}</b>\n( * 1)"),
+                Arguments.of(BigDecimal.ONE, "mi", "m", "1 ${command.converter.length.mile} = <b>1609.34 ${command.converter.length.meter}</b>\n( * 1609.34)"),
+                Arguments.of(BigDecimal.ONE, "yd", "m", "1 ${command.converter.length.yard} = <b>0.9141 ${command.converter.length.meter}</b>\n( / 1.094)"),
+                Arguments.of(BigDecimal.ONE, "ft", "m", "1 ${command.converter.length.foor} = <b>0.3048 ${command.converter.length.meter}</b>\n( / 3.281)"),
+                Arguments.of(BigDecimal.ONE, "mn", "m", "1 ${command.converter.length.nautical_mile} = <b>1852 ${command.converter.length.meter}</b>\n( * 1852)"),
+                Arguments.of(BigDecimal.ONE, "inch", "cm", "1 ${command.converter.length.inch} = <b>2.54 ${command.converter.length.centimeter}</b>\n( * 2.54)"),
+                Arguments.of(new BigDecimal("1000000000000000000"), "km", "fm", "1000000000000000000 ${command.converter.length.kilometer} = <b>1000000000000000000000000000000000000 ${command.converter.length.femtometer}</b>\n( * 1000000000000000000)")
+        );
+    }
+
 }
