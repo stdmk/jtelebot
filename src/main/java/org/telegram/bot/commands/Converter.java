@@ -19,10 +19,10 @@ import org.telegram.bot.services.SpeechService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -73,8 +73,10 @@ public class Converter implements Command {
     }
 
     private String convert(Unit unit, BigDecimal value, String from, String to) {
-        MetricUnit fromUnit = getByAbbreviate(unit, from);
-        MetricUnit toUnit = getByAbbreviate(unit, to);
+        Map<String, MetricUnit> metricUnitAbbreviaturesSetMap = unit.getMetricUnitAbbreviaturesSetMap();
+
+        MetricUnit fromUnit = metricUnitAbbreviaturesSetMap.get(from);
+        MetricUnit toUnit = metricUnitAbbreviaturesSetMap.get(to);
         if (fromUnit == null || toUnit == null) {
             return null;
         }
@@ -112,19 +114,16 @@ public class Converter implements Command {
     private String getInfo(Unit unit) {
         String availableUnits = unit.getMetricUnitAbbreviaturesSetMap().entrySet()
                 .stream()
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getValue,
+                        Collectors.mapping(Map.Entry::getKey, Collectors.toSet())))
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().getMultiplier()))
                 .map(metricUnitSetEntry -> metricUnitSetEntry.getKey().getName() + " — " + String.join(",", metricUnitSetEntry.getValue()))
                 .collect(Collectors.joining("\n"));
+
         return "<b>" + unit.getCaption() + "</b>\n" + availableUnits + "\n";
-    }
-
-    private MetricUnit getByAbbreviate(Unit unit, String abbr) {
-        for (Map.Entry<MetricUnit, Set<String>> entry : unit.getMetricUnitAbbreviaturesSetMap().entrySet()) {
-            if (entry.getValue().contains(abbr)) {
-                return entry.getKey();
-            }
-        }
-
-        return null;
     }
 
     private String bigDecimalToString(BigDecimal value) {

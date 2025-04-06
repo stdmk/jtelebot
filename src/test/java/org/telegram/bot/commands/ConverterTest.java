@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.UnitUtils;
 import org.telegram.bot.commands.convertors.LengthUnit;
 import org.telegram.bot.commands.convertors.TimeUnit;
 import org.telegram.bot.commands.convertors.Unit;
@@ -23,12 +24,12 @@ import org.telegram.bot.services.SpeechService;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ConverterTest {
 
@@ -43,33 +44,8 @@ class ConverterTest {
 
     @BeforeEach
     void init() {
-        when(internationalizationService.getAllTranslations("command.converter.time.fs")).thenReturn(Set.of("fs"));
-        when(internationalizationService.getAllTranslations("command.converter.time.ps")).thenReturn(Set.of("ps"));
-        when(internationalizationService.getAllTranslations("command.converter.time.ns")).thenReturn(Set.of("ns"));
-        when(internationalizationService.getAllTranslations("command.converter.time.mks")).thenReturn(Set.of("mks"));
-        when(internationalizationService.getAllTranslations("command.converter.time.ms")).thenReturn(Set.of("ms"));
-        when(internationalizationService.getAllTranslations("command.converter.time.cs")).thenReturn(Set.of("cs"));
-        when(internationalizationService.getAllTranslations("command.converter.time.s")).thenReturn(Set.of("s"));
-        when(internationalizationService.getAllTranslations("command.converter.time.m")).thenReturn(Set.of("m"));
-        when(internationalizationService.getAllTranslations("command.converter.time.h")).thenReturn(Set.of("h"));
-        when(internationalizationService.getAllTranslations("command.converter.time.d")).thenReturn(Set.of("d"));
-        when(internationalizationService.getAllTranslations("command.converter.time.y")).thenReturn(Set.of("y"));
-        when(internationalizationService.getAllTranslations("command.converter.time.c")).thenReturn(Set.of("c"));
-
-        when(internationalizationService.getAllTranslations("command.converter.length.fm")).thenReturn(Set.of("fm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.pm")).thenReturn(Set.of("pm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.nm")).thenReturn(Set.of("nm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.mk")).thenReturn(Set.of("mk"));
-        when(internationalizationService.getAllTranslations("command.converter.length.mm")).thenReturn(Set.of("mm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.cm")).thenReturn(Set.of("cm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.dm")).thenReturn(Set.of("dm"));
-        when(internationalizationService.getAllTranslations("command.converter.length.m")).thenReturn(Set.of("m"));
-        when(internationalizationService.getAllTranslations("command.converter.length.km")).thenReturn(Set.of("km"));
-        when(internationalizationService.getAllTranslations("command.converter.length.mi")).thenReturn(Set.of("mi"));
-        when(internationalizationService.getAllTranslations("command.converter.length.yd")).thenReturn(Set.of("yd"));
-        when(internationalizationService.getAllTranslations("command.converter.length.ft")).thenReturn(Set.of("ft"));
-        when(internationalizationService.getAllTranslations("command.converter.length.nch")).thenReturn(Set.of("inch"));
-        when(internationalizationService.getAllTranslations("command.converter.length.mn")).thenReturn(Set.of("mn"));
+        UnitUtils.addLengthUnitTranslations(internationalizationService);
+        UnitUtils.addTimeUnitTranslations(internationalizationService);
 
         units.forEach(unit -> ReflectionTestUtils.invokeMethod(unit, "postConstruct"));
     }
@@ -88,34 +64,34 @@ class ConverterTest {
     void parseWithUnknownArgumentsTest(String arguments) {
         final String expectedResponseText = """
                 <b>${command.converter.time.caption}</b>
-                ${command.converter.time.microsecond} — mks
-                ${command.converter.time.second} — s
                 ${command.converter.time.femtosecond} — fs
-                ${command.converter.time.centisecond} — cs
-                ${command.converter.time.hour} — h
-                ${command.converter.time.millisecond} — ms
-                ${command.converter.time.year} — y
                 ${command.converter.time.picosecond} — ps
-                ${command.converter.time.century} — c
                 ${command.converter.time.nanosecond} — ns
-                ${command.converter.time.day} — d
+                ${command.converter.time.microsecond} — mks
+                ${command.converter.time.millisecond} — ms
+                ${command.converter.time.centisecond} — cs
+                ${command.converter.time.second} — s
                 ${command.converter.time.minute} — m
-
+                ${command.converter.time.hour} — h
+                ${command.converter.time.day} — d
+                ${command.converter.time.year} — y
+                ${command.converter.time.century} — c
+                
                 <b>${command.converter.length.caption}</b>
-                ${command.converter.length.kilometer} — km
-                ${command.converter.length.yard} — yd
-                ${command.converter.length.foor} — ft
-                ${command.converter.length.centimeter} — cm
                 ${command.converter.length.femtometer} — fm
-                ${command.converter.length.meter} — m
-                ${command.converter.length.inch} — inch
-                ${command.converter.length.nanometer} — nm
-                ${command.converter.length.mile} — mi
-                ${command.converter.length.decimeter} — dm
                 ${command.converter.length.picometer} — pm
-                ${command.converter.length.mn} — mn
+                ${command.converter.length.nanometer} — nm
                 ${command.converter.length.micrometer} — mk
                 ${command.converter.length.millimeter} — mm
+                ${command.converter.length.centimeter} — cm
+                ${command.converter.length.inch} — inch
+                ${command.converter.length.decimeter} — dm
+                ${command.converter.length.foor} — ft
+                ${command.converter.length.yard} — yd
+                ${command.converter.length.meter} — m
+                ${command.converter.length.kilometer} — km
+                ${command.converter.length.mile} — mi
+                ${command.converter.length.mn} — mn
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("convert" + arguments);
 
