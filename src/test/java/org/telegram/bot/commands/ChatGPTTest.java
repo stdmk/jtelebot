@@ -272,6 +272,7 @@ class ChatGPTTest {
         choice.setMessage(message);
         ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
         response.setChoices(List.of(choice)).setModel(expectedModel);
+        ChatGPTSettings chatGPTSettings = new ChatGPTSettings().setModel("model").setPrompt("prompt");
 
         when(propertiesConfig.getChatGPTToken()).thenReturn("token");
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -279,6 +280,7 @@ class ChatGPTTest {
         when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+        when(chatGPTSettingService.get(request.getMessage().getChat())).thenReturn(chatGPTSettings);
 
         BotResponse botResponse = chatGPT.parse(request).get(0);
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -291,6 +293,14 @@ class ChatGPTTest {
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.USER.equals(chatGPTMessage.getRole())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
+
+        ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(objectMapper).writeValueAsString(requestCaptor.capture());
+        Object chatgptRequest = requestCaptor.getValue();
+        assertTrue(chatgptRequest instanceof ChatGPT.ChatRequest);
+        ChatGPT.ChatRequest chatRequest = (ChatGPT.ChatRequest) chatgptRequest;
+        ChatGPT.Message messageWithPrompt = chatRequest.getMessages().get(0);
+        assertEquals(chatGPTSettings.getPrompt(), messageWithPrompt.getContent());
 
         assertEquals(expectedResponseText, textResponse.getText());
     }

@@ -16,6 +16,7 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.ChatGPTMessageService;
 import org.telegram.bot.services.ChatGPTSettingService;
+import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 
 import javax.annotation.PostConstruct;
@@ -33,6 +34,8 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     private static final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
     private static final String SELECT_MODEL_COMMAND = EMPTY_CHATGPT_COMMAND + "md";
     private static final String CALLBACK_SELECT_MODEL_COMMAND = CALLBACK_COMMAND + SELECT_MODEL_COMMAND;
+    private static final String SET_PROMPT = EMPTY_CHATGPT_COMMAND + "pr";
+    private static final String CALLBACK_SET_PROMPT = CALLBACK_COMMAND + EMPTY_CHATGPT_COMMAND + "pr";
 
     private final Set<String> emptyGptCommands = new HashSet<>();
 
@@ -40,6 +43,7 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     private final ChatGPTSettingService chatGPTSettingService;
     private final InternationalizationService internationalizationService;
     private final PropertiesConfig propertiesConfig;
+    private final CommandWaitingService commandWaitingService;
 
     @PostConstruct
     private void postConstruct() {
@@ -68,6 +72,8 @@ public class ChatGPTSetter implements Setter<BotResponse> {
                 return resetCacheByCallback(message, chat, user);
             } else if (lowerCaseCommandText.startsWith(SELECT_MODEL_COMMAND)) {
                 return selectModelByCallback(message, chat, user, commandText);
+            } else if (lowerCaseCommandText.startsWith(SET_PROMPT)) {
+                return setPromptByCallback(message, chat, user);
             }
 
             return getSetterWithKeyboard(message, chat, user, false);
@@ -75,7 +81,10 @@ public class ChatGPTSetter implements Setter<BotResponse> {
 
         if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {
             return resetCacheByCallback(message, chat, user);
+        } else if (lowerCaseCommandText.startsWith(SET_PROMPT)) {
+            return setPrompt(message, chat, user, commandText);
         }
+
         return getSetterWithKeyboard(message, chat, user, true);
     }
 
@@ -100,6 +109,28 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         return getSetterWithKeyboard(message, chat, user, false);
     }
 
+    private EditResponse setPromptByCallback(Message message, Chat chat, User user) {
+        commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_SET_PROMPT);
+
+        return new EditResponse(message)
+                .setText("${setter.chatgpt.setprompthelp}")
+                .setResponseSettings(FormattingStyle.HTML);
+    }
+
+    private BotResponse setPrompt(Message message, Chat chat, User user, String command) {
+        commandWaitingService.remove(chat, user);
+        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+
+        String prompt = command.substring(SET_PROMPT.length() + 1);
+        if (chatGPTSettings == null) {
+            chatGPTSettings = new ChatGPTSettings().setChat(chat);
+        }
+
+        chatGPTSettingService.save(chatGPTSettings.setPrompt(prompt));
+
+        return getSetterWithKeyboard(message, chat, user, true);
+    }
+
     private BotResponse getSetterWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
         List<ChatGPTMessage> messages;
         if (chat.getChatId() < 0) {
@@ -108,23 +139,32 @@ public class ChatGPTSetter implements Setter<BotResponse> {
             messages = chatGPTMessageService.getMessages(user);
         }
 
-        String responseText = "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n" +
-                "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>";
+        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+        String prompt;
+        if (chatGPTSettings != null && chatGPTSettings.getPrompt() != null) {
+            prompt = "${setter.chatgpt.currentprompt}: " + chatGPTSettings.getPrompt();
+        } else {
+            prompt = "";
+        }
+
+        String responseText = "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n"
+                + "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>\n"
+                + prompt + "\n";
 
         if (newMessage) {
             return new TextResponse(message)
                     .setText(responseText)
-                    .setKeyboard(prepareKeyboardWithResetCacheButton(chat))
+                    .setKeyboard(prepareKeyboard(chatGPTSettings))
                     .setResponseSettings(FormattingStyle.HTML);
         }
 
         return new EditResponse(message)
                 .setText(responseText)
-                .setKeyboard(prepareKeyboardWithResetCacheButton(chat))
+                .setKeyboard(prepareKeyboard(chatGPTSettings))
                 .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private Keyboard prepareKeyboardWithResetCacheButton(Chat chat) {
+    private Keyboard prepareKeyboard(ChatGPTSettings chatGPTSettings) {
         List<String> availableModels = propertiesConfig.getChatGPTModelsAvailable();
         List<KeyboardButton> selectModelButtons;
         if (availableModels == null) {
@@ -136,7 +176,6 @@ public class ChatGPTSetter implements Setter<BotResponse> {
                     .toList();
         }
 
-        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
         if (chatGPTSettings != null) {
             String currentModel = chatGPTSettings.getModel();
             if (currentModel != null) {
@@ -150,6 +189,9 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         }
 
         List<List<KeyboardButton>> buttonsRows = selectModelButtons.stream().map(List::of).collect(Collectors.toList());
+        buttonsRows.add(List.of(new KeyboardButton()
+                .setName(Emoji.GEAR.getSymbol() + "${setter.chatgpt.button.setprompt}")
+                .setCallback(CALLBACK_SET_PROMPT)));
         buttonsRows.add(List.of(new KeyboardButton()
                 .setName(Emoji.WASTEBASKET.getSymbol() + "${setter.chatgpt.button.resetcache}")
                 .setCallback(CALLBACK_RESET_CACHE_COMMAND)));

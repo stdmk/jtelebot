@@ -27,4 +27,8 @@ public class ChatGPTSettings {
 
     @Column(name = "model")
     private String model;
+
+    @Column(name = "prompt")
+    private String prompt;
+
 }

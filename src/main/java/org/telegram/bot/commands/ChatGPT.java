@@ -37,10 +37,10 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.Set;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
 import static org.telegram.bot.utils.TextUtils.getStartsWith;
@@ -147,20 +147,22 @@ public class ChatGPT implements Command {
     private Response getTextResponse(org.telegram.bot.domain.model.request.Message message, String commandArgument, String token) {
         Chat chat = message.getChat();
         User user = message.getUser();
-        List<ChatGPTMessage> messagesHistory;
 
+        List<ChatGPTMessage> messagesHistory;
         if (message.getChatId() < 0) {
             messagesHistory = chatGPTMessageService.getMessages(chat);
         } else {
             messagesHistory = chatGPTMessageService.getMessages(user);
         }
 
-        String model = getModel(chat);
+        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+        String model = getModel(chatGPTSettings);
+        String prompt = getPrompt(chatGPTSettings);
 
         String responseText;
         try {
             responseText = getResponse(
-                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
+                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
                     token);
         } catch (ChatGptApiException e) {
             Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
@@ -170,7 +172,7 @@ public class ChatGPT implements Command {
 
                 try {
                     responseText = getResponse(
-                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model),
+                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
                             token);
                 } catch (ChatGptApiException ex) {
                     throw toBotApiException(e);
@@ -190,8 +192,7 @@ public class ChatGPT implements Command {
     }
 
     @NotNull
-    private String getModel(Chat chat) {
-        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+    private String getModel(ChatGPTSettings chatGPTSettings) {
         if (chatGPTSettings != null) {
             String currentChatsModel = chatGPTSettings.getModel();
             if (currentChatsModel != null) {
@@ -207,14 +208,29 @@ public class ChatGPT implements Command {
         return chatGPTModelsAvailable.get(0);
     }
 
-    private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username, String model) {
-        List<Message> requestMessages = chatGPTMessages
+    @Nullable
+    private String getPrompt(ChatGPTSettings chatGPTSettings) {
+        if (chatGPTSettings != null) {
+            return chatGPTSettings.getPrompt();
+        }
+
+        return null;
+    }
+
+    private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username, String model, String prompt) {
+        List<Message> requestMessages = new ArrayList<>(chatGPTMessages.size() + 2);
+        if (prompt != null && prompt.length() > 1) {
+            requestMessages.add(new Message().setRole(ChatGPTRole.SYSTEM.getName()).setContent(prompt));
+        }
+
+        requestMessages.addAll(chatGPTMessages
                 .stream()
                 .map(chatGPTMessage -> new Message()
                         .setRole(chatGPTMessage.getRole().getName())
                         .setContent(chatGPTMessage.getContent())
                         .setName(chatGPTMessage.getUser().getUsername()))
-                .collect(Collectors.toList());
+                .toList());
+
         requestMessages.add(new Message().setRole(ChatGPTRole.USER.getName()).setContent(text).setName(username));
 
         return new ChatRequest().setModel(model).setMessages(requestMessages);
