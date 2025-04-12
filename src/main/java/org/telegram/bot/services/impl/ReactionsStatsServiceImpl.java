@@ -94,7 +94,7 @@ public class ReactionsStatsServiceImpl implements ReactionsStatsService {
 
             reactionStats.setCount(reactionStats.getCount() - 1);
             reactionMonthStats.setCount(reactionMonthStats.getCount() - 1);
-            reactionDayStats.setCount(reactionMonthStats.getCount() - 1);
+            reactionDayStats.setCount(reactionDayStats.getCount() - 1);
         }
 
         for (String newEmoji : newEmojis) {
