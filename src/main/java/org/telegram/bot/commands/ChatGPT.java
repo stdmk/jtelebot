@@ -39,8 +39,8 @@ import org.telegram.bot.utils.TextUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import java.util.Set;
 import java.util.*;
+import java.util.Set;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
 import static org.telegram.bot.utils.TextUtils.getStartsWith;
@@ -106,7 +106,7 @@ public class ChatGPT implements Command {
             bot.sendTyping(chatId);
             log.debug("Empty request. Turning on command waiting");
             commandWaitingService.add(message, this.getClass());
-            response = new Response("${command.chatgpt.commandwaitingstart}");
+            response = new Response("${command.chatgpt.commandwaitingstart}", null);
         }
 
         if (response.getImageUrl() != null) {
@@ -117,8 +117,19 @@ public class ChatGPT implements Command {
         }
 
         return returnResponse(new TextResponse(message)
-                .setText(response.getResponseText())
+                .setText(buildResponseText(response))
                 .setResponseSettings(FormattingStyle.MARKDOWN));
+    }
+
+    private String buildResponseText(Response response) {
+        String responseText = response.getResponseText();
+
+        String model = response.getModel();
+        if (model != null && !model.isEmpty()) {
+            return "*" + RESPONSE_CAPTION + "* (" + model + "):\n" + responseText;
+        }
+
+        return responseText;
     }
 
     private Response getImageResponse(String commandArgument, String lowerTextMessage, String token) {
@@ -134,14 +145,25 @@ public class ChatGPT implements Command {
         commandArgument = commandArgument.substring(imageCommand.length() + 1);
         String responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
 
-        String imageUrl;
+        CreateImageResponse createImageResponse;
         try {
-            imageUrl = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
+            createImageResponse = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
         } catch (ChatGptApiException e) {
             throw toBotApiException(e);
         }
 
-        return new Response(responseText, imageUrl);
+        Optional<String> imageUrl = Optional.of(createImageResponse)
+                .map(CreateImageResponse::getData)
+                .filter(imageUrls -> !imageUrls.isEmpty())
+                .map(imageUrls -> imageUrls.get(0))
+                .map(ImageUrl::getUrl);
+
+        if (imageUrl.isEmpty()) {
+            log.error("Unable to find response text inside the api-response");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        return new Response(responseText, imageUrl.get(), createImageResponse.getModel());
     }
 
     private Response getTextResponse(org.telegram.bot.domain.model.request.Message message, String commandArgument, String token) {
@@ -160,10 +182,13 @@ public class ChatGPT implements Command {
         String prompt = getPrompt(chatGPTSettings);
 
         String responseText;
+        String responseModel;
         try {
-            responseText = getResponse(
+            ChatResponse response = getResponse(
                     buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
                     token);
+            responseText = getResponseText(response);
+            responseModel = response.getModel();
         } catch (ChatGptApiException e) {
             Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
             if (messagesHistory.size() >= chatGPTContextSize) {
@@ -171,9 +196,11 @@ public class ChatGPT implements Command {
                 messagesHistory = chatGPTMessageService.update(messagesHistory, deletingMessages);
 
                 try {
-                    responseText = getResponse(
+                    ChatResponse response = getResponse(
                             buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
                             token);
+                    responseText = getResponseText(response);
+                    responseModel = response.getModel();
                 } catch (ChatGptApiException ex) {
                     throw toBotApiException(e);
                 }
@@ -188,7 +215,7 @@ public class ChatGPT implements Command {
                         new ChatGPTMessage().setChat(chat).setUser(user).setRole(ChatGPTRole.ASSISTANT).setContent(responseText)));
         chatGPTMessageService.update(messagesHistory);
 
-        return new Response(responseText);
+        return new Response(responseText, responseModel);
     }
 
     @NotNull
@@ -217,6 +244,25 @@ public class ChatGPT implements Command {
         return null;
     }
 
+    private String getResponseText(ChatResponse chatResponse) {
+        Optional<String> response = Optional.of(chatResponse)
+                .map(ChatResponse::getChoices)
+                .filter(choices -> !choices.isEmpty())
+                .flatMap(choices -> choices
+                        .stream()
+                        .map(Choice::getMessage)
+                        .map(Message::getContent)
+                        .filter(org.springframework.util.StringUtils::hasLength)
+                        .findFirst());
+
+        if (response.isEmpty()) {
+            log.error("Unable to find response text inside the api-response");
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
+        }
+
+        return response.get();
+    }
+
     private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username, String model, String prompt) {
         List<Message> requestMessages = new ArrayList<>(chatGPTMessages.size() + 2);
         if (prompt != null && prompt.length() > 1) {
@@ -236,40 +282,14 @@ public class ChatGPT implements Command {
         return new ChatRequest().setModel(model).setMessages(requestMessages);
     }
 
-    private String getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
+    private CreateImageResponse getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "images/generations";
-        CreateImageResponse createImageResponse = getResponse(request, url, token, CreateImageResponse.class);
-
-        Optional<String> response = Optional.of(createImageResponse)
-                .map(CreateImageResponse::getData)
-                .filter(imageUrls -> !imageUrls.isEmpty())
-                .map(imageUrls -> imageUrls.get(0))
-                .map(ImageUrl::getUrl);
-
-        if (response.isEmpty()) {
-            log.error("Unable to find response text inside the api-response");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
-
-        return response.get();
+        return getResponse(request, url, token, CreateImageResponse.class);
     }
 
-    private String getResponse(ChatRequest request, String token) throws ChatGptApiException {
+    private ChatResponse getResponse(ChatRequest request, String token) throws ChatGptApiException {
         String url = chatGptApiUrl + "chat/completions";
-        ChatResponse chatResponse = getResponse(request, url, token, ChatResponse.class);
-
-        Optional<String> response = Optional.of(chatResponse)
-                .map(ChatResponse::getChoices)
-                .filter(choices -> !choices.isEmpty())
-                .flatMap(choices -> choices.stream().map(Choice::getMessage).map(Message::getContent).filter(org.springframework.util.StringUtils::hasLength).findFirst())
-                .map(content -> "*" + RESPONSE_CAPTION + "* (" + chatResponse.getModel() + "):\n" + content);
-
-        if (response.isEmpty()) {
-            log.error("Unable to find response text inside the api-response");
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        }
-
-        return response.get();
+        return getResponse(request, url, token, ChatResponse.class);
     }
 
     private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {
@@ -333,13 +353,16 @@ public class ChatGPT implements Command {
     private static class Response {
         private final String responseText;
         private final String imageUrl;
+        private final String model;
 
-        private Response(String responseText, String imageUrl) {
+        private Response(String responseText, String imageUrl, String model) {
             this.responseText = responseText;
             this.imageUrl = imageUrl;
+            this.model = model;
         }
 
-        private Response(String responseText) {
+        private Response(String responseText, String model) {
+            this.model = model;
             this.imageUrl = null;
             this.responseText = responseText;
         }
@@ -373,6 +396,7 @@ public class ChatGPT implements Command {
     public static class CreateImageResponse {
         private Integer created;
         private List<ImageUrl> data;
+        private String model;
     }
 
     @Data

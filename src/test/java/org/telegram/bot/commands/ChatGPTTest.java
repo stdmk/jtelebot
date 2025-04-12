@@ -291,7 +291,7 @@ class ChatGPTTest {
         assertEquals(2, chatGPTMessages.size());
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> requestText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.USER.equals(chatGPTMessage.getRole())));
-        assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
+        assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> responseText.equals(chatGPTMessage.getContent())));
         assertTrue(chatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
 
         ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
@@ -339,7 +339,7 @@ class ChatGPTTest {
         assertEquals(3, actualChatGPTMessages.size());
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> requestText.equals(chatGPTMessage.getContent())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.USER.equals(chatGPTMessage.getRole())));
-        assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> expectedResponseText.equals(chatGPTMessage.getContent())));
+        assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> responseText.equals(chatGPTMessage.getContent())));
         assertTrue(actualChatGPTMessages.stream().anyMatch(chatGPTMessage -> ChatGPTRole.ASSISTANT.equals(chatGPTMessage.getRole())));
 
         assertEquals(expectedResponseText, textResponse.getText());
