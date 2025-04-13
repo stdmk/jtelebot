@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.commands.Set;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandWaiting;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -233,7 +232,7 @@ public class AliasSetter implements Setter<BotResponse> {
                     .setKeyboard(prepareKeyboardWithAliasesForSelect(chatAliasList, userAliasList, page))
                     .setResponseSettings(FormattingStyle.HTML);
         } else {
-            String selectAliasCommand = getStartsWith(internationalizationService.internationalize(SELECT_ALIAS_COMMAND), command.toLowerCase(Locale.ROOT));
+            String selectAliasCommand = getStartsWith(selectAliasCommands, command.toLowerCase(Locale.ROOT));
             if (selectAliasCommand == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
@@ -295,18 +294,9 @@ public class AliasSetter implements Setter<BotResponse> {
                     .setResponseSettings(FormattingStyle.HTML);
         }
 
-        alias = new Alias();
-        alias.setChat(chat);
-        alias.setUser(user);
-        alias.setName(aliasName);
-        alias.setValue(aliasValue);
+        aliasService.save(new Alias().setChat(chat).setUser(user).setName(aliasName).setValue(aliasValue));
 
-        aliasService.save(alias);
-
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
-            commandWaitingService.remove(commandWaiting);
-        }
+        commandWaitingService.remove(chat, user);
 
         return new TextResponse(message)
                 .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
