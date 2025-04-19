@@ -26,8 +26,8 @@ import org.telegram.bot.utils.TextUtils;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
-import java.util.Set;
 import java.util.*;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -209,6 +209,7 @@ public class Reactions implements Command, MessageAnalyzer {
                 .mapToInt(String::length)
                 .max()
                 .orElse(1);
+        int maxLengthOfPlace = userStatsMap.size() >= MAX_TOP_LIST_LENGTH ? 3 : 2;
 
         StringBuilder buf = new StringBuilder();
         buf.append("<u>").append(caption).append(":</u>\n");
@@ -228,7 +229,7 @@ public class Reactions implements Command, MessageAnalyzer {
                             .limit(MAX_USER_STATS_EMOJIS_COUNT)
                             .map(Map.Entry::getKey)
                             .collect(Collectors.joining());
-                    buf.append("<code>").append(String.format("%-2s %-" + maxEmojisValueLength + "d %-20s", i.incrementAndGet() + ")", stats.getTotal(), TextUtils.getHtmlLinkToUser(user))).append("</code>\n")
+                    buf.append("<code>").append(String.format("%-" + maxLengthOfPlace + "s %-" + maxEmojisValueLength + "d %-20s", i.incrementAndGet() + ")", stats.getTotal(), TextUtils.getHtmlLinkToUser(user))).append("</code>\n")
                             .append(popularEmojis).append("\n");
                 });
 
