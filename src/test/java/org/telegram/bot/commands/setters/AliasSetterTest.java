@@ -79,7 +79,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithUnknownCommandTest() {
+    void setWithUnknownCommandTest() {
         final String expectedErrorText = "error";
         final String argument = "test";
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
@@ -92,7 +92,7 @@ class AliasSetterTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"alias", "alias update"})
-    void parseCallbackWithoutArgumentsTest(String argument) {
+    void setCallbackWithoutArgumentsTest(String argument) {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -114,7 +114,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithDeleteAliasSelectPageAsArgumentTest() {
+    void setCallbackWithDeleteAliasSelectPageAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -140,7 +140,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithDeleteAliasAsArgumentTest() {
+    void setCallbackWithDeleteAliasAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -163,7 +163,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithAddAliasAsArgumentTest() {
+    void setCallbackWithAddAliasAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -189,7 +189,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithSelectAliasSelectPageAsArgumentTest() {
+    void setCallbackWithSelectAliasSelectPageAsArgumentTest() {
         final String expectedResponseText = "<b>${setter.alias.chatlistcaption}:</b>";
         final String argument = "alias select ";
         final int page = 1;
@@ -211,7 +211,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithSelectAlreadyExistenceAliasTest() {
+    void setCallbackWithSelectAlreadyExistenceAliasTest() {
         final String expectedErrorText = "";
         final Long aliasId = 1L;
         final String argument = "alias select " + aliasId;
@@ -230,7 +230,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseCallbackWithSelectAliasAsArgumentTest() {
+    void setCallbackWithSelectAliasAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -266,7 +266,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithEmptyCommandAsArgumentTest() {
+    void setWithEmptyCommandAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -290,7 +290,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithWrongDeleteCommandAsArgumentTest() {
+    void setWithWrongDeleteCommandAsArgumentTest() {
         final String expectedErrorText = "error";
         final String argument = "alias delete";
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
@@ -302,7 +302,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithDeleteCommandWrongAliasIdAsArgumentTest() {
+    void setWithDeleteCommandWrongAliasIdAsArgumentTest() {
         final String expectedResponseText = "error";
         final String argument = "alias delete a";
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
@@ -317,7 +317,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithDeleteUnknownAliasByAliasIdAsArgumentTest() {
+    void setWithDeleteUnknownAliasByAliasIdAsArgumentTest() {
         final String expectedResponseText = "error";
         final long aliasId = 1L;
         final String argument = "alias delete " + aliasId;
@@ -333,7 +333,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithDeleteByAliasIdAsArgumentTest() {
+    void setWithDeleteByAliasIdAsArgumentTest() {
         final String expectedResponseText = "saved";
         final long aliasId = 1L;
         final String argument = "alias delete " + aliasId;
@@ -351,7 +351,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithDeleteUnknownAliasByAliasNameAsArgumentTest() {
+    void setWithDeleteUnknownAliasByAliasNameAsArgumentTest() {
         final String expectedResponseText = "error";
         final String aliasName = "name";
         final String argument = "alias delete " + aliasName;
@@ -367,7 +367,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithDeleteByAliasNameAsArgumentTest() {
+    void setWithDeleteByAliasNameAsArgumentTest() {
         final String expectedResponseText = "saved";
         final String aliasName = "name";
         final String argument = "alias delete " + aliasName;
@@ -385,7 +385,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithEmptyAddAliasCommandAsArgumentTest() {
+    void setWithEmptyAddAliasCommandAsArgumentTest() {
         final String expectedResponseText = """
                 <b>${setter.alias.listcaption}:</b>
                 1. test1
@@ -410,7 +410,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithWrongAddAliasCommandAsArgumentTest() {
+    void setWithWrongAddAliasCommandAsArgumentTest() {
         final String expectedResponseText = "error";
         final String aliasName = "name";
         final String argument = "alias add " + aliasName;
@@ -429,7 +429,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithAddAliasCommandWithTooMuchAliasesAsArgumentTest() {
+    void setWithAddAliasCommandWithTooMuchAliasesAsArgumentTest() {
         final String expectedErrorText = "error";
         final String aliases = "{name value;name value;name value;name value;name value;name value;}";
         final String argument = "alias add name " + aliases;
@@ -443,7 +443,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithAddAliasCommandAsArgumentWithAlreadyExistenceAliasTest() {
+    void setWithAddAliasCommandAsArgumentWithAlreadyExistenceAliasTest() {
         final String expectedResponseText = "error";
         final String aliasName = "name";
         final String aliases = "{name value;name value;name value;name value;name value;}";
@@ -462,7 +462,7 @@ class AliasSetterTest {
     }
 
     @Test
-    void parseWithAddAliasCommandAsArgumentTest() {
+    void setWithAddAliasCommandAsArgumentTest() {
         final String expectedResponseText = "saved";
         final String aliasName = "name";
         final String argument = "alias add " + aliasName + " value";

@@ -223,7 +223,7 @@ public class TelegramObjectMapper {
     }
 
     private Attachment toAttachment(Animation animation) {
-        return new Attachment(animation.getMimetype(), animation.getFileUniqueId(), animation.getFileId(), animation.getFileName(), animation.getFileSize(), animation.getDuration());
+        return new Attachment(animation.getMimeType(), animation.getFileUniqueId(), animation.getFileId(), animation.getFileName(), animation.getFileSize(), animation.getDuration());
     }
 
     private Attachment toAttachment(Sticker sticker) {
