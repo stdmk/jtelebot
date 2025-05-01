@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.commands.Set;
-import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.City;
+import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -148,25 +151,20 @@ public class CitySetter implements Setter<BotResponse> {
             return addCityByCallback(message,  chat, user, true);
         }
 
-        String params = command.substring(addCityCommand.length() + 1);
+        commandWaitingService.remove(chat, user);
 
+        String params = command.substring(addCityCommand.length() + 1);
         int i = params.indexOf(" ");
         if (i < 0) {
-            commandWaitingService.remove(commandWaitingService.get(chat, user));
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        City newCity = new City();
-        newCity.setNameRu(params.substring(0, i));
-        newCity.setNameEn(params.substring(i + 1));
-        newCity.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()).getID());
-        newCity.setUser(user);
+        City newCity = new City()
+                .setNameRu(params.substring(0, i))
+                .setNameEn(params.substring(i + 1))
+                .setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()).getID())
+                .setUser(user);
         cityService.save(newCity);
-
-        CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
-        if (commandWaiting != null && commandWaiting.getCommandName().equals("set")) {
-            commandWaitingService.remove(commandWaiting);
-        }
 
         return getKeyboardWithTimeZones(message, newCity.getId());
     }
