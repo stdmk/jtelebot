@@ -41,7 +41,7 @@ class BackupTest {
 
         assertNotNull(fileResponse);
         assertNotNull(fileResponse.getChatId());
-        assertFalse(fileResponse.getResponseSettings().isNotification());
+        assertFalse(fileResponse.getResponseSettings().getNotification());
 
         List<org.telegram.bot.domain.model.response.File> files = fileResponse.getFiles();
         assertNotNull(files);

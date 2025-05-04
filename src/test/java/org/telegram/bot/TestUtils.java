@@ -181,7 +181,7 @@ public class TestUtils {
 
     public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, boolean disableWebPagePreview, FormattingStyle formattingStyle) {
         ResponseSettings responseSettings = textResponse.getResponseSettings();
-        assertNotEquals(disableWebPagePreview, responseSettings.isWebPagePreview());
+        assertNotEquals(disableWebPagePreview, responseSettings.getWebPagePreview());
         assertEquals(formattingStyle, responseSettings.getFormattingStyle());
         return checkDefaultTextResponseParams(textResponse);
     }
@@ -192,7 +192,7 @@ public class TestUtils {
     }
 
     public static TextResponse checkDefaultTextResponseParams(TextResponse textResponse, boolean disableWebPagePreview) {
-        assertEquals(disableWebPagePreview, textResponse.getResponseSettings().isWebPagePreview());
+        assertEquals(disableWebPagePreview, textResponse.getResponseSettings().getWebPagePreview());
         return checkDefaultTextResponseParams(textResponse);
     }
 
@@ -201,7 +201,7 @@ public class TestUtils {
 
         assertEquals(formattingStyle, responseSettings.getFormattingStyle());
         if (disableWebPagePreview) {
-            assertEquals(Boolean.TRUE, responseSettings.isWebPagePreview());
+            assertEquals(Boolean.TRUE, responseSettings.getWebPagePreview());
         }
         if (hasKeyboard) {
             assertNotNull(textResponse.getKeyboard());
@@ -235,7 +235,7 @@ public class TestUtils {
 
         assertEquals(formattingStyle, responseSettings.getFormattingStyle());
         if (disableWebPagePreview) {
-            assertEquals(Boolean.TRUE, responseSettings.isWebPagePreview());
+            assertEquals(Boolean.TRUE, responseSettings.getWebPagePreview());
         }
         if (hasKeyboard) {
             assertNotNull(editResponse.getKeyboard());

@@ -8,6 +8,6 @@ import org.telegram.bot.enums.FormattingStyle;
 @Accessors(chain = true)
 public class ResponseSettings {
     private FormattingStyle formattingStyle;
-    private boolean webPagePreview;
-    private boolean notification;
+    private Boolean webPagePreview;
+    private Boolean notification;
 }

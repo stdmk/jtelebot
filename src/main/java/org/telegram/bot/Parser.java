@@ -11,7 +11,7 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.mapper.TelegramObjectMapper;
+import org.telegram.bot.mapper.telegram.response.ResponseMapper;
 import org.telegram.bot.services.executors.MethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
@@ -24,13 +24,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class Parser {
 
-    private final TelegramObjectMapper telegramObjectMapper;
+    private final ResponseMapper responseMapper;
     private final List<MethodExecutor> methodExecutors;
     private final BotStats botStats;
     private final Map<String, MethodExecutor> methodExecutorMap = new ConcurrentHashMap<>();
 
-    public Parser(TelegramObjectMapper telegramObjectMapper, @Lazy List<MethodExecutor> methodExecutors, BotStats botStats) {
-        this.telegramObjectMapper = telegramObjectMapper;
+    public Parser(ResponseMapper responseMapper, @Lazy List<MethodExecutor> methodExecutors, BotStats botStats) {
+        this.responseMapper = responseMapper;
         this.methodExecutors = methodExecutors;
         this.botStats = botStats;
     }
@@ -50,7 +50,7 @@ public class Parser {
                 responseList.add(botResponse);
             }
         } finally {
-            telegramObjectMapper.toTelegramMethod(responseList)
+            responseMapper.toTelegramMethod(responseList)
                     .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
 
             botStats.incrementCommandsProcessed();
@@ -83,7 +83,7 @@ public class Parser {
             return;
         }
 
-        telegramObjectMapper.toTelegramMethod(responseList)
+        responseMapper.toTelegramMethod(responseList)
                 .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
 
         botStats.incrementCommandsProcessed();
@@ -95,7 +95,7 @@ public class Parser {
             return;
         }
 
-        PartialBotApiMethod<?> method = telegramObjectMapper.toTelegramMethod(response);
+        PartialBotApiMethod<?> method = responseMapper.toTelegramMethod(response);
         getExecutor(method.getMethod()).executeMethod(method);
         botStats.incrementCommandsProcessed();
     }

@@ -16,7 +16,7 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
-import org.telegram.bot.mapper.TelegramObjectMapper;
+import org.telegram.bot.mapper.telegram.request.RequestMapper;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -45,7 +45,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     private final ApplicationContext context;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
-    private final TelegramObjectMapper telegramObjectMapper;
+    private final RequestMapper requestMapper;
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final UserStatsService userStatsService;
@@ -59,7 +59,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
                ApplicationContext context,
                BotStats botStats,
                PropertiesConfig propertiesConfig,
-               TelegramObjectMapper telegramObjectMapper,
+               RequestMapper requestMapper,
                CommandPropertiesService commandPropertiesService,
                UserService userService, UserStatsService userStatsService,
                CommandWaitingService commandWaitingService,
@@ -72,7 +72,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         this.context = context;
         this.botStats = botStats;
         this.propertiesConfig = propertiesConfig;
-        this.telegramObjectMapper = telegramObjectMapper;
+        this.requestMapper = requestMapper;
         this.commandPropertiesService = commandPropertiesService;
         this.userService = userService;
         this.userStatsService = userStatsService;
@@ -87,7 +87,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     public void consume(Update update) {
         botStats.incrementReceivedMessages();
 
-        BotRequest botRequest = telegramObjectMapper.toBotRequest(update);
+        BotRequest botRequest = requestMapper.toBotRequest(update);
         Message message = botRequest.getMessage();
 
         logReceivedMessage(botRequest);

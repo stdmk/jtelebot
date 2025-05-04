@@ -1,10 +1,12 @@
 package org.telegram.bot.domain.model.response;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.io.InputStream;
 
 @Getter
+@ToString
 public class File {
     
     public File(String fileId) {
