@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
-import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -32,8 +31,6 @@ class RequestMapperTest {
     private static final org.telegram.telegrambots.meta.api.objects.User USER = new org.telegram.telegrambots.meta.api.objects.User(1L, "name", false);
     private static final LocalDateTime MESSAGE_DATE = LocalDateTime.of(2000, 1, 1, 0, 1, 3);
     private static final LocalDateTime MESSAGE_EDIT_DATE = MESSAGE_DATE.plusMinutes(5);
-    private static final MessageContentType MESSAGE_CONTENT_TYPE = MessageContentType.TEXT;
-    private static final MessageKind MESSAGE_KIND = MessageKind.COMMON;
 
     @Mock
     private MessageMapper messageMapper;

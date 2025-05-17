@@ -120,7 +120,8 @@ class VirusTotalScannerImplTest {
                 ${command.virus.stats.suspicious}: <b>5</b>
                 ${command.virus.stats.malicious}: <b>4</b>
                 ${command.virus.stats.typeunsupported}: <b>7</b>
-                """;
+                
+                <a href="https://www.virustotal.com/gui/url/aHR0cDovL2V4YW1wbGUuY29t">${command.virus.stats.reportlink}</a>""";
         URL url = new URL("http://example.com");
         VirusTotalScannerImpl.AnalysesResponse analysesResponse = getSomeAnalysesResponse();
 
@@ -148,7 +149,8 @@ class VirusTotalScannerImplTest {
                 ${command.virus.stats.suspicious}: <b>5</b>
                 ${command.virus.stats.malicious}: <b>4</b>
                 ${command.virus.stats.typeunsupported}: <b>7</b>
-                """;
+                
+                <a href="https://www.virustotal.com/gui/file/289a4f587f9db30666dbcc8eae39138f">${command.virus.stats.reportlink}</a>""";
         ByteArrayInputStream file = new ByteArrayInputStream("http://example.com".getBytes());
         VirusTotalScannerImpl.AnalysesResponse analysesResponse = getSomeAnalysesResponse();
 
@@ -167,7 +169,7 @@ class VirusTotalScannerImplTest {
     private VirusTotalScannerImpl.AnalysesResponse getSomeAnalysesResponse() {
         return new VirusTotalScannerImpl.AnalysesResponse()
                 .setData(new VirusTotalScannerImpl.Analyses()
-                        .setId("321")
+                        .setId("Mjg5YTRmNTg3ZjlkYjMwNjY2ZGJjYzhlYWUzOTEzOGY6MTc0NzQ1OTg0Nw")
                         .setAttributes(new VirusTotalScannerImpl.AnalysesResult()
                                 .setDate(1706335975)
                                 .setStatus(VirusTotalScannerImpl.AnalysesStatus.COMPLETED)

@@ -21,10 +21,12 @@ import org.telegram.bot.exception.virus.VirusScanException;
 import org.telegram.bot.exception.virus.VirusScanNoResponseException;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.MultipartInputStreamFileResource;
+import org.telegram.bot.utils.TextUtils;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +43,10 @@ public class VirusTotalScannerImpl implements VirusScanner {
     private static final String SCAN_URL_PATH = "/urls";
     private static final String ANALYSES_REPORT_PATH = "/analyses";
 
+    private static final String REPORT_GUI_URL = "https://www.virustotal.com/gui";
+    private static final String REPORT_GUI_FILE_PATH = "/file/";
+    private static final String REPORT_GUI_URL_PATH = "/url/";
+
     @Value("${virusTotalReportWaitingDelayMillis:15000}")
     private Integer reportWaitingTimeMillis;
 
@@ -51,16 +57,18 @@ public class VirusTotalScannerImpl implements VirusScanner {
     @Override
     public String scan(URL url) throws VirusScanException {
         String analysisId = sendUrlToScan(url);
-        return getScanReport(analysisId);
+        AnalysesResult analysesResult = getScanReport(analysisId);
+        return buildScanResponseText(analysesResult, getUrlReportLink(url.toString()));
     }
 
     @Override
     public String scan(InputStream file) throws VirusScanException {
         String analysisId = uploadFileToScan(file);
-        return getScanReport(analysisId);
+        AnalysesResult analysesResult = getScanReport(analysisId);
+        return buildScanResponseText(analysesResult, getFileReportLink(analysisId));
     }
 
-    private String getScanReport(String id) throws VirusScanException {
+    private AnalysesResult getScanReport(String id) throws VirusScanException {
         AnalysesResult analysesResult = null;
         boolean notCompleted = true;
         while (notCompleted) {
@@ -79,10 +87,10 @@ public class VirusTotalScannerImpl implements VirusScanner {
             }
         }
 
-        return buildScanResponseText(analysesResult);
+        return analysesResult;
     }
 
-    private String buildScanResponseText(AnalysesResult analysesResult) throws VirusScanException {
+    private String buildScanResponseText(AnalysesResult analysesResult, String link) throws VirusScanException {
         if (analysesResult == null) {
             log.error("Failed to build response scan text: result is null");
             throw new VirusScanException("Failed to build response scan text: result is null");
@@ -97,7 +105,16 @@ public class VirusTotalScannerImpl implements VirusScanner {
                 + "${command.virus.stats.undetected}: <b>" + toString(stats::getUndetected) + "</b>\n"
                 + "${command.virus.stats.suspicious}: <b>" + toString(stats::getSuspicious) + "</b>\n"
                 + "${command.virus.stats.malicious}: <b>" + toString(stats::getMalicious) + "</b>\n"
-                + "${command.virus.stats.typeunsupported}: <b>" + toString(stats::getTypeUnsupported) + "</b>\n";
+                + "${command.virus.stats.typeunsupported}: <b>" + toString(stats::getTypeUnsupported) + "</b>\n"
+                + "\n" + TextUtils.buildHtmlLink(link, "${command.virus.stats.reportlink}");
+    }
+
+    private String getUrlReportLink(String url) {
+        return REPORT_GUI_URL + REPORT_GUI_URL_PATH + Base64.getUrlEncoder().withoutPadding().encodeToString(url.getBytes());
+    }
+
+    private String getFileReportLink(String id) {
+        return REPORT_GUI_URL + REPORT_GUI_FILE_PATH + new String(Base64.getDecoder().decode(id)).split(":")[0];
     }
 
     private String toString(Supplier<Integer> getter) {
