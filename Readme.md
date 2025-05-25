@@ -160,6 +160,8 @@ Java Telegram Bot (Spring)
 
 /http - HTTP status code description
 
+/steam - Information about games on Steam
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
