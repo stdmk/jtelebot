@@ -9,10 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.DelayCommand;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.DelayCommandService;
 import org.telegram.bot.services.UserStatsService;
 

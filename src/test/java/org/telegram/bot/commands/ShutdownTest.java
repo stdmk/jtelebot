@@ -8,10 +8,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.timers.FileManagerTimer;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.services.BotStats;
 
 @RequiredArgsConstructor
 @Component

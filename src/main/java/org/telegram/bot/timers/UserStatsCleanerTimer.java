@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Top;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.model.response.TextResponse;

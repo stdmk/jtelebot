@@ -6,12 +6,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.repositories.DbBackuper;
+import org.telegram.bot.services.BotStats;
 
 import java.io.File;
 import java.io.IOException;

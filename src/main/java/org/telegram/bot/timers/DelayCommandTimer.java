@@ -7,10 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.DelayCommand;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.DelayCommandService;
 import org.telegram.bot.services.UserStatsService;
 

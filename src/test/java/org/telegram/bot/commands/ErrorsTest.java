@@ -6,13 +6,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Error;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;
 
@@ -20,7 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)

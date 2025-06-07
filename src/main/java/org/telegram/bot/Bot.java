@@ -1,13 +1,12 @@
 package org.telegram.bot;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.commands.Command;
-import org.telegram.bot.commands.MessageAnalyzer;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.CommandWaiting;
@@ -35,14 +34,14 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
 
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
-    private final List<MessageAnalyzer> messageAnalyzerList;
     private final ApplicationContext context;
+    private final MessageAnalyzerExecutor messageAnalyzerExecutor;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
     private final RequestMapper requestMapper;
@@ -51,37 +50,10 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     private final UserStatsService userStatsService;
     private final CommandWaitingService commandWaitingService;
     private final DisableCommandService disableCommandService;
-    private final SpyModeService spyModeService;
+    @Lazy
+    private final LogService logService;
     private final Parser parser;
     private final TelegramClient telegramClient;
-
-    public Bot(@Lazy List<MessageAnalyzer> messageAnalyzerList,
-               ApplicationContext context,
-               BotStats botStats,
-               PropertiesConfig propertiesConfig,
-               RequestMapper requestMapper,
-               CommandPropertiesService commandPropertiesService,
-               UserService userService, UserStatsService userStatsService,
-               CommandWaitingService commandWaitingService,
-               DisableCommandService disableCommandService,
-               SpyModeService spyModeService,
-               Parser parser,
-               TelegramClient telegramClient) {
-        super();
-        this.messageAnalyzerList = messageAnalyzerList;
-        this.context = context;
-        this.botStats = botStats;
-        this.propertiesConfig = propertiesConfig;
-        this.requestMapper = requestMapper;
-        this.commandPropertiesService = commandPropertiesService;
-        this.userService = userService;
-        this.userStatsService = userStatsService;
-        this.commandWaitingService = commandWaitingService;
-        this.disableCommandService = disableCommandService;
-        this.spyModeService = spyModeService;
-        this.parser = parser;
-        this.telegramClient = telegramClient;
-    }
 
     @Override
     public void consume(Update update) {
@@ -90,11 +62,13 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         BotRequest botRequest = requestMapper.toBotRequest(update);
         Message message = botRequest.getMessage();
 
-        logReceivedMessage(botRequest);
+        logService.log(message);
 
         if (TelegramUtils.isUnsupportedMessage(message)) {
             return;
         }
+
+        userStatsService.updateEntitiesInfo(message);
 
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
@@ -126,7 +100,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
     public void processRequest(BotRequest botRequest, Chat chat, org.telegram.bot.domain.entities.User user, AccessLevel userAccessLevel, boolean analyze) {
         if (analyze) {
-            analyzeMessage(botRequest, userAccessLevel);
+            messageAnalyzerExecutor.analyzeMessageAsync(botRequest, userAccessLevel);
         }
 
         CommandProperties commandProperties = getCommandProperties(chat, user, botRequest.getMessage().getText());
@@ -150,36 +124,11 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         return propertiesConfig.getTelegramBotApiToken();
     }
 
-    private void logReceivedMessage(BotRequest botRequest) {
-        Message message = botRequest.getMessage();
-        org.telegram.bot.domain.entities.User user = message.getUser();
-
-        userStatsService.updateEntitiesInfo(message);
-
-        String textOfMessage = message.getText();
-        Boolean spyMode = propertiesConfig.getSpyMode();
-        Long chatId = message.getChatId();
-        Long userId = user.getUserId();
-        log.info("From {} ({}-{}): {}", chatId, user.getUsername(), userId, textOfMessage);
-        if (chatId > 0 && spyMode != null && spyMode) {
-            reportToAdmin(user, textOfMessage);
-        }
-    }
-
     @Override
     public LongPollingUpdateConsumer getUpdatesConsumer() {
         return this;
     }
 
-    private void analyzeMessage(BotRequest botRequest, AccessLevel userAccessLevel) {
-        messageAnalyzerList.forEach(messageAnalyzer -> {
-            CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
-            if (analyzerCommandProperties == null
-                    || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
-                parser.executeAsync(botRequest, messageAnalyzer.analyze(botRequest));
-            }
-        });
-    }
 
     private CommandProperties getCommandProperties(Chat chat, org.telegram.bot.domain.entities.User user, String textOfMessage) {
         CommandWaiting commandWaiting = commandWaitingService.get(chat, user);
@@ -199,6 +148,8 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
             log.error(e.getMessage(), e);
         }
 
+        botStats.incrementErrors(commandProperties, "Missing Command implementation of " + commandProperties);
+
         return null;
     }
 
@@ -216,17 +167,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         }
 
         return botUserName;
-    }
-
-    private void reportToAdmin(org.telegram.bot.domain.entities.User user, String textMessage) {
-        Long adminId = propertiesConfig.getAdminId();
-        if (adminId.equals(user.getUserId()) || this.getBotUsername().equals(user.getUsername())) {
-            return;
-        }
-
-        TextResponse textResponse = spyModeService.generateResponse(user, textMessage);
-
-        this.sendMessage(textResponse);
     }
 
     public void sendMessage(TextResponse textResponse) {
@@ -251,10 +191,6 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         sendAction(chatId, ActionType.UPLOAD_VIDEO);
     }
 
-    public void sendUploadDocument(BotRequest request) {
-        sendAction(request.getMessage().getChatId(), ActionType.UPLOAD_DOCUMENT);
-    }
-
     public void sendUploadDocument(Long chatId) {
         sendAction(chatId, ActionType.UPLOAD_DOCUMENT);
     }
@@ -273,7 +209,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         try {
             telegramClient.execute(sendChatAction);
         } catch (TelegramApiException e) {
-            botStats.incrementErrors(sendChatAction, e, "ошибка при отправке Action");
+            botStats.incrementErrors(sendChatAction, e, "failed to send Action");
             log.error("Error: cannot send chat action: {}", e.getMessage());
         }
     }

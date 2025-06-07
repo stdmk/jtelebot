@@ -6,12 +6,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Parcel;
 import org.telegram.bot.domain.entities.TrackCode;
 import org.telegram.bot.domain.entities.TrackCodeEvent;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.ParcelService;
 import org.telegram.bot.services.TrackCodeService;
 

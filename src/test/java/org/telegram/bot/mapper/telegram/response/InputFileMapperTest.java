@@ -9,9 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import java.io.InputStream;

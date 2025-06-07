@@ -5,16 +5,17 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.commands.Command;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.telegram.response.ResponseMapper;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.executors.MethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,11 +79,7 @@ public class Parser {
     }
 
     @Async
-    public void executeAsync(BotRequest botRequest, List<BotResponse> responseList) {
-        if (responseList == null || responseList.isEmpty()) {
-            return;
-        }
-
+    public void executeAsync(BotRequest botRequest, @NotEmpty List<BotResponse> responseList) {
         responseMapper.toTelegramMethod(responseList)
                 .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
 

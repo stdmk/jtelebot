@@ -2,10 +2,10 @@ package org.telegram.bot.mapper.telegram.response;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import javax.annotation.PostConstruct;

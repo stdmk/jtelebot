@@ -3,8 +3,8 @@ package org.telegram.bot.mapper.telegram.response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.model.response.*;
+import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.util.List;

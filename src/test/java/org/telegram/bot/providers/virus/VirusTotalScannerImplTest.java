@@ -13,10 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.exception.virus.VirusScanApiKeyMissingException;
 import org.telegram.bot.exception.virus.VirusScanException;
 import org.telegram.bot.exception.virus.VirusScanNoResponseException;
+import org.telegram.bot.services.BotStats;
 
 import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;

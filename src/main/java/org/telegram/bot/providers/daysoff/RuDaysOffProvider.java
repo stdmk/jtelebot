@@ -3,7 +3,7 @@ package org.telegram.bot.providers.daysoff;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;

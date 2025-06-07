@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.BotStats;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.GoogleSearchResult;
 import org.telegram.bot.domain.entities.ImageUrl;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -20,11 +20,7 @@ import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.GoogleSearchResultService;
-import org.telegram.bot.services.ImageUrlService;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.config.PropertiesConfig;
+import org.telegram.bot.services.*;
 
 import java.util.List;
 

@@ -3,7 +3,6 @@ package org.telegram.bot.commands.setters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;

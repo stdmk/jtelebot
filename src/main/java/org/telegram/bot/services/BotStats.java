@@ -1,4 +1,4 @@
-package org.telegram.bot.domain;
+package org.telegram.bot.services;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,8 +7,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.WorkParam;
-import org.telegram.bot.services.ErrorService;
-import org.telegram.bot.services.WorkParamService;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.time.Instant;

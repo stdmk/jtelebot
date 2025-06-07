@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
-import org.telegram.bot.domain.BotStats;
 import org.telegram.bot.domain.entities.Timer;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.TimerService;
 
 import java.time.LocalDateTime;
