@@ -409,6 +409,63 @@ class CaloriesTest {
     }
 
     @Test
+    void parseWithDeleteProductAsArgumentCorruptedIdTest() {
+        final String expectedErrorText = "error";
+        BotRequest request = TestUtils.getRequestFromGroup("/calories_del_product_a");
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void parseWithDeleteProductAsArgumentNotExistenceProductIdTest() {
+        final String expectedErrorText = "error";
+        BotRequest request = TestUtils.getRequestFromGroup("/calories_del_product_1");
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void parseWithDeleteProductAsArgumentSomeOneElseEatenProductTest() {
+        final String expectedErrorText = "error";
+        final long productId = 1L;
+        BotRequest request = TestUtils.getRequestFromGroup("/calories_del_product_" + productId);
+
+        when(productService.get(productId))
+                .thenReturn(getSomeProduct(productId, new User().setUserId(TestUtils.ANOTHER_USER_ID)));
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void parseWithDeleteProductAsArgumentTest() {
+        final String expectedResponseText = "saved";
+        final long productId = 1L;
+        BotRequest request = TestUtils.getRequestFromGroup("/calories_del_product_" + productId);
+
+        Product product = getSomeProduct(productId, request.getMessage().getUser());
+        when(productService.get(productId)).thenReturn(product);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
+
+        BotResponse response = calories.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(productService).remove(product);
+    }
+
+    @Test
     void parseWithDeleteEatenProductAsArgumentCurreptedIdTest() {
         final String expectedErrorText = "error";
         BotRequest request = TestUtils.getRequestFromGroup("/calories_del_a");
@@ -628,9 +685,9 @@ class CaloriesTest {
     @Test
     void parseWithGetProductInfoCommandTest() {
         final String expectedResponseText = """
-                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.)
+                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.) /calories_del_product_1
                 productName2 <b>160</b> ${command.calories.kcal} (<b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.) /calories_add_product_2
-                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.)
+                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.) /calories_del_product_3
                 ${command.calories.totalproductsfound}: <b>3</b>""";
         final String productName = "name";
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName);

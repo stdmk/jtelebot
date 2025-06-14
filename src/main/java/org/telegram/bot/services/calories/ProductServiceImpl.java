@@ -50,4 +50,9 @@ public class ProductServiceImpl implements ProductService {
 
         return results;
     }
+
+    @Override
+    public void remove(Product product) {
+        productRepository.delete(product);
+    }
 }

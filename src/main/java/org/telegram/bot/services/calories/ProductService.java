@@ -12,4 +12,5 @@ public interface ProductService {
     Product get(User user, String name);
     Page<Product> find(String name, int size);
     List<Product> find(User user, String name, int size);
+    void remove(Product product);
 }

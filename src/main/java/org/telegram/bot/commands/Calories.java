@@ -43,6 +43,7 @@ public class Calories implements Command {
     private static final String ROOT_COMMAND = "/calories";
     private static final String ADD_CALORIES_BY_PRODUCT_ID_COMMAND = "_add_";
     private static final String ADD_PRODUCT_BY_PRODUCT_ID_COMMAND = "_add_product_";
+    private static final String DELETE_PRODUCT_COMMAND = "_del_product_";
     private static final String DELETE_EATEN_PRODUCT_COMMAND = "_del_";
     private static final int MAX_SIZE_OF_SEARCH_RESULTS = 30;
     private static final int MAX_PRODUCT_NAME_LENGTH = 255;
@@ -103,6 +104,8 @@ public class Calories implements Command {
             return processAddProductByProductIdCommand(user, command);
         } else if (command.startsWith(ADD_CALORIES_BY_PRODUCT_ID_COMMAND)) {
             return processAddCaloriesByProductIdCommand(chat, user, command);
+        } else if (command.startsWith(DELETE_PRODUCT_COMMAND)) {
+            return deleteProduct(chat, user, command);
         } else if (command.startsWith(DELETE_EATEN_PRODUCT_COMMAND)) {
             return deleteEatenProduct(chat, user, command);
         }
@@ -159,6 +162,27 @@ public class Calories implements Command {
         }
 
         return addCaloriesByProduct(chat, user, product, grams);
+    }
+
+    private String deleteProduct(Chat chat, User user, String command) {
+        long productId;
+        try {
+            productId = Long.parseLong(command.substring(DELETE_PRODUCT_COMMAND.length()));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        Product product = productService.get(productId);
+        if (product == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+        if (!product.getUser().getUserId().equals(user.getUserId())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
+        }
+
+        productService.remove(product);
+
+        return speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
     }
 
     private String deleteEatenProduct(Chat chat, User user, String command) {
@@ -335,9 +359,9 @@ public class Calories implements Command {
 
         if (!product.getUser().getUserId().equals(userId)) {
             return productInfo + " " + ROOT_COMMAND + ADD_PRODUCT_BY_PRODUCT_ID_COMMAND + product.getId();
+        } else {
+            return productInfo + " " + ROOT_COMMAND + DELETE_PRODUCT_COMMAND + product.getId();
         }
-
-        return productInfo;
     }
 
     private String buildProductInfo(Product product) {
