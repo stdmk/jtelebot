@@ -126,6 +126,10 @@ public class Set implements Command {
                         .setCallback(EMPTY_COMMAND + "${setter.set.lang}")),
                 List.of(new KeyboardButton()
                         .setName("${setter.set.results}")
-                        .setCallback(EMPTY_COMMAND + "results"))));
+                        .setCallback(EMPTY_COMMAND + "results")),
+                List.of(new KeyboardButton()
+                        .setName("${setter.set.calories}")
+                        .setCallback(EMPTY_COMMAND + "calories"))
+        ));
     }
 }

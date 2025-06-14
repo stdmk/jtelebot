@@ -162,6 +162,8 @@ Java Telegram Bot (Spring)
 
 /steam - Information about games on Steam
 
+/calories - calorie counting
+
 ### Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
