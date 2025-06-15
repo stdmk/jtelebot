@@ -116,12 +116,14 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}.\s
                 
                 <b><u>${command.calories.caption3}:</u></b>
+                <u>23:30 — 23:50</u>
                 productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
                  /calories_del_3
                 productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
                  /calories_del_2
                 productName1 (50 ${command.calories.gramssymbol}.) — <b>40 ${command.calories.kcal}.</b>
-                 /calories_del_1""";
+                 /calories_del_1
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
         Chat chat = message.getChat();
@@ -161,12 +163,34 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
                 
                 <b><u>${command.calories.caption3}:</u></b>
+                <u>22:00 — 22:30</u>
+                productName12 (600 ${command.calories.gramssymbol}.) — <b>5760 ${command.calories.kcal}.</b>
+                 /calories_del_12
+                productName11 (550 ${command.calories.gramssymbol}.) — <b>4840 ${command.calories.kcal}.</b>
+                 /calories_del_11
+                productName10 (500 ${command.calories.gramssymbol}.) — <b>4000 ${command.calories.kcal}.</b>
+                 /calories_del_10
+                productName9 (450 ${command.calories.gramssymbol}.) — <b>3240 ${command.calories.kcal}.</b>
+                 /calories_del_9
+                <u>22:40 — 23:10</u>
+                productName8 (400 ${command.calories.gramssymbol}.) — <b>2560 ${command.calories.kcal}.</b>
+                 /calories_del_8
+                productName7 (350 ${command.calories.gramssymbol}.) — <b>1960 ${command.calories.kcal}.</b>
+                 /calories_del_7
+                productName6 (300 ${command.calories.gramssymbol}.) — <b>1440 ${command.calories.kcal}.</b>
+                 /calories_del_6
+                productName5 (250 ${command.calories.gramssymbol}.) — <b>1000 ${command.calories.kcal}.</b>
+                 /calories_del_5
+                <u>23:20 — 23:50</u>
+                productName4 (200 ${command.calories.gramssymbol}.) — <b>640 ${command.calories.kcal}.</b>
+                 /calories_del_4
                 productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
                  /calories_del_3
                 productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
                  /calories_del_2
                 productName1 (50 ${command.calories.gramssymbol}.) — <b>40 ${command.calories.kcal}.</b>
-                 /calories_del_1""";
+                 /calories_del_1
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
         Chat chat = message.getChat();
@@ -177,7 +201,7 @@ class CaloriesTest {
         UserCalories userCalories = new UserCalories()
                 .setUser(user)
                 .setDate(DATE);
-        userCalories.setEatenProducts(getSomeEatenProducts(userCalories));
+        userCalories.setEatenProducts(LongStream.range(1, 13).mapToObj(id -> getSomeEatenProduct(userCalories, id)).toList());
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, zoneId)).thenReturn(userCalories);
         org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097);
@@ -210,12 +234,14 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
                 
                 <b><u>${command.calories.caption3}:</u></b>
+                <u>23:30 — 23:50</u>
                 productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
                  /calories_del_3
                 productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
                  /calories_del_2
                 productName1 (50 ${command.calories.gramssymbol}.) — <b>40 ${command.calories.kcal}.</b>
-                 /calories_del_1""";
+                 /calories_del_1
+                """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
         Chat chat = message.getChat();
