@@ -116,7 +116,7 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}.\s
                 
                 <b><u>${command.calories.caption3}:</u></b>
-                <u>23:30 — 23:50</u>
+                <u>23:30 — 23:50 </u><b>560 ${command.calories.kcal}.</b>\s
                 productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
                  /calories_del_3
                 productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
@@ -163,7 +163,7 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
                 
                 <b><u>${command.calories.caption3}:</u></b>
-                <u>22:00 — 22:30</u>
+                <u>22:00 — 22:30 </u><b>17840 ${command.calories.kcal}.</b> (892%)
                 productName12 (600 ${command.calories.gramssymbol}.) — <b>5760 ${command.calories.kcal}.</b>
                  /calories_del_12
                 productName11 (550 ${command.calories.gramssymbol}.) — <b>4840 ${command.calories.kcal}.</b>
@@ -172,7 +172,8 @@ class CaloriesTest {
                  /calories_del_10
                 productName9 (450 ${command.calories.gramssymbol}.) — <b>3240 ${command.calories.kcal}.</b>
                  /calories_del_9
-                <u>22:40 — 23:10</u>
+                
+                <u>22:40 — 23:10 </u><b>6960 ${command.calories.kcal}.</b> (348%)
                 productName8 (400 ${command.calories.gramssymbol}.) — <b>2560 ${command.calories.kcal}.</b>
                  /calories_del_8
                 productName7 (350 ${command.calories.gramssymbol}.) — <b>1960 ${command.calories.kcal}.</b>
@@ -181,7 +182,8 @@ class CaloriesTest {
                  /calories_del_6
                 productName5 (250 ${command.calories.gramssymbol}.) — <b>1000 ${command.calories.kcal}.</b>
                  /calories_del_5
-                <u>23:20 — 23:50</u>
+                
+                <u>23:20 — 23:50 </u><b>1200 ${command.calories.kcal}.</b> (60%)
                 productName4 (200 ${command.calories.gramssymbol}.) — <b>640 ${command.calories.kcal}.</b>
                  /calories_del_4
                 productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
@@ -234,7 +236,7 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
                 
                 <b><u>${command.calories.caption3}:</u></b>
-                <u>23:50</u>
+                <u>23:50 </u><b>560 ${command.calories.kcal}.</b> (28%)
                 productName1 (50 ${command.calories.gramssymbol}.) — <b>40 ${command.calories.kcal}.</b>
                  /calories_del_1
                 productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>

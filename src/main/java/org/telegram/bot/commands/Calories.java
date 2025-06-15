@@ -33,10 +33,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -456,19 +453,21 @@ public class Calories implements Command {
                 + "${command.calories.carbs}: <b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.gramssymbol}. "
                 + carbsOfTargetInfo + "\n"
                 + "\n<b><u>${command.calories.caption3}:</u></b>\n"
-                + getEatenProductListInfo(eatenProductCaloriesMap);
+                + getEatenProductListInfo(eatenProductCaloriesMap, userCaloriesTarget);
     }
 
     private double getPercent(double dividend, double divisor) {
         return divisor / dividend * 100;
     }
 
-    private String getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap) {
+    private String getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
+        Double caloriesTarget = Optional.ofNullable(userCaloriesTarget).map(UserCaloriesTarget::getCalories).orElse(null);
         StringBuilder buf = new StringBuilder();
         StringBuilder mealBuf = new StringBuilder();
 
         LocalDateTime startMealDateTime = null;
         LocalDateTime stopMealDateTime = null;
+        double mealCalories = 0;
         for (Map.Entry<EatenProduct, org.telegram.bot.domain.Calories> entry : eatenProductCaloriesMap.entrySet()) {
             EatenProduct eatenProduct = entry.getKey();
             org.telegram.bot.domain.Calories calories = entry.getValue();
@@ -476,32 +475,35 @@ public class Calories implements Command {
             if (startMealDateTime != null) {
                 Duration mealDuration = Duration.between(startMealDateTime, eatenProduct.getDateTime());
                 if (mealDuration.getSeconds() > MEAL_DURATION_SECONDS) {
-                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime)).append("\n");
-                    buf.append(mealBuf);
+                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, caloriesTarget)).append("\n");
+                    buf.append(mealBuf).append("\n");
+
                     mealBuf = new StringBuilder();
+                    mealCalories = 0;
                     startMealDateTime = eatenProduct.getDateTime();
                 }
             } else {
                 startMealDateTime = eatenProduct.getDateTime();
             }
 
+            mealCalories = mealCalories + calories.getCaloric();
             stopMealDateTime = eatenProduct.getDateTime();
             mealBuf.append(getEatenProductInfo(eatenProduct, calories)).append("\n");
         }
 
         if (startMealDateTime != null && stopMealDateTime != null) {
-            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime)).append("\n");
+            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, caloriesTarget)).append("\n");
             buf.append(mealBuf);
         }
 
         return buf.toString();
     }
 
-    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to) {
-        return buildTimeCutoff(from.toLocalTime(), to.toLocalTime());
+    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, double mealCalories, Double caloriesTarget) {
+        return buildTimeCutoff(from.toLocalTime(), to.toLocalTime(), mealCalories, caloriesTarget);
     }
 
-    private String buildTimeCutoff(LocalTime from, LocalTime to) {
+    private String buildTimeCutoff(LocalTime from, LocalTime to, double mealCalories, Double caloriesTarget) {
         String timeCutoff;
         if (from.equals(to)) {
             timeCutoff = DateUtils.formatShortTime(from);
@@ -509,7 +511,14 @@ public class Calories implements Command {
             timeCutoff = DateUtils.formatShortTime(from) + " — " + DateUtils.formatShortTime(to);
         }
 
-        return "<u>" + timeCutoff + "</u>";
+        String percentage;
+        if (caloriesTarget == null) {
+            percentage = "";
+        } else {
+            percentage = "(" + DF.format(getPercent(caloriesTarget, mealCalories)) + "%)";
+        }
+
+        return "<u>" + timeCutoff + " </u><b>" + DF.format(mealCalories) + " ${command.calories.kcal}.</b> " + percentage;
     }
 
     private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.Calories calories) {
