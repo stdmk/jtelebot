@@ -234,13 +234,13 @@ class CaloriesTest {
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
                 
                 <b><u>${command.calories.caption3}:</u></b>
-                <u>23:30 — 23:50</u>
-                productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
-                 /calories_del_3
-                productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
-                 /calories_del_2
+                <u>23:50</u>
                 productName1 (50 ${command.calories.gramssymbol}.) — <b>40 ${command.calories.kcal}.</b>
                  /calories_del_1
+                productName2 (100 ${command.calories.gramssymbol}.) — <b>160 ${command.calories.kcal}.</b>
+                 /calories_del_2
+                productName3 (150 ${command.calories.gramssymbol}.) — <b>360 ${command.calories.kcal}.</b>
+                 /calories_del_3
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
@@ -252,7 +252,9 @@ class CaloriesTest {
         UserCalories userCalories = new UserCalories()
                 .setUser(user)
                 .setDate(DATE);
-        userCalories.setEatenProducts(getSomeEatenProducts(userCalories));
+        List<EatenProduct> someEatenProducts = getSomeEatenProducts(userCalories);
+        someEatenProducts.forEach(eatenProduct -> eatenProduct.setDateTime(someEatenProducts.get(0).getDateTime()));
+        userCalories.setEatenProducts(someEatenProducts);
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, zoneId)).thenReturn(userCalories);
         org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 2100);

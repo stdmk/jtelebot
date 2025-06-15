@@ -31,6 +31,7 @@ import javax.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -475,7 +476,7 @@ public class Calories implements Command {
             if (startMealDateTime != null) {
                 Duration mealDuration = Duration.between(startMealDateTime, eatenProduct.getDateTime());
                 if (mealDuration.getSeconds() > MEAL_DURATION_SECONDS) {
-                    buf.append("<u>").append(DateUtils.formatShortTime(startMealDateTime.toLocalTime())).append(" — ").append(DateUtils.formatShortTime(stopMealDateTime.toLocalTime())).append("</u>\n");
+                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime)).append("\n");
                     buf.append(mealBuf);
                     mealBuf = new StringBuilder();
                     startMealDateTime = eatenProduct.getDateTime();
@@ -489,11 +490,26 @@ public class Calories implements Command {
         }
 
         if (startMealDateTime != null && stopMealDateTime != null) {
-            buf.append("<u>").append(DateUtils.formatShortTime(startMealDateTime.toLocalTime())).append(" — ").append(DateUtils.formatShortTime(stopMealDateTime.toLocalTime())).append("</u>\n");
+            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime)).append("\n");
             buf.append(mealBuf);
         }
 
         return buf.toString();
+    }
+
+    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to) {
+        return buildTimeCutoff(from.toLocalTime(), to.toLocalTime());
+    }
+
+    private String buildTimeCutoff(LocalTime from, LocalTime to) {
+        String timeCutoff;
+        if (from.equals(to)) {
+            timeCutoff = DateUtils.formatShortTime(from);
+        } else {
+            timeCutoff = DateUtils.formatShortTime(from) + " — " + DateUtils.formatShortTime(to);
+        }
+
+        return "<u>" + timeCutoff + "</u>";
     }
 
     private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.Calories calories) {
