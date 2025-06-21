@@ -65,4 +65,7 @@ public interface CommandPropertiesService {
      * @return the persisted entities.
      */
     List<CommandProperties> getAllDisabledByDefaultForGroups();
+
+    void save(CommandProperties commandProperties);
+
 }

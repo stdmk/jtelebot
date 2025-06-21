@@ -78,4 +78,10 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
         log.debug("Request to get all disabled by default CommandProperties entities");
         return commandPropertiesRepository.findAllByDefaultDisabledForGroups(true);
     }
+
+    @Override
+    public void save(CommandProperties commandProperties) {
+        log.debug("Request to save commandProperties={}", commandProperties);
+        commandPropertiesRepository.save(commandProperties);
+    }
 }

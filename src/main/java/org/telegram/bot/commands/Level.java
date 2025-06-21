@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -13,6 +14,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
+import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.utils.TextUtils;
@@ -27,6 +29,7 @@ public class Level implements Command {
     private final Bot bot;
     private final UserService userService;
     private final ChatService chatService;
+    private final CommandPropertiesService commandPropertiesService;
     private final SpeechService speechService;
 
     @Override
@@ -45,10 +48,19 @@ public class Level implements Command {
                     changeChatLevel(message.getChatId(), Integer.parseInt(commandArgument));
                     responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
                 } catch (NumberFormatException e) {
-                    responseText = getLevelOfUser(commandArgument);
+                    User user = userService.get(commandArgument);
+                    if (user == null) {
+                        CommandProperties commandProperties = commandPropertiesService.getCommand(commandArgument);
+                        if (commandProperties == null) {
+                            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                        }
+                        responseText = getLevelOfCommand(commandProperties);
+                    } else {
+                        responseText = getLevelOfUser(user);
+                    }
                 }
             } else {
-                String username = commandArgument.substring(0, i);
+                String argument = commandArgument.substring(0, i);
                 int level;
                 try {
                     level = Integer.parseInt(commandArgument.substring(i + 1));
@@ -57,7 +69,17 @@ public class Level implements Command {
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
 
-                changeUserLevel(username, level);
+                User user = userService.get(argument);
+                if (user == null) {
+                    CommandProperties commandProperties = commandPropertiesService.getCommand(argument);
+                    if (commandProperties == null) {
+                        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+                    }
+                    changeCommandLevel(commandProperties, level);
+                } else {
+                    changeUserLevel(user, level);
+                }
+
                 responseText = speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
             }
         }
@@ -86,26 +108,27 @@ public class Level implements Command {
         chatService.save(chatToUpdate);
     }
 
-    private String getLevelOfUser(String username) {
-        log.debug("Request to get level of user with username {}", username);
-        User user = userService.get(username);
-        if (user == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
+    private String getLevelOfUser(User user) {
+        log.debug("Request to get level of user {}", user);
         return "${command.level.userlevel} " + TextUtils.getMarkdownLinkToUser(user) + " - " + user.getAccessLevel();
     }
 
-    private void changeUserLevel(String username, int level) {
-        User userToUpdate = userService.get(username);
-        if (userToUpdate == null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
+    private void changeUserLevel(User user, int level) {
+        log.debug("Request to change level of user {} from {} to {}", user.getUsername(), user.getAccessLevel(), level);
+        user.setAccessLevel(level);
 
-        log.debug("Request to change level of user {} from {} to {}", username, userToUpdate.getAccessLevel(), level);
-        userToUpdate.setAccessLevel(level);
+        userService.save(user);
+    }
 
-        userService.save(userToUpdate);
+    private void changeCommandLevel(CommandProperties commandProperties, int level) {
+        log.debug("Request to change level of command {} from {} to {}", commandProperties.getCommandName(), commandProperties.getAccessLevel(), level);
+        commandProperties.setAccessLevel(level);
+
+        commandPropertiesService.save(commandProperties);
+    }
+
+    private String getLevelOfCommand(CommandProperties commandProperties) {
+        return "${command.level.commandlevel} " + commandProperties.getCommandName() + " - " + commandProperties.getAccessLevel();
     }
 
 }
