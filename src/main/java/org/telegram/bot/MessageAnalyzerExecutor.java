@@ -10,6 +10,7 @@ import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.enums.AccessLevel;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.UserService;
 
@@ -25,6 +26,7 @@ public class MessageAnalyzerExecutor {
     private final CommandPropertiesService commandPropertiesService;
     private final UserService userService;
     private final Parser parser;
+    private final BotStats botStats;
 
     @Async
     public void analyzeMessageAsync(BotRequest botRequest, AccessLevel userAccessLevel) {
@@ -32,7 +34,16 @@ public class MessageAnalyzerExecutor {
             CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
             if (analyzerCommandProperties == null
                     || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
-                List<BotResponse> botResponses = messageAnalyzer.analyze(botRequest);
+
+                List<BotResponse> botResponses;
+                try {
+                    botResponses = messageAnalyzer.analyze(botRequest);
+                } catch (Exception e) {
+                    botStats.incrementErrors(botRequest, e, "Error analyzing request");
+                    log.error("Error analyzing request: ", e);
+                    return;
+                }
+
                 if (botResponses != null && !botResponses.isEmpty()) {
                     parser.executeAsync(botRequest, botResponses);
                 }
