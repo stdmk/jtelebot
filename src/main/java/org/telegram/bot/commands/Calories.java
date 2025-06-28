@@ -38,6 +38,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.telegram.bot.utils.TextUtils.BORDER;
+
 @RequiredArgsConstructor
 @Component
 public class Calories implements Command {
@@ -451,8 +453,7 @@ public class Calories implements Command {
                 + "${command.calories.fats}: <b>" + DF.format(calories.getFats()) + "</b> ${command.calories.gramssymbol}. "
                 + fatsOfTargetInfo + "\n"
                 + "${command.calories.carbs}: <b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.gramssymbol}. "
-                + carbsOfTargetInfo + "\n"
-                + "\n<b><u>${command.calories.caption3}:</u></b>\n"
+                + carbsOfTargetInfo + "\n\n"
                 + getEatenProductListInfo(eatenProductCaloriesMap, userCaloriesTarget);
     }
 
@@ -461,13 +462,12 @@ public class Calories implements Command {
     }
 
     private String getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
-        Double caloriesTarget = Optional.ofNullable(userCaloriesTarget).map(UserCaloriesTarget::getCalories).orElse(null);
         StringBuilder buf = new StringBuilder();
         StringBuilder mealBuf = new StringBuilder();
 
         LocalDateTime startMealDateTime = null;
         LocalDateTime stopMealDateTime = null;
-        double mealCalories = 0;
+        org.telegram.bot.domain.Calories mealCalories = new org.telegram.bot.domain.Calories();
         for (Map.Entry<EatenProduct, org.telegram.bot.domain.Calories> entry : eatenProductCaloriesMap.entrySet()) {
             EatenProduct eatenProduct = entry.getKey();
             org.telegram.bot.domain.Calories calories = entry.getValue();
@@ -475,35 +475,35 @@ public class Calories implements Command {
             if (startMealDateTime != null) {
                 Duration mealDuration = Duration.between(startMealDateTime, eatenProduct.getDateTime());
                 if (mealDuration.getSeconds() > MEAL_DURATION_SECONDS) {
-                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, caloriesTarget)).append("\n");
-                    buf.append(mealBuf).append("\n");
+                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget));
+                    buf.append(BORDER).append(mealBuf).append("\n");
 
                     mealBuf = new StringBuilder();
-                    mealCalories = 0;
+                    mealCalories = new org.telegram.bot.domain.Calories();
                     startMealDateTime = eatenProduct.getDateTime();
                 }
             } else {
                 startMealDateTime = eatenProduct.getDateTime();
             }
 
-            mealCalories = mealCalories + calories.getCaloric();
+            mealCalories.addCalories(calories);
             stopMealDateTime = eatenProduct.getDateTime();
-            mealBuf.append(getEatenProductInfo(eatenProduct, calories)).append("\n");
+            mealBuf.append("<b>•</b> ").append(getEatenProductInfo(eatenProduct, calories)).append("\n");
         }
 
         if (startMealDateTime != null && stopMealDateTime != null) {
-            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, caloriesTarget)).append("\n");
-            buf.append(mealBuf);
+            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget));
+            buf.append(BORDER).append(mealBuf);
         }
 
         return buf.toString();
     }
 
-    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, double mealCalories, Double caloriesTarget) {
+    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
         return buildTimeCutoff(from.toLocalTime(), to.toLocalTime(), mealCalories, caloriesTarget);
     }
 
-    private String buildTimeCutoff(LocalTime from, LocalTime to, double mealCalories, Double caloriesTarget) {
+    private String buildTimeCutoff(LocalTime from, LocalTime to, org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
         String timeCutoff;
         if (from.equals(to)) {
             timeCutoff = DateUtils.formatShortTime(from);
@@ -511,19 +511,56 @@ public class Calories implements Command {
             timeCutoff = DateUtils.formatShortTime(from) + " — " + DateUtils.formatShortTime(to);
         }
 
-        String percentage;
-        if (caloriesTarget == null) {
-            percentage = "";
-        } else {
-            percentage = "(" + DF.format(getPercent(caloriesTarget, mealCalories)) + "%)";
+        Double caloricTarget = Optional.ofNullable(caloriesTarget).map(UserCaloriesTarget::getCalories).orElse(null);
+        double mealCaloric = mealCalories.getCaloric();
+        StringBuilder caloricInfo = new StringBuilder();
+        if (mealCaloric != 0D) {
+            caloricInfo.append("<b>").append(DF.format(mealCaloric)).append(" ${command.calories.kcal}.</b> ");
+            if (caloricTarget != null) {
+                caloricInfo.append("(").append(DF.format(getPercent(caloricTarget, mealCaloric))).append("%) ");
+            }
+            caloricInfo.append("\n");
         }
 
-        return "<u>" + timeCutoff + " </u><b>" + DF.format(mealCalories) + " ${command.calories.kcal}.</b> " + percentage;
+        return "<u><b>" + timeCutoff + "</b></u>: " + caloricInfo + getMealCaloricInfo(mealCalories, caloriesTarget);
+    }
+
+    private String getMealCaloricInfo(org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
+        Double targetProteins = null;
+        Double targetFats = null;
+        Double targetCarbs = null;
+
+        if (caloriesTarget != null) {
+            targetProteins = caloriesTarget.getProteins();
+            targetFats = caloriesTarget.getFats();
+            targetCarbs = caloriesTarget.getCarbs();
+        }
+
+        return getMealCaloricParamInfo(mealCalories.getProteins(), targetProteins, "${command.calories.proteins}")
+                + getMealCaloricParamInfo(mealCalories.getFats(), targetFats, "${command.calories.fats}")
+                + getMealCaloricParamInfo(mealCalories.getCarbs(), targetCarbs, "${command.calories.carbs}");
+    }
+
+    private String getMealCaloricParamInfo(double mealParam, Double targetParam, String caption) {
+        StringBuilder buf = new StringBuilder();
+        if (mealParam != 0D) {
+            buf.append(caption).append(": <b>").append(DF.format(mealParam)).append("</b> ${command.calories.gramssymbol}. ");
+            if (targetParam != null) {
+                buf.append("(").append(DF.format(getPercent(targetParam, mealParam))).append("%) ");
+            }
+            buf.append("\n");
+        }
+
+        return buf.toString();
     }
 
     private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.Calories calories) {
         Product product = eatenProduct.getProduct();
-        return product.getName() + " (" + DF.format(eatenProduct.getGrams()) + " ${command.calories.gramssymbol}.) — <b>" + DF.format(calories.getCaloric()) + " ${command.calories.kcal}.</b>\n"
+        return product.getName() + " (" + DF.format(eatenProduct.getGrams()) + " ${command.calories.gramssymbol}.) — "
+                + "<b>" + DF.format(calories.getCaloric()) + "</b> ${command.calories.kcal}. "
+                + "<b>" + DF.format(calories.getProteins()) + "</b> ${command.calories.proteinssymbol}. "
+                + "<b>" + DF.format(calories.getFats()) + "</b> ${command.calories.fatssymbol}. "
+                + "<b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.carbssymbol}.\n"
                 + " " + ROOT_COMMAND + DELETE_EATEN_PRODUCT_COMMAND + eatenProduct.getId();
     }
 
