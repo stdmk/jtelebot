@@ -339,7 +339,8 @@ public class Calories implements Command {
     }
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {
-        return buildProductInfo(product) + " " + ROOT_COMMAND + ADD_CALORIES_BY_PRODUCT_ID_COMMAND + product.getId() + "_" + grams;
+        double caloric = product.getCaloric() / 100 * grams;
+        return buildProductInfo(product) + " " + ROOT_COMMAND + ADD_CALORIES_BY_PRODUCT_ID_COMMAND + product.getId() + "_" + grams + " <b>+" + DF.format(caloric) + "</b> ${command.calories.kcal}";
     }
 
     private String getProductInfo(User user, String name) {

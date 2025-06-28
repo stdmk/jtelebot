@@ -605,9 +605,9 @@ class CaloriesTest {
         final String expectedResponseText = """
                 ${command.calories.unknownproduct}: <b>name</b>
                 
-                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.) /calories_add_1_50
-                productName2 <b>160</b> ${command.calories.kcal} (<b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.) /calories_add_2_50
-                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.) /calories_add_3_50""";
+                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.) /calories_add_1_50 <b>+40</b> ${command.calories.kcal}
+                productName2 <b>160</b> ${command.calories.kcal} (<b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.) /calories_add_2_50 <b>+80</b> ${command.calories.kcal}
+                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.) /calories_add_3_50 <b>+120</b> ${command.calories.kcal}""";
         final String productName = "name";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");
