@@ -8,8 +8,10 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.calories.Product;
 import org.telegram.bot.repositories.calories.ProductRepository;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -38,17 +40,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> find(User user, String name, int size) {
-        List<Product> results = new ArrayList<>(size);
+    public Collection<Product> find(User user, String name, int size) {
+        Map<Long, Product> results = new HashMap<>(size);
         for (String word : name.split(" ")) {
             if (results.size() >= size) {
                 break;
             }
 
-            results.addAll(productRepository.findAllByUserAndNameContainingIgnoreCase(user, word));
+            List<Product> foundProducts = productRepository.findAllByUserAndNameContainingIgnoreCase(user, word);
+
+            for (Product foundProduct : foundProducts) {
+                if (results.containsKey(foundProduct.getId())) {
+                    continue;
+                }
+
+                results.put(foundProduct.getId(), foundProduct);
+            }
         }
 
-        return results;
+        return results.values();
     }
 
     @Override
