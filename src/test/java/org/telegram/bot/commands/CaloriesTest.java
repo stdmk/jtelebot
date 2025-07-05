@@ -119,11 +119,14 @@ class CaloriesTest {
                 ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
-                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}. <b>45</b> ${command.calories.proteinssymbol}. <b>90</b> ${command.calories.fatssymbol}. <b>135</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>45</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>90</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>135</b>${command.calories.gramssymbol}.
                  /calories_del_3
-                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}. <b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
                  /calories_del_2
-                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}. <b>5</b> ${command.calories.proteinssymbol}. <b>10</b> ${command.calories.fatssymbol}. <b>15</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>5</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>10</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>15</b>${command.calories.gramssymbol}.
                  /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
@@ -169,13 +172,17 @@ class CaloriesTest {
                 ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6757,6%)\s
                 ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2432,7%)\s
                 -----------------------------
-                <b>•</b> productName12 (600 ${command.calories.gramssymbol}.) — <b>5760</b> ${command.calories.kcal}. <b>720</b> ${command.calories.proteinssymbol}. <b>1440</b> ${command.calories.fatssymbol}. <b>2160</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName12 (600 ${command.calories.gramssymbol}.) — <b>5760</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>720</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>1440</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>2160</b>${command.calories.gramssymbol}.
                  /calories_del_12
-                <b>•</b> productName11 (550 ${command.calories.gramssymbol}.) — <b>4840</b> ${command.calories.kcal}. <b>605</b> ${command.calories.proteinssymbol}. <b>1210</b> ${command.calories.fatssymbol}. <b>1815</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName11 (550 ${command.calories.gramssymbol}.) — <b>4840</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>605</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>1210</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>1815</b>${command.calories.gramssymbol}.
                  /calories_del_11
-                <b>•</b> productName10 (500 ${command.calories.gramssymbol}.) — <b>4000</b> ${command.calories.kcal}. <b>500</b> ${command.calories.proteinssymbol}. <b>1000</b> ${command.calories.fatssymbol}. <b>1500</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName10 (500 ${command.calories.gramssymbol}.) — <b>4000</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>500</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>1000</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>1500</b>${command.calories.gramssymbol}.
                  /calories_del_10
-                <b>•</b> productName9 (450 ${command.calories.gramssymbol}.) — <b>3240</b> ${command.calories.kcal}. <b>405</b> ${command.calories.proteinssymbol}. <b>810</b> ${command.calories.fatssymbol}. <b>1215</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName9 (450 ${command.calories.gramssymbol}.) — <b>3240</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>405</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>810</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>1215</b>${command.calories.gramssymbol}.
                  /calories_del_9
                 
                 <u><b>22:40 — 23:10</b></u>: <b>6960 ${command.calories.kcal}.</b> (348%)\s
@@ -183,13 +190,17 @@ class CaloriesTest {
                 ${command.calories.fats}: <b>1740</b> ${command.calories.gramssymbol}. (2636,4%)\s
                 ${command.calories.carbs}: <b>2610</b> ${command.calories.gramssymbol}. (949,1%)\s
                 -----------------------------
-                <b>•</b> productName8 (400 ${command.calories.gramssymbol}.) — <b>2560</b> ${command.calories.kcal}. <b>320</b> ${command.calories.proteinssymbol}. <b>640</b> ${command.calories.fatssymbol}. <b>960</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName8 (400 ${command.calories.gramssymbol}.) — <b>2560</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>320</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>640</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>960</b>${command.calories.gramssymbol}.
                  /calories_del_8
-                <b>•</b> productName7 (350 ${command.calories.gramssymbol}.) — <b>1960</b> ${command.calories.kcal}. <b>245</b> ${command.calories.proteinssymbol}. <b>490</b> ${command.calories.fatssymbol}. <b>735</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName7 (350 ${command.calories.gramssymbol}.) — <b>1960</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>245</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>490</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>735</b>${command.calories.gramssymbol}.
                  /calories_del_7
-                <b>•</b> productName6 (300 ${command.calories.gramssymbol}.) — <b>1440</b> ${command.calories.kcal}. <b>180</b> ${command.calories.proteinssymbol}. <b>360</b> ${command.calories.fatssymbol}. <b>540</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName6 (300 ${command.calories.gramssymbol}.) — <b>1440</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>180</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>360</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>540</b>${command.calories.gramssymbol}.
                  /calories_del_6
-                <b>•</b> productName5 (250 ${command.calories.gramssymbol}.) — <b>1000</b> ${command.calories.kcal}. <b>125</b> ${command.calories.proteinssymbol}. <b>250</b> ${command.calories.fatssymbol}. <b>375</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName5 (250 ${command.calories.gramssymbol}.) — <b>1000</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>125</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>250</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>375</b>${command.calories.gramssymbol}.
                  /calories_del_5
                 
                 <u><b>23:20 — 23:50</b></u>: <b>1200 ${command.calories.kcal}.</b> (60%)\s
@@ -197,13 +208,17 @@ class CaloriesTest {
                 ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (454,5%)\s
                 ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (163,6%)\s
                 -----------------------------
-                <b>•</b> productName4 (200 ${command.calories.gramssymbol}.) — <b>640</b> ${command.calories.kcal}. <b>80</b> ${command.calories.proteinssymbol}. <b>160</b> ${command.calories.fatssymbol}. <b>240</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName4 (200 ${command.calories.gramssymbol}.) — <b>640</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>80</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>160</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>240</b>${command.calories.gramssymbol}.
                  /calories_del_4
-                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}. <b>45</b> ${command.calories.proteinssymbol}. <b>90</b> ${command.calories.fatssymbol}. <b>135</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>45</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>90</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>135</b>${command.calories.gramssymbol}.
                  /calories_del_3
-                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}. <b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
                  /calories_del_2
-                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}. <b>5</b> ${command.calories.proteinssymbol}. <b>10</b> ${command.calories.fatssymbol}. <b>15</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>5</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>10</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>15</b>${command.calories.gramssymbol}.
                  /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
@@ -253,11 +268,14 @@ class CaloriesTest {
                 ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}. (212,1%)\s
                 ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}. (76,4%)\s
                 -----------------------------
-                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}. <b>5</b> ${command.calories.proteinssymbol}. <b>10</b> ${command.calories.fatssymbol}. <b>15</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName1 (50 ${command.calories.gramssymbol}.) — <b>40</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>5</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>10</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>15</b>${command.calories.gramssymbol}.
                  /calories_del_1
-                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}. <b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName2 (100 ${command.calories.gramssymbol}.) — <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
                  /calories_del_2
-                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}. <b>45</b> ${command.calories.proteinssymbol}. <b>90</b> ${command.calories.fatssymbol}. <b>135</b> ${command.calories.carbssymbol}.
+                <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>45</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>90</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>135</b>${command.calories.gramssymbol}.
                  /calories_del_3
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
@@ -330,8 +348,10 @@ class CaloriesTest {
 
     @Test
     void parseWithAddProductCommandAsArgumentAddNewProductTest() {
-        final String expectedResponseText = "${command.calories.saveproduct}:\n" +
-                "productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.)";
+        final String expectedResponseText = """
+                ${command.calories.saveproduct}:
+                productName1 <b>80</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.""";
         final long productId = 1L;
         BotRequest request = TestUtils.getRequestFromGroup("/calories_add_product_" + productId);
 
@@ -358,8 +378,10 @@ class CaloriesTest {
 
     @Test
     void parseWithAddProductCommandAsArgumentUpdateProductTest() {
-        final String expectedResponseText = "${command.calories.updateproduct}:\n" +
-                "productName2 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.)";
+        final String expectedResponseText = """
+                ${command.calories.updateproduct}:
+                productName2 <b>80</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.""";
         final long productId = 1L;
         BotRequest request = TestUtils.getRequestFromGroup("/calories_add_product_" + productId);
         User user = request.getMessage().getUser();
@@ -414,18 +436,8 @@ class CaloriesTest {
 
     @Test
     void parseWithAddCaloriesByProductIdCommandAsArgumentTest() {
-        final String expectedResponseText = """
-                ${command.calories.added}: <b>300</b> ${command.calories.kcal}.
-                (<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )
-                
-                <b><u>${command.calories.caption}:</u></b>
-                ${command.calories.eaten}: <b>0</b> ${command.calories.kcal}.\s
-                <b><u>${command.calories.caption2}:</u></b>
-                ${command.calories.proteins}: <b>0</b> ${command.calories.gramssymbol}.\s
-                ${command.calories.fats}: <b>0</b> ${command.calories.gramssymbol}.\s
-                ${command.calories.carbs}: <b>0</b> ${command.calories.gramssymbol}.\s
-                
-                """;
+        final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
         final long productId = 1L;
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories_add_" + productId + "_" + grams);
@@ -435,17 +447,8 @@ class CaloriesTest {
 
         Product product = getSomeProduct(productId, user);
         when(productService.get(productId)).thenReturn(product);
-        ZoneId zoneId = mock(ZoneId.class);
-        when(userCityService.getZoneIdOfUserOrDefault(chat, user)).thenReturn(zoneId);
-        UserCalories userCalories = new UserCalories()
-                .setUser(user)
-                .setDate(DATE)
-                .setEatenProducts(List.of());
-        when(userCaloriesService.addCalories(user, zoneId, product, grams)).thenReturn(userCalories);
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
-        org.telegram.bot.domain.Calories caloriesTotal = new org.telegram.bot.domain.Calories(0, 0, 0, 0);
-        when(caloricMapper.sum(anyCollection())).thenReturn(caloriesTotal);
 
         BotResponse response = calories.parse(request).get(0);
 
@@ -605,9 +608,18 @@ class CaloriesTest {
         final String expectedResponseText = """
                 ${command.calories.unknownproduct}: <b>name</b>
                 
-                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.) /calories_add_1_50 <b>+40</b> ${command.calories.kcal}
-                productName2 <b>160</b> ${command.calories.kcal} (<b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.) /calories_add_2_50 <b>+80</b> ${command.calories.kcal}
-                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.) /calories_add_3_50 <b>+120</b> ${command.calories.kcal}""";
+                productName1 <b>80</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.
+                 /calories_add_1_50 <b>+40</b> ${command.calories.kcal}
+                
+                productName2 <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
+                 /calories_add_2_50 <b>+80</b> ${command.calories.kcal}
+                
+                productName3 <b>240</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>30</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>60</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>90</b>${command.calories.gramssymbol}.
+                 /calories_add_3_50 <b>+120</b> ${command.calories.kcal}
+                """;
         final String productName = "name";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");
@@ -624,18 +636,8 @@ class CaloriesTest {
 
     @Test
     void parseWithAddingCaloriesByProductCommandTest() {
-        final String expectedResponseText = """
-                ${command.calories.added}: <b>300</b> ${command.calories.kcal}.
-                (<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )
-                
-                <b><u>${command.calories.caption}:</u></b>
-                ${command.calories.eaten}: <b>0</b> ${command.calories.kcal}.\s
-                <b><u>${command.calories.caption2}:</u></b>
-                ${command.calories.proteins}: <b>0</b> ${command.calories.gramssymbol}.\s
-                ${command.calories.fats}: <b>0</b> ${command.calories.gramssymbol}.\s
-                ${command.calories.carbs}: <b>0</b> ${command.calories.gramssymbol}.\s
-                
-                """;
+        final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
         final String productName = "name";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");
@@ -646,17 +648,9 @@ class CaloriesTest {
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName)).thenReturn(product);
-        ZoneId zoneId = mock(ZoneId.class);
-        when(userCityService.getZoneIdOfUserOrDefault(chat, user)).thenReturn(zoneId);
-        UserCalories userCalories = new UserCalories()
-                .setUser(user)
-                .setDate(DATE)
-                .setEatenProducts(List.of());
-        when(userCaloriesService.addCalories(user, zoneId, product, grams)).thenReturn(userCalories);
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         org.telegram.bot.domain.Calories caloriesTotal = new org.telegram.bot.domain.Calories(0, 0, 0, 0);
-        when(caloricMapper.sum(anyCollection())).thenReturn(caloriesTotal);
 
         BotResponse response = calories.parse(request).get(0);
 
@@ -684,8 +678,10 @@ class CaloriesTest {
         final double expectedFats = 20D;
         final double expectedCarbs = 30D;
         final double expectedCaloric = 300D;
-        final String expectedResponseText = "${command.calories.saveproduct}:\n" +
-                "name <b>300</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.)";
+        final String expectedResponseText = """
+                ${command.calories.saveproduct}:
+                name <b>300</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.""";
         final String productName = "name";
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " 10p 20f 30c");
 
@@ -728,9 +724,18 @@ class CaloriesTest {
     @Test
     void parseWithGetProductInfoCommandTest() {
         final String expectedResponseText = """
-                productName1 <b>80</b> ${command.calories.kcal} (<b>10</b> ${command.calories.proteinssymbol}. <b>20</b> ${command.calories.fatssymbol}. <b>30</b> ${command.calories.carbssymbol}.) /calories_del_product_1
-                productName2 <b>160</b> ${command.calories.kcal} (<b>20</b> ${command.calories.proteinssymbol}. <b>40</b> ${command.calories.fatssymbol}. <b>60</b> ${command.calories.carbssymbol}.) /calories_add_product_2
-                productName3 <b>240</b> ${command.calories.kcal} (<b>30</b> ${command.calories.proteinssymbol}. <b>60</b> ${command.calories.fatssymbol}. <b>90</b> ${command.calories.carbssymbol}.) /calories_del_product_3
+                productName1 <b>80</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.
+                 /calories_del_product_1
+                
+                productName2 <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
+                 /calories_add_product_2
+                
+                productName3 <b>240</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>30</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>60</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>90</b>${command.calories.gramssymbol}.
+                 /calories_del_product_3
+                
                 ${command.calories.totalproductsfound}: <b>3</b>""";
         final String productName = "name";
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName);

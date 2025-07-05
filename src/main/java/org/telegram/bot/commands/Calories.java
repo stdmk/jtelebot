@@ -166,7 +166,7 @@ public class Calories implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        return addCaloriesByProduct(chat, user, product, grams);
+        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
 
     private String deleteProduct(User user, String command) {
@@ -329,18 +329,12 @@ public class Calories implements Command {
             return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProducts;
         }
 
-        return addCaloriesByProduct(chat, user, product, grams);
-    }
-
-    private String addCaloriesByProduct(Chat chat, User user, Product product, double grams) {
-        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        UserCalories userCalories = userCaloriesService.addCalories(user, zoneIdOfUser, product, grams);
-        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n\n" + getCurrentCalories(userCalories);
+        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {
         double caloric = product.getCaloric() / 100 * grams;
-        return buildProductInfo(product) + " " + ROOT_COMMAND + ADD_CALORIES_BY_PRODUCT_ID_COMMAND + product.getId() + "_" + grams + " <b>+" + DF.format(caloric) + "</b> ${command.calories.kcal}";
+        return buildProductInfo(product) + "\n " + ROOT_COMMAND + ADD_CALORIES_BY_PRODUCT_ID_COMMAND + product.getId() + "_" + grams + " <b>+" + DF.format(caloric) + "</b> ${command.calories.kcal}\n";
     }
 
     private String getProductInfo(User user, String name) {
@@ -364,17 +358,14 @@ public class Calories implements Command {
         String productInfo = buildProductInfo(product);
 
         if (!product.getUser().getUserId().equals(userId)) {
-            return productInfo + " " + ROOT_COMMAND + ADD_PRODUCT_BY_PRODUCT_ID_COMMAND + product.getId();
+            return productInfo + "\n " + ROOT_COMMAND + ADD_PRODUCT_BY_PRODUCT_ID_COMMAND + product.getId() + "\n";
         } else {
-            return productInfo + " " + ROOT_COMMAND + DELETE_PRODUCT_COMMAND + product.getId();
+            return productInfo + "\n " + ROOT_COMMAND + DELETE_PRODUCT_COMMAND + product.getId() + "\n";
         }
     }
 
     private String buildProductInfo(Product product) {
-        return product.getName() + " <b>" + DF.format(product.getCaloric()) + "</b> ${command.calories.kcal} "
-                + "(<b>" + DF.format(product.getProteins()) + "</b> ${command.calories.proteinssymbol}. <b>"
-                + DF.format(product.getFats()) + "</b> ${command.calories.fatssymbol}. <b>"
-                + DF.format(product.getCarbs()) + "</b> ${command.calories.carbssymbol}.)";
+        return product.getName() + " " + getPFCInfo(product);
     }
 
     private String buildAddedCaloriesString(org.telegram.bot.domain.Calories calories) {
@@ -558,11 +549,23 @@ public class Calories implements Command {
     private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.Calories calories) {
         Product product = eatenProduct.getProduct();
         return product.getName() + " (" + DF.format(eatenProduct.getGrams()) + " ${command.calories.gramssymbol}.) — "
-                + "<b>" + DF.format(calories.getCaloric()) + "</b> ${command.calories.kcal}. "
-                + "<b>" + DF.format(calories.getProteins()) + "</b> ${command.calories.proteinssymbol}. "
-                + "<b>" + DF.format(calories.getFats()) + "</b> ${command.calories.fatssymbol}. "
-                + "<b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.carbssymbol}.\n"
+                + getPFCInfo(calories) + "\n"
                 + " " + ROOT_COMMAND + DELETE_EATEN_PRODUCT_COMMAND + eatenProduct.getId();
+    }
+
+    private String getPFCInfo(Product product) {
+        return getPFCInfo(product.getCaloric(), product.getProteins(), product.getFats(), product.getCarbs());
+    }
+
+    private String getPFCInfo(org.telegram.bot.domain.Calories calories) {
+        return getPFCInfo(calories.getCaloric(), calories.getProteins(), calories.getFats(), calories.getCarbs());
+    }
+
+    private String getPFCInfo(double caloric, double proteins, double fats, double carbs) {
+        return "<b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n"
+                + "${command.calories.proteinssymbol}: <b>" + DF.format(proteins) + "</b> ${command.calories.gramssymbol}. "
+                + "${command.calories.fatssymbol}: <b>" + DF.format(fats) + "</b>${command.calories.gramssymbol}. "
+                + "${command.calories.carbssymbol}: <b>" + DF.format(carbs) + "</b>${command.calories.gramssymbol}.";
     }
 
     private Double parseValue(String data) {
