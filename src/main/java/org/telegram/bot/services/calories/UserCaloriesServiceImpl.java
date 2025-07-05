@@ -21,7 +21,7 @@ public class UserCaloriesServiceImpl implements UserCaloriesService {
     private final EatenProductService eatenProductService;
 
     @Override
-    public UserCalories addCalories(User user, ZoneId zoneId, Product product, double grams) {
+    public void addCalories(User user, ZoneId zoneId, Product product, double grams) {
         UserCalories userCalories = this.get(user, zoneId);
 
         EatenProduct eatenProduct = eatenProductService.save(new EatenProduct()
@@ -31,7 +31,7 @@ public class UserCaloriesServiceImpl implements UserCaloriesService {
                 .setUserCalories(userCalories));
         userCalories.getEatenProducts().add(eatenProduct);
 
-        return userCaloriesRepository.save(userCalories);
+        userCaloriesRepository.save(userCalories);
     }
 
     @Override

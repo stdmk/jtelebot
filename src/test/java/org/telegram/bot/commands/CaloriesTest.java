@@ -420,6 +420,7 @@ class CaloriesTest {
         BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
 
         assertEquals(expectedErrorText, botException.getMessage());
+        verify(userCaloriesService, never()).addCalories(any(User.class), any(ZoneId.class), any(Product.class), anyDouble());
     }
 
     @Test
@@ -432,6 +433,7 @@ class CaloriesTest {
         BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
 
         assertEquals(expectedErrorText, botException.getMessage());
+        verify(userCaloriesService, never()).addCalories(any(User.class), any(ZoneId.class), any(Product.class), anyDouble());
     }
 
     @Test
@@ -449,11 +451,14 @@ class CaloriesTest {
         when(productService.get(productId)).thenReturn(product);
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
+        ZoneId zoneId = mock(ZoneId.class);
+        when(userCityService.getZoneIdOfUserOrDefault(chat, user)).thenReturn(zoneId);
 
         BotResponse response = calories.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
+        verify(userCaloriesService).addCalories(user, zoneId, product, grams);
     }
 
     @Test
@@ -601,6 +606,7 @@ class CaloriesTest {
         BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
 
         assertEquals(expectedErrorText, botException.getMessage());
+        verify(userCaloriesService, never()).addCalories(any(User.class), any(ZoneId.class), any(Product.class), anyDouble());
     }
 
     @Test
@@ -632,6 +638,8 @@ class CaloriesTest {
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userCaloriesService, never()).addCalories(any(User.class), any(ZoneId.class), any(Product.class), anyDouble());
     }
 
     @Test
@@ -650,12 +658,15 @@ class CaloriesTest {
         when(productService.get(user, productName)).thenReturn(product);
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
-        org.telegram.bot.domain.Calories caloriesTotal = new org.telegram.bot.domain.Calories(0, 0, 0, 0);
+        ZoneId zoneId = mock(ZoneId.class);
+        when(userCityService.getZoneIdOfUserOrDefault(chat, user)).thenReturn(zoneId);
 
         BotResponse response = calories.parse(request).get(0);
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userCaloriesService).addCalories(user, zoneId, product, grams);
     }
 
     @Test
@@ -670,6 +681,8 @@ class CaloriesTest {
         BotException botException = assertThrows(BotException.class, () -> calories.parse(request));
 
         assertEquals(expectedErrorText, botException.getMessage());
+
+        verify(userCaloriesService, never()).addCalories(any(User.class), any(ZoneId.class), any(Product.class), anyDouble());
     }
 
     @Test

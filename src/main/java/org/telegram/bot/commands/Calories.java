@@ -166,6 +166,9 @@ public class Calories implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
+        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
+        userCaloriesService.addCalories(user, zoneIdOfUser, product, grams);
+
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
 
@@ -328,6 +331,9 @@ public class Calories implements Command {
                     .collect(Collectors.joining("\n"));
             return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProducts;
         }
+
+        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
+        userCaloriesService.addCalories(user, zoneIdOfUser, product, grams);
 
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
