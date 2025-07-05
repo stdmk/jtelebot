@@ -49,7 +49,7 @@ public class Calories implements Command {
     private static final String ADD_PRODUCT_BY_PRODUCT_ID_COMMAND = "_add_product_";
     private static final String DELETE_PRODUCT_COMMAND = "_del_product_";
     private static final String DELETE_EATEN_PRODUCT_COMMAND = "_del_";
-    private static final int MAX_SIZE_OF_SEARCH_RESULTS = 30;
+    public static final int MAX_SIZE_OF_SEARCH_RESULTS = 15;
     private static final int MAX_PRODUCT_NAME_LENGTH = 255;
     private static final int MEAL_DURATION_SECONDS = 1800;
     private static final String NUMERIC_PARAMETER_TEMPLATE = "\\b(\\d+[.,]?\\d*)\\s?[%s]\\b";

@@ -50,6 +50,9 @@ public class ProductServiceImpl implements ProductService {
             List<Product> foundProducts = productRepository.findAllByUserAndNameContainingIgnoreCase(user, word);
 
             for (Product foundProduct : foundProducts) {
+                if (results.size() >= size) {
+                    break;
+                }
                 if (results.containsKey(foundProduct.getId())) {
                     continue;
                 }

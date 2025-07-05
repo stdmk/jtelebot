@@ -44,11 +44,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
+import static org.telegram.bot.commands.Calories.MAX_SIZE_OF_SEARCH_RESULTS;
 
 @ExtendWith(MockitoExtension.class)
 class CaloriesTest {
 
-    private static final int MAX_SIZE_OF_SEARCH_RESULTS = 30;
     private static final LocalDateTime DATE_TIME = LocalDateTime.of(2000, 1, 1, 0, 0);
     private static final LocalDate DATE = DATE_TIME.toLocalDate();
 
