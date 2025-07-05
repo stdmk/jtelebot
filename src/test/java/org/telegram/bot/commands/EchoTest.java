@@ -179,7 +179,6 @@ class EchoTest {
 
         when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
         when(commandPropertiesService.getCommand(any(Class.class))).thenReturn(commandProperties);
-        when(commandPropertiesService.getCommand(anyString())).thenReturn(null);
         when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(request);
 
         assertDoesNotThrow(() -> echo.analyze(request));

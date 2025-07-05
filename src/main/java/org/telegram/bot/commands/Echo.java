@@ -15,9 +15,10 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.MathUtils;
 import org.telegram.bot.utils.ObjectCopier;
+import org.telegram.bot.utils.TextUtils;
 
-import java.util.Set;
 import java.util.*;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -100,7 +101,8 @@ public class Echo implements Command, MessageAnalyzer {
     }
 
     private boolean isCommand(String argument) {
-        return commandPropertiesService.getCommand(argument) != null;
+        String potentialCommandInText = TextUtils.getPotentialCommandInText(argument);
+        return potentialCommandInText != null && commandPropertiesService.getCommand(potentialCommandInText) != null;
     }
 
     public String getQuestionForText(String text, Long chatId) {
