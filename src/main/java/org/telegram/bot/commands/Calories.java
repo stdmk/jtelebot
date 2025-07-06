@@ -30,6 +30,7 @@ import org.telegram.bot.utils.DateUtils;
 import javax.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -221,14 +222,14 @@ public class Calories implements Command {
             return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
         }
 
-        LocalDate date = searchForDate(commandArgument);
-        if (date != null) {
-            return getCaloriesForDate(user, date);
-        }
-
         Product product = getAddingProduct(user, commandArgument);
         if (product != null) {
             return saveProduct(user, product);
+        }
+
+        LocalDate date = searchForDate(commandArgument);
+        if (date != null) {
+            return getCaloriesForDate(user, date);
         }
 
         return getProductInfo(user, commandArgument);
@@ -250,7 +251,11 @@ public class Calories implements Command {
             return null;
         }
 
-        return LocalDate.parse(dateRaw, DateUtils.dateFormatter);
+        try {
+            return LocalDate.parse(dateRaw, DateUtils.dateFormatter);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     private String getCaloriesForDate(User user, LocalDate date) {
