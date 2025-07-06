@@ -29,10 +29,7 @@ import org.telegram.bot.utils.DateUtils;
 
 import javax.annotation.PostConstruct;
 import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,6 +51,8 @@ public class Calories implements Command {
     private static final int MEAL_DURATION_SECONDS = 1800;
     private static final String NUMERIC_PARAMETER_TEMPLATE = "\\b(\\d+[.,]?\\d*)\\s?[%s]\\b";
     private static final DecimalFormat DF = new DecimalFormat("#.#");
+    private static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
+    private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");
 
     private final InternationalizationService internationalizationService;
     private final SpeechService speechService;
@@ -63,6 +62,7 @@ public class Calories implements Command {
     private final UserCaloriesTargetService userCaloriesTargetService;
     private final UserCityService userCityService;
     private final CaloricMapper caloricMapper;
+    private final Clock clock;
 
     private Pattern proteinsPattern;
     private Pattern fatsPattern;
@@ -167,7 +167,8 @@ public class Calories implements Command {
         }
 
         ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        userCaloriesService.addCalories(user, zoneIdOfUser, product, grams);
+        LocalDateTime dateTime = LocalDateTime.now(clock.withZone(zoneIdOfUser));
+        userCaloriesService.addCalories(user, dateTime, product, grams);
 
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
@@ -220,6 +221,11 @@ public class Calories implements Command {
             return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
         }
 
+        LocalDate date = searchForDate(commandArgument);
+        if (date != null) {
+            return getCaloriesForDate(user, date);
+        }
+
         Product product = getAddingProduct(user, commandArgument);
         if (product != null) {
             return saveProduct(user, product);
@@ -228,9 +234,33 @@ public class Calories implements Command {
         return getProductInfo(user, commandArgument);
     }
 
+    private LocalDate searchForDate(String data) {
+        String dateRaw = null;
+        Matcher matcher = FULL_DATE_PATTERN.matcher(data);
+        if (matcher.find()) {
+            dateRaw = data.substring(matcher.start(), matcher.end());
+        } else {
+            matcher = SHORT_DATE_PATTERN.matcher(data);
+            if (matcher.find()) {
+                dateRaw = data.substring(matcher.start(), matcher.end()) + "." + LocalDate.now(clock).getYear();
+            }
+        }
+
+        if (dateRaw == null) {
+            return null;
+        }
+
+        return LocalDate.parse(dateRaw, DateUtils.dateFormatter);
+    }
+
+    private String getCaloriesForDate(User user, LocalDate date) {
+        return getCaloriesInfo(userCaloriesService.get(user, date), date);
+    }
+
     private String getCurrentCalories(Chat chat, User user) {
         ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        return getCurrentCalories(userCaloriesService.get(user, zoneIdOfUser));
+        LocalDate date = LocalDate.now(clock.withZone(zoneIdOfUser));
+        return getCaloriesInfo(userCaloriesService.get(user, date), date);
     }
 
     private String saveProduct(User user, Product product) {
@@ -333,7 +363,8 @@ public class Calories implements Command {
         }
 
         ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        userCaloriesService.addCalories(user, zoneIdOfUser, product, grams);
+        LocalDateTime dateTime = LocalDateTime.now(clock.withZone(zoneIdOfUser));
+        userCaloriesService.addCalories(user, dateTime, product, grams);
 
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
     }
@@ -398,7 +429,7 @@ public class Calories implements Command {
                 + proteinsString + fatsString + carbsString + ")";
     }
 
-    private String getCurrentCalories(UserCalories userCalories) {
+    private String getCaloriesInfo(UserCalories userCalories, LocalDate date) {
         Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap = userCalories.getEatenProducts()
                 .stream()
                 .sorted(Comparator.comparing(EatenProduct::getDateTime))
@@ -442,7 +473,7 @@ public class Calories implements Command {
             }
         }
 
-        return "<b><u>${command.calories.caption}:</u></b>\n"
+        return "<b><u>${command.calories.caption} " + DateUtils.formatDate(date) + ":</u></b>\n"
                 + "${command.calories.eaten}: <b>" + DF.format(calories.getCaloric()) + "</b> ${command.calories.kcal}. "
                 + caloriesOfTargetInfo
                 + "\n<b><u>${command.calories.caption2}:</u></b>\n"

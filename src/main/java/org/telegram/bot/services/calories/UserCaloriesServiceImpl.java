@@ -10,7 +10,6 @@ import org.telegram.bot.repositories.calories.UserCaloriesRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 
 @RequiredArgsConstructor
@@ -21,13 +20,13 @@ public class UserCaloriesServiceImpl implements UserCaloriesService {
     private final EatenProductService eatenProductService;
 
     @Override
-    public void addCalories(User user, ZoneId zoneId, Product product, double grams) {
-        UserCalories userCalories = this.get(user, zoneId);
+    public void addCalories(User user, LocalDateTime dateTime, Product product, double grams) {
+        UserCalories userCalories = this.get(user, dateTime.toLocalDate());
 
         EatenProduct eatenProduct = eatenProductService.save(new EatenProduct()
                 .setProduct(product)
                 .setGrams(grams)
-                .setDateTime(LocalDateTime.now(zoneId))
+                .setDateTime(dateTime)
                 .setUserCalories(userCalories));
         userCalories.getEatenProducts().add(eatenProduct);
 
@@ -35,13 +34,13 @@ public class UserCaloriesServiceImpl implements UserCaloriesService {
     }
 
     @Override
-    public UserCalories get(User user, ZoneId zoneId) {
-        UserCalories userCalories = userCaloriesRepository.getByUserAndDate(user, LocalDate.now(zoneId));
+    public UserCalories get(User user, LocalDate date) {
+        UserCalories userCalories = userCaloriesRepository.getByUserAndDate(user, date);
 
         if (userCalories == null) {
             userCalories = userCaloriesRepository.save(new UserCalories()
                     .setUser(user)
-                    .setDate(LocalDate.now(zoneId))
+                    .setDate(date)
                     .setEatenProducts(new ArrayList<>()));
         }
 
