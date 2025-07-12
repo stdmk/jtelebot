@@ -36,7 +36,9 @@ import static org.telegram.bot.utils.TextUtils.BORDER;
 @RequiredArgsConstructor
 public class Parcel implements Command {
 
-    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings().setFormattingStyle(FormattingStyle.HTML);
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setWebPagePreview(false)
+            .setFormattingStyle(FormattingStyle.HTML);
 
     private final ParcelService parcelService;
     private final TrackCodeService trackCodeService;
