@@ -28,4 +28,5 @@
     <include file="db/changelog/2025/20250609201500_added_command_Calories.xml"/>
     <include file="db/changelog/2025/20250613084200_added_entity_EatenProduct.xml"/>
     <include file="db/changelog/2025/20250613120400_added_entity_UserCaloriesTarget.xml"/>
+    <include file="db/changelog/2025/20250712075700_added_index_for_product_name.xml"/>
 </databaseChangeLog>
