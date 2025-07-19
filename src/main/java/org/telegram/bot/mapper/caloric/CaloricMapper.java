@@ -2,6 +2,7 @@ package org.telegram.bot.mapper.caloric;
 
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.Calories;
+import org.telegram.bot.domain.entities.calories.Activity;
 import org.telegram.bot.domain.entities.calories.EatenProduct;
 import org.telegram.bot.domain.entities.calories.Product;
 
@@ -28,6 +29,10 @@ public class CaloricMapper {
 
     public Calories toCalories(EatenProduct eatenProduct) {
         return toCalories(eatenProduct.getProduct(), eatenProduct.getGrams());
+    }
+
+    public Calories toCalories(Activity activity) {
+        return new Calories(0, 0, 0, activity.getCalories());
     }
 
     public Calories toCalories(Product product, double grams) {

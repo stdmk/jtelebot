@@ -7,20 +7,18 @@ import lombok.experimental.Accessors;
 import org.telegram.bot.domain.entities.User;
 
 import javax.persistence.*;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 /**
- * UserCalories entity.
+ * Activity entity.
  */
 @Entity
 @Getter
 @Setter
 @Accessors(chain = true)
 @ToString
-@Table(name = "usercalories", schema = "bot")
-public class UserCalories {
+@Table(name = "activity", schema = "bot")
+public class Activity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,13 +28,17 @@ public class UserCalories {
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "datetime")
+    private LocalDateTime dateTime;
 
-    @OneToMany(mappedBy = "userCalories", fetch = FetchType.EAGER)
-    private Set<EatenProduct> eatenProducts = new HashSet<>();
+    @Column(name = "name")
+    private String name;
 
-    @OneToMany(mappedBy = "userCalories", fetch = FetchType.EAGER)
-    private Set<Activity> activities = new HashSet<>();
+    @Column(name = "calories")
+    private double calories;
+
+    @ManyToOne
+    @JoinColumn(name = "usercaloriesid")
+    private UserCalories userCalories;
 
 }

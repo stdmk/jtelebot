@@ -9,5 +9,6 @@ import java.time.LocalDateTime;
 
 public interface UserCaloriesService {
     void addCalories(User user, LocalDateTime dateTime, Product product, double grams);
+    void subtractCalories(User user, LocalDateTime dateTime, String name, double calories);
     UserCalories get(User user, LocalDate date);
 }

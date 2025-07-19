@@ -6,10 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
-import org.telegram.bot.domain.entities.calories.EatenProduct;
-import org.telegram.bot.domain.entities.calories.Product;
-import org.telegram.bot.domain.entities.calories.UserCalories;
-import org.telegram.bot.domain.entities.calories.UserCaloriesTarget;
+import org.telegram.bot.domain.entities.calories.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -21,10 +18,7 @@ import org.telegram.bot.mapper.caloric.CaloricMapper;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
-import org.telegram.bot.services.calories.EatenProductService;
-import org.telegram.bot.services.calories.ProductService;
-import org.telegram.bot.services.calories.UserCaloriesService;
-import org.telegram.bot.services.calories.UserCaloriesTargetService;
+import org.telegram.bot.services.calories.*;
 import org.telegram.bot.utils.DateUtils;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +26,7 @@ import java.text.DecimalFormat;
 import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,10 +42,12 @@ public class Calories implements Command {
     private static final String ADD_PRODUCT_BY_PRODUCT_ID_COMMAND = "_add_product_";
     private static final String DELETE_PRODUCT_COMMAND = "_del_product_";
     private static final String DELETE_EATEN_PRODUCT_COMMAND = "_del_";
+    private static final String DELETE_ACTIVITY_COMMAND = "_del_activity_";
     public static final int MAX_SIZE_OF_SEARCH_RESULTS = 15;
     private static final int MAX_PRODUCT_NAME_LENGTH = 255;
     private static final int MEAL_DURATION_SECONDS = 1800;
     private static final String NUMERIC_PARAMETER_TEMPLATE = "\\b(\\d+[.,]?\\d*)\\s?[%s]\\b";
+    private static final String NEGATIVE_NUMERIC_PARAMETER_TEMPLATE = "-(\\d+[.,]?\\d*)\\s?[%s]\\b";
     private static final DecimalFormat DF = new DecimalFormat("#.#");
     private static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");
@@ -59,6 +56,7 @@ public class Calories implements Command {
     private final SpeechService speechService;
     private final ProductService productService;
     private final EatenProductService eatenProductService;
+    private final ActivityService activityService;
     private final UserCaloriesService userCaloriesService;
     private final UserCaloriesTargetService userCaloriesTargetService;
     private final UserCityService userCityService;
@@ -70,6 +68,7 @@ public class Calories implements Command {
     private Pattern carbsPattern;
     private Pattern kcalPattern;
     private Pattern gramsPattern;
+    private Pattern negativeKcalPattern;
 
     @PostConstruct
     private void postConstruct() {
@@ -78,6 +77,10 @@ public class Calories implements Command {
         carbsPattern = Pattern.compile(getNumericParameterPattern("command.calories.carbssymbol"));
         kcalPattern = Pattern.compile(getNumericParameterPattern("command.calories.calsymbol"));
         gramsPattern = Pattern.compile(getNumericParameterPattern("command.calories.gramssymbol"));
+        negativeKcalPattern = Pattern.compile(
+                String.format(
+                        NEGATIVE_NUMERIC_PARAMETER_TEMPLATE,
+                        String.join("", internationalizationService.getAllTranslations("command.calories.calsymbol"))));
     }
 
     private String getNumericParameterPattern(String code) {
@@ -112,8 +115,10 @@ public class Calories implements Command {
             return processAddCaloriesByProductIdCommand(chat, user, command);
         } else if (command.startsWith(DELETE_PRODUCT_COMMAND)) {
             return deleteProduct(user, command);
+        } else if (command.startsWith(DELETE_ACTIVITY_COMMAND)) {
+            return deleteActivity(user, command);
         } else if (command.startsWith(DELETE_EATEN_PRODUCT_COMMAND)) {
-            return deleteEatenProduct(chat, user, command);
+            return deleteEatenProduct(user, command);
         }
 
         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -167,8 +172,7 @@ public class Calories implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        LocalDateTime dateTime = LocalDateTime.now(clock.withZone(zoneIdOfUser));
+        LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
         userCaloriesService.addCalories(user, dateTime, product, grams);
 
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
@@ -195,7 +199,28 @@ public class Calories implements Command {
         return speechService.getRandomMessageByTag(BotSpeechTag.SAVED);
     }
 
-    private String deleteEatenProduct(Chat chat, User user, String command) {
+    private String deleteActivity(User user, String command) {
+        long activityId;
+        try {
+            activityId = Long.parseLong(command.substring(DELETE_ACTIVITY_COMMAND.length()));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        Activity activity = activityService.get(activityId);
+        if (activity == null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+        if (!activity.getUserCalories().getUser().getUserId().equals(user.getUserId())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
+        }
+
+        activityService.remove(activity);
+
+        return buildAddedCaloriesString(caloricMapper.toCalories(activity));
+    }
+
+    private String deleteEatenProduct(User user, String command) {
         long eatenProductId;
         try {
             eatenProductId = Long.parseLong(command.substring(DELETE_EATEN_PRODUCT_COMMAND.length()));
@@ -213,13 +238,18 @@ public class Calories implements Command {
 
         eatenProductService.remove(eatenProduct);
 
-        return getCurrentCalories(chat, user);
+        return buildSubtractCaloriesString(caloricMapper.toCalories(eatenProduct));
     }
 
     private String matchCommand(Chat chat, User user, String commandArgument) {
         Matcher gramsMatcher = gramsPattern.matcher(commandArgument);
         if (gramsMatcher.find()) {
             return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
+        }
+
+        Matcher matcher = negativeKcalPattern.matcher(commandArgument);
+        if (matcher.find()) {
+            return saveActivity(chat, user, commandArgument, matcher);
         }
 
         Product product = getAddingProduct(user, commandArgument);
@@ -263,8 +293,7 @@ public class Calories implements Command {
     }
 
     private String getCurrentCalories(Chat chat, User user) {
-        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        LocalDate date = LocalDate.now(clock.withZone(zoneIdOfUser));
+        LocalDate date = getUsersCurrentDateTime(chat, user).toLocalDate();
         return getCaloriesInfo(userCaloriesService.get(user, date), date);
     }
 
@@ -285,6 +314,18 @@ public class Calories implements Command {
         productService.save(product);
 
         return "${command.calories.saveproduct}:\n" + buildProductInfo(product);
+    }
+
+    private String saveActivity(Chat chat, User user, String text, Matcher matcher) {
+        double calories = parseValue(matcher.group(1));
+        String name = text.replace(matcher.group(), "").trim();
+
+        validateName(name);
+
+        LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
+        userCaloriesService.subtractCalories(user, dateTime, name, calories);
+
+        return "${command.calories.saveactivity}\n" + name + ": <b>-" + DF.format(calories) + "${command.calories.calsymbol}</b>";
     }
 
     private Product getAddingProduct(User user, String command) {
@@ -328,7 +369,7 @@ public class Calories implements Command {
             return null;
         }
 
-        validateProductName(name);
+        validateName(name);
 
         return new Product()
                 .setUser(user)
@@ -339,7 +380,7 @@ public class Calories implements Command {
                 .setCaloric(kcal);
     }
 
-    private void validateProductName(String name) {
+    private void validateName(String name) {
         if (name.length() > MAX_PRODUCT_NAME_LENGTH) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -367,8 +408,7 @@ public class Calories implements Command {
             return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProducts;
         }
 
-        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
-        LocalDateTime dateTime = LocalDateTime.now(clock.withZone(zoneIdOfUser));
+        LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
         userCaloriesService.addCalories(user, dateTime, product, grams);
 
         return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
@@ -410,39 +450,55 @@ public class Calories implements Command {
         return product.getName() + " " + getPFCInfo(product);
     }
 
-    private String buildAddedCaloriesString(org.telegram.bot.domain.Calories calories) {
-        return buildAddedCaloriesString(calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getCaloric());
+    private String buildSubtractCaloriesString(org.telegram.bot.domain.Calories calories) {
+        return buildChangedCaloriesString("${command.calories.deleted}", calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getCaloric());
     }
 
-    private String buildAddedCaloriesString(double proteins, double fats, double carbs, double caloric) {
-        String proteinsString = "";
-        if (proteins != 0D) {
-            proteinsString = "<b>" + DF.format(proteins) + "</b> ${command.calories.proteinssymbol}. ";
+    private String buildAddedCaloriesString(org.telegram.bot.domain.Calories calories) {
+        return buildChangedCaloriesString("${command.calories.added}", calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getCaloric());
+    }
+
+    private String buildChangedCaloriesString(String caption, double proteins, double fats, double carbs, double caloric) {
+        String PFC;
+        if (proteins == 0D && fats == 0D && carbs == 0D) {
+            PFC = "";
+        } else {
+            String proteinsString = "";
+            if (proteins != 0D) {
+                proteinsString = "<b>" + DF.format(proteins) + "</b> ${command.calories.proteinssymbol}. ";
+            }
+
+            String fatsString = "";
+            if (fats != 0D) {
+                fatsString = "<b>" + DF.format(fats) + "</b> ${command.calories.fatssymbol}. ";
+            }
+
+            String carbsString = "";
+            if (carbs != 0D) {
+                carbsString = "<b>" + DF.format(carbs) + "</b> ${command.calories.carbssymbol}. ";
+            }
+
+            PFC = "(" + proteinsString + fatsString + carbsString + ")";
         }
 
-        String fatsString = "";
-        if (fats != 0D) {
-            fatsString = "<b>" + DF.format(fats) + "</b> ${command.calories.fatssymbol}. ";
-        }
-
-        String carbsString = "";
-        if (carbs != 0D) {
-            carbsString = "<b>" + DF.format(carbs) + "</b> ${command.calories.carbssymbol}. ";
-        }
-
-        return "${command.calories.added}: <b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n("
-                + proteinsString + fatsString + carbsString + ")";
+        return caption + ": <b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n" + PFC;
     }
 
     private String getCaloriesInfo(UserCalories userCalories, LocalDate date) {
-        Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap = userCalories.getEatenProducts()
-                .stream()
-                .sorted(Comparator.comparing(EatenProduct::getDateTime))
-                .collect(Collectors.toMap(
-                        eatenProduct -> eatenProduct,
-                        caloricMapper::toCalories,
-                        (existing, replacement) -> existing,
-                        LinkedHashMap::new));
+        Set<EatenProduct> eatenProducts = userCalories.getEatenProducts();
+        Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap;
+        if (eatenProducts == null) {
+            eatenProductCaloriesMap = Map.of();
+        } else {
+            eatenProductCaloriesMap = userCalories.getEatenProducts()
+                    .stream()
+                    .sorted(Comparator.comparing(EatenProduct::getDateTime))
+                    .collect(Collectors.toMap(
+                            eatenProduct -> eatenProduct,
+                            caloricMapper::toCalories,
+                            (existing, replacement) -> existing,
+                            LinkedHashMap::new));
+        }
 
         org.telegram.bot.domain.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values()); // product parameters may change, so it is better to recalculate each time
 
@@ -478,6 +534,12 @@ public class Calories implements Command {
             }
         }
 
+        Map<LocalDateTime, String> eatenProductListInfo = getEatenProductListInfo(eatenProductCaloriesMap, userCaloriesTarget);
+        Map<LocalDateTime, String> activitiesInfo = getActivitiesInfo(userCalories.getActivities());
+        Map<LocalDateTime, String> dayDetails = new HashMap<>(eatenProductListInfo.size() + activitiesInfo.size());
+        dayDetails.putAll(eatenProductListInfo);
+        dayDetails.putAll(activitiesInfo);
+
         return "<b><u>${command.calories.caption} " + DateUtils.formatDate(date) + ":</u></b>\n"
                 + "${command.calories.eaten}: <b>" + DF.format(calories.getCaloric()) + "</b> ${command.calories.kcal}. "
                 + caloriesOfTargetInfo
@@ -488,15 +550,22 @@ public class Calories implements Command {
                 + fatsOfTargetInfo + "\n"
                 + "${command.calories.carbs}: <b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.gramssymbol}. "
                 + carbsOfTargetInfo + "\n\n"
-                + getEatenProductListInfo(eatenProductCaloriesMap, userCaloriesTarget);
+                + buildDetailsInfo(dayDetails);
     }
 
     private double getPercent(double dividend, double divisor) {
         return divisor / dividend * 100;
     }
 
-    private String getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
-        StringBuilder buf = new StringBuilder();
+    private String buildDetailsInfo(Map<LocalDateTime, String> details) {
+        return details.entrySet()
+                .stream()
+                .sorted(((Map.Entry.comparingByKey())))
+                .map(Map.Entry::getValue).collect(Collectors.joining("\n"));
+    }
+
+    private Map<LocalDateTime, String> getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
+        Map<LocalDateTime, String> result = new HashMap<>();
         StringBuilder mealBuf = new StringBuilder();
 
         LocalDateTime startMealDateTime = null;
@@ -509,8 +578,7 @@ public class Calories implements Command {
             if (startMealDateTime != null) {
                 Duration mealDuration = Duration.between(startMealDateTime, eatenProduct.getDateTime());
                 if (mealDuration.getSeconds() > MEAL_DURATION_SECONDS) {
-                    buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget));
-                    buf.append(BORDER).append(mealBuf).append("\n");
+                    result.put(stopMealDateTime, buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget) + BORDER + mealBuf);
 
                     mealBuf = new StringBuilder();
                     mealCalories = new org.telegram.bot.domain.Calories();
@@ -526,11 +594,22 @@ public class Calories implements Command {
         }
 
         if (startMealDateTime != null && stopMealDateTime != null) {
-            buf.append(buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget));
-            buf.append(BORDER).append(mealBuf);
+            result.put(stopMealDateTime, buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget) + BORDER + mealBuf);
         }
 
-        return buf.toString();
+        return result;
+    }
+
+    private Map<LocalDateTime, String> getActivitiesInfo(Set<Activity> activities) {
+        if (activities == null) {
+            return Map.of();
+        }
+
+        return activities
+                .stream()
+                .collect(Collectors.toMap(
+                        Activity::getDateTime,
+                        activity -> getActivityInfo(activity) + "\n"));
     }
 
     private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
@@ -595,6 +674,12 @@ public class Calories implements Command {
                 + " " + ROOT_COMMAND + DELETE_EATEN_PRODUCT_COMMAND + eatenProduct.getId();
     }
 
+    private String getActivityInfo(Activity activity) {
+        return "<u><b>" + DateUtils.formatShortTime(activity.getDateTime().toLocalTime()) + "</b></u>:\n"
+                + "<b>•</b> " + activity.getName() + " — <b>-" + DF.format(activity.getCalories()) + "</b> ${command.calories.kcal}.\n"
+                + " " + ROOT_COMMAND + DELETE_ACTIVITY_COMMAND + activity.getId();
+    }
+
     private String getPFCInfo(Product product) {
         return getPFCInfo(product.getCaloric(), product.getProteins(), product.getFats(), product.getCarbs());
     }
@@ -610,7 +695,12 @@ public class Calories implements Command {
                 + "${command.calories.carbssymbol}: <b>" + DF.format(carbs) + "</b>${command.calories.gramssymbol}.";
     }
 
-    private Double parseValue(String data) {
+    private LocalDateTime getUsersCurrentDateTime(Chat chat, User user) {
+        ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(chat, user);
+        return LocalDateTime.now(clock.withZone(zoneIdOfUser));
+    }
+
+    private double parseValue(String data) {
         data = data.replace(",", ".");
 
         try {
