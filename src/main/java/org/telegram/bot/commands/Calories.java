@@ -502,6 +502,9 @@ public class Calories implements Command {
 
         org.telegram.bot.domain.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values()); // product parameters may change, so it is better to recalculate each time
 
+        Set<Activity> activities = userCalories.getActivities();
+        double caloriesBurned = activities.stream().mapToDouble(Activity::getCalories).sum();
+
         String caloriesOfTargetInfo = "";
         String proteinsOfTargetInfo = "";
         String fatsOfTargetInfo = "";
@@ -511,7 +514,7 @@ public class Calories implements Command {
             Double caloriesTarget = userCaloriesTarget.getCalories();
             if (caloriesTarget != null) {
                 String leftItem;
-                double caloriesLeft = userCaloriesTarget.getCalories() - calories.getCaloric();
+                double caloriesLeft = userCaloriesTarget.getCalories() - calories.getCaloric() + caloriesBurned;
                 if (caloriesLeft < 0) {
                     leftItem = "${command.calories.noneleft}";
                     caloriesLeft = Math.abs(caloriesLeft);
@@ -534,13 +537,21 @@ public class Calories implements Command {
             }
         }
 
+        String caloriesOfActivitiesInfo;
+        if (activities.isEmpty()) {
+            caloriesOfActivitiesInfo = "";
+        } else {
+            caloriesOfActivitiesInfo = "${command.calories.burned}: <b>" + DF.format(caloriesBurned) + "</b> ${command.calories.kcal}.\n";
+        }
+
         Map<LocalDateTime, String> eatenProductListInfo = getEatenProductListInfo(eatenProductCaloriesMap, userCaloriesTarget);
-        Map<LocalDateTime, String> activitiesInfo = getActivitiesInfo(userCalories.getActivities());
+        Map<LocalDateTime, String> activitiesInfo = getActivitiesInfo(activities);
         Map<LocalDateTime, String> dayDetails = new HashMap<>(eatenProductListInfo.size() + activitiesInfo.size());
         dayDetails.putAll(eatenProductListInfo);
         dayDetails.putAll(activitiesInfo);
 
         return "<b><u>${command.calories.caption} " + DateUtils.formatDate(date) + ":</u></b>\n"
+                + caloriesOfActivitiesInfo
                 + "${command.calories.eaten}: <b>" + DF.format(calories.getCaloric()) + "</b> ${command.calories.kcal}. "
                 + caloriesOfTargetInfo
                 + "\n<b><u>${command.calories.caption2}:</u></b>\n"

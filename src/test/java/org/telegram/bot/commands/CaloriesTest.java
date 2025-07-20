@@ -157,8 +157,9 @@ class CaloriesTest {
     void parseWithoutArgumentsAllDataTest() {
         final String expectedResponseText = """
                 <b><u>${command.calories.caption} 01.01.2000:</u></b>
+                ${command.calories.burned}: <b>1500</b> ${command.calories.kcal}.
                 ${command.calories.eaten}: <b>1097</b> ${command.calories.kcal}. (54,9%)
-                ${command.calories.left}: <b>903</b> ${command.calories.kcal}
+                ${command.calories.left}: <b>2403</b> ${command.calories.kcal}
                 
                 <b><u>${command.calories.caption2}:</u></b>
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
