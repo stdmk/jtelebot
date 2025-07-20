@@ -735,6 +735,33 @@ class CaloriesTest {
     }
 
     @Test
+    void parseWithAddingCaloriesByProductFoundOneTest() {
+        final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
+        final String productName = "name";
+        final int grams = 50;
+        BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
+
+        setUpInternationalization();
+        Product product = getSomeProduct(1L, user);
+        when(productService.get(user, productName)).thenReturn(null);
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
+        setUpClock(chat, user);
+        when(productService.find(user, productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(List.of(product));
+
+        BotResponse response = calories.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userCaloriesService).addCalories(user, DATE_TIME, product, grams);
+    }
+
+    @Test
     void parseWithAddingCaloriesByProductNotFoundCommandTest() {
         final String expectedResponseText = """
                 ${command.calories.unknownproduct}: <b>name</b>

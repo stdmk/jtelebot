@@ -400,12 +400,17 @@ public class Calories implements Command {
 
         Product product = productService.get(user, name);
         if (product == null) {
-            int intGrams = (int) grams;
-            String foundProducts = productService.find(user, name, MAX_SIZE_OF_SEARCH_RESULTS)
-                    .stream()
-                    .map(foundProduct -> buildFoundToAddCaloriesProduct(foundProduct, intGrams))
-                    .collect(Collectors.joining("\n"));
-            return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProducts;
+            Collection<Product> foundProducts = productService.find(user, name, MAX_SIZE_OF_SEARCH_RESULTS);
+            if (foundProducts.size() == 1) {
+                product = foundProducts.iterator().next();
+            } else {
+                int intGrams = (int) grams;
+                String foundProductsInfo = foundProducts
+                        .stream()
+                        .map(foundProduct -> buildFoundToAddCaloriesProduct(foundProduct, intGrams))
+                        .collect(Collectors.joining("\n"));
+                return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo;
+            }
         }
 
         LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
