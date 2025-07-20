@@ -41,7 +41,6 @@ import java.net.URL;
 public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private final ApplicationContext context;
-    private final MessageAnalyzerExecutor messageAnalyzerExecutor;
     private final BotStats botStats;
     private final PropertiesConfig propertiesConfig;
     private final RequestMapper requestMapper;
@@ -100,7 +99,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
 
     public void processRequest(BotRequest botRequest, Chat chat, org.telegram.bot.domain.entities.User user, AccessLevel userAccessLevel, boolean analyze) {
         if (analyze) {
-            messageAnalyzerExecutor.analyzeMessageAsync(botRequest, userAccessLevel);
+            parser.analyzeMessageAsync(botRequest, userAccessLevel);
         }
 
         CommandProperties commandProperties = getCommandProperties(chat, user, botRequest.getMessage().getText());

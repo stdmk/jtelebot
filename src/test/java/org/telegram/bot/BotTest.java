@@ -39,8 +39,6 @@ class BotTest {
     @Mock
     private ApplicationContext context;
     @Mock
-    private MessageAnalyzerExecutor messageAnalyzerExecutor;
-    @Mock
     private BotStats botStats;
     @Mock
     private PropertiesConfig propertiesConfig;
@@ -77,7 +75,7 @@ class BotTest {
 
         verify(botStats).incrementReceivedMessages();
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -95,7 +93,7 @@ class BotTest {
 
         verify(botStats).incrementReceivedMessages();
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -112,7 +110,7 @@ class BotTest {
         verify(botStats).incrementReceivedMessages();
         verify(logService).log(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -131,7 +129,7 @@ class BotTest {
         verify(logService).log(message);
         verify(userStatsService).updateEntitiesInfo(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -154,7 +152,7 @@ class BotTest {
         verify(logService).log(message);
         verify(userStatsService).updateEntitiesInfo(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -176,7 +174,7 @@ class BotTest {
         verify(logService).log(message);
         verify(userStatsService).updateEntitiesInfo(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -203,7 +201,7 @@ class BotTest {
         verify(logService).log(message);
         verify(userStatsService).updateEntitiesInfo(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -231,7 +229,7 @@ class BotTest {
         verify(logService).log(message);
         verify(userStatsService).updateEntitiesInfo(message);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -263,7 +261,7 @@ class BotTest {
         verify(userStatsService).updateEntitiesInfo(message);
         verify(userStatsService).incrementUserStatsCommands(chat, user, commandProperties);
         verify(parser).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -290,7 +288,7 @@ class BotTest {
 
         verify(userStatsService).incrementUserStatsCommands(chat, user, commandProperties);
         verify(parser).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test
@@ -317,7 +315,7 @@ class BotTest {
 
         verify(userStatsService).incrementUserStatsCommands(chat, user, commandProperties);
         verify(parser).parseAsync(any(BotRequest.class), any(Command.class));
-        verify(messageAnalyzerExecutor).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
+        verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
 
     @Test

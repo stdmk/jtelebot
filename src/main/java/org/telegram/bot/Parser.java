@@ -1,17 +1,23 @@
 package org.telegram.bot;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.commands.Command;
+import org.telegram.bot.commands.MessageAnalyzer;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
+import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.telegram.response.ResponseMapper;
 import org.telegram.bot.services.BotStats;
+import org.telegram.bot.services.CommandPropertiesService;
+import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.executors.MethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
@@ -21,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class Parser {
@@ -28,13 +35,12 @@ public class Parser {
     private final ResponseMapper responseMapper;
     private final List<MethodExecutor> methodExecutors;
     private final BotStats botStats;
-    private final Map<String, MethodExecutor> methodExecutorMap = new ConcurrentHashMap<>();
+    @Lazy
+    private final List<MessageAnalyzer> messageAnalyzerList;
+    private final CommandPropertiesService commandPropertiesService;
+    private final UserService userService;
 
-    public Parser(ResponseMapper responseMapper, @Lazy List<MethodExecutor> methodExecutors, BotStats botStats) {
-        this.responseMapper = responseMapper;
-        this.methodExecutors = methodExecutors;
-        this.botStats = botStats;
-    }
+    private final Map<String, MethodExecutor> methodExecutorMap = new ConcurrentHashMap<>();
 
     @Async
     public void parseAsync(BotRequest botRequest, Command command) {
@@ -56,6 +62,31 @@ public class Parser {
 
             botStats.incrementCommandsProcessed();
         }
+    }
+
+
+    @Async
+    public void analyzeMessageAsync(BotRequest botRequest, AccessLevel userAccessLevel) {
+        messageAnalyzerList.forEach(messageAnalyzer -> {
+            CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
+            if (analyzerCommandProperties == null
+                    || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
+
+                List<BotResponse> botResponses = new ArrayList<>(1);
+                try {
+                    botResponses = messageAnalyzer.analyze(botRequest);
+                } catch (Exception e) {
+                    BotResponse botResponse = handleException(botRequest, e);
+                    if (botResponse != null) {
+                        botResponses.add(botResponse);
+                    }
+                }
+
+                if (botResponses != null && !botResponses.isEmpty()) {
+                    this.executeAsync(botRequest, botResponses);
+                }
+            }
+        });
     }
 
     private TextResponse handleException(BotRequest botRequest, Throwable e) {
