@@ -524,7 +524,7 @@ class CaloriesTest {
     @Test
     void parseWithAddCaloriesByProductIdCommandAsArgumentTest() {
         final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
-                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )productName1";
         final long productId = 1L;
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories_add_" + productId + "_" + grams);
@@ -737,7 +737,7 @@ class CaloriesTest {
     @Test
     void parseWithAddingCaloriesByProductFoundOneTest() {
         final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
-                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )productName1";
         final String productName = "name";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");
@@ -797,7 +797,7 @@ class CaloriesTest {
     @Test
     void parseWithAddingCaloriesByProductCommandTest() {
         final String expectedResponseText = "${command.calories.added}: <b>300</b> ${command.calories.kcal}.\n" +
-                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )";
+                "(<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )productName1";
         final String productName = "name";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " " + grams + "g");

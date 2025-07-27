@@ -175,7 +175,7 @@ public class Calories implements Command {
         LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
         userCaloriesService.addCalories(user, dateTime, product, grams);
 
-        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
+        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + product.getName();
     }
 
     private String deleteProduct(User user, String command) {
@@ -416,7 +416,7 @@ public class Calories implements Command {
         LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
         userCaloriesService.addCalories(user, dateTime, product, grams);
 
-        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams));
+        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + product.getName();
     }
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {
