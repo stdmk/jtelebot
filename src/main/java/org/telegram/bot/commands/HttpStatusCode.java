@@ -30,6 +30,10 @@ public class HttpStatusCode implements Command {
 
         if (message.hasCommandArgument()) {
             String commandArgument = message.getCommandArgument();
+            if (commandArgument.startsWith("//")) {
+                return returnResponse();
+            }
+
             if (!TextUtils.isThatPositiveInteger(commandArgument)) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }

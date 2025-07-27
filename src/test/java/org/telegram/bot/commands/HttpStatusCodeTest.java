@@ -42,6 +42,13 @@ class HttpStatusCodeTest {
     }
 
     @Test
+    void parseWithUrlArgumentTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("http://example.com");
+        List<BotResponse> botResponses = httpStatusCode.parse(request);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
     void parseWithWrongArgumentTest() {
         final String expectedErrorText = "error";
         BotRequest request = TestUtils.getRequestFromGroup("http test");
