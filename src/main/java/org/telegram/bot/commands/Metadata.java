@@ -169,7 +169,7 @@ public class Metadata implements Command {
     }
 
     private String formatCoordinateForCommand(Double coordinate) {
-        return String.format("%.4f", coordinate).replace("\\.", "_").replace(",", "_");
+        return String.format("%.4f", coordinate).replace(".", "_").replace(",", "_");
     }
 
 }
