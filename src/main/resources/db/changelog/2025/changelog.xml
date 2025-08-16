@@ -30,4 +30,5 @@
     <include file="db/changelog/2025/20250613120400_added_entity_UserCaloriesTarget.xml"/>
     <include file="db/changelog/2025/20250712075700_added_index_for_product_name.xml"/>
     <include file="db/changelog/2025/20250719073100_added_entity_Activity.xml"/>
+    <include file="db/changelog/2025/20250816090100_update_Product_add_column_deleted.xml"/>
 </databaseChangeLog>

@@ -461,39 +461,6 @@ class CaloriesTest {
         assertEquals(product.getCaloric(), savedProduct.getCaloric());
     }
 
-    @Test
-    void parseWithAddProductCommandAsArgumentUpdateProductTest() {
-        final String expectedResponseText = """
-                ${command.calories.updateproduct}:
-                productName2 <b>80</b> ${command.calories.kcal}.
-                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.""";
-        final long productId = 1L;
-        BotRequest request = TestUtils.getRequestFromGroup("/calories_add_product_" + productId);
-        User user = request.getMessage().getUser();
-
-        Product product = getSomeProduct(productId, user);
-        when(productService.get(productId)).thenReturn(product);
-        Product updatingProduct = getSomeProduct(2L, user);
-        when(productService.get(user, product.getName())).thenReturn(updatingProduct);
-
-        BotResponse response = calories.parse(request).get(0);
-
-        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
-        assertEquals(expectedResponseText, textResponse.getText());
-
-        ArgumentCaptor<Product> productArgumentCaptor = ArgumentCaptor.forClass(Product.class);
-        verify(productService).save(productArgumentCaptor.capture());
-
-        Product savedProduct = productArgumentCaptor.getValue();
-        assertEquals(updatingProduct.getId(), savedProduct.getId());
-        assertEquals(updatingProduct.getName(), savedProduct.getName());
-        assertEquals(updatingProduct.getUser(), savedProduct.getUser());
-        assertEquals(product.getProteins(), savedProduct.getProteins());
-        assertEquals(product.getFats(), savedProduct.getFats());
-        assertEquals(product.getCarbs(), savedProduct.getCarbs());
-        assertEquals(product.getCaloric(), savedProduct.getCaloric());
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {"abv", "a_a", "1_a"})
     void parseWithAddCaloriesByProductIdCommandAsArgumentCurreptedCommandTest(String argument) {

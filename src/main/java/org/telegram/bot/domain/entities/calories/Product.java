@@ -42,4 +42,7 @@ public class Product {
     @Column(name = "caloric")
     private double caloric;
 
+    @Column(name = "deleted")
+    private Boolean deleted = false;
+
 }

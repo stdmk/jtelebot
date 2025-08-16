@@ -31,12 +31,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product get(User user, String name) {
-        return productRepository.findByUserAndNameIgnoreCase(user, name);
+        return productRepository.findByUserAndNameIgnoreCaseAndDeleted(user, name, false);
     }
 
     @Override
     public Page<Product> find(String name, int size) {
-        return productRepository.findAllByNameContainingIgnoreCase(name, PageRequest.of(0, size));
+        return productRepository.findAllByNameContainingIgnoreCaseAndDeleted(name, false, PageRequest.of(0, size));
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
                 break;
             }
 
-            List<Product> foundProducts = productRepository.findAllByUserAndNameContainingIgnoreCase(user, word, PageRequest.of(0, size));
+            List<Product> foundProducts = productRepository.findAllByUserAndNameContainingIgnoreCaseAndDeleted(user, word, false, PageRequest.of(0, size));
 
             for (Product foundProduct : foundProducts) {
                 if (results.size() >= size) {
@@ -66,6 +66,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void remove(Product product) {
-        productRepository.delete(product);
+        productRepository.save(product.setDeleted(true));
     }
 }

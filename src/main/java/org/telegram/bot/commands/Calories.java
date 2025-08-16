@@ -137,7 +137,7 @@ public class Calories implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        return saveProduct(user, copyProduct(product, user));
+        return saveProduct(copyProduct(product, user));
     }
 
     private Product copyProduct(Product product, User user) {
@@ -254,7 +254,7 @@ public class Calories implements Command {
 
         Product product = getAddingProduct(user, commandArgument);
         if (product != null) {
-            return saveProduct(user, product);
+            return saveProduct(product);
         }
 
         LocalDate date = searchForDate(commandArgument);
@@ -297,22 +297,8 @@ public class Calories implements Command {
         return getCaloriesInfo(userCaloriesService.get(user, date), date);
     }
 
-    private String saveProduct(User user, Product product) {
-        Product foundProduct = productService.get(user, product.getName());
-        if (foundProduct != null) {
-            foundProduct
-                    .setProteins(product.getProteins())
-                    .setFats(product.getFats())
-                    .setCarbs(product.getCarbs())
-                    .setCaloric(product.getCaloric());
-
-            productService.save(foundProduct);
-
-            return "${command.calories.updateproduct}:\n" + buildProductInfo(foundProduct);
-        }
-
+    private String saveProduct(Product product) {
         productService.save(product);
-
         return "${command.calories.saveproduct}:\n" + buildProductInfo(product);
     }
 
