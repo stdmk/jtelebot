@@ -39,9 +39,9 @@ class ProductServiceImplTest {
         String name = word1 + " " + word2 + " " + word3;
         User user = TestUtils.getUser();
 
-        when(productRepository.findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word1), false, any(Pageable.class)))
+        when(productRepository.findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word1), eq(false), any(Pageable.class)))
                 .thenReturn(getProducts(10, user));
-        when(productRepository.findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word2), false, any(Pageable.class)))
+        when(productRepository.findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word2), eq(false), any(Pageable.class)))
                 .thenReturn(getProducts(50, user));
 
         Collection<Product> products = productService.find(user, name, count);
@@ -49,9 +49,9 @@ class ProductServiceImplTest {
         assertEquals(count, products.size());
 
         ArgumentCaptor<Pageable> argumentCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(productRepository).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word1), false, argumentCaptor.capture());
-        verify(productRepository).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word2), false, argumentCaptor.capture());
-        verify(productRepository, never()).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word3), false, any(Pageable.class));
+        verify(productRepository).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word1), eq(false), argumentCaptor.capture());
+        verify(productRepository).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word2), eq(false), argumentCaptor.capture());
+        verify(productRepository, never()).findAllByUserAndNameContainingIgnoreCaseAndDeleted(eq(user), eq(word3), eq(false), any(Pageable.class));
     }
 
     private List<Product> getProducts(long count, User user) {
