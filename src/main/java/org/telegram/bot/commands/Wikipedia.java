@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -43,6 +45,10 @@ public class Wikipedia implements Command {
     private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
             .setFormattingStyle(FormattingStyle.HTML)
             .setWebPagePreview(false);
+    private static final HttpHeaders DEFAULT_HEADERS = new HttpHeaders();
+    static {
+        DEFAULT_HEADERS.set(HttpHeaders.USER_AGENT, "jtelebot/1.0 (https://github.com/stdmk/jtelebot)");
+    }
 
     private final Bot bot;
     private final WikiService wikiService;
@@ -156,7 +162,9 @@ public class Wikipedia implements Command {
      */
     private List<String> searchPageTitles(String searchText, String lang) {
         String url = String.format(WIKI_SEARCH_URL, lang) + searchText;
-        ResponseEntity<Object[]> response = botRestTemplate.getForEntity(url, Object[].class);
+        HttpEntity<String> request = new HttpEntity<>(DEFAULT_HEADERS);
+
+        ResponseEntity<Object[]> response = botRestTemplate.exchange(url, HttpMethod.GET, request, Object[].class);
         Object[] responseBody = response.getBody();
 
         if (responseBody != null && responseBody[1] instanceof List) {
@@ -177,10 +185,12 @@ public class Wikipedia implements Command {
      * @return Wiki entity.
      */
     private Wiki getWiki(String title, String lang) {
+        HttpEntity<String> request = new HttpEntity<>(DEFAULT_HEADERS);
+
         ResponseEntity<WikiData> response;
         String url = String.format(WIKI_API_URL, lang) + title;
         try {
-            response = botRestTemplate.getForEntity(url, WikiData.class);
+            response = botRestTemplate.exchange(url, HttpMethod.GET, request, WikiData.class);
         } catch (RestClientException e) {
             return null;
         }
