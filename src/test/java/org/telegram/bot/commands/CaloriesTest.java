@@ -766,6 +766,53 @@ class CaloriesTest {
     }
 
     @Test
+    void parseWithAddingCaloriesByMultipleProductsCommandTest() {
+        final String expectedResponseText = """
+                ${command.calories.added}: <b>300</b> ${command.calories.kcal}.
+                (<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. )
+                productName1
+                -----------------------------
+                ${command.calories.unknownproduct}: <b>name2</b>
+                
+                productName1 <b>80</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>10</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>20</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>30</b>${command.calories.gramssymbol}.
+                 /calories_add_1_50 <b>+40</b> ${command.calories.kcal}
+                
+                productName2 <b>160</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>20</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>40</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>60</b>${command.calories.gramssymbol}.
+                 /calories_add_2_50 <b>+80</b> ${command.calories.kcal}
+                
+                productName3 <b>240</b> ${command.calories.kcal}.
+                ${command.calories.proteinssymbol}: <b>30</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>60</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>90</b>${command.calories.gramssymbol}.
+                 /calories_add_3_50 <b>+120</b> ${command.calories.kcal}
+                
+                -----------------------------
+                """;
+        final String productName1 = "name1";
+        final String productName2 = "name2";
+        final int grams = 50;
+        BotRequest request = TestUtils.getRequestFromGroup("/calories "
+                + productName1 + " " + grams + "g\n"
+                + productName2 + " " + grams + "g");
+        User user = request.getMessage().getUser();
+
+        setUpInternationalization();
+        setUpClock(request.getMessage().getChat(), user);
+        Product product = getSomeProduct(1L, user);
+        when(productService.get(user, productName1)).thenReturn(product);
+        when(productService.find(user, productName2, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
+
+        BotResponse response = calories.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userCaloriesService).addCalories(user, DATE_TIME, product, grams);
+    }
+
+    @Test
     void parseWithAddingCaloriesByProductCommandTest() {
         final String expectedResponseText = """
                 ${command.calories.added}: <b>300</b> ${command.calories.kcal}.

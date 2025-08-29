@@ -242,6 +242,28 @@ public class Calories implements Command {
     }
 
     private String matchCommand(Chat chat, User user, String commandArgument) {
+        String[] commandList = getCommandList(commandArgument);
+        if (commandList.length > 1) {
+            StringBuilder buf = new StringBuilder();
+            for (String command : commandList) {
+                buf.append(getMatchedCommadResult(chat, user, command)).append("\n").append(BORDER);
+            }
+
+            return buf.toString();
+        }
+
+        return getMatchedCommadResult(chat, user, commandArgument);
+    }
+
+    private String[] getCommandList(String data) {
+        if (data.contains("\n") || data.contains("\r")) {
+            return data.split("\\r?\\n");
+        }
+
+        return new String[]{data};
+    }
+
+    private String getMatchedCommadResult(Chat chat, User user, String commandArgument) {
         Matcher gramsMatcher = gramsPattern.matcher(commandArgument);
         if (gramsMatcher.find()) {
             return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
