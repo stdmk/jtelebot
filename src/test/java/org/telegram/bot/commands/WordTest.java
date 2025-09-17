@@ -1,12 +1,12 @@
 package org.telegram.bot.commands;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -27,14 +27,16 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
+//@Disabled
 class WordTest {
+
+    private static final String EXPECTED_USER_AGENT = "jtelebot/1.0 (https://github.com/stdmk/jtelebot)";
 
     @Mock
     private Bot bot;
@@ -49,6 +51,9 @@ class WordTest {
 
     @Mock
     private ResponseEntity<Word.WiktionaryData> response;
+
+    @Captor
+    private ArgumentCaptor<HttpEntity<String>> requestCaptor;
 
     @InjectMocks
     private Word word;
@@ -70,11 +75,14 @@ class WordTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
-        when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("error"));
+        when(botRestTemplate.exchange(anyString(), eq(HttpMethod.GET), requestCaptor.capture(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
+                .thenThrow(new RestClientException("error"));
 
         assertThrows(BotException.class, () -> word.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+
+        assertHeaders(requestCaptor.getValue());
     }
 
     @Test
@@ -83,12 +91,14 @@ class WordTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
+        when(botRestTemplate.exchange(anyString(), eq(HttpMethod.GET), requestCaptor.capture(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> word.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+
+        assertHeaders(requestCaptor.getValue());
     }
 
     @Test
@@ -104,12 +114,14 @@ class WordTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(response.getBody()).thenReturn(wiktionaryData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
+        when(botRestTemplate.exchange(anyString(), eq(HttpMethod.GET), requestCaptor.capture(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> word.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+
+        assertHeaders(requestCaptor.getValue());
     }
 
     @Test
@@ -127,7 +139,7 @@ class WordTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
         when(response.getBody()).thenReturn(wiktionaryData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
+        when(botRestTemplate.exchange(anyString(), eq(HttpMethod.GET), requestCaptor.capture(), ArgumentMatchers.<Class<Word.WiktionaryData>>any()))
                 .thenReturn(response);
 
         List<BotResponse> methods = word.parse(request);
@@ -141,6 +153,16 @@ class WordTest {
         assertThat(expectedResponseText2).isEqualToNormalizingNewlines(textResponse.getText());
 
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
+
+        assertHeaders(requestCaptor.getValue());
+    }
+
+    private void assertHeaders(HttpEntity<String> httpRequest) {
+        HttpHeaders headers = httpRequest.getHeaders();
+        List<String> userAgents = headers.get(HttpHeaders.USER_AGENT);
+        assertNotNull(userAgents);
+        assertEquals(1, userAgents.size());
+        assertEquals(EXPECTED_USER_AGENT, userAgents.get(0));
     }
 
 }

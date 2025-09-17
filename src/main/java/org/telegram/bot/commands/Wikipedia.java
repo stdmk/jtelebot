@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -28,6 +27,7 @@ import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.WikiService;
 import org.telegram.bot.utils.TextUtils;
+import org.telegram.bot.utils.headers.WikiHeaders;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,10 +45,6 @@ public class Wikipedia implements Command {
     private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
             .setFormattingStyle(FormattingStyle.HTML)
             .setWebPagePreview(false);
-    private static final HttpHeaders DEFAULT_HEADERS = new HttpHeaders();
-    static {
-        DEFAULT_HEADERS.set(HttpHeaders.USER_AGENT, "jtelebot/1.0 (https://github.com/stdmk/jtelebot)");
-    }
 
     private final Bot bot;
     private final WikiService wikiService;
@@ -162,7 +158,7 @@ public class Wikipedia implements Command {
      */
     private List<String> searchPageTitles(String searchText, String lang) {
         String url = String.format(WIKI_SEARCH_URL, lang) + searchText;
-        HttpEntity<String> request = new HttpEntity<>(DEFAULT_HEADERS);
+        HttpEntity<String> request = new HttpEntity<>(WikiHeaders.getDefaultHeaders());
 
         ResponseEntity<Object[]> response = botRestTemplate.exchange(url, HttpMethod.GET, request, Object[].class);
         Object[] responseBody = response.getBody();
@@ -185,7 +181,7 @@ public class Wikipedia implements Command {
      * @return Wiki entity.
      */
     private Wiki getWiki(String title, String lang) {
-        HttpEntity<String> request = new HttpEntity<>(DEFAULT_HEADERS);
+        HttpEntity<String> request = new HttpEntity<>(WikiHeaders.getDefaultHeaders());
 
         ResponseEntity<WikiData> response;
         String url = String.format(WIKI_API_URL, lang) + title;

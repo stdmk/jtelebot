@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -22,6 +24,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
+import org.telegram.bot.utils.headers.WikiHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +41,9 @@ public class Word implements Command {
     private static final String API_URL = "https://%s.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&titles=";
     private static final String SITE_URL = "https://ru.wiktionary.org/wiki/";
     private static final Pattern TITLE_PATTERN = Pattern.compile("=+ ([\\w ]+) =+", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setWebPagePreview(false)
+            .setFormattingStyle(FormattingStyle.HTML);
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
@@ -62,14 +68,16 @@ public class Word implements Command {
             responseText.add(TextUtils.buildHtmlLink(SITE_URL + commandArgument, "${command.word.gotosite}"));
         }
 
-        return mapToTextResponseList(responseText, message, new ResponseSettings().setFormattingStyle(FormattingStyle.HTML));
+        return mapToTextResponseList(responseText, message, DEFAULT_RESPONSE_SETTINGS);
     }
 
     private List<String> getData(String title, String lang) {
-        ResponseEntity<WiktionaryData> response;
         String url = String.format(API_URL, lang) + title;
+        HttpEntity<String> request = new HttpEntity<>(WikiHeaders.getDefaultHeaders());
+
+        ResponseEntity<WiktionaryData> response;
         try {
-            response = botRestTemplate.getForEntity(url, WiktionaryData.class);
+            response = botRestTemplate.exchange(url, HttpMethod.GET, request, WiktionaryData.class);
         } catch (RestClientException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
