@@ -406,25 +406,25 @@ public class Calories implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        Product product = productService.get(user, name);
-        if (product == null) {
-            Collection<Product> foundProducts = productService.find(user, name, MAX_SIZE_OF_SEARCH_RESULTS);
-            if (foundProducts.size() == 1) {
-                product = foundProducts.iterator().next();
-            } else {
-                int intGrams = (int) grams;
-                String foundProductsInfo = foundProducts
-                        .stream()
-                        .map(foundProduct -> buildFoundToAddCaloriesProduct(foundProduct, intGrams))
-                        .collect(Collectors.joining("\n"));
-                return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo;
-            }
+        Collection<Product> products = productService.get(user, name);
+        if (products.isEmpty()) {
+            products = productService.find(user, name, MAX_SIZE_OF_SEARCH_RESULTS);
         }
 
-        LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
-        userCaloriesService.addCalories(user, dateTime, product, grams);
+        if (products.size() == 1) {
+            Product product = products.iterator().next();
+            LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
+            userCaloriesService.addCalories(user, dateTime, product, grams);
 
-        return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n" + product.getName();
+            return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n" + product.getName();
+        } else {
+            int intGrams = (int) grams;
+            String foundProductsInfo = products
+                    .stream()
+                    .map(product -> buildFoundToAddCaloriesProduct(product, intGrams))
+                    .collect(Collectors.joining("\n"));
+            return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo;
+        }
     }
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {

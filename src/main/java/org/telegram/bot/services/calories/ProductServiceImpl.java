@@ -30,8 +30,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product get(User user, String name) {
-        return productRepository.findByUserAndNameIgnoreCaseAndDeleted(user, name, false);
+    public List<Product> get(User user, String name) {
+        return productRepository.findAllByUserAndNameIgnoreCaseAndDeleted(user, name, false);
     }
 
     @Override

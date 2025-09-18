@@ -718,7 +718,7 @@ class CaloriesTest {
 
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
-        when(productService.get(user, productName)).thenReturn(null);
+        when(productService.get(user, productName)).thenReturn(List.of());
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
@@ -799,7 +799,7 @@ class CaloriesTest {
         setUpInternationalization();
         setUpClock(request.getMessage().getChat(), user);
         Product product = getSomeProduct(1L, user);
-        when(productService.get(user, productName1)).thenReturn(product);
+        when(productService.get(user, productName1)).thenReturn(List.of(product));
         when(productService.find(user, productName2, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
@@ -827,7 +827,7 @@ class CaloriesTest {
 
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
-        when(productService.get(user, productName)).thenReturn(product);
+        when(productService.get(user, productName)).thenReturn(List.of(product));
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);

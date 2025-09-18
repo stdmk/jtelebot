@@ -9,7 +9,7 @@ import org.telegram.bot.domain.entities.calories.Product;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Product findByUserAndNameIgnoreCaseAndDeleted(User user, String name, boolean deleted);
+    List<Product> findAllByUserAndNameIgnoreCaseAndDeleted(User user, String name, boolean deleted);
     Page<Product> findAllByNameContainingIgnoreCaseAndDeleted(String name, boolean deleted, Pageable pageable);
     List<Product> findAllByUserAndNameContainingIgnoreCaseAndDeleted(User user, String name, boolean deleted, Pageable pageable);
 }
