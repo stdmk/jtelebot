@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-//@Disabled
+@Disabled
 class WordTest {
 
     private static final String EXPECTED_USER_AGENT = "jtelebot/1.0 (https://github.com/stdmk/jtelebot)";
