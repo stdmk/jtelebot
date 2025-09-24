@@ -81,6 +81,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>0</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.fats}: <b>0</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.carbs}: <b>0</b> ${command.calories.gramssymbol}.\s
+                ${command.calories.weight}: <b>0</b> ${command.calories.gramssymbol}.\s
                 
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
@@ -94,7 +95,7 @@ class CaloriesTest {
                 .setDate(DATE)
                 .setEatenProducts(new HashSet<>());
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 0);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 0, 0);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).get(0);
@@ -112,11 +113,13 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}.\s
+                ${command.calories.weight}: <b>523</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>23:30 — 23:50</b></u>: <b>560 ${command.calories.kcal}.</b>\s
                 ${command.calories.proteins}: <b>70</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}.\s
+                ${command.calories.weight}: <b>300</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>45</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>90</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>135</b>${command.calories.gramssymbol}.
@@ -140,7 +143,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(getSomeEatenProducts(userCalories));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -165,6 +168,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.weight}: <b>523</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>22:20</b></u>:
                 <b>•</b> activity_name10 — <b>-1000</b> ${command.calories.kcal}.
@@ -174,6 +178,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>2230</b> ${command.calories.gramssymbol}. (2230%)\s
                 ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6757,6%)\s
                 ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2432,7%)\s
+                ${command.calories.weight}: <b>2100</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName12 (600 ${command.calories.gramssymbol}.) — <b>5760</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>720</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>1440</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>2160</b>${command.calories.gramssymbol}.
@@ -196,6 +201,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
                 ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (454,5%)\s
                 ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (163,6%)\s
+                ${command.calories.weight}: <b>500</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName4 (200 ${command.calories.gramssymbol}.) — <b>640</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>80</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>160</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>240</b>${command.calories.gramssymbol}.
@@ -223,7 +229,7 @@ class CaloriesTest {
         userCalories.setActivities(Set.of(getSomeActivity(5L, userCalories), getSomeActivity(10L, userCalories)));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -251,11 +257,13 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.weight}: <b>666</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>23:30 — 23:50</b></u>: <b>560 ${command.calories.kcal}.</b> (28%)\s
                 ${command.calories.proteins}: <b>70</b> ${command.calories.gramssymbol}. (70%)\s
                 ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}. (212,1%)\s
                 ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}. (76,4%)\s
+                ${command.calories.weight}: <b>300</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName3 (150 ${command.calories.gramssymbol}.) — <b>360</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>45</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>90</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>135</b>${command.calories.gramssymbol}.
@@ -280,7 +288,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(someEatenProducts);
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 2100);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 2100, 666);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -310,11 +318,13 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
                 ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.weight}: <b>523</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>22:00 — 22:30</b></u>: <b>17840 ${command.calories.kcal}.</b> (892%)\s
                 ${command.calories.proteins}: <b>2230</b> ${command.calories.gramssymbol}. (2230%)\s
                 ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6757,6%)\s
                 ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2432,7%)\s
+                ${command.calories.weight}: <b>2100</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName12 (600 ${command.calories.gramssymbol}.) — <b>5760</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>720</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>1440</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>2160</b>${command.calories.gramssymbol}.
@@ -333,6 +343,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>870</b> ${command.calories.gramssymbol}. (870%)\s
                 ${command.calories.fats}: <b>1740</b> ${command.calories.gramssymbol}. (2636,4%)\s
                 ${command.calories.carbs}: <b>2610</b> ${command.calories.gramssymbol}. (949,1%)\s
+                ${command.calories.weight}: <b>1300</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName8 (400 ${command.calories.gramssymbol}.) — <b>2560</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>320</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>640</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>960</b>${command.calories.gramssymbol}.
@@ -351,6 +362,7 @@ class CaloriesTest {
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
                 ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (454,5%)\s
                 ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (163,6%)\s
+                ${command.calories.weight}: <b>500</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
                 <b>•</b> productName4 (200 ${command.calories.gramssymbol}.) — <b>640</b> ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: <b>80</b> ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: <b>160</b>${command.calories.gramssymbol}. ${command.calories.carbssymbol}: <b>240</b>${command.calories.gramssymbol}.
@@ -378,7 +390,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(LongStream.range(1, 13).mapToObj(id -> getSomeEatenProduct(userCalories, id)).collect(Collectors.toSet()));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, expectedDate)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -503,7 +515,7 @@ class CaloriesTest {
 
         Product product = getSomeProduct(productId, user);
         when(productService.get(productId)).thenReturn(product);
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
@@ -619,7 +631,7 @@ class CaloriesTest {
 
         EatenProduct eatenProduct = getSomeEatenProduct(new UserCalories().setUser(request.getMessage().getUser()), eatenProductId);
         when(eatenProductService.get(eatenProductId)).thenReturn(eatenProduct);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(3, 4, 5, 68);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(3, 4, 5, 68, 50);
         when(caloricMapper.toCalories(eatenProduct)).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).get(0);
@@ -677,7 +689,7 @@ class CaloriesTest {
 
         Activity activity = getSomeActivity(activityId, new UserCalories().setUser(request.getMessage().getUser()));
         when(activityService.get(activityId)).thenReturn(activity);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 300);
+        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 300, 0);
         when(caloricMapper.toCalories(activity)).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).get(0);
@@ -719,7 +731,7 @@ class CaloriesTest {
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName)).thenReturn(List.of());
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
         when(productService.find(user, productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(List.of(product));
@@ -801,7 +813,7 @@ class CaloriesTest {
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName1)).thenReturn(List.of(product));
         when(productService.find(user, productName2, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
 
         BotResponse response = calories.parse(request).get(0);
@@ -828,7 +840,7 @@ class CaloriesTest {
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName)).thenReturn(List.of(product));
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300);
+        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
@@ -1040,7 +1052,7 @@ class CaloriesTest {
         double carbs = product.getCarbs() / 100 * grams;
         double caloric = product.getCaloric() / 100 * grams;
 
-        return new org.telegram.bot.domain.Calories(proteins, fats, carbs, caloric);
+        return new org.telegram.bot.domain.Calories(proteins, fats, carbs, caloric, grams);
     }
 
 }

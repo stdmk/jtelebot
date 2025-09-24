@@ -19,11 +19,12 @@ class CaloricMapperTest {
         final double expectedFats = 9;
         final double expectedCarbs = 12;
         final double expectedCaloric = 15;
+        final double expectedGrams = 60;
 
         List<Calories> caloriesList = List.of(
-                new Calories(1, 2, 3, 4),
-                new Calories(2, 3, 4, 5),
-                new Calories(3, 4, 5, 6));
+                new Calories(1, 2, 3, 4, 10),
+                new Calories(2, 3, 4, 5, 20),
+                new Calories(3, 4, 5, 6, 30));
 
         Calories calories = caloricMapper.sum(caloriesList);
 
@@ -31,6 +32,7 @@ class CaloricMapperTest {
         assertEquals(expectedFats, calories.getFats());
         assertEquals(expectedCarbs, calories.getCarbs());
         assertEquals(expectedCaloric, calories.getCaloric());
+        assertEquals(expectedGrams, calories.getGrams());
     }
 
     @Test
@@ -39,9 +41,10 @@ class CaloricMapperTest {
         final double expectedFats = 20;
         final double expectedCarbs = 30;
         final double expectedCaloric = 340;
+        final double expectedGrams = 1000;
 
         EatenProduct eatenProduct = new EatenProduct()
-                .setGrams(1000D)
+                .setGrams(expectedGrams)
                 .setProduct(new Product()
                         .setProteins(1D)
                         .setFats(2D)
@@ -54,6 +57,7 @@ class CaloricMapperTest {
         assertEquals(expectedFats, calories.getFats());
         assertEquals(expectedCarbs, calories.getCarbs());
         assertEquals(expectedCaloric, calories.getCaloric());
+        assertEquals(expectedGrams, calories.getGrams());
     }
 
     @Test
@@ -62,9 +66,10 @@ class CaloricMapperTest {
         final double expectedFats = 0;
         final double expectedCarbs = 0;
         final double expectedCaloric = 0;
+        final double expectedGrams = 0;
 
         EatenProduct eatenProduct = new EatenProduct()
-                .setGrams(1000D)
+                .setGrams(expectedGrams)
                 .setProduct(new Product()
                         .setProteins(0D)
                         .setFats(0D)
@@ -77,6 +82,7 @@ class CaloricMapperTest {
         assertEquals(expectedFats, calories.getFats());
         assertEquals(expectedCarbs, calories.getCarbs());
         assertEquals(expectedCaloric, calories.getCaloric());
+        assertEquals(expectedGrams, calories.getGrams());
     }
 
     @Test

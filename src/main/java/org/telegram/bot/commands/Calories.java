@@ -573,7 +573,9 @@ public class Calories implements Command {
                 + "${command.calories.fats}: <b>" + DF.format(calories.getFats()) + "</b> ${command.calories.gramssymbol}. "
                 + fatsOfTargetInfo + "\n"
                 + "${command.calories.carbs}: <b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.gramssymbol}. "
-                + carbsOfTargetInfo + "\n\n"
+                + carbsOfTargetInfo + "\n"
+                + "${command.calories.weight}: <b>" + DF.format(calories.getGrams()) + "</b> ${command.calories.gramssymbol}. "
+                + "\n\n"
                 + buildDetailsInfo(dayDetails);
     }
 
@@ -675,7 +677,8 @@ public class Calories implements Command {
 
         return getMealCaloricParamInfo(mealCalories.getProteins(), targetProteins, "${command.calories.proteins}")
                 + getMealCaloricParamInfo(mealCalories.getFats(), targetFats, "${command.calories.fats}")
-                + getMealCaloricParamInfo(mealCalories.getCarbs(), targetCarbs, "${command.calories.carbs}");
+                + getMealCaloricParamInfo(mealCalories.getCarbs(), targetCarbs, "${command.calories.carbs}")
+                + getMealCaloricParamInfo(mealCalories.getGrams(), null, "${command.calories.weight}");
     }
 
     private String getMealCaloricParamInfo(double mealParam, Double targetParam, String caption) {

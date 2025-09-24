@@ -12,11 +12,13 @@ public class Calories {
     private double fats;
     private double carbs;
     private double caloric;
+    private double grams;
 
     public void addCalories(Calories calories) {
         this.proteins = this.proteins + calories.getProteins();
         this.fats = this.fats + calories.getFats();
         this.carbs = this.carbs + calories.getCarbs();
         this.caloric = this.caloric + calories.getCaloric();
+        this.grams = this.grams + calories.getGrams();
     }
 }
