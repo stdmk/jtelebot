@@ -21,6 +21,7 @@ public enum BotSpeechTag {
     SETTING_REQUIRED("settingrequired"),
     DUPLICATE_ENTRY("duplicateentry"),
     TOO_BIG_FILE("toobigfile"),
+    TOO_BIG_REQUEST("toobigrequest")
     ;
 
     private final String value;

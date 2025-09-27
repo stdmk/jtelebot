@@ -36,6 +36,7 @@ public class PropertiesConfig {
     @Getter(AccessLevel.NONE)
     private Integer russianPostRequestsLimit;
     private Integer chatGPTContextSize = 16;
+    private Integer chatGPTTokensSize = 0;
     private List<String> chatGPTModelsAvailable;
     private String defaultLanguage = "en";
     private String xmlTvFileUrl;

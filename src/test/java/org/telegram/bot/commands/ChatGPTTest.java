@@ -17,7 +17,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
-import org.telegram.bot.TestUtils;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.ChatGPTMessage;
@@ -40,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,32 +147,6 @@ class ChatGPTTest {
     }
 
     @Test
-    void requestWithHttpClientErrorExceptionTest() throws JsonProcessingException {
-        final String errorMessage = "error";
-        final String expectedErrorText = "${command.chatgpt.apiresponse}: " + errorMessage;
-        ChatGPT.ErrorResponse errorResponse = new ChatGPT.ErrorResponse()
-                .setError(new ChatGPT.Error()
-                        .setCode("")
-                        .setType("")
-                        .setParam("")
-                        .setMessage(errorMessage));
-        BotRequest request = getRequestFromGroup("chatgpt say hello");
-
-        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
-        when(propertiesConfig.getChatGPTContextSize()).thenReturn(4);
-        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(new ArrayList<>());
-        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(objectMapper.readValue("", ChatGPT.ErrorResponse.class)).thenReturn(errorResponse);
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
-
-        BotException botException = assertThrows(BotException.class, () -> chatGPT.parse(request));
-        verify(bot).sendTyping(request.getMessage().getChatId());
-        assertEquals(expectedErrorText, botException.getMessage());
-    }
-
-    @Test
     void requestWithHttpClientErrorExceptionWithCorruptedErrorTest() throws JsonProcessingException {
         BotRequest request = getRequestFromGroup("chatgpt say hello");
 
@@ -189,33 +161,6 @@ class ChatGPTTest {
         assertThrows(BotException.class, () -> chatGPT.parse(request));
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
-    }
-
-    @Test
-    void requestWithHttpClientErrorExceptionAndRepeatedRequestTest() throws JsonProcessingException {
-        final String errorMessage = "error";
-        final String expectedErrorText = "${command.chatgpt.apiresponse}: " + errorMessage;
-        ChatGPT.ErrorResponse errorResponse = new ChatGPT.ErrorResponse()
-                .setError(new ChatGPT.Error()
-                        .setCode("")
-                        .setType("")
-                        .setParam("")
-                        .setMessage(errorMessage));
-        BotRequest request = getRequestFromGroup("chatgpt say hello");
-
-        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
-        when(propertiesConfig.getChatGPTContextSize()).thenReturn(4);
-        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(chatGPTMessageService.getMessages(any(Chat.class))).thenReturn(getSomeMessageHistory(4));
-        when(chatGPTMessageService.update(anyList(), anyInt())).thenReturn(getSomeMessageHistory(2));
-        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
-        when(objectMapper.readValue("", ChatGPT.ErrorResponse.class)).thenReturn(errorResponse);
-        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "", "".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
-
-        BotException botException = assertThrows(BotException.class, () -> chatGPT.parse(request));
-        verify(bot).sendTyping(request.getMessage().getChatId());
-        assertEquals(expectedErrorText, botException.getMessage());
     }
 
     @Test
@@ -300,6 +245,76 @@ class ChatGPTTest {
         ChatGPT.ChatRequest chatRequest = (ChatGPT.ChatRequest) chatgptRequest;
         ChatGPT.Message messageWithPrompt = chatRequest.getMessages().get(0);
         assertEquals(chatGPTSettings.getPrompt(), messageWithPrompt.getContent());
+
+        assertEquals(expectedResponseText, textResponse.getText());
+    }
+
+    @Test
+    void messageFromUserWithTooBigRequestTest() {
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello.";
+        final String expectedErrorText = "error";
+        BotRequest request = getRequestFromPrivate("chatgpt " + requestText);
+
+        List<ChatGPTMessage> chatGPTMessages = new ArrayList<>(
+                List.of(new ChatGPTMessage().setRole(ChatGPTRole.USER).setUser(new User().setUsername("username"))));
+
+        ChatGPT.Message message = new ChatGPT.Message();
+        message.setContent(responseText);
+        ChatGPT.Choice choice = new ChatGPT.Choice();
+        choice.setMessage(message);
+        ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
+        response.setChoices(List.of(choice)).setModel(expectedModel);
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(propertiesConfig.getChatGPTTokensSize()).thenReturn(1);
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(chatGPTMessageService.getMessages(any(User.class))).thenReturn(chatGPTMessages);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_REQUEST)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows((BotException.class), () -> chatGPT.parse(request));
+        assertEquals(expectedErrorText, botException.getMessage());
+
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void messageFromUserWithTokensLimitTest() throws JsonProcessingException {
+        final String expectedModel = "model";
+        final String requestText = "say hello";
+        final String responseText = "hello.";
+        final String expectedResponseText = "*ChatGPT* (" + expectedModel + "):\n" + responseText;
+        BotRequest request = getRequestFromPrivate("chatgpt " + requestText);
+
+        List<ChatGPTMessage> chatGPTMessages = new ArrayList<>(
+                List.of(
+                        new ChatGPTMessage().setId(1L).setRole(ChatGPTRole.USER).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500)),
+                        new ChatGPTMessage().setId(2L).setRole(ChatGPTRole.ASSISTANT).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500)),
+                        new ChatGPTMessage().setId(3L).setRole(ChatGPTRole.USER).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500)),
+                        new ChatGPTMessage().setId(4L).setRole(ChatGPTRole.ASSISTANT).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500))
+        ));
+        List<ChatGPTMessage> chatGPTMessagesAfterReducing = new ArrayList<>(List.of(chatGPTMessages.get(0), chatGPTMessages.get(1)));
+
+        ChatGPT.Message message = new ChatGPT.Message();
+        message.setContent(responseText);
+        ChatGPT.Choice choice = new ChatGPT.Choice();
+        choice.setMessage(message);
+        ChatGPT.ChatResponse response = new ChatGPT.ChatResponse();
+        response.setChoices(List.of(choice)).setModel(expectedModel);
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(propertiesConfig.getChatGPTTokensSize()).thenReturn(4096);
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(chatGPTMessageService.getMessages(any(User.class))).thenReturn(chatGPTMessages);
+        when(chatGPTMessageService.update(chatGPTMessages, 2)).thenReturn(chatGPTMessagesAfterReducing);
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
+
+        BotResponse botResponse = chatGPT.parse(request).get(0);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
     }
@@ -435,19 +450,6 @@ class ChatGPTTest {
                 Arguments.of("", OPENAI_API_URL),
                 Arguments.of("new_url", "new_url")
         );
-    }
-
-    private List<ChatGPTMessage> getSomeMessageHistory(int size) {
-        return IntStream.range(0, size).mapToObj(i -> getSomeChatGptMessage()).toList();
-    }
-
-    private ChatGPTMessage getSomeChatGptMessage() {
-        return new ChatGPTMessage()
-                .setId(1L)
-                .setChat(TestUtils.getChat())
-                .setUser(TestUtils.getUser())
-                .setRole(ChatGPTRole.USER)
-                .setContent("content");
     }
 
 }

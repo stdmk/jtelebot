@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knuddels.jtokkit.Encodings;
+import com.knuddels.jtokkit.api.Encoding;
+import com.knuddels.jtokkit.api.EncodingType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
 import static org.telegram.bot.utils.TextUtils.getStartsWith;
@@ -50,13 +54,14 @@ import static org.telegram.bot.utils.TextUtils.getStartsWith;
 public class ChatGPT implements Command {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
-    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final String DEFAULT_MODEL = "gpt-5-mini";
     private static final String RESPONSE_CAPTION = "ChatGPT";
 
     @Value("${chatGptApiUrl}")
     private String chatGptApiUrl;
 
     private final Set<String> imageCommands = new HashSet<>();
+    private final Encoding encoding = Encodings.newDefaultEncodingRegistry().getEncoding(EncodingType.CL100K_BASE);
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -144,12 +149,7 @@ public class ChatGPT implements Command {
         commandArgument = commandArgument.substring(imageCommand.length() + 1);
         String responseText = TextUtils.cutIfLongerThan(commandArgument, 1000);
 
-        CreateImageResponse createImageResponse;
-        try {
-            createImageResponse = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
-        } catch (ChatGptApiException e) {
-            throw toBotApiException(e);
-        }
+        CreateImageResponse createImageResponse = getResponse(new CreateImageRequest().setPrompt(commandArgument), token);
 
         Optional<String> imageUrl = Optional.of(createImageResponse)
                 .map(CreateImageResponse::getData)
@@ -176,37 +176,17 @@ public class ChatGPT implements Command {
             messagesHistory = chatGPTMessageService.getMessages(user);
         }
 
+        messagesHistory = reduceToTokensSize(messagesHistory, commandArgument);
+
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
         String model = getModel(chatGPTSettings);
         String prompt = getPrompt(chatGPTSettings);
 
-        String responseText;
-        String responseModel;
-        try {
-            ChatResponse response = getResponse(
-                    buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
-                    token);
-            responseText = getResponseText(response);
-            responseModel = response.getModel();
-        } catch (ChatGptApiException e) {
-            Integer chatGPTContextSize = propertiesConfig.getChatGPTContextSize();
-            if (messagesHistory.size() >= chatGPTContextSize) {
-                int deletingMessages = chatGPTContextSize / 2;
-                messagesHistory = chatGPTMessageService.update(messagesHistory, deletingMessages);
-
-                try {
-                    ChatResponse response = getResponse(
-                            buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
-                            token);
-                    responseText = getResponseText(response);
-                    responseModel = response.getModel();
-                } catch (ChatGptApiException ex) {
-                    throw toBotApiException(e);
-                }
-            } else {
-                throw toBotApiException(e);
-            }
-        }
+        ChatResponse response = getResponse(
+                buildRequest(messagesHistory, commandArgument, user.getUsername(), model, prompt),
+                token);
+        String responseText = getResponseText(response);
+        String responseModel = response.getModel();
 
         messagesHistory.addAll(
                 List.of(
@@ -215,6 +195,32 @@ public class ChatGPT implements Command {
         chatGPTMessageService.update(messagesHistory);
 
         return new Response(responseText, responseModel);
+    }
+
+    private List<ChatGPTMessage> reduceToTokensSize(List<ChatGPTMessage> messagesHistory, String newText) {
+        Integer chatGPTTokensSize = propertiesConfig.getChatGPTTokensSize();
+        if (chatGPTTokensSize == 0) {
+            return messagesHistory;
+        }
+
+        int currentTokens = countTokens(messagesHistory, newText);
+        while (currentTokens > chatGPTTokensSize && !messagesHistory.isEmpty()) {
+            messagesHistory = chatGPTMessageService.update(messagesHistory, 2);
+            currentTokens = countTokens(messagesHistory, newText);
+        }
+
+        if (messagesHistory.isEmpty() && currentTokens > chatGPTTokensSize) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_REQUEST));
+        }
+
+        return messagesHistory;
+    }
+
+    private int countTokens(List<ChatGPTMessage> messagesHistory, String newText) {
+        List<String> content = messagesHistory.stream().map(ChatGPTMessage::getContent).collect(Collectors.toList());
+        content.add(newText);
+
+        return encoding.countTokens(String.join("", content));
     }
 
     @NotNull
@@ -281,17 +287,17 @@ public class ChatGPT implements Command {
         return new ChatRequest().setModel(model).setMessages(requestMessages);
     }
 
-    private CreateImageResponse getResponse(CreateImageRequest request, String token) throws ChatGptApiException {
+    private CreateImageResponse getResponse(CreateImageRequest request, String token) {
         String url = chatGptApiUrl + "images/generations";
         return getResponse(request, url, token, CreateImageResponse.class);
     }
 
-    private ChatResponse getResponse(ChatRequest request, String token) throws ChatGptApiException {
+    private ChatResponse getResponse(ChatRequest request, String token) {
         String url = chatGptApiUrl + "chat/completions";
         return getResponse(request, url, token, ChatResponse.class);
     }
 
-    private <T> T getResponse(Object request, String url, String token, Class<T> dataType) throws ChatGptApiException {
+    private <T> T getResponse(Object request, String url, String token, Class<T> dataType) {
         String json;
         try {
             json = objectMapper.writeValueAsString(request);
@@ -319,7 +325,7 @@ public class ChatGPT implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 
-            throw new ChatGptApiException(errorResponse.getError().getMessage());
+            throw new BotException("${command.chatgpt.apiresponse}: " + errorResponse.getError().getMessage());
         } catch (RestClientException e) {
             log.error("Error from chatgpt: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -336,16 +342,6 @@ public class ChatGPT implements Command {
         }
 
         return response;
-    }
-
-    private static class ChatGptApiException extends Exception {
-        public ChatGptApiException(String message) {
-            super(message);
-        }
-    }
-
-    private BotException toBotApiException(ChatGptApiException e) {
-        return new BotException("${command.chatgpt.apiresponse}: " + e.getMessage());
     }
 
     @Getter

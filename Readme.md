@@ -239,6 +239,10 @@ If the value is empty, the official one will be used: https://api.openai.com/v1/
 ChatGPT API access token.
 To get a token go to https://openai.com/product (third party services are also suitable)
 
+**chatGPTTokensSize** (/chatgpt command)
+Tokens size limit per request.  
+by default — 0 — no limit
+
 **spyMode**  
 The bot will notify you by adminId when receiving personal messages if value `true`.
 

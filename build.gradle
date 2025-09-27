@@ -45,6 +45,7 @@ dependencies {
     implementation group: 'com.google.zxing', name: 'javase', version: '3.5.3'
     implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.4'
     implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: '2.18.0'
+    implementation("com.knuddels:jtokkit:1.1.0")
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.7.5'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
