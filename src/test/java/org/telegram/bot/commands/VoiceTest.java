@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -152,6 +153,23 @@ class VoiceTest {
 
         List<BotResponse> botResponses = voice.analyze(requestWithVoice);
         assertTrue(botResponses.isEmpty());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void analyzeRequestWithEmptyVoiceTest(String expectedResponse) throws SpeechParseException, TelegramApiException, IOException {
+        BotRequest requestWithVoice = getRequestWithVoice();
+        byte[] file = "123".getBytes();
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.readAllBytes()).thenReturn(file);
+        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
+
+        List<BotResponse> response = voice.analyze(requestWithVoice);
+        assertTrue(response.isEmpty());
+
+        verify(speechParser).parse(file, DEFAULT_VOICE_DURATION);
     }
 
     @Test

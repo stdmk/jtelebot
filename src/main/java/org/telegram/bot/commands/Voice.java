@@ -138,9 +138,12 @@ public class Voice implements Command, MessageAnalyzer {
                                 return null;
                             }
 
-                            checkTextForCommands(response, request);
-
-                            return response;
+                            if (response != null && !response.isEmpty()) {
+                                checkTextForCommands(response, request);
+                                return response;
+                            } else {
+                                return null;
+                            }
                         }))
                 .map(optionalText -> optionalText
                         .map(textOfVoice -> returnResponse(new TextResponse(message).setText(textOfVoice)))
