@@ -44,6 +44,8 @@ public class PropertiesConfig {
     private String gigaChatSecret;
     private String virusTotalApiKey;
     private String ftpBackupUrl;
+    private Integer daysBeforeExpirationBackup;
+    private Long maxBackupsSizeBytes;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {

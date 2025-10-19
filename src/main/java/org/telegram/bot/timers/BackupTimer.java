@@ -12,14 +12,11 @@ import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.repositories.DbBackuper;
 import org.telegram.bot.services.BotStats;
+import org.telegram.bot.utils.FtpBackupClient;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
@@ -30,33 +27,32 @@ public class BackupTimer extends TimerParent {
     private final PropertiesConfig propertiesConfig;
     private final DbBackuper dbBackuper;
     private final BotStats botStats;
+    private final FtpBackupClient ftpBackupClient;
 
     @Override
     @Scheduled(cron = "0 0 2 * * ?")
     public void execute() {
         File dbBackup = dbBackuper.getDbBackup();
 
+        try (FileInputStream fileInputStream = new FileInputStream(dbBackup)) {
+            if (propertiesConfig.getFtpBackupUrl() != null) {
+                ftpBackupClient.process(
+                        propertiesConfig.getFtpBackupUrl(),
+                        fileInputStream,
+                        propertiesConfig.getDaysBeforeExpirationBackup(), 
+                        propertiesConfig.getMaxBackupsSizeBytes());
+            }
+        } catch (IOException e) {
+            String errorMessage = "Failed to backup db: " + e.getMessage();
+            log.error(errorMessage);
+            botStats.incrementErrors(errorMessage, errorMessage);
+            throw new BotException(errorMessage);
+        }
+
         bot.sendDocument(new FileResponse()
                 .setChatId(propertiesConfig.getAdminId())
                 .addFile(new org.telegram.bot.domain.model.response.File(FileType.FILE, dbBackup))
                 .setResponseSettings(new ResponseSettings().setNotification(false)));
-
-        if (propertiesConfig.getFtpBackupUrl() != null) {
-            putBackupIntoFtp(propertiesConfig.getFtpBackupUrl(), dbBackup);
-        }
-    }
-
-    private void putBackupIntoFtp(String url, File backup) {
-        String backupFileName = "backup_" + DateTimeFormatter.BASIC_ISO_DATE.format(LocalDate.now());
-
-        try (OutputStream outputStream = new URL(url + "/" + backupFileName).openConnection().getOutputStream()) {
-            Files.copy(backup.toPath(), outputStream);
-        } catch (IOException e) {
-            String errorMessage = "Failed to put backup into ftp: " + e.getMessage();
-            log.error(errorMessage);
-            botStats.incrementErrors(url, errorMessage);
-            throw new BotException(errorMessage);
-        }
     }
 
 }

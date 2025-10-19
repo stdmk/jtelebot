@@ -263,7 +263,7 @@ Default language code for the bot. Currently supported: `en`, `ru`. Default `en`
 **xmlTvFileUrl** (/tv command)  
 URL to a TV program file in XMLTV (gz) format. For /tv command.
 
-**sberApiRequestTimeoutSeconds** (/voice and /gigachat commands)
+**sberApiRequestTimeoutSeconds** (/voice and /gigachat commands)  
 Waiting time for response from sber API.  
 
 **saluteSpeechSecret** (/voice command)  
@@ -278,9 +278,15 @@ To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get
 Virus Total API key  
 To get a key go to: https://www.virustotal.com/
 
-**ftpBackupUrl** (ftp backup)
-Url of the ftp server where backups will be uploaded
-`ftp://username:password@host:port[/path]`
+**ftpBackupUrl** (ftp backup)  
+Url of the ftp server where backups will be uploaded  
+`ftp://username:password@host:port[/path]`  
+
+**daysBeforeExpirationBackup** (ftp backup)  
+The number of days to keep the backup. Outdated backups will be deleted.  
+
+**maxBackupsSizeBytes** (ftp backup)  
+The maximum size (bytes) of stored backups. If the limit is exceeded, older backups will be deleted.  
 
 **reactions** (/reactions command)
 
