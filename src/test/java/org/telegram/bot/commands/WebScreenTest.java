@@ -2,6 +2,7 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,7 @@ import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -133,11 +135,15 @@ class WebScreenTest {
         when(propertiesConfig.getScreenshotMachineTimeoutMs()).thenReturn(TIMEOUT_MS);
         when(propertiesConfig.getScreenshotMachineToken()).thenReturn(TOKEN);
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
-        when(networkUtils.getFileFromUrlWithLimit(expectedUrl)).thenThrow(new IOException());
+        IOException ioException = new IOException();
+        when(networkUtils.getFileFromUrlWithLimit(expectedUrl)).thenThrow(ioException);
         when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorText);
 
         BotException botException = assertThrows(BotException.class, () -> webScreen.parse(request));
         assertEquals(expectedErrorText, botException.getMessage());
+
+        ArgumentCaptor<URL> urlArgumentCaptor = ArgumentCaptor.forClass(URL.class);
+        verify(botStats).incrementErrors(urlArgumentCaptor.capture(), eq(ioException), eq("Error getting screen"));
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
     }
 

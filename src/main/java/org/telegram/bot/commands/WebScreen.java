@@ -66,7 +66,8 @@ public class WebScreen implements Command {
         try {
             screen = networkUtils.getFileFromUrlWithLimit(buildApiUrl(url));
         } catch (IOException e) {
-            log.debug("Error getting screen ", e);
+            log.error("Error getting screen ", e);
+            botStats.incrementErrors(url, e, "Error getting screen");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         }
 
