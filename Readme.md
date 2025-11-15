@@ -285,8 +285,11 @@ Url of the ftp server where backups will be uploaded
 **daysBeforeExpirationBackup** (ftp backup)  
 The number of days to keep the backup. Outdated backups will be deleted.  
 
-**maxBackupsSizeBytes** (ftp backup)  
+**maxBackupsSizeBytes** (ftp backup)    
 The maximum size (bytes) of stored backups. If the limit is exceeded, older backups will be deleted.  
+
+**ftpRetryCount** (ftp backup)  
+Number of FTP backup attempts.  
 
 **reactions** (/reactions command)
 

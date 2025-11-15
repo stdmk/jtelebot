@@ -46,6 +46,7 @@ public class PropertiesConfig {
     private String ftpBackupUrl;
     private Integer daysBeforeExpirationBackup;
     private Long maxBackupsSizeBytes;
+    private Integer ftpRetryCount = 5;
 
     public Integer getRussianPostRequestsLimit() {
         if (this.russianPostRequestsLimit == null) {
