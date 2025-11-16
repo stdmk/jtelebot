@@ -34,6 +34,8 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     private static final String CALLBACK_RESET_CACHE_COMMAND = CALLBACK_COMMAND + RESET_CACHE_COMMAND;
     private static final String SELECT_MODEL_COMMAND = EMPTY_CHATGPT_COMMAND + "md";
     private static final String CALLBACK_SELECT_MODEL_COMMAND = CALLBACK_COMMAND + SELECT_MODEL_COMMAND;
+    private static final String SET_MODEL = EMPTY_CHATGPT_COMMAND + "cmd";
+    private static final String CALLBACK_SET_MODEL = CALLBACK_COMMAND + EMPTY_CHATGPT_COMMAND + "cmd";
     private static final String SET_PROMPT = EMPTY_CHATGPT_COMMAND + "pr";
     private static final String CALLBACK_SET_PROMPT = CALLBACK_COMMAND + EMPTY_CHATGPT_COMMAND + "pr";
 
@@ -65,13 +67,16 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         Message message = request.getMessage();
         Chat chat = message.getChat();
         User user = message.getUser();
-        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
+        commandWaitingService.remove(chat, user);
 
+        String lowerCaseCommandText = commandText.toLowerCase(Locale.ROOT);
         if (message.isCallback()) {
             if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {
                 return resetCacheByCallback(message, chat, user);
             } else if (lowerCaseCommandText.startsWith(SELECT_MODEL_COMMAND)) {
                 return selectModelByCallback(message, chat, user, commandText);
+            } else if (lowerCaseCommandText.startsWith(SET_MODEL)) {
+                return setModelByCallback(message, chat, user);
             } else if (lowerCaseCommandText.startsWith(SET_PROMPT)) {
                 return setPromptByCallback(message, chat, user);
             }
@@ -81,6 +86,8 @@ public class ChatGPTSetter implements Setter<BotResponse> {
 
         if (lowerCaseCommandText.equals(RESET_CACHE_COMMAND)) {
             return resetCacheByCallback(message, chat, user);
+        } else if (lowerCaseCommandText.startsWith(SET_MODEL)) {
+            return setModel(message, chat, user, commandText);
         } else if (lowerCaseCommandText.startsWith(SET_PROMPT)) {
             return setPrompt(message, chat, user, commandText);
         }
@@ -99,6 +106,8 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     }
 
     private BotResponse selectModelByCallback(Message message, Chat chat, User user, String command) {
+        commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_SELECT_MODEL_COMMAND);
+
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
         if (chatGPTSettings == null) {
             chatGPTSettings = new ChatGPTSettings().setChat(chat);
@@ -107,6 +116,25 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         chatGPTSettingService.save(chatGPTSettings.setModel(command.substring(SELECT_MODEL_COMMAND.length())));
 
         return getSetterWithKeyboard(message, chat, user, false);
+    }
+
+    private EditResponse setModelByCallback(Message message, Chat chat, User user) {
+        commandWaitingService.add(chat, user, org.telegram.bot.commands.Set.class, CALLBACK_SET_MODEL);
+
+        return new EditResponse(message)
+                .setText("${setter.chatgpt.setmodelhelp}")
+                .setResponseSettings(FormattingStyle.HTML);
+    }
+
+    private BotResponse setModel(Message message, Chat chat, User user, String command) {
+        ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
+        if (chatGPTSettings == null) {
+            chatGPTSettings = new ChatGPTSettings().setChat(chat);
+        }
+
+        chatGPTSettingService.save(chatGPTSettings.setModel(command.substring(SET_MODEL.length())));
+
+        return getSetterWithKeyboard(message, chat, user, true);
     }
 
     private EditResponse setPromptByCallback(Message message, Chat chat, User user) {
@@ -118,7 +146,6 @@ public class ChatGPTSetter implements Setter<BotResponse> {
     }
 
     private BotResponse setPrompt(Message message, Chat chat, User user, String command) {
-        commandWaitingService.remove(chat, user);
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
 
         String prompt = command.substring(SET_PROMPT.length() + 1);
@@ -140,14 +167,20 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         }
 
         ChatGPTSettings chatGPTSettings = chatGPTSettingService.get(chat);
-        String prompt;
-        if (chatGPTSettings != null && chatGPTSettings.getPrompt() != null) {
-            prompt = "${setter.chatgpt.currentprompt}: " + chatGPTSettings.getPrompt();
-        } else {
-            prompt = "";
+
+        String model = "";
+        String prompt = "";
+        if (chatGPTSettings != null) {
+            if (chatGPTSettings.getModel() != null) {
+                model = "${setter.chatgpt.currentmodel} <b>" + chatGPTSettings.getModel() + "</b>";
+            }
+            if (chatGPTSettings.getPrompt() != null) {
+                prompt = "${setter.chatgpt.currentprompt}: " + chatGPTSettings.getPrompt();
+            }
         }
 
-        String responseText = "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n"
+        String responseText = model + "\n"
+                + "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n"
                 + "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>\n"
                 + prompt + "\n";
 
@@ -189,6 +222,9 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         }
 
         List<List<KeyboardButton>> buttonsRows = selectModelButtons.stream().map(List::of).collect(Collectors.toList());
+        buttonsRows.add(List.of(new KeyboardButton()
+                .setName(Emoji.ROBOT.getSymbol() + "${setter.chatgpt.button.setmodel}")
+                .setCallback(CALLBACK_SET_MODEL)));
         buttonsRows.add(List.of(new KeyboardButton()
                 .setName(Emoji.GEAR.getSymbol() + "${setter.chatgpt.button.setprompt}")
                 .setCallback(CALLBACK_SET_PROMPT)));

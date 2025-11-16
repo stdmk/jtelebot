@@ -22,6 +22,7 @@
     <include file="db/changelog/2025/20250323095100_added_entity_Increment.xml"/>
     <include file="db/changelog/2025/20250323095300_added_command_Increment.xml"/>
     <include file="db/changelog/2025/20250329101900_added_command_Http.xml"/>
+    <include file="db/changelog/2025/20250412081200_update_ChatGptSettings_add_prompt.xml"/>
     <include file="db/changelog/2025/20250524130100_added_command_Steam.xml"/>
     <include file="db/changelog/2025/20250609201000_added_entity_UserCalories.xml"/>
     <include file="db/changelog/2025/20250609201300_added_entity_Product.xml"/>
