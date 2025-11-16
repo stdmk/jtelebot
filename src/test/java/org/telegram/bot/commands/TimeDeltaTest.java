@@ -22,6 +22,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserCityService;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -43,6 +44,8 @@ class TimeDeltaTest {
     private Bot bot;
     @Mock
     private CommandWaitingService commandWaitingService;
+    @Mock
+    private UserCityService userCityService;
     @Mock
     private SpeechService speechService;
     @Mock
@@ -78,6 +81,7 @@ class TimeDeltaTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotException botException = assertThrows((BotException.class), () -> timeDelta.parse(request));
 
@@ -104,6 +108,7 @@ class TimeDeltaTest {
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(clock.instant()).thenReturn(CURRENT_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+        when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
         BotResponse botResponse = timeDelta.parse(request).get(0);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);

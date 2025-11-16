@@ -15,6 +15,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.datetime.DateTimeParseException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.UserCityService;
 
 import javax.annotation.PostConstruct;
 import java.time.*;
@@ -56,6 +57,7 @@ public class TimeDelta implements Command {
 
     private final Bot bot;
     private final CommandWaitingService commandWaitingService;
+    private final UserCityService userCityService;
     private final SpeechService speechService;
     private final Clock clock;
 
@@ -85,9 +87,10 @@ public class TimeDelta implements Command {
             commandWaitingService.add(message, this.getClass());
             responseText = "${command.timedelta.commandwaitingstart}";
         } else {
+            ZoneId zoneIdOfUser = userCityService.getZoneIdOfUserOrDefault(message);
             DateTimeData dateTimeData;
             try {
-                dateTimeData = getDateTimeDataFromText(commandArgument);
+                dateTimeData = getDateTimeDataFromText(commandArgument, zoneIdOfUser);
             } catch (DateTimeParseException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -95,14 +98,14 @@ public class TimeDelta implements Command {
             firstDateTime = dateTimeData.getFirstDateTime();
             secondDateTime = dateTimeData.getSecondDateTime();
             if (firstDateTime == null) {
-                firstDateTime = LocalDateTime.now(clock);
+                firstDateTime = ZonedDateTime.now(clock).withZoneSameInstant(zoneIdOfUser).toLocalDateTime();
                 secondDateTime = firstDateTime.plusDays(dateTimeData.getDays());
             } else {
                 if (secondDateTime == null) {
                     if (dateTimeData.getDays() != null) {
                         secondDateTime = firstDateTime.plusDays(dateTimeData.getDays());
                     } else {
-                        secondDateTime = LocalDateTime.now(clock);
+                        secondDateTime = ZonedDateTime.now(clock).withZoneSameInstant(zoneIdOfUser).toLocalDateTime();
                     }
                 }
             }
@@ -115,7 +118,7 @@ public class TimeDelta implements Command {
                 .setResponseSettings(FormattingStyle.MARKDOWN));
     }
 
-    private DateTimeData getDateTimeDataFromText(String text) {
+    private DateTimeData getDateTimeDataFromText(String text, ZoneId zoneId) {
         String data = text.trim();
         DateTimeData dateTimeData = new DateTimeData();
 
@@ -138,7 +141,7 @@ public class TimeDelta implements Command {
 
             if (!rawDateTimes.isEmpty()) {
                 for (String rawDateTime : rawDateTimes) {
-                    dateTimeData.addDateTime(dateTimeGetter.apply(rawDateTime));
+                    dateTimeData.addDateTime(dateTimeGetter.apply(rawDateTime).atZone(zoneId).withZoneSameInstant(zoneId).toLocalDateTime());
                     data = data.replaceFirst(rawDateTime, "");
                 }
             }
