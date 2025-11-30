@@ -93,6 +93,7 @@ class ChatGPTSetterTest {
     @Test
     void setEmptyCommandFromPrivateChatTest() {
         final String expectedResponseText = """
+                ${setter.chatgpt.currentmodel} <b>gpt-4o-mini</b>
                 ${setter.chatgpt.currentcontext}: <b>4 ${setter.chatgpt.messages}</b>
                 Max: <b>16</b>
                 ${setter.chatgpt.currentprompt}: prompt
@@ -235,6 +236,7 @@ class ChatGPTSetterTest {
     @Test
     void setCallbackSelectModelTest() {
         final String expectedResponseText = """
+                ${setter.chatgpt.currentmodel} <b>gpt-4o-mini</b>
                 ${setter.chatgpt.currentcontext}: <b>4 ${setter.chatgpt.messages}</b>
                 Max: <b>16</b>
                 ${setter.chatgpt.currentprompt}: prompt
@@ -283,6 +285,7 @@ class ChatGPTSetterTest {
     @Test
     void setSetPromptSettingsNotExistsTest() {
         final String expectedResponseText = """
+                ${setter.chatgpt.currentmodel} <b>gpt-4o-mini</b>
                 ${setter.chatgpt.currentcontext}: <b>4 ${setter.chatgpt.messages}</b>
                 Max: <b>16</b>
                 ${setter.chatgpt.currentprompt}: prompt
@@ -353,7 +356,7 @@ class ChatGPTSetterTest {
 
     private void assertFullKeyboard(Keyboard keyboard) {
         List<List<KeyboardButton>> keyboardButtonsList = keyboard.getKeyboardButtonsList();
-        assertEquals(8, keyboardButtonsList.size());
+        assertEquals(9, keyboardButtonsList.size());
 
         List<KeyboardButton> selectModelRow1 = keyboardButtonsList.get(0);
         assertEquals(1, selectModelRow1.size());
@@ -385,16 +388,21 @@ class ChatGPTSetterTest {
         assertEquals("o1-mini", selectModelButton5.getName());
         assertEquals("${setter.command} chatgptmdo1-mini", selectModelButton5.getCallback());
 
-        assertMainKeyboard(keyboardButtonsList.get(5), keyboardButtonsList.get(6), keyboardButtonsList.get(7));
+        assertMainKeyboard(keyboardButtonsList.get(5), keyboardButtonsList.get(6), keyboardButtonsList.get(7), keyboardButtonsList.get(8));
     }
 
     private void assertMainKeyboard(Keyboard keyboard) {
         List<List<KeyboardButton>> keyboardButtonsList = keyboard.getKeyboardButtonsList();
-        assertEquals(3, keyboardButtonsList.size());
-        assertMainKeyboard(keyboardButtonsList.get(0), keyboardButtonsList.get(1), keyboardButtonsList.get(2));
+        assertEquals(4, keyboardButtonsList.size());
+        assertMainKeyboard(keyboardButtonsList.get(0), keyboardButtonsList.get(1), keyboardButtonsList.get(2), keyboardButtonsList.get(3));
     }
 
-    private void assertMainKeyboard(List<KeyboardButton> setPromptRow, List<KeyboardButton> resetCacheRow, List<KeyboardButton> backRow) {
+    private void assertMainKeyboard(List<KeyboardButton> setModelRow, List<KeyboardButton> setPromptRow, List<KeyboardButton> resetCacheRow, List<KeyboardButton> backRow) {
+        assertEquals(1, setModelRow.size());
+        KeyboardButton setModelButton = setModelRow.get(0);
+        assertEquals("\uD83E\uDD16${setter.chatgpt.button.setmodel}", setModelButton.getName());
+        assertEquals("${setter.command} chatgptcmd", setModelButton.getCallback());
+
         assertEquals(1, setPromptRow.size());
         KeyboardButton setPromptButton = setPromptRow.get(0);
         assertEquals("⚙\uFE0F${setter.chatgpt.button.setprompt}", setPromptButton.getName());

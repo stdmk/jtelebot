@@ -172,14 +172,14 @@ public class ChatGPTSetter implements Setter<BotResponse> {
         String prompt = "";
         if (chatGPTSettings != null) {
             if (chatGPTSettings.getModel() != null) {
-                model = "${setter.chatgpt.currentmodel} <b>" + chatGPTSettings.getModel() + "</b>";
+                model = "${setter.chatgpt.currentmodel} <b>" + chatGPTSettings.getModel() + "</b>\n";
             }
             if (chatGPTSettings.getPrompt() != null) {
                 prompt = "${setter.chatgpt.currentprompt}: " + chatGPTSettings.getPrompt();
             }
         }
 
-        String responseText = model + "\n"
+        String responseText = model
                 + "${setter.chatgpt.currentcontext}: <b>" + messages.size() + " ${setter.chatgpt.messages}</b>\n"
                 + "Max: <b>" + propertiesConfig.getChatGPTContextSize() + "</b>\n"
                 + prompt + "\n";

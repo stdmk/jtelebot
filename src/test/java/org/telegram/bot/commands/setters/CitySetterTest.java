@@ -468,8 +468,8 @@ class CitySetterTest {
                 "${setter.city.selectzonehelp}";
         final String ruName = "Тест";
         final String enName = "Test";
-        final Long cityId = 1L;
-        final String argument = "city add " + ruName + " " + enName;
+        final long cityId = 1L;
+        final String argument = "city add " + ruName + "|" + enName;
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
         Message message = request.getMessage();
         User user = message.getUser();

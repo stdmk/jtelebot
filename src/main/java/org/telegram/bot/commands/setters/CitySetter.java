@@ -154,7 +154,7 @@ public class CitySetter implements Setter<BotResponse> {
         commandWaitingService.remove(chat, user);
 
         String params = command.substring(addCityCommand.length() + 1);
-        int i = params.indexOf(" ");
+        int i = params.indexOf("|");
         if (i < 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
