@@ -16,6 +16,7 @@ import org.telegram.bot.utils.FtpBackupClient;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -39,12 +40,21 @@ public class BackupTimer extends TimerParent {
                 .setResponseSettings(new ResponseSettings().setNotification(false)));
 
         if (propertiesConfig.getFtpBackupUrl() != null) {
-            boolean uploaded = uploadBackupIntoFtp(dbBackup);
-            int attempts = 1;
-            while (!uploaded && attempts <= propertiesConfig.getFtpRetryCount()) {
-                uploaded = uploadBackupIntoFtp(dbBackup);
-                attempts = attempts + 1;
+            for (int attempts = 0; attempts <= propertiesConfig.getFtpRetryCount(); attempts++) {
+                if (uploadBackupIntoFtp(dbBackup)) {
+                    break;
+                }
+
+                if (attempts < propertiesConfig.getFtpRetryCount()) {
+                    try {
+                        TimeUnit.MINUTES.sleep(5);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
             }
+
         }
     }
 
