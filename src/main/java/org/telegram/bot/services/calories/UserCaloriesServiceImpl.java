@@ -1,6 +1,7 @@
 package org.telegram.bot.services.calories;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.User;
@@ -53,13 +54,16 @@ public class UserCaloriesServiceImpl implements UserCaloriesService {
     }
 
     @Override
+    @Transactional
     public UserCalories get(User user, LocalDate date) {
         UserCalories userCalories = userCaloriesRepository.getByUserAndDate(user, date);
 
         if (userCalories == null) {
-            userCalories = userCaloriesRepository.save(new UserCalories()
-                    .setUser(user)
-                    .setDate(date));
+            try {
+                userCalories = userCaloriesRepository.save(new UserCalories().setUser(user).setDate(date));
+            } catch (DataIntegrityViolationException e) {
+                userCalories = userCaloriesRepository.getByUserAndDate(user, date);
+            }
         }
 
         return userCalories;

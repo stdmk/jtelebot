@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20251213083600-1" author="stdmk">
+        <addUniqueConstraint
+                tableName="usercalories"
+                schemaName="bot"
+                columnNames="date"
+                constraintName="uq_usercalories_date"/>
+    </changeSet>
+
+    <changeSet id="20251213083600-2" author="stdmk">
+        <addNotNullConstraint
+                tableName="usercalories"
+                schemaName="bot"
+                columnName="date"
+                columnDataType="date"/>
+    </changeSet>
+
+</databaseChangeLog>
