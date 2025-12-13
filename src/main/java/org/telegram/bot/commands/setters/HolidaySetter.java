@@ -192,8 +192,8 @@ public class HolidaySetter implements Setter<BotResponse> {
         String selectPageCommand = getStartsWith(
                 internationalizationService.internationalize(SELECT_PAGE_HOLIDAY_LIST),
                 command.toLowerCase(Locale.ROOT));
-        if (selectPageCommand != null && command.startsWith(SELECT_PAGE_HOLIDAY_LIST)) {
-            return getKeyboardWithDeletingHolidays(message, chat, user, Integer.parseInt(command.substring(SELECT_PAGE_HOLIDAY_LIST.length())));
+        if (selectPageCommand != null) {
+            return getKeyboardWithDeletingHolidays(message, chat, user, Integer.parseInt(command.substring(selectPageCommand.length())));
         }
 
         long holidayId;
