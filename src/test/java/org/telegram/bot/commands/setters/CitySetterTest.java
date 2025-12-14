@@ -469,7 +469,7 @@ class CitySetterTest {
         final String ruName = "Тест";
         final String enName = "Test";
         final long cityId = 1L;
-        final String argument = "city add " + ruName + "|" + enName;
+        final String argument = "city add " + ruName + "@" + enName;
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
         Message message = request.getMessage();
         User user = message.getUser();
