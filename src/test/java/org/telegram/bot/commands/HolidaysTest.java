@@ -54,7 +54,7 @@ class HolidaysTest {
                 <u>${command.holidays.caption}:</u>
                 <b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
                 /holidays_1
-                <b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                <b>Tue. 02.01 </b><i>holiday2</i>\s
                 /holidays_2
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays");
@@ -95,7 +95,7 @@ class HolidaysTest {
     void parseHolidayInfoTest() {
         final String expectedResponseText = """
                 <u>holiday1</u>
-                <i>02.01.2006 Tue.</i> (1 ${command.holidays.years1})
+                <i>02.01.2007 Tue.</i>\s
                 ${command.holidays.author}: <a href="tg://user?id=1">username</a>""";
         BotRequest request = TestUtils.getRequestFromGroup("holidays_1");
 
@@ -125,7 +125,7 @@ class HolidaysTest {
                 <u>${command.holidays.searchresults}:</u>
                 <b>Tue. 02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
                 /holidays_1
-                <b>Tue. 02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                <b>Tue. 02.01 </b><i>holiday2</i>\s
                 /holidays_2
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays test");
@@ -184,7 +184,7 @@ class HolidaysTest {
                 <u>02.01.2007</u> (Tue.)
                 <b>02.01 </b><i>holiday1</i> (1 ${command.holidays.years1})
                 /holidays_1
-                <b>02.01 </b><i>holiday2</i> (2 ${command.holidays.yearsparentcase})
+                <b>02.01 </b><i>holiday2</i>\s
                 /holidays_2
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("holidays 02.01");
@@ -206,8 +206,10 @@ class HolidaysTest {
     }
 
     private List<Holiday> getSomeHolidays() {
-        return List.of(new Holiday().setId(1L).setDate(CURRENT_DATE.minusYears(1)).setName("holiday1"),
-                new Holiday().setId(2L).setDate(CURRENT_DATE.minusYears(2)).setName("holiday2"));
+        return List.of(
+                new Holiday().setId(1L).setDate(CURRENT_DATE.minusYears(1)).setName("holiday1").setHasYear(true),
+                new Holiday().setId(2L).setDate(CURRENT_DATE.minusYears(2)).setName("holiday2").setHasYear(false)
+        );
     }
 
 }

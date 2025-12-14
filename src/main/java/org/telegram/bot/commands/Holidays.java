@@ -174,14 +174,17 @@ public class Holidays implements Command {
         LocalDate storedDate = holiday.getDate();
         LocalDate dateOfHoliday = getDateOfHoliday(storedDate);
 
-        if (storedDate.getYear() == 1) {
-            date = formatDate(dateOfHoliday);
-        } else {
+        String numberOfYear;
+        if (Boolean.TRUE.equals(holiday.getHasYear())) {
             date = formatDate(storedDate);
+            numberOfYear = getNumberOfYear(storedDate, dateOfHoliday);
+        } else {
+            date = formatDate(dateOfHoliday);
+            numberOfYear = "";
         }
 
         return "<u>" + holiday.getName() + "</u>\n" +
-                "<i>" + date + " " + getDayOfWeek(dateOfHoliday, lang) + "</i> " + getNumberOfYear(storedDate, dateOfHoliday) + "\n" +
+                "<i>" + date + " " + getDayOfWeek(dateOfHoliday, lang) + "</i> " + numberOfYear + "\n" +
                 "${command.holidays.author}: " + getHtmlLinkToUser(holiday.getUser());
     }
 
@@ -204,9 +207,16 @@ public class Holidays implements Command {
             dayOfWeek = "";
         }
 
+        String numberOfYear;
+        if (Boolean.TRUE.equals(holiday.getHasYear())) {
+            numberOfYear = getNumberOfYear(storedDate, dateOfHoliday);
+        } else {
+            numberOfYear = "";
+        }
+
         return "<b>" + dayOfWeek +
                 String.format("%02d", dateOfHoliday.getDayOfMonth()) + "." + String.format("%02d",dateOfHoliday.getMonth().getValue()) +
-                " </b><i>" + holiday.getName() + "</i> "  + getNumberOfYear(storedDate, dateOfHoliday) + "\n" +
+                " </b><i>" + holiday.getName() + "</i> "  + numberOfYear + "\n" +
                 "/holidays_" + holiday.getId() + "\n";
     }
 
@@ -218,25 +228,20 @@ public class Holidays implements Command {
      * @return postfix with number of years.
      */
     private String getNumberOfYear(LocalDate storedDate, LocalDate currentDateOfHoliday) {
-        String numberOfYears = "";
-        if (storedDate.getYear() != 1) {
-            String postfix;
-            String years = String.valueOf(currentDateOfHoliday.getYear() - storedDate.getYear());
+        String postfix;
+        String years = String.valueOf(currentDateOfHoliday.getYear() - storedDate.getYear());
 
-            if (years.endsWith("11") || years.endsWith("12") ||  years.endsWith("13") ||  years.endsWith("14") ||  years.endsWith("15") ||  years.endsWith("16") ||  years.endsWith("17") ||  years.endsWith("18") ||  years.endsWith("19")) {
-                postfix = " ${command.holidays.years2})";
-            } else if (years.endsWith("1")) {
-                postfix = " ${command.holidays.years1})";
-            } else if (years.endsWith("2") || (years.endsWith("3") || (years.endsWith("4")))) {
-                postfix = " ${command.holidays.yearsparentcase})";
-            } else {
-                postfix = " ${command.holidays.years2})";
-            }
-
-            numberOfYears = "(" + years + postfix;
+        if (years.endsWith("11") || years.endsWith("12") ||  years.endsWith("13") ||  years.endsWith("14") ||  years.endsWith("15") ||  years.endsWith("16") ||  years.endsWith("17") ||  years.endsWith("18") ||  years.endsWith("19")) {
+            postfix = " ${command.holidays.years2})";
+        } else if (years.endsWith("1")) {
+            postfix = " ${command.holidays.years1})";
+        } else if (years.endsWith("2") || (years.endsWith("3") || (years.endsWith("4")))) {
+            postfix = " ${command.holidays.yearsparentcase})";
+        } else {
+            postfix = " ${command.holidays.years2})";
         }
 
-        return numberOfYears;
+        return "(" + years + postfix;
     }
 
     /**

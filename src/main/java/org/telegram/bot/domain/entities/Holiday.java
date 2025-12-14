@@ -5,14 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 /**
@@ -30,11 +23,14 @@ public class Holiday {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "date")
+    @Column(name = "date", columnDefinition = "date")
     private LocalDate date;
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "hasyear")
+    private Boolean hasYear;
 
     @ManyToOne
     @JoinColumn(name = "chatid", nullable = false)

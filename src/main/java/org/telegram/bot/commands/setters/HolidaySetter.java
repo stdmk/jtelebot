@@ -283,11 +283,18 @@ public class HolidaySetter implements Setter<BotResponse> {
             throw new BotException("${setter.holiday.addhelp.alreadyexists}");
         }
 
-        holiday = new Holiday();
-        holiday.setChat(chat);
-        holiday.setUser(user);
-        holiday.setDate(dateOfHoliday);
-        holiday.setName(nameOfHoliday);
+        holiday = new Holiday()
+                .setChat(chat)
+                .setUser(user)
+                .setName(nameOfHoliday);
+
+        if (dateOfHoliday.getYear() == 1) {
+            holiday.setDate(dateOfHoliday.withYear(LocalDate.now().getYear()));
+            holiday.setHasYear(false);
+        } else {
+            holiday.setDate(dateOfHoliday);
+            holiday.setHasYear(true);
+        }
 
         holidayService.save(holiday);
 
