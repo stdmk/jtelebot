@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageKind;
+import org.telegram.bot.enums.RequestSource;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
@@ -25,7 +26,7 @@ public class RequestMapper {
             message = getMessage(update);
         }
 
-        return new BotRequest().setMessage(message);
+        return new BotRequest().setMessage(message).setSource(RequestSource.TELEGRAM);
     }
 
     private Message getMessage(Update update) {

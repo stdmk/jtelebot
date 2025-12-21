@@ -162,7 +162,9 @@ Java Telegram Bot (Spring)
 
 /steam - Information about games on Steam
 
-/calories - calorie counting
+/calories - calorie counting  
+
+/write - sending messages  
 
 ### Properties
 **telegramBotApiToken**  
