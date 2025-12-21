@@ -49,6 +49,8 @@ public interface UserStatsService {
      */
     void updateEntitiesInfo(Message message);
 
+    List<User> getUsersOfChat(Chat chat);
+
     /**
      * Get list of users of chat.
      *

@@ -124,6 +124,11 @@ public class UserStatsServiceImpl implements UserStatsService {
     }
 
     @Override
+    public List<User> getUsersOfChat(Chat chat) {
+        return userStatsRepository.findByChat(chat).stream().map(UserStats::getUser).toList();
+    }
+
+    @Override
     public List<UserStats> getActiveUserStatsListForChat(Chat chat) {
         log.debug("Request to get user stats of chat {}", chat);
         return userStatsRepository.findByChatAndLastMessageDateGreaterThan(chat, LocalDate.now().atStartOfDay());

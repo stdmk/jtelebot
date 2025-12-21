@@ -6,6 +6,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.*;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.enums.RequestSource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class TestUtils {
         message.setMessageKind(MessageKind.CALLBACK);
         message.setText(callback);
 
-        return new BotRequest().setMessage(message);
+        return new BotRequest().setMessage(message).setSource(RequestSource.TELEGRAM);
     }
 
     public static BotRequest getRequestFromGroup(String textMessage) {
@@ -80,7 +81,7 @@ public class TestUtils {
         Message message = getMessage(chat, user, textMessage);
 
         BotRequest botRequest = new BotRequest();
-        botRequest.setMessage(message);
+        botRequest.setMessage(message).setSource(RequestSource.TELEGRAM);
 
         return botRequest;
     }
@@ -94,7 +95,7 @@ public class TestUtils {
         Message message = getMessage(chat, user, textMessage);
 
         BotRequest botRequest = new BotRequest();
-        botRequest.setMessage(message);
+        botRequest.setMessage(message).setSource(RequestSource.TELEGRAM);
 
         return botRequest;
     }
