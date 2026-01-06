@@ -25,17 +25,17 @@ public class Uuid implements Command {
         String commandArgument = request.getMessage().getCommandArgument();
         if (commandArgument != null) {
             if (isValidUuid(commandArgument)) {
-                responseText = Emoji.CHECK_MARK.getSymbol() + " UUID *${command.uuid.valid}*";
+                responseText = Emoji.CHECK_MARK.getSymbol() + " UUID <b>${command.uuid.valid}</b>";
             } else {
-                responseText = Emoji.DELETE.getSymbol() + " UUID *${command.uuid.invalid}*";
+                responseText = Emoji.DELETE.getSymbol() + " UUID <b>${command.uuid.invalid}</b>";
             }
         } else {
-            responseText = "`" + UUID.randomUUID() + "`";
+            responseText = "<code>" + UUID.randomUUID() + "</code>";
         }
 
         return returnResponse(new TextResponse(request.getMessage())
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private boolean isValidUuid(String uuid) {

@@ -17,7 +17,7 @@ import org.telegram.bot.services.UserService;
 
 import java.util.List;
 
-import static org.telegram.bot.utils.TextUtils.getMarkdownLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -42,25 +42,25 @@ public class Getid implements Command {
             if (user == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
-            responseText.append("${command.getid.id} ").append(getMarkdownLinkToUser(user)).append(": `").append(user.getUserId()).append("`\n");
+            responseText.append("${command.getid.id} ").append(getHtmlLinkToUser(user)).append(": <code>").append(user.getUserId()).append("</code>\n");
         }
 
         Message repliedMessage = message.getReplyToMessage();
         if (repliedMessage != null) {
             User repliedUser = repliedMessage.getUser();
             log.debug("Request to getting telegram id of {}", repliedUser);
-            responseText.append("${command.getid.id} ").append(getMarkdownLinkToUser(repliedUser)).append(": `").append(repliedUser.getUserId()).append("`\n");
+            responseText.append("${command.getid.id} ").append(getHtmlLinkToUser(repliedUser)).append(": <code>").append(repliedUser.getUserId()).append("</code>\n");
         }
 
         if (chatId < 0) {
             log.debug("Request to getting telegram id of public chat {}", message.getChat());
-            responseText.append("${command.getid.groupid}: `").append(chatId).append("`\n");
+            responseText.append("${command.getid.groupid}: <code>").append(chatId).append("</code>\n");
         }
 
-        responseText.append("${command.getid.yourid}: `").append(message.getUser().getUserId()).append("`");
+        responseText.append("${command.getid.yourid}: <code>").append(message.getUser().getUserId()).append("</code>");
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText.toString())
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

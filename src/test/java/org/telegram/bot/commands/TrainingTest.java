@@ -21,7 +21,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.ArrayList;
@@ -967,7 +966,7 @@ class TrainingTest {
     }
 
     @Test
-    void parseDownloadReportSubscriptionTest() throws IOException {
+    void parseDownloadReportSubscriptionTest() {
         final String expectedResponseText = "${command.training.subscriptionreport} 25.12.1999 — 25.03.2000 (50)";
         final String expectedFileContent = "{command.training.report} 25.12.1999 — 25.03.2000 (50)\n\n" + EXPECTED_REPORT_FILE_CONTENT;
         BotRequest request = TestUtils.getRequestWithCallback("training_d_sub" + ACTIVE_SUBSCRIPTION_ID);
@@ -985,14 +984,14 @@ class TrainingTest {
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
     }
 
     @Test
-    void parseDownloadReportMonthTest() throws IOException {
+    void parseDownloadReportMonthTest() {
         final String expectedResponseText = "{command.training.monthly} January";
         final String expectedFileContent = "{command.training.report} January\n\n" + EXPECTED_REPORT_FILE_CONTENT;
         BotRequest request = TestUtils.getRequestWithCallback("training_dm");
@@ -1010,14 +1009,14 @@ class TrainingTest {
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
     }
 
     @Test
-    void parseDownloadReportYearTest() throws IOException {
+    void parseDownloadReportYearTest() {
         final String expectedResponseText = "{command.training.yearreport} 2000";
         final String expectedFileContent = "{command.training.report} 2000\n\n" + EXPECTED_REPORT_FILE_CONTENT;
         BotRequest request = TestUtils.getRequestWithCallback("training_dy");
@@ -1034,14 +1033,14 @@ class TrainingTest {
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
     }
 
     @Test
-    void parseDownloadReportAllTimeTest() throws IOException {
+    void parseDownloadReportAllTimeTest() {
         final String expectedResponseText = "{command.training.alltimereport}";
         final String expectedFileContent = "{command.training.report} all\n\n" + EXPECTED_REPORT_FILE_CONTENT;
         BotRequest request = TestUtils.getRequestWithCallback("training_dall");
@@ -1056,7 +1055,7 @@ class TrainingTest {
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());

@@ -1,7 +1,7 @@
 package org.telegram.bot.services;
 
-import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.BotRequest;
 
 public interface LogService {
-    void log(Message message);
+    void log(BotRequest botRequest);
 }

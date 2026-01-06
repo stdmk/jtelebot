@@ -163,7 +163,7 @@ public class TvSetter implements Setter<BotResponse> {
         return new EditResponse(message)
                 .setText("${setter.tv.selecthelp}")
                 .setKeyboard(keyboard)
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private EditResponse getKeyboardWithDeletingTvChannels(Message message, Chat chat, User user, String commandText) throws BotException {
@@ -184,7 +184,7 @@ public class TvSetter implements Setter<BotResponse> {
         return new EditResponse(message)
                 .setText("${setter.tv.selectedchannels}")
                 .setKeyboard(keyboard)
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private BotResponse getUserTvListWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {
@@ -195,13 +195,13 @@ public class TvSetter implements Setter<BotResponse> {
             return new TextResponse(message)
                     .setText(prepareTextOfListUserTvList(userTvList))
                     .setKeyboard(prepareKeyboardWithUserTvList())
-                    .setResponseSettings(FormattingStyle.MARKDOWN);
+                    .setResponseSettings(FormattingStyle.HTML);
         }
 
         return new EditResponse(message)
                 .setText(prepareTextOfListUserTvList(userTvList))
                 .setKeyboard(prepareKeyboardWithUserTvList())
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private TextResponse deleteUserTv(Message message, Chat chat, User user, String command) throws BotException {
@@ -239,7 +239,7 @@ public class TvSetter implements Setter<BotResponse> {
 
         return new TextResponse(message)
                 .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private BotResponse selectUserTv(Message message, Chat chat, User user, String command) {
@@ -287,7 +287,7 @@ public class TvSetter implements Setter<BotResponse> {
 
         return new TextResponse(message)
                 .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private List<List<KeyboardButton>> addingMainRows(List<List<KeyboardButton>> rows) {

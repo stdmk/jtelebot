@@ -16,7 +16,7 @@ import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
-import org.telegram.bot.mapper.telegram.request.RequestMapper;
+import org.telegram.bot.mapper.bot.request.RequestMapper;
 import org.telegram.bot.services.*;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
@@ -108,7 +108,7 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
+        verify(logService).log(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser, never()).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -126,8 +126,8 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -149,8 +149,8 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -171,8 +171,8 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -198,8 +198,8 @@ class BotTest {
 
         verify(botStats).incrementReceivedMessages();
         verify(botStats).incrementErrors(eq(commandProperties), anyString());
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -226,8 +226,8 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(parser, never()).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));
     }
@@ -257,8 +257,8 @@ class BotTest {
         bot.consume(update);
 
         verify(botStats).incrementReceivedMessages();
-        verify(logService).log(message);
-        verify(userStatsService).updateEntitiesInfo(message);
+        verify(logService).log(request);
+        verify(userStatsService).updateEntitiesInfo(request);
         verify(userStatsService).incrementUserStatsCommands(chat, user, commandProperties);
         verify(parser).parseAsync(any(BotRequest.class), any(Command.class));
         verify(parser).analyzeMessageAsync(any(BotRequest.class), any(AccessLevel.class));

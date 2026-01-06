@@ -48,14 +48,14 @@ public class Weather implements Command {
     private static final String CURRENT_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?lang=%s&units=metric&appid=%s&%s=%s";
     private static final String FORECAST_WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast?lang=%s&units=metric&appid=%s&%s=%s";
     private static final String PRECIPITATION_CAPTION_FORMAT = "%-12s";
-    private static final String WEATHER_CAPTION_FORMAT = "%-15s";
+    private static final String WEATHER_CAPTION_FORMAT = "%-19s";
     private static final String TEMPERATURE_CAPTION_FORMAT = "%+.0f";
     private static final int HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS = 2;
     private static final int HOURLY_FORECAST_MIN_LENGTH_OF_TEMP = 2;
     private static final int HOURLY_FORECAST_HOURS_OF_FORECAST_COUNT = 8;
     private static final int DAILY_FORECAST_MINIMUM_REQUIRED_SPACE_COUNT = 3;
     private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
-            .setFormattingStyle(FormattingStyle.MARKDOWN)
+            .setFormattingStyle(FormattingStyle.HTML)
             .setWebPagePreview(false);
     private static final String[] WIND_DIRECTIONS = {
             Emoji.DOWN_ARROW.getSymbol(), // с севера from north
@@ -196,53 +196,53 @@ public class Weather implements Command {
         Main main = weatherCurrent.getMain();
         Wind wind = weatherCurrent.getWind();
 
-        buf.append("[").append(weatherCurrent.getName()).append("](" + OPEN_WEATHER_SITE_URL).append(weatherCurrent.getId()).append(")(")
-                .append(sys.getCountry()).append(")\n");
+        buf.append("<a href=\"").append(OPEN_WEATHER_SITE_URL).append(weatherCurrent.getId()).append("\">").append(weatherCurrent.getName()).append("</a>")
+                .append("(").append(sys.getCountry()).append(")\n");
         buf.append(withCapital(weather.getDescription())).append(getWeatherEmoji(weather.getId())).append("\n");
         HourlyForecast rain = weatherCurrent.getRain();
         HourlyForecast snow = weatherCurrent.getSnow();
         if (rain != null) {
             String precipitations = getPrecipitations(rain, 1, true, lang);
             if (precipitations != null) {
-                buf.append("`").append(precipitations).append("`\n");
+                buf.append("<code>").append(precipitations).append("</code>\n");
             }
 
             precipitations = getPrecipitations(rain, 3, true, lang);
             if (precipitations != null) {
-                buf.append("`").append(precipitations).append("`\n");
+                buf.append("<code>").append(precipitations).append("</code>");
             }
         }
         if (snow != null) {
             String precipitations = getPrecipitations(snow, 1, false, lang);
             if (precipitations != null) {
-                buf.append("`").append(precipitations).append("`\n");
+                buf.append("<code>").append(precipitations).append("</code>\n");
             }
 
             precipitations = getPrecipitations(snow, 3, false, lang);
             if (precipitations != null) {
-                buf.append("`").append(precipitations).append("`\n");
+                buf.append("<code>").append(precipitations).append("</code>\n");
             }
         }
-        
-        buf.append(buildWeatherItem("`${command.weather.temperature}", lang)).append(String.format("%+.2f", main.getTemp())).append("°C`\n");
-        buf.append(buildWeatherItem("`${command.weather.feelslike}", lang)).append(String.format("%+.2f", main.getFeelsLike())).append("°C`\n");
-        buf.append(buildWeatherItem("`${command.weather.humidity}", lang)).append(main.getHumidity().intValue()).append("%`\n");
-        buf.append(buildWeatherItem("`${command.weather.wind}", lang)).append(wind.getSpeed()).append(" ${command.weather.meterspersecond} ").append(getWindDirectionEmoji(wind.getDeg())).append("`\n");
+
+        buf.append(buildWeatherItem("<code>${command.weather.temperature}", lang)).append(String.format("%+.2f", main.getTemp())).append("°C</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.feelslike}", lang)).append(String.format("%+.2f", main.getFeelsLike())).append("°C</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.humidity}", lang)).append(main.getHumidity().intValue()).append("%</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.wind}", lang)).append(wind.getSpeed()).append(" ${command.weather.meterspersecond} ").append(getWindDirectionEmoji(wind.getDeg())).append("</code>\n");
         Double gust = wind.getGust();
         if (gust != null) {
-            buf.append(buildWeatherItem("`${command.weather.gusts}", lang)).append(gust).append(" ${command.weather.meterspersecond} ").append("`\n");
+            buf.append(buildWeatherItem("<code>${command.weather.gusts}", lang)).append(gust).append(" ${command.weather.meterspersecond} ").append("</code>\n");
         }
         if (weatherCurrent.getClouds() != null) {
-            buf.append(buildWeatherItem("`${command.weather.cloudy}", lang)).append(weatherCurrent.getClouds().getAll()).append("%`\n");
+            buf.append(buildWeatherItem("<code>${command.weather.cloudy}", lang)).append(weatherCurrent.getClouds().getAll()).append("%</code>\n");
         }
         if (weatherCurrent.getVisibility() != null) {
-            buf.append(buildWeatherItem("`${command.weather.visibility}", lang)).append(weatherCurrent.getVisibility() / 1000).append(" ${command.weather.kilometers}.`\n");
+            buf.append(buildWeatherItem("<code>${command.weather.visibility}", lang)).append(weatherCurrent.getVisibility() / 1000).append(" ${command.weather.kilometers}.</code>\n");
         }
-        buf.append(buildWeatherItem("`${command.weather.pressure}", lang)).append(main.getPressure().intValue() * 0.75).append(" ${command.weather.mmhg}. `\n");
-        buf.append(buildWeatherItem("`${command.weather.sunrise}", lang)).append(formatTime(sys.getSunrise() + weatherCurrent.getTimezone())).append("`\n");
-        buf.append(buildWeatherItem("`${command.weather.sunset}", lang)).append(formatTime(sys.getSunset() + weatherCurrent.getTimezone())).append("`\n");
-        buf.append(buildWeatherItem("`${command.weather.daylength}", lang)).append(durationToString((sys.getSunset() - sys.getSunrise()) * 1000L)).append("`\n");
-        buf.append(buildWeatherItem("`${command.weather.asof}", lang)).append(formatTime(weatherCurrent.getDt() + weatherCurrent.getTimezone())).append("`\n");
+        buf.append(buildWeatherItem("<code>${command.weather.pressure}", lang)).append(main.getPressure().intValue() * 0.75).append(" ${command.weather.mmhg}. </code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.sunrise}", lang)).append(formatTime(sys.getSunrise() + weatherCurrent.getTimezone())).append("</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.sunset}", lang)).append(formatTime(sys.getSunset() + weatherCurrent.getTimezone())).append("</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.daylength}", lang)).append(durationToString((sys.getSunset() - sys.getSunrise()) * 1000L)).append("</code>\n");
+        buf.append(buildWeatherItem("<code>${command.weather.asof}", lang)).append(formatTime(weatherCurrent.getDt() + weatherCurrent.getTimezone())).append("</code>\n");
 
         return buf.toString();
     }
@@ -255,7 +255,7 @@ public class Weather implements Command {
      */
     private String prepareHourlyForecastWeatherText(WeatherForecast weatherForecast) {
         Integer timezone = weatherForecast.getCity().getTimezone();
-        StringBuilder buf = new StringBuilder("*${command.weather.hourlyforecast}:*\n");
+        StringBuilder buf = new StringBuilder("<b>${command.weather.hourlyforecast}:</b>\n");
 
         List<WeatherForecastData> weatherForecastList = weatherForecast.getList()
                 .stream()
@@ -269,12 +269,12 @@ public class Weather implements Command {
                 .orElse(HOURLY_FORECAST_MIN_LENGTH_OF_TEMP) + HOURLY_FORECAST_LENGTH_OF_ADDITIONAL_SYMBOLS;
 
         weatherForecastList
-                .forEach(forecast -> buf.append("`").append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
+                .forEach(forecast -> buf.append("<code>").append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
                     .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
                     .append(String.format("%-" + maxLengthOfTemp + "s", String.format(TEMPERATURE_CAPTION_FORMAT, forecast.getMain().getTemp()) + "°"))
                     .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
                     .append(String.format("%.0f", forecast.getWind().getSpeed())).append("${command.weather.meterspersecond} ")
-                    .append("`\n"));
+                    .append("</code>\n"));
 
         return buf.toString();
     }
@@ -287,7 +287,7 @@ public class Weather implements Command {
      * @return forecast info.
      */
     private String prepareDailyForecastWeatherText(WeatherForecast weatherForecast, String lang) {
-        StringBuilder buf = new StringBuilder("*${command.weather.dailyforecast}:*\n");
+        StringBuilder buf = new StringBuilder("<b>${command.weather.dailyforecast}:</b>\n");
         List<WeatherForecastData> forecastList = weatherForecast.getList();
         LocalDate firstDate = forecastList.get(0).getNormalizedDate().toLocalDate();
 
@@ -323,11 +323,11 @@ public class Weather implements Command {
                 .min(Comparator.comparing(weatherForecastData -> weatherForecastData.getMain().getTemp()))
                 .orElse(forecastData.get(0));
 
-        return "`" + String.format("%02d", date.getDayOfMonth()) + " " + getDayOfWeek(date, lang) + " " +
+        return "<code>" + String.format("%02d", date.getDayOfMonth()) + " " + getDayOfWeek(date, lang) + " " +
                 getWeatherEmoji(max.getWeather().get(0).getId()) + " " +
                 String.format("%-" + spaceCount + "s", String.format(TEMPERATURE_CAPTION_FORMAT, max.getMain().getTemp()) + "°") +
                 getWeatherEmoji(min.getWeather().get(0).getId()) + " " +
-                String.format(TEMPERATURE_CAPTION_FORMAT, min.getMain().getTemp()) + "°" + "`\n";
+                String.format(TEMPERATURE_CAPTION_FORMAT, min.getMain().getTemp()) + "°" + "</code>\n";
     }
 
     private int getSpaceCount(List<List<WeatherForecastData>> forecastListList) {

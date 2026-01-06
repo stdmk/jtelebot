@@ -160,19 +160,19 @@ public class TestUtils {
     }
 
     public static Attachment getDocument() {
-        return new Attachment("mimeType", "uniqueId", DEFAULT_FILE_ID, "name", 1000L, null);
+        return new Attachment("mimeType", "uniqueId", DEFAULT_FILE_ID, null, "name", 1000L, null, null);
     }
 
     public static Attachment getDocument(String mimeType) {
-        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, "name", 1000L, null);
+        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, null, "name", 1000L, null, null);
     }
 
     public static Attachment getDocument(String mimeType, Long size) {
-        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, "name", size, null);
+        return new Attachment(mimeType, "uniqueId", DEFAULT_FILE_ID, null, "name", size, null, null);
     }
 
     public static Attachment getAudio() {
-        return new Attachment("audio/ogg", "uniqueId", DEFAULT_FILE_ID, null, 20000L, DEFAULT_VOICE_DURATION);
+        return new Attachment("audio/ogg", "uniqueId", DEFAULT_FILE_ID, null, null, 20000L, DEFAULT_VOICE_DURATION, null);
     }
 
     public static TextResponse checkDefaultTextResponseParams(BotResponse botResponse, boolean disableWebPagePreview, FormattingStyle formattingStyle) {

@@ -1,6 +1,7 @@
 package org.telegram.bot.utils;
 
 import lombok.experimental.UtilityClass;
+import org.apache.tika.Tika;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,6 +10,9 @@ import java.util.Properties;
 
 @UtilityClass
 public class FileUtils {
+
+    private final Tika tika = new Tika();
+
     public static void checkPropertiesFileExists() {
         File f = new File("properties.properties");
         if (!f.exists()) {
@@ -26,4 +30,9 @@ public class FileUtils {
             }
         }
     }
+
+    public static String getMimeType(byte[] file) {
+        return tika.detect(file);
+    }
+
 }

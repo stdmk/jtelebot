@@ -33,9 +33,7 @@ import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -84,7 +82,7 @@ public class Exchange implements Command {
         String responseText;
         Long chatId = message.getChatId();
 
-        InputStream chart = null;
+        byte[] chart = null;
         if (commandArgument == null) {
             bot.sendTyping(chatId);
             log.debug("Request to get exchange rates for usd and eur");
@@ -111,7 +109,7 @@ public class Exchange implements Command {
                     bot.sendUploadPhoto(chatId);
                     int months = Integer.parseInt(monthsCountMatcher.group(1));
 
-                    Pair<String, InputStream> result;
+                    Pair<String, byte[]> result;
                     try {
                         result = getChartForUsdEur(months);
                     } catch (IOException e) {
@@ -266,7 +264,7 @@ public class Exchange implements Command {
         }
     }
 
-    private Pair<String, InputStream> getChartForUsdEur(int months) throws IOException {
+    private Pair<String, byte[]> getChartForUsdEur(int months) throws IOException {
         if (months < 1 || months > 24) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -282,12 +280,12 @@ public class Exchange implements Command {
                 + "$ USD: <b>" + getMinValueFromRecords(usdValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(usdValCurs.getRecords()) + "</b> RUB\n"
                 + "€ EUR: <b>" + getMinValueFromRecords(eurValCurs.getRecords()) + "</b> RUB / <b>" + getMaxValueFromRecords(eurValCurs.getRecords()) + "</b> RUB\n";
 
-        InputStream chart = getChart(usdValCurs, eurValCurs);
+        byte[] chart = getChart(usdValCurs, eurValCurs);
 
         return Pair.of(title, chart);
     }
 
-    private InputStream getChart(DynamicValCurs usdValCurs, DynamicValCurs eurValCurs) throws IOException {
+    private byte[] getChart(DynamicValCurs usdValCurs, DynamicValCurs eurValCurs) throws IOException {
         XYSeriesCollection dataset = new XYSeriesCollection();
 
         dataset.addSeries(getSeries(usdValCurs.getRecords(),"USD"));
@@ -326,9 +324,7 @@ public class Exchange implements Command {
 
         chart.getLegend().setFrame(BlockBorder.NONE);
 
-        byte[] bytes = ChartUtils.encodeAsPNG(chart.createBufferedImage(DEFAULT_CHART_WIDTH, DEFAULT_CHART_HEIGHT));
-
-        return new ByteArrayInputStream(bytes);
+        return ChartUtils.encodeAsPNG(chart.createBufferedImage(DEFAULT_CHART_WIDTH, DEFAULT_CHART_HEIGHT));
     }
 
     private Double getMinValue(List<DynamicValCurs> valCurses) {

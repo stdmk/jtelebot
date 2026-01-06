@@ -12,11 +12,11 @@ import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
-import org.telegram.bot.enums.RequestSource;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
@@ -30,6 +30,7 @@ public class Write implements Command {
     private final SpeechService speechService;
     private final ChatService chatService;
     private final UserStatsService userStatsService;
+    private final ObjectCopier objectCopier;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -39,12 +40,12 @@ public class Write implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        sendMessage(message.getCommandArgument(), message.getUser(), request.getSource());
+        sendMessage(message.getCommandArgument(), message.getUser(), request);
 
         return returnResponse();
     }
 
-    private void sendMessage(String commandArgument, User user, RequestSource source) {
+    private void sendMessage(String commandArgument, User user, BotRequest botRequest) {
         int spaceIndex = commandArgument.indexOf(" ");
         if (spaceIndex < 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
@@ -77,7 +78,23 @@ public class Write implements Command {
         bot.sendMessage(new TextResponse()
                 .setChatId(chatId)
                 .setResponseSettings(FormattingStyle.HTML)
-                .setText(TextUtils.getHtmlLinkToUser(user) + " (" + source.getName() + "): " + text));
+                .setText(TextUtils.getHtmlLinkToUser(user) + " (" + botRequest.getSource().getName() + "): " + text));
+
+        processRequest(botRequest, chat, text);
+    }
+
+    private void processRequest(BotRequest botRequest, Chat chat, String messageText) {
+        BotRequest newBotRequest = objectCopier.copyObject(botRequest, BotRequest.class);
+        if (newBotRequest == null) {
+            log.error("Failed to get a copy of request");
+            return;
+        }
+
+        newBotRequest.getMessage()
+                .setChat(chat)
+                .setText(messageText);
+
+        bot.processRequestWithoutAnalyze(newBotRequest);
     }
 
 }

@@ -133,7 +133,7 @@ public class ZodiacSetter implements Setter<BotResponse> {
 
         return new TextResponse(message)
                 .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
-                .setResponseSettings(FormattingStyle.MARKDOWN);
+                .setResponseSettings(FormattingStyle.HTML);
     }
 
     private BotResponse getUserZodiacWithKeyboard(Message message, Chat chat, User user, boolean newMessage) {

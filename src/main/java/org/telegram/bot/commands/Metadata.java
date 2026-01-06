@@ -23,8 +23,8 @@ import org.telegram.bot.utils.coordinates.Coordinates;
 import org.telegram.bot.utils.coordinates.CoordinatesUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,14 +77,9 @@ public class Metadata implements Command {
         } else {
             repliedMessageId = messageWithFile.getMessageId();
 
-            try (InputStream file = getFileFromMessage(messageWithFile.getAttachments().get(0))) {
-                try {
-                    responseText = getMetadata(file);
-                } catch (ImageProcessingException e) {
-                    log.error("Failed to get metadata from file", e);
-                    botStats.incrementErrors(request, e, "Failed to get metadata from file");
-                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-                }
+            byte[] file;
+            try {
+                file = getFileFromMessage(messageWithFile.getAttachments().get(0));
             } catch (IOException e) {
                 log.error("Failed to get metadata from file", e);
                 botStats.incrementErrors(request, e, "Failed to get metadata from file");
@@ -93,6 +88,14 @@ public class Metadata implements Command {
                 log.error("Failed to get file from telegram", e);
                 botStats.incrementErrors(request, e, "Failed to get file from telegram");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            }
+
+            try {
+                responseText = getMetadata(file);
+            } catch (ImageProcessingException | IOException e) {
+                log.error("Failed to get metadata from file", e);
+                botStats.incrementErrors(request, e, "Failed to get metadata from file");
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         }
 
@@ -103,13 +106,17 @@ public class Metadata implements Command {
                 .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private InputStream getFileFromMessage(Attachment attachment) throws TelegramApiException, IOException {
+    private byte[] getFileFromMessage(Attachment attachment) throws TelegramApiException, IOException {
         String fileId = attachment.getFileId();
         long fileSize = attachment.getSize();
 
         checkFileSizeLimit(fileSize);
 
-        return bot.getInputStreamFromTelegramFile(fileId);
+        if (attachment.getFile() != null) {
+            return attachment.getFile();
+        } else {
+            return bot.getBytesTelegramFile(fileId);
+        }
     }
 
     private void checkFileSizeLimit(Long fileSize) {
@@ -118,8 +125,8 @@ public class Metadata implements Command {
         }
     }
 
-    private String getMetadata(InputStream inputStream) throws ImageProcessingException, IOException {
-        com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(inputStream);
+    private String getMetadata(byte[] file) throws ImageProcessingException, IOException {
+        com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(new ByteArrayInputStream(file));
 
         StringBuilder buf = new StringBuilder();
 

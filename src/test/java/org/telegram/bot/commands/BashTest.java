@@ -41,13 +41,13 @@ class BashTest {
     @Test
     void parseRandomQuotTest() throws IOException {
         final String expectedText = """
-                [Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)
-                *06.02.2006 в 10:25*
-                <yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв
-                <Chrono> водка
-                <LSD> водка
-                <Racco^n> водка
-                <LD> водка""";
+                <a href="https://xn--80abh7bk0c.xn--p1ai/quote/10229">Цитата #10229</a>
+                <b>06.02.2006 в 10:25</b>
+                &lt;yМHuK&gt; Bоnpoс #276: Трaдиционный русский напиток  5 букв
+                &lt;Chrono&gt; водка
+                &lt;LSD&gt; водка
+                &lt;Racco^n&gt; водка
+                &lt;LD&gt; водка""";
         BotRequest request = TestUtils.getRequestFromGroup(null);
         String rawRandomQuot = TestUtils.getResourceAsString("bash/bash_random_quote.txt");
 
@@ -57,7 +57,7 @@ class BashTest {
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());
-        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.MARKDOWN);
+        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.HTML);
         String actualText = textResponse.getText();
         assertEquals(expectedText, actualText);
     }
@@ -74,13 +74,13 @@ class BashTest {
     @Test
     void parseDefineQuotTest() throws IOException {
         final String expectedText = """
-                [Цитата #10229](https://xn--80abh7bk0c.xn--p1ai/quote/10229)
-                *06.02.2006 в 10:25*
-                <yМHuK> Bоnpoс #276: Трaдиционный русский напиток  5 букв
-                <Chrono> водка
-                <LSD> водка
-                <Racco^n> водка
-                <LD> водка""";
+                <a href="https://xn--80abh7bk0c.xn--p1ai/quote/10229">Цитата #10229</a>
+                <b>06.02.2006 в 10:25</b>
+                &lt;yМHuK&gt; Bоnpoс #276: Трaдиционный русский напиток  5 букв
+                &lt;Chrono&gt; водка
+                &lt;LSD&gt; водка
+                &lt;Racco^n&gt; водка
+                &lt;LD&gt; водка""";
         BotRequest request = TestUtils.getRequestFromGroup();
         request.getMessage().setText("bash 10229");
         String rawDefinedQuot = TestUtils.getResourceAsString("bash/bash_define_quote.txt");
@@ -91,7 +91,7 @@ class BashTest {
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());
-        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.MARKDOWN);
+        TestUtils.checkDefaultTextResponseParams(textResponse, true, FormattingStyle.HTML);
 
         String actualText = textResponse.getText();
         assertEquals(expectedText, actualText);

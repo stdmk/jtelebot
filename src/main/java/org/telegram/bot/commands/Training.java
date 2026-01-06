@@ -8,8 +8,8 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.*;
+import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
@@ -18,7 +18,6 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.time.format.TextStyle;
@@ -334,7 +333,7 @@ public class Training implements Command {
 
         String txt = internationalizationService.internationalize(buf.toString(), lang);
 
-        return new File(FileType.FILE, new ByteArrayInputStream(txt.getBytes(StandardCharsets.UTF_8)), fileName + ".txt");
+        return new File(FileType.FILE, txt.getBytes(StandardCharsets.UTF_8), fileName + ".txt");
     }
 
     private String getReportStatistic(List<TrainingEvent> trainingEventList) {

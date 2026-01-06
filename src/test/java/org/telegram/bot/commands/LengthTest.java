@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,7 +21,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -28,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LengthTest {
@@ -52,9 +54,10 @@ class LengthTest {
         verify(bot).sendTyping(anyLong());
     }
 
-    @Test
-    void parseRequestWithDocumentWithWrongMimeTypeTest() {
-        Attachment attachment = TestUtils.getDocument();
+    @ParameterizedTest
+    @NullAndEmptySource
+    void parseRequestWithDocumentWithWrongMimeTypeTest(String mimeType) {
+        Attachment attachment = TestUtils.getDocument(mimeType);
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
@@ -69,7 +72,7 @@ class LengthTest {
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(new BotException("internal error"));
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> length.parse(request));
         verify(bot).sendTyping(anyLong());
@@ -83,7 +86,7 @@ class LengthTest {
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         assertThrows((BotException.class), () -> length.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
@@ -106,9 +109,22 @@ class LengthTest {
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(fileContent.getBytes());
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(anyString())).thenReturn(fileContent.getBytes());
+
+        BotResponse botResponse = length.parse(request).get(0);
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponse, textResponse.getText());
+        verify(bot).sendTyping(anyLong());
+    }
+
+    @Test
+    void parseRequestWithDocumentBytesTest() {
+        final String fileContent = "test";
+        final String expectedResponse = "${command.length.responselength} <b>" + fileContent.length() + "</b> ${command.length.symbols}";
+        Attachment attachment = new Attachment().setFile(fileContent.getBytes(StandardCharsets.UTF_8)).setMimeType("application");
+        BotRequest request = TestUtils.getRequestFromGroup("length");
+        request.getMessage().setAttachments(List.of(attachment));
 
         BotResponse botResponse = length.parse(request).get(0);
 

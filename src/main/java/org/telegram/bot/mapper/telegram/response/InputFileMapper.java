@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
+import java.io.ByteArrayInputStream;
+
 @RequiredArgsConstructor
 @Component
 public class InputFileMapper {
@@ -16,8 +18,8 @@ public class InputFileMapper {
             return new InputFile(file.getFileId());
         } else if (file.getUrl() != null) {
             return new InputFile(file.getUrl());
-        } else if (file.getInputStream() != null) {
-            return new InputFile(file.getInputStream(), file.getName());
+        } else if (file.getBytes() != null) {
+            return new InputFile(new ByteArrayInputStream(file.getBytes()), file.getName());
         } else if (file.getDiskFile() != null) {
             return new InputFile(file.getDiskFile());
         } else {

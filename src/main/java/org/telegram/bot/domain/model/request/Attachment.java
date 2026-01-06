@@ -13,7 +13,9 @@ public class Attachment {
     private String mimeType;
     private String fileUniqueId;
     private String fileId;
+    private byte[] file;
     private String name;
     private Long size;
     private Integer duration;
+    private String text;
 }

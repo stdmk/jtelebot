@@ -49,9 +49,9 @@ class GetidTest {
     @Test
     void getIdOfUsernameTest() {
         final String responseText = """
-                ${command.getid.id} [username](tg://user?id=1): `1`
-                ${command.getid.groupid}: `-1`
-                ${command.getid.yourid}: `1`""";
+                ${command.getid.id} <a href="tg://user?id=1">username</a>: <code>1</code>
+                ${command.getid.groupid}: <code>-1</code>
+                ${command.getid.yourid}: <code>1</code>""";
         BotRequest request = TestUtils.getRequestFromGroup("getid test");
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
@@ -67,9 +67,9 @@ class GetidTest {
     @Test
     void getIdOfUserFromRepliedMessageTest() {
         final String responseText = """
-                ${command.getid.id} [username](tg://user?id=2): `2`
-                ${command.getid.groupid}: `-1`
-                ${command.getid.yourid}: `1`""";
+                ${command.getid.id} <a href="tg://user?id=2">username</a>: <code>2</code>
+                ${command.getid.groupid}: <code>-1</code>
+                ${command.getid.yourid}: <code>1</code>""";
         BotRequest request = TestUtils.getRequestWithRepliedMessage("getid");
 
         BotResponse response = getid.parse(request).get(0);
@@ -82,8 +82,8 @@ class GetidTest {
 
     @Test
     void getIdInGroupChatTest() {
-        final String responseText = "${command.getid.groupid}: `-1`\n" +
-                "${command.getid.yourid}: `1`";
+        final String responseText = "${command.getid.groupid}: <code>-1</code>\n" +
+                "${command.getid.yourid}: <code>1</code>";
         BotRequest request = TestUtils.getRequestFromGroup("getid");
 
         BotResponse response = getid.parse(request).get(0);
@@ -96,7 +96,7 @@ class GetidTest {
 
     @Test
     void getIdTest() {
-        final String responseText = "${command.getid.yourid}: `1`";
+        final String responseText = "${command.getid.yourid}: <code>1</code>";
         BotRequest request = TestUtils.getRequestFromPrivate("getid");
 
         BotResponse response = getid.parse(request).get(0);

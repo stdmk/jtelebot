@@ -23,8 +23,8 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -149,6 +149,7 @@ class WebScreenTest {
 
     @Test
     void parseTest() throws IOException {
+        final byte[] file = "test".getBytes(StandardCharsets.UTF_8);
         final String url = "http://example.com";
         final String expectedUrl = "https://api.screenshotmachine.com?" +
                 "device=" + DEVICE + "&dimension=" + DIMENSION + "&format=" + FORMAT + "&cacheLimit=0&timeout=" + TIMEOUT_MS + "&key=" + TOKEN + "&url=" + url;
@@ -161,13 +162,12 @@ class WebScreenTest {
         when(propertiesConfig.getScreenshotMachineTimeoutMs()).thenReturn(TIMEOUT_MS);
         when(propertiesConfig.getScreenshotMachineToken()).thenReturn(TOKEN);
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
-        InputStream screen = mock(InputStream.class);
-        when(networkUtils.getFileFromUrlWithLimit(expectedUrl)).thenReturn(screen);
+        when(networkUtils.getFileFromUrlWithLimit(expectedUrl)).thenReturn(file);
 
         BotResponse botResponse = webScreen.parse(request).get(0);
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse, FileType.IMAGE);
-        assertEquals(screen, fileResponse.getFiles().get(0).getInputStream());
+        assertEquals(file, fileResponse.getFiles().get(0).getBytes());
 
         verify(botStats).incrementScreenshots();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());

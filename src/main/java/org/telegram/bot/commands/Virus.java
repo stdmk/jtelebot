@@ -24,7 +24,6 @@ import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -103,7 +102,10 @@ public class Virus implements Command {
 
     private String sendFileToScan(Attachment attachment) throws TelegramApiException, IOException {
         String scanResult;
-        try (InputStream file = bot.getInputStreamFromTelegramFile(attachment.getFileId())) {
+
+        byte[] file = bot.getBytesTelegramFile(attachment.getFileId());
+
+        try {
             scanResult = virusScanner.scan(file);
         } catch (VirusScanException e) {
             return handleException(e);

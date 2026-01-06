@@ -56,7 +56,7 @@ public class Bash implements Command {
         return returnResponse(new TextResponse(message)
                 .setText(quote)
                 .setResponseSettings(new ResponseSettings()
-                        .setFormattingStyle(FormattingStyle.MARKDOWN)
+                        .setFormattingStyle(FormattingStyle.HTML)
                         .setWebPagePreview(false)));
     }
 
@@ -128,9 +128,9 @@ public class Bash implements Command {
         quote = quote.replace("<br>", "\n");
         quote = quote.replace("<br />", "\n");
         quote = quote.replace("<' + 'br>", "\n");
-        quote = quote.replace("&lt;", "<").replace("&gt;", ">");
         quote = cutMarkdownSymbolsInText(quote);
 
-        return "[Цитата #" + quotNumber + "](" + BASHORG_URL + "/quote/" + quotNumber + ")\n" + "*" + date + "*\n" + quote;
+        return "<a href=\"" + BASHORG_URL + "/quote/" + quotNumber + "\">" + "Цитата #" + quotNumber + "</a>\n"
+                + "<b>" + date + "</b>\n" + quote;
     }
 }

@@ -15,7 +15,7 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
-import org.telegram.bot.mapper.telegram.request.RequestMapper;
+import org.telegram.bot.mapper.bot.request.RequestMapper;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -57,17 +57,29 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     @Override
     public void consume(Update update) {
         botStats.incrementReceivedMessages();
-
         BotRequest botRequest = requestMapper.toBotRequest(update);
-        Message message = botRequest.getMessage();
+        process(botRequest);
+    }
 
-        logService.log(message);
+    public void consume(javax.mail.Message emailMessage) {
+        botStats.incrementReceivedMessages();
+        BotRequest botRequest = requestMapper.toBotRequest(emailMessage);
+        process(botRequest);
+    }
+
+    private void process(BotRequest botRequest) {
+        Message message = botRequest.getMessage();
+        if (message == null) {
+            return;
+        }
+
+        logService.log(botRequest);
 
         if (TelegramUtils.isUnsupportedMessage(message)) {
             return;
         }
 
-        userStatsService.updateEntitiesInfo(message);
+        userStatsService.updateEntitiesInfo(botRequest);
 
         Long chatId = message.getChatId();
         Long userId = message.getUser().getUserId();
@@ -176,10 +188,13 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         parser.executeAsync(fileResponse);
     }
 
-    public InputStream getInputStreamFromTelegramFile(String fileId) throws TelegramApiException, IOException {
+    public byte[] getBytesTelegramFile(String fileId) throws TelegramApiException, IOException {
         String filePath = telegramClient.execute(new GetFile(fileId)).getFilePath();
         String fileUrl = new File(null, null, null, filePath).getFileUrl(this.getBotToken());
-        return new URL(fileUrl).openStream();
+
+        try (InputStream inputStream = new URL(fileUrl).openStream()) {
+            return inputStream.readAllBytes();
+        }
     }
 
     public void sendUploadPhoto(Long chatId) {

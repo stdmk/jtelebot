@@ -80,7 +80,7 @@ class LevelTest {
 
     @Test
     void parseWithUsernameAsArgumentTest() {
-        final String expectedResponseText = "${command.level.userlevel} [username](tg://user?id=1) - 1";
+        final String expectedResponseText = "${command.level.userlevel} <a href=\"tg://user?id=1\">username</a> - 1";
         final String username = "username";
         BotRequest request = TestUtils.getRequestFromGroup("level " + username);
         Long chatId = request.getMessage().getChatId();

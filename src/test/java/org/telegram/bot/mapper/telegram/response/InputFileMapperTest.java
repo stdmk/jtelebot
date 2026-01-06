@@ -14,7 +14,7 @@ import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,7 +56,7 @@ class InputFileMapperTest {
         return Stream.of(
                 Arguments.of(new File("fileId"), "fileId", null),
                 Arguments.of(new File(FileType.FILE, "url"), "url", null),
-                Arguments.of(new File(FileType.FILE, mock(InputStream.class), "name"), "attach://name", "name"),
+                Arguments.of(new File(FileType.FILE, "content".getBytes(StandardCharsets.UTF_8), "name"), "attach://name", "name"),
                 Arguments.of(new File(FileType.FILE, diskFile), "attach://name", "name")
         );
     }

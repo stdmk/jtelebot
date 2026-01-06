@@ -25,7 +25,6 @@ import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -101,7 +100,7 @@ public class Voice implements Command, MessageAnalyzer {
         return returnResponse(new FileResponse()
                 .setChatId(message.getChatId())
                 .setReplyToMessageId(messageIdToReply)
-                .addFile(new File(FileType.VOICE, new ByteArrayInputStream(voice), "voice")));
+                .addFile(new File(FileType.VOICE, voice, "voice")));
     }
 
     @Override
@@ -115,12 +114,17 @@ public class Voice implements Command, MessageAnalyzer {
                         .findFirst()
                         .map(voice -> {
                             byte[] file;
-                            try {
-                                file = bot.getInputStreamFromTelegramFile(voice.getFileId()).readAllBytes();
-                            } catch (TelegramApiException | IOException e) {
-                                log.error("Failed to get file from telegram", e);
-                                botStats.incrementErrors(request, e, "Failed to get file from telegram");
-                                return null;
+
+                            if (voice.getFile() != null) {
+                                file = voice.getFile();
+                            } else {
+                                try {
+                                    file = bot.getBytesTelegramFile(voice.getFileId());
+                                } catch (TelegramApiException | IOException e) {
+                                    log.error("Failed to get file from telegram", e);
+                                    botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                                    return null;
+                                }
                             }
 
                             String response;

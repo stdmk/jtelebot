@@ -7,9 +7,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.enums.AccessLevel;
+import org.telegram.bot.enums.RequestSource;
 import org.telegram.bot.repositories.UserStatsRepository;
 import org.telegram.bot.services.*;
 
@@ -84,6 +86,7 @@ public class UserStatsServiceImpl implements UserStatsService {
     private final LastMessageService lastMessageService;
     private final LastCommandService lastCommandService;
     private final MessageService messageService;
+    private final UserEmailService userEmailService;
 
     @Override
     public UserStats get(Chat chat, User user) {
@@ -111,8 +114,9 @@ public class UserStatsServiceImpl implements UserStatsService {
 
     @Override
     @Transactional
-    public void updateEntitiesInfo(Message message) {
+    public void updateEntitiesInfo(BotRequest botRequest) {
         log.debug("Request to updates entities info");
+        Message message = botRequest.getMessage();
 
         User user = updateUserInfo(message.getUser());
         Chat chat = updateChatInfo(message.getChat());
@@ -121,6 +125,21 @@ public class UserStatsServiceImpl implements UserStatsService {
         }
 
         messageService.save(message);
+
+        updateEmailShipping(botRequest.getSource(), user);
+    }
+
+    private void updateEmailShipping(RequestSource source, User user) {
+        UserEmail userEmail = userEmailService.get(user);
+        if (userEmail != null) {
+            if (RequestSource.EMAIL.equals(source)) {
+                userEmail.setShippingEnabled(true);
+            } else if (RequestSource.TELEGRAM.equals(source)) {
+                userEmail.setShippingEnabled(false);
+            }
+
+            userEmailService.save(userEmail);
+        }
     }
 
     @Override
@@ -267,8 +286,9 @@ public class UserStatsServiceImpl implements UserStatsService {
         Long chatId = chatFrom.getChatId();
 
         Chat chat = chatService.get(chatId);
-        if (!chatFrom.getName().equals(chat.getName())) {
-            chat.setName(chatFrom.getName());
+        String chatFromName = chatFrom.getName();
+        if (chatFromName != null && !chatFromName.equals(chat.getName())) {
+            chat.setName(chatFromName);
             chat = chatService.save(chat);
         }
 

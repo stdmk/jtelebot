@@ -19,7 +19,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -77,9 +76,9 @@ class JsonTest {
 
     @Test
     void parseCompressedJsonTest() {
-        final String expectedResponseText = "```json\n{" + System.lineSeparator() +
+        final String expectedResponseText = "<pre><code class=\"language-json\">\n{" + System.lineSeparator() +
                 "  \"field\" : \"value\"" + System.lineSeparator() +
-                "}```";
+                "}</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("json {\"field\":\"value\"}");
 
         BotResponse botResponse = json.parse(request).get(0);
@@ -90,7 +89,8 @@ class JsonTest {
 
     @Test
     void parseBeautyJsonTest() {
-        final String expectedResponseText = "```json\n{\"field\":\"value\"}```";
+        final String expectedResponseText = "<pre><code class=\"language-json\">\n" +
+                "{\"field\":\"value\"}</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("json {\n  \"field\" : \"value\"\n}");
 
         BotResponse botResponse = json.parse(request).get(0);
@@ -110,7 +110,7 @@ class JsonTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedError);
         TelegramApiException exception = new TelegramApiException();
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenThrow(exception);
+        when(bot.getBytesTelegramFile(fileId)).thenThrow(exception);
 
         BotException botException = assertThrows((BotException.class), () -> json.parse(request));
 
@@ -129,16 +129,14 @@ class JsonTest {
         message.setMessageContentType(MessageContentType.FILE);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedError);
-        InputStream inputStream = mock(InputStream.class);
         IOException ioException = new IOException();
-        when(inputStream.readAllBytes()).thenThrow(ioException);
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(fileId)).thenThrow(ioException);
 
         BotException botException = assertThrows((BotException.class), () -> json.parse(request));
 
         assertEquals(expectedError, botException.getMessage());
 
-        verify(botStats).incrementErrors(request, ioException, "Failed to read bytes of file from telegram");
+        verify(botStats).incrementErrors(request, ioException, "Failed to get file from telegram");
     }
 
     @Test
@@ -151,9 +149,7 @@ class JsonTest {
         message.setAttachments(List.of(new Attachment().setFileId(fileId).setName(fileName)));
         message.setMessageContentType(MessageContentType.FILE);
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn("{\n  \"field\" : \"value\"\n}".getBytes());
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(fileId)).thenReturn("{\n  \"field\" : \"value\"\n}".getBytes(StandardCharsets.UTF_8));
 
         BotResponse botResponse = json.parse(request).get(0);
 
@@ -162,7 +158,27 @@ class JsonTest {
         File file = fileResponse.getFiles().get(0);
         assertEquals(fileName, file.getName());
 
-        String actualResponseText = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
+        assertEquals(expectedResponseText, actualResponseText);
+    }
+
+    @Test
+    void parseFileAsBytesTest() {
+        final String expectedResponseText = "{\"field\":\"value\"}";
+        final String fileName = "fileName";
+        BotRequest request = TestUtils.getRequestFromGroup("json");
+        Message message = request.getMessage();
+        message.setAttachments(List.of(new Attachment().setFile("{\n  \"field\" : \"value\"\n}".getBytes()).setName(fileName)));
+        message.setMessageContentType(MessageContentType.FILE);
+
+        BotResponse botResponse = json.parse(request).get(0);
+
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
+
+        File file = fileResponse.getFiles().get(0);
+        assertEquals(fileName, file.getName());
+
+        String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedResponseText, actualResponseText);
     }
 

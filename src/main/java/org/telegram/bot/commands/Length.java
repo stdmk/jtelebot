@@ -61,12 +61,19 @@ public class Length implements Command {
 
     private int getFileLength(Attachment attachment) throws IOException, TelegramApiException {
         checkMimeType(attachment.getMimeType());
-        byte[] file = bot.getInputStreamFromTelegramFile(attachment.getFileId()).readAllBytes();
+
+        byte[] file;
+        if (attachment.getFile() != null) {
+            file = attachment.getFile();
+        } else {
+            file = bot.getBytesTelegramFile(attachment.getFileId());
+        }
+
         return new String(file, StandardCharsets.UTF_8).length();
     }
 
     private void checkMimeType(String mimeType) {
-        if (!mimeType.startsWith("text") && !mimeType.startsWith("application")) {
+        if (mimeType == null || !mimeType.startsWith("text") && !mimeType.startsWith("application")) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }

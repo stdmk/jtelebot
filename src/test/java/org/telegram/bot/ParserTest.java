@@ -1,19 +1,18 @@
 package org.telegram.bot;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.telegram.bot.commands.MessageAnalyzer;
 import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
-import org.telegram.bot.mapper.telegram.response.ResponseMapper;
+import org.telegram.bot.mapper.telegram.response.ResponseTelegramMapper;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.UserService;
-import org.telegram.bot.services.executors.MethodExecutor;
+import org.telegram.bot.services.executors.email.EmailExecutor;
+import org.telegram.bot.services.executors.telegram.TelegramMethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.util.List;
@@ -30,20 +29,19 @@ class ParserTest {
     private final MessageAnalyzer messageAnalyzer6 = mock(MessageAnalyzer.class);
     private final CommandPropertiesService commandPropertiesService = mock(CommandPropertiesService.class);
     private final UserService userService = mock(UserService.class);
+    private final EmailExecutor emailExecutor = mock(EmailExecutor.class);
     private final BotStats botStats = mock(BotStats.class);
-    private final ResponseMapper responseMapper = mock(ResponseMapper.class);
-    private final MethodExecutor methodExecutor = mock(MethodExecutor.class);
+    private final ResponseTelegramMapper responseTelegramMapper = mock(ResponseTelegramMapper.class);
+    private final TelegramMethodExecutor telegramMethodExecutor = mock(TelegramMethodExecutor.class);
 
     private final Parser parser = new Parser(
-            responseMapper,
-            List.of(methodExecutor),
+            responseTelegramMapper,
+            List.of(telegramMethodExecutor),
+            emailExecutor,
             botStats,
             List.of(messageAnalyzer1, messageAnalyzer2, messageAnalyzer3, messageAnalyzer4, messageAnalyzer5, messageAnalyzer6),
             commandPropertiesService,
             userService);
-
-    @Captor
-    private ArgumentCaptor<List<BotResponse>> botResponseCaptor;
 
     @Test
     void analyzeMessageAsyncTest() {
@@ -71,12 +69,12 @@ class ParserTest {
         when(userService.isUserHaveAccessForCommand(1, 1)).thenReturn(true);
         PartialBotApiMethod telegramMethod = mock(PartialBotApiMethod.class);
         when(telegramMethod.getMethod()).thenReturn("method");
-        when(responseMapper.toTelegramMethod(botResponses)).thenReturn(List.of(telegramMethod));
-        when(methodExecutor.getMethod()).thenReturn("method");
+        when(responseTelegramMapper.toTelegramMethod(botResponses)).thenReturn(List.of(telegramMethod));
+        when(telegramMethodExecutor.getMethod()).thenReturn("method");
 
         parser.analyzeMessageAsync(request, userAccessLevel);
 
-        verify(methodExecutor).executeMethod(telegramMethod, request);
+        verify(telegramMethodExecutor).executeMethod(telegramMethod, request);
         verify(botStats).incrementErrors(request, runtimeException, "Unexpected general error: ");
     }
 

@@ -16,10 +16,8 @@ import org.telegram.bot.services.ErrorService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -84,7 +82,7 @@ public class Errors implements Command {
                 .setResponseSettings(FormattingStyle.HTML));
     }
 
-    private InputStream getDataFromError(Error error) {
+    private byte[] getDataFromError(Error error) {
         try {
             ByteArrayOutputStream zip = new ByteArrayOutputStream();
 
@@ -109,7 +107,7 @@ public class Errors implements Command {
 
             out.close();
 
-            return new ByteArrayInputStream(zip.toByteArray());
+            return zip.toByteArray();
         } catch (IOException e) {
             botStats.incrementErrors(error, e, "error when building zip file from Error");
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));

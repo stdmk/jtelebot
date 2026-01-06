@@ -13,7 +13,6 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.*;
-import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
@@ -27,7 +26,10 @@ import javax.xml.XMLConstants;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -73,17 +75,21 @@ public class Xml implements Command {
             Attachment attachment = message.getAttachments().get(0);
             fileName = attachment.getName();
 
-            InputStream file;
-            try {
-                file = bot.getInputStreamFromTelegramFile(attachment.getFileId());
-            } catch (TelegramApiException | IOException e) {
-                log.error("Failed to get file from telegram", e);
-                botStats.incrementErrors(request, e, "Failed to get file from telegram");
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            byte[] file;
+            if (attachment.getFile() != null) {
+                file = attachment.getFile();
+            } else {
+                try {
+                    file = bot.getBytesTelegramFile(attachment.getFileId());
+                } catch (TelegramApiException | IOException e) {
+                    log.error("Failed to get file from telegram", e);
+                    botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                }
             }
 
             try {
-                responseText = format(new String(file.readAllBytes(), StandardCharsets.UTF_8));
+                responseText = format(new String(file, StandardCharsets.UTF_8));
             } catch (JsonProcessingException | TransformerException e) {
                 fileName = null;
                 responseText = "`" + e.getMessage() + "`";
@@ -103,7 +109,7 @@ public class Xml implements Command {
         if (fileName != null) {
             return returnResponse(new FileResponse(message)
                     .addFile(new File(
-                            FileType.FILE, new ByteArrayInputStream(responseText.getBytes(StandardCharsets.UTF_8)), fileName)));
+                            FileType.FILE, responseText.getBytes(StandardCharsets.UTF_8), fileName)));
         }
 
         return returnResponse(new TextResponse(message)

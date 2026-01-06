@@ -20,7 +20,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,6 +31,8 @@ import static org.telegram.bot.TestUtils.*;
 @ExtendWith(MockitoExtension.class)
 class DownloadTest {
 
+    private static final byte[] FILE_FROM_URL = "content".getBytes(StandardCharsets.UTF_8);
+
     @Mock
     private Bot bot;
     @Mock
@@ -39,8 +41,6 @@ class DownloadTest {
     private SpeechService speechService;
     @Mock
     private CommandWaitingService commandWaitingService;
-    @Mock
-    private InputStream fileFromUrl;
 
     @InjectMocks
     private Download download;
@@ -74,7 +74,7 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup(command);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
         BotResponse response = download.parse(request).get(0);
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
@@ -98,7 +98,7 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup("download " + URL);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
         BotResponse response = download.parse(request).get(0);
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
@@ -115,7 +115,7 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup("download " + URL + FILE_NAME);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(fileFromUrl);
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
         BotResponse response = download.parse(request).get(0);
         verify(bot).sendUploadDocument(request.getMessage().getChatId());

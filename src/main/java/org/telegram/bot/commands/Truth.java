@@ -51,14 +51,14 @@ public class Truth implements Command {
                     .setReplyToMessageId(messageIdToReply)
                     .addFile(gif)
                     .setText(responseText)
-                    .setResponseSettings(FormattingStyle.MARKDOWN));
+                    .setResponseSettings(FormattingStyle.HTML));
         }
 
         return returnResponse(new TextResponse()
                 .setChatId(message.getChatId())
                 .setReplyToMessageId(messageIdToReply)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private String buildResponseMessage(int prob) {
@@ -80,7 +80,7 @@ public class Truth implements Command {
             comment = "${command.truth.fuckingtruth}";
         }
 
-        return "${command.truth.caption} - *" + prob + "%*\n(" + comment + ")";
+        return "${command.truth.caption} - <b>" + prob + "%</b>\n(" + comment + ")";
     }
 
     private File getGif(int prob) {

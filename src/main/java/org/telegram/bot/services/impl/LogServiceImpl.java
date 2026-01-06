@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.ResponseSettings;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.FormattingStyle;
+import org.telegram.bot.services.EmailNotifier;
 import org.telegram.bot.services.LogService;
 import org.telegram.bot.utils.TextUtils;
 
@@ -22,23 +24,29 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class LogServiceImpl implements LogService {
 
-    private final PropertiesConfig propertiesConfig;
-    private final Map<Long, LocalDateTime> userIdLastAlertDateTimeMap = new ConcurrentHashMap<>();
     private static final Integer SECONDS_WITHOUT_REPEAT_ALERTS = 30;
+
+    private final Map<Long, LocalDateTime> userIdLastAlertDateTimeMap = new ConcurrentHashMap<>();
+
+    private final PropertiesConfig propertiesConfig;
     private final Bot bot;
+    private final EmailNotifier emailNotifier;
 
     @Override
-    public void log(Message message) {
+    public void log(BotRequest botRequest) {
+        Message message = botRequest.getMessage();
         org.telegram.bot.domain.entities.User user = message.getUser();
 
         String textOfMessage = message.getText();
         Boolean spyMode = propertiesConfig.getSpyMode();
         Long chatId = message.getChatId();
         Long userId = user.getUserId();
-        log.info("From {} ({}-{}): {}", chatId, user.getUsername(), userId, textOfMessage);
+        log.info("({}) From {} ({}-{}): {}", botRequest.getSource().getName(), chatId, user.getUsername(), userId, textOfMessage);
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(user, textOfMessage);
         }
+
+        emailNotifier.notify(botRequest);
     }
 
     private void reportToAdmin(org.telegram.bot.domain.entities.User user, String textMessage) {
@@ -56,7 +64,7 @@ public class LogServiceImpl implements LogService {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         Long userId = user.getUserId();
 
-        ResponseSettings responseSettings = new ResponseSettings().setFormattingStyle(FormattingStyle.MARKDOWN);
+        ResponseSettings responseSettings = new ResponseSettings().setFormattingStyle(FormattingStyle.HTML);
         if (userIdLastAlertDateTimeMap.containsKey(userId)) {
             LocalDateTime lastAlertDateTime = userIdLastAlertDateTimeMap.get(userId);
             if (lastAlertDateTime.plusSeconds(SECONDS_WITHOUT_REPEAT_ALERTS).isBefore(dateTimeNow)) {
@@ -70,7 +78,7 @@ public class LogServiceImpl implements LogService {
 
         return new TextResponse()
                 .setChatId(propertiesConfig.getAdminId())
-                .setText("Received a message from " + TextUtils.getMarkdownLinkToUser(user) + ": `" + textMessage + "`")
+                .setText("Received a message from " + TextUtils.getHtmlLinkToUser(user) + ": <code>" + textMessage + "</code>")
                 .setResponseSettings(responseSettings);
     }
 
