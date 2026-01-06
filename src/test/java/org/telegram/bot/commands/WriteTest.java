@@ -13,6 +13,7 @@ import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
+import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
@@ -21,12 +22,12 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserStatsService;
+import org.telegram.bot.utils.ObjectCopier;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WriteTest {
@@ -39,9 +40,23 @@ class WriteTest {
     private ChatService chatService;
     @Mock
     private UserStatsService userStatsService;
+    @Mock
+    private ObjectCopier objectCopier;
 
     @InjectMocks
     private Write write;
+
+    @Test
+    void parseWithoutArgumentTest() {
+        final String errorText = "error";
+        BotRequest request = TestUtils.getRequestFromGroup("write");
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(errorText);
+
+        BotException botException = assertThrows((BotException.class), () -> write.parse(request));
+
+        assertEquals(errorText, botException.getMessage());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "a", "a a", "1 a", "0 a"})
@@ -86,10 +101,11 @@ class WriteTest {
     }
 
     @Test
-    void parseTest() {
+    void parseFailedToProcessNewMessageTest() {
         final String expectedText = "<a href=\"tg://user?id=1\">username</a> (Telegram): a";
         final long chatId = -1L;
-        BotRequest request = TestUtils.getRequestFromGroup("write " + chatId + " a");
+        final String text = "a";
+        BotRequest request = TestUtils.getRequestFromGroup("write " + chatId + " " + text);
 
         Chat chat = new Chat();
         when(chatService.get(chatId)).thenReturn(chat);
@@ -108,6 +124,46 @@ class WriteTest {
         assertEquals(chatId, textResponse.getChatId());
         assertEquals(FormattingStyle.HTML, textResponse.getResponseSettings().getFormattingStyle());
         assertEquals(expectedText, textResponse.getText());
+
+        verify(bot, never()).processRequestWithoutAnalyze(any(BotRequest.class));
+    }
+
+    @Test
+    void parseTest() {
+        final String expectedText = "<a href=\"tg://user?id=1\">username</a> (Telegram): a";
+        final long chatId = -1L;
+        final String text = "a";
+        BotRequest request = TestUtils.getRequestFromGroup("write " + chatId + " " + text);
+
+        Chat chat = new Chat();
+        when(chatService.get(chatId)).thenReturn(chat);
+        when(userStatsService.getUsersOfChat(chat)).thenReturn(List.of(request.getMessage().getUser()));
+        when(objectCopier.copyObject(request, BotRequest.class)).thenReturn(new BotRequest().setMessage(new Message()));
+
+        List<BotResponse> responses = write.parse(request);
+
+        assertNotNull(responses);
+        assertTrue(responses.isEmpty());
+
+        ArgumentCaptor<TextResponse> textResponseCaptor = ArgumentCaptor.forClass(TextResponse.class);
+        verify(bot).sendMessage(textResponseCaptor.capture());
+
+        TextResponse textResponse = textResponseCaptor.getValue();
+        TestUtils.checkDefaultTextResponseParams(textResponse);
+        assertEquals(chatId, textResponse.getChatId());
+        assertEquals(FormattingStyle.HTML, textResponse.getResponseSettings().getFormattingStyle());
+        assertEquals(expectedText, textResponse.getText());
+
+        ArgumentCaptor<BotRequest> botRequestCaptor = ArgumentCaptor.forClass(BotRequest.class);
+        verify(bot).processRequestWithoutAnalyze(botRequestCaptor.capture());
+
+        BotRequest newBotRequest = botRequestCaptor.getValue();
+        assertNotNull(newBotRequest);
+
+        Message newMessage = newBotRequest.getMessage();
+        assertNotNull(newMessage);
+        assertEquals(text, newMessage.getText());
+        assertEquals(chat, newMessage.getChat());
     }
 
 }

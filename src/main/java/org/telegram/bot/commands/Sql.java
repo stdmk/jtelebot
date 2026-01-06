@@ -54,24 +54,24 @@ public class Sql implements Command {
         log.debug("Request to execute sql request: {}", commandArgument);
         try {
             if (isSelectDataQuery(commandArgument)) {
-                responseText = "```" + executeSelectQuery(commandArgument) + "```";
+                responseText = "<pre><code class=\"language-sql\">" + executeSelectQuery(commandArgument) + "</code></pre>";
             } else if (isUpdateDataQuery(commandArgument)) {
-                responseText = "${command.sql.success}: `" + executeUpdateQuery(commandArgument) + "`";
+                responseText = "${command.sql.success}: <code>" + executeUpdateQuery(commandArgument) + "</code>";
             } else {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
         } catch (BotException be) {
             throw be;
         } catch (Exception e) {
-            responseText = "${command.sql.error}: `" + getInitialExceptionCauseText(e) + "`";
+            responseText = "${command.sql.error}: <code>" + getInitialExceptionCauseText(e) + "</code>";
             bot.sendMessage(new TextResponse(message)
                     .setText(responseText)
-                    .setResponseSettings(FormattingStyle.MARKDOWN));
+                    .setResponseSettings(FormattingStyle.HTML));
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private boolean isSelectDataQuery(String query) {

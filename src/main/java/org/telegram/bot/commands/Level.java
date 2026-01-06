@@ -86,7 +86,7 @@ public class Level implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private String getLevelOfChat(Long chatId) {
@@ -110,7 +110,7 @@ public class Level implements Command {
 
     private String getLevelOfUser(User user) {
         log.debug("Request to get level of user {}", user);
-        return "${command.level.userlevel} " + TextUtils.getMarkdownLinkToUser(user) + " - " + user.getAccessLevel();
+        return "${command.level.userlevel} " + TextUtils.getHtmlLinkToUser(user) + " - " + user.getAccessLevel();
     }
 
     private void changeUserLevel(User user, int level) {

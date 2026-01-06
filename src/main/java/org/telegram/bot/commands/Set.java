@@ -129,7 +129,10 @@ public class Set implements Command {
                         .setCallback(EMPTY_COMMAND + "results")),
                 List.of(new KeyboardButton()
                         .setName("${setter.set.calories}")
-                        .setCallback(EMPTY_COMMAND + "calories"))
+                        .setCallback(EMPTY_COMMAND + "calories")),
+                List.of(new KeyboardButton()
+                        .setName("${setter.set.email}")
+                        .setCallback(EMPTY_COMMAND + "email"))
         ));
     }
 }

@@ -109,15 +109,15 @@ public class TimeDownloading implements Command {
             long milliseconds = (long) (weighInBytes / bytesInSecond) * 1000;
 
             if (milliseconds < 1000) {
-                responseText = "${command.timedownloading.file} *" + TextUtils.formatFileSize(weighInBytes) + "* ${command.timedownloading.willdownload} *${command.timedownloading.instantly}*";
+                responseText = "${command.timedownloading.file} <b>" + TextUtils.formatFileSize(weighInBytes) + "</b> ${command.timedownloading.willdownload} <b>${command.timedownloading.instantly}</b>";
             } else {
-                responseText = "${command.timedownloading.file} *" + TextUtils.formatFileSize(weighInBytes) + "* ${command.timedownloading.willdownload} ${command.timedownloading.in} *" + DateUtils.durationToString(milliseconds) + "*";
+                responseText = "${command.timedownloading.file} <b>" + TextUtils.formatFileSize(weighInBytes) + "</b> ${command.timedownloading.willdownload} ${command.timedownloading.in} <b>" + DateUtils.durationToString(milliseconds) + "</b>";
             }
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private int getNextSpaceIndex(String text) {

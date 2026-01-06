@@ -56,7 +56,7 @@ public class Alias implements Command, MessageAnalyzer {
             }
         } else {
             log.debug("Request to get list of user {} and chat {}", user, chat);
-            caption = "*${command.alias.aliaslist}:*\n";
+            caption = "<b>${command.alias.aliaslist}:</b>\n";
             aliasList = aliasService.getByChatAndUser(chat, user);
         }
 
@@ -69,7 +69,7 @@ public class Alias implements Command, MessageAnalyzer {
                 .setText(responseText)
                 .setResponseSettings(new ResponseSettings()
                         .setWebPagePreview(false)
-                        .setFormattingStyle(FormattingStyle.MARKDOWN)));
+                        .setFormattingStyle(FormattingStyle.HTML)));
     }
 
     /**
@@ -94,7 +94,7 @@ public class Alias implements Command, MessageAnalyzer {
     }
 
     private String buildAliasInfoString(org.telegram.bot.domain.entities.Alias alias) {
-        return alias.getName() + " — `" + alias.getValue() + "`";
+        return alias.getName() + " — <code>" + alias.getValue() + "</code>";
     }
 
     @Override

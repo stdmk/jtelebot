@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.request.MessageKind;
+import org.telegram.bot.mapper.bot.request.MessageMapper;
+import org.telegram.bot.mapper.bot.request.RequestMapper;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;

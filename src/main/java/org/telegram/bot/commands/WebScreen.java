@@ -18,7 +18,6 @@ import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -62,7 +61,7 @@ public class WebScreen implements Command {
         }
 
         log.debug("Request to get screen of url: {}", url);
-        InputStream screen;
+        byte[] screen;
         try {
             screen = networkUtils.getFileFromUrlWithLimit(buildApiUrl(url));
         } catch (IOException e) {

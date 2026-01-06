@@ -21,7 +21,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -118,7 +117,7 @@ class XmlTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedError);
         TelegramApiException exception = new TelegramApiException();
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenThrow(exception);
+        when(bot.getBytesTelegramFile(fileId)).thenThrow(exception);
 
         BotException botException = assertThrows((BotException.class), () -> xml.parse(request));
 
@@ -137,20 +136,19 @@ class XmlTest {
         message.setMessageContentType(MessageContentType.FILE);
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)).thenReturn(expectedError);
-        InputStream inputStream = mock(InputStream.class);
         IOException ioException = new IOException();
-        when(inputStream.readAllBytes()).thenThrow(ioException);
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(fileId)).thenThrow(ioException);
 
         BotException botException = assertThrows((BotException.class), () -> xml.parse(request));
 
         assertEquals(expectedError, botException.getMessage());
 
-        verify(botStats).incrementErrors(request, ioException, "Failed to read bytes of file from telegram");
+        verify(botStats).incrementErrors(request, ioException, "Failed to get file from telegram");
     }
 
     @Test
     void parseFileTest() throws TelegramApiException, IOException {
+        final byte[] bytes = "<test>\n<test2>value</test2>\n</test>".getBytes();
         final String expectedResponseText = "<test><test2>value</test2></test>";
         final String fileName = "fileName";
         final String fileId = "fileId";
@@ -159,9 +157,7 @@ class XmlTest {
         message.setAttachments(List.of(new Attachment().setFileId(fileId).setName(fileName)));
         message.setMessageContentType(MessageContentType.FILE);
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn("<test>\n<test2>value</test2>\n</test>".getBytes());
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(fileId)).thenReturn(bytes);
 
         BotResponse botResponse = xml.parse(request).get(0);
 
@@ -170,7 +166,28 @@ class XmlTest {
         File file = fileResponse.getFiles().get(0);
         assertEquals(fileName, file.getName());
 
-        String actualResponseText = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
+        assertEquals(expectedResponseText, actualResponseText);
+    }
+
+    @Test
+    void parseFileAsBytesTest() {
+        final byte[] bytes = "<test>\n<test2>value</test2>\n</test>".getBytes();
+        final String expectedResponseText = "<test><test2>value</test2></test>";
+        final String fileName = "fileName";
+        BotRequest request = TestUtils.getRequestFromGroup("xml");
+        Message message = request.getMessage();
+        message.setAttachments(List.of(new Attachment().setFile(bytes).setName(fileName)));
+        message.setMessageContentType(MessageContentType.FILE);
+
+        BotResponse botResponse = xml.parse(request).get(0);
+
+        FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
+
+        File file = fileResponse.getFiles().get(0);
+        assertEquals(fileName, file.getName());
+
+        String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedResponseText, actualResponseText);
     }
 

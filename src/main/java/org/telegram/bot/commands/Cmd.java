@@ -56,7 +56,7 @@ public class Cmd implements Command {
         }
 
         return returnResponse(new TextResponse(message)
-                .setText("```" + responseText + "```")
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setText("<pre>" + responseText + "</pre>")
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

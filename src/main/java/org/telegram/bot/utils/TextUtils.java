@@ -61,6 +61,10 @@ public class TextUtils {
      * @return potential command without rest text.
      */
     public static String getPotentialCommandInText(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+
         if (text.charAt(0) == '/') {
             text = text.substring(1);
         }
@@ -163,37 +167,20 @@ public class TextUtils {
     }
 
     public static String getHtmlLinkToUser(User user) {
-        return getLinkToUser(user.getUserId(), true, user.getUsername());
-    }
-
-    public static String getMarkdownLinkToUser(User user) {
-        return getLinkToUser(user.getUserId(), false, user.getUsername());
+        return getLinkToUser(user.getUserId(), user.getUsername());
     }
 
     public static String getHtmlLinkToUser(org.telegram.telegrambots.meta.api.objects.User user) {
-        return getLinkToUser(user.getId(), true, user.getUserName());
-    }
-
-    public static String getMarkdownLinkToUser(org.telegram.telegrambots.meta.api.objects.User user) {
-        return getLinkToUser(user.getId(), false, user.getUserName());
-    }
-
-    public static String getMarkdownLinkToUser(User user, String caption) {
-        return getLinkToUser(user.getUserId(), false, caption);
+        return getLinkToUser(user.getId(), user.getUserName());
     }
 
     public static String getHtmlLinkToUser(User user, String caption) {
-        return getLinkToUser(user.getUserId(), true, caption);
+        return getLinkToUser(user.getUserId(), caption);
     }
 
-    public static String getLinkToUser(Long userId, boolean htmlMode, String caption) {
+    public static String getLinkToUser(Long userId, String caption) {
         String link = "tg://user?id=" + userId;
-
-        if (htmlMode) {
-            return buildHtmlLink(link, caption);
-        }
-
-        return buildMarkDownLink(link, caption);
+        return buildHtmlLink(link, caption);
     }
 
     public static String getHtmlLinkToMessage(Long chatId, Integer messageId, String caption) {
@@ -202,10 +189,6 @@ public class TextUtils {
 
     public static String buildHtmlLink(String link, Object caption) {
         return "<a href=\"" + link + "\">" + caption + "</a>";
-    }
-
-    public static String buildMarkDownLink(String link, String caption) {
-        return "[" + caption + "](" + link + ")";
     }
 
     public static String wrapTextToSpoiler(String text) {

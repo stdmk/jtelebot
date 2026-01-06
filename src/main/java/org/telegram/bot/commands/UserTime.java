@@ -27,7 +27,7 @@ import java.util.List;
 
 import static org.telegram.bot.utils.DateUtils.formatDateTime;
 import static org.telegram.bot.utils.DateUtils.formatTime;
-import static org.telegram.bot.utils.TextUtils.getMarkdownLinkToUser;
+import static org.telegram.bot.utils.TextUtils.getHtmlLinkToUser;
 
 @Component
 @RequiredArgsConstructor
@@ -70,26 +70,26 @@ public class UserTime implements Command {
                     log.debug("Unable to find user or city {}", commandArgument);
                     throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                 }
-                responseText = getMarkdownLinkToUser(user) + " ${command.usertime.citynotset}";
+                responseText = getHtmlLinkToUser(user) + " ${command.usertime.citynotset}";
             } else {
                 log.debug("Request to get time of city {}", city.getNameEn());
                 String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(ZoneId.of(city.getTimeZone())));
-                responseText = "${command.usertime.incity} " + city.getNameRu() + " ${command.usertime.now}: *" + dateTimeNow + "*";
+                responseText = "${command.usertime.incity} " + city.getNameRu() + " ${command.usertime.now}: <b>" + dateTimeNow + "</b>";
             }
         } else {
             log.debug("Request to get time of user {}", user);
 
             ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
             String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(userZoneId));
-            responseText = "${command.usertime.at} " + getMarkdownLinkToUser(user) + " ${command.usertime.now} *" + dateTimeNow + "*";
+            responseText = "${command.usertime.at} " + getHtmlLinkToUser(user) + " ${command.usertime.now} <b>" + dateTimeNow + "</b>";
             if (repliedMessageDateTime != null) {
                 String pastDateTime = formatDateTime(repliedMessageDateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(userZoneId));
-                responseText = responseText + "\n" + "${command.usertime.was}: *" + pastDateTime + "*";
+                responseText = responseText + "\n" + "${command.usertime.was}: <b>" + pastDateTime + "</b>";
             }
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

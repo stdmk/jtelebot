@@ -55,14 +55,17 @@ class AliasTest {
 
     @Test
     void parseWithAliasNameTest() {
-        final String expectedResponseText = "${command.alias.foundaliases}:\ntest1 — `echo1`\ntest2 — `echo2`";
+        final String expectedResponseText = """
+                ${command.alias.foundaliases}:
+                test1 — <code>echo1</code>
+                test2 — <code>echo2</code>""";
         List<org.telegram.bot.domain.entities.Alias> aliasEntityList = getSomeAliasEntityList();
         BotRequest request = getRequestFromGroup("alias test");
 
         when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), anyString())).thenReturn(aliasEntityList);
 
         BotResponse botResponse = alias.parse(request).get(0);
-        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.MARKDOWN);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.HTML);
 
         String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
@@ -70,14 +73,18 @@ class AliasTest {
 
     @Test
     void parseTest() {
-        final String expectedResponseText = "*${command.alias.aliaslist}:*\ntest1 — `echo1`\ntest1 — `echo1`\ntest2 — `echo2`";
+        final String expectedResponseText = """
+                <b>${command.alias.aliaslist}:</b>
+                test1 — <code>echo1</code>
+                test1 — <code>echo1</code>
+                test2 — <code>echo2</code>""";
         List<org.telegram.bot.domain.entities.Alias> aliasEntityList = getSomeAliasEntityList();
 
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(aliasEntityList);
 
         BotResponse botResponse = alias.parse(TestUtils.getRequestFromGroup()).get(0);
-        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.MARKDOWN);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.HTML);
 
         String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);

@@ -16,7 +16,6 @@ import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -78,7 +77,7 @@ public class Image implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        InputStream image;
+        byte[] image;
         Long imageId = imageUrl.getId();
         try {
             image = networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl());

@@ -3,8 +3,6 @@ package org.telegram.bot.domain.model.response;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.io.InputStream;
-
 @Getter
 @ToString
 public class File {
@@ -14,8 +12,9 @@ public class File {
         this.fileType = FileType.FILE;
         this.url = null;
         this.diskFile = null;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = null;
+        this.text = null;
         this.fileSettings = new FileSettings();
     }
 
@@ -24,8 +23,9 @@ public class File {
         this.fileType = fileType;
         this.url = url;
         this.diskFile = null;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = null;
+        this.text = null;
         this.fileSettings = new FileSettings();
     }
 
@@ -34,8 +34,9 @@ public class File {
         this.fileType = fileType;
         this.url = url;
         this.diskFile = null;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = null;
+        this.text = null;
         this.fileSettings = fileSettings;
     }
 
@@ -44,8 +45,9 @@ public class File {
         this.fileType = fileType;
         this.url = url;
         this.diskFile = null;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = name;
+        this.text = null;
         this.fileSettings = fileSettings;
     }
 
@@ -54,8 +56,9 @@ public class File {
         this.fileType = fileType;
         this.url = null;
         this.diskFile = diskFile;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = null;
+        this.text = null;
         this.fileSettings = new FileSettings();
     }
 
@@ -64,29 +67,32 @@ public class File {
         this.fileType = fileType;
         this.url = null;
         this.diskFile = diskFile;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = null;
+        this.text = null;
         this.fileSettings = fileSettings;
     }
 
-    public File(FileType fileType, InputStream inputStream, String name) {
+    public File(FileType fileType, byte[] bytes, String name) {
         this.fileId = null;
         this.fileType = fileType;
         this.url = null;
         this.diskFile = null;
-        this.inputStream = inputStream;
+        this.bytes = bytes;
         this.name = name;
+        this.text = null;
         this.fileSettings = new FileSettings();
     }
 
-    public File(FileType fileType, InputStream inputStream, String name, FileSettings fileSettings) {
+    public File(FileType fileType, byte[] bytes, String name, String text) {
         this.fileId = null;
         this.fileType = fileType;
         this.url = null;
         this.diskFile = null;
-        this.inputStream = inputStream;
+        this.bytes = bytes;
         this.name = name;
-        this.fileSettings = fileSettings;
+        this.text = text;
+        this.fileSettings = new FileSettings();
     }
 
     public File(FileType fileType, String url, String name) {
@@ -94,8 +100,9 @@ public class File {
         this.fileType = fileType;
         this.url = url;
         this.diskFile = null;
-        this.inputStream = null;
+        this.bytes = null;
         this.name = name;
+        this.text = null;
         this.fileSettings = new FileSettings();
     }
 
@@ -103,7 +110,8 @@ public class File {
     private final FileType fileType;
     private final String url;
     private final java.io.File diskFile;
-    private final InputStream inputStream;
+    private final byte[] bytes;
     private final String name;
+    private final String text;
     private final FileSettings fileSettings;
 }

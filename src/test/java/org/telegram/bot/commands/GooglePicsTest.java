@@ -25,7 +25,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -114,7 +114,7 @@ class GooglePicsTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url).setTitle("title"));
-        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(Mockito.mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn("content".getBytes(StandardCharsets.UTF_8));
 
         BotResponse response = googlePics.parse(request).get(0);
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());

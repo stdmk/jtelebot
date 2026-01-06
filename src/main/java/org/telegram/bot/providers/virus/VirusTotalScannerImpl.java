@@ -23,7 +23,7 @@ import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.MultipartInputStreamFileResource;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Base64;
@@ -62,7 +62,7 @@ public class VirusTotalScannerImpl implements VirusScanner {
     }
 
     @Override
-    public String scan(InputStream file) throws VirusScanException {
+    public String scan(byte[] file) throws VirusScanException {
         String analysisId = uploadFileToScan(file);
         AnalysesResult analysesResult = getScanReport(analysisId);
         return buildScanResponseText(analysesResult, getFileReportLink(analysisId));
@@ -126,8 +126,8 @@ public class VirusTotalScannerImpl implements VirusScanner {
         return sendRequest("url", url.toString(), VIRUS_TOTAL_API_URL + SCAN_URL_PATH);
     }
 
-    private String uploadFileToScan(InputStream file) throws VirusScanException {
-        return sendRequest("file", new MultipartInputStreamFileResource(file, "file"), VIRUS_TOTAL_API_URL + SCAN_FILE_PATH);
+    private String uploadFileToScan(byte[] file) throws VirusScanException {
+        return sendRequest("file", new MultipartInputStreamFileResource(new ByteArrayInputStream(file), "file"), VIRUS_TOTAL_API_URL + SCAN_FILE_PATH);
     }
 
     private synchronized String sendRequest(String key, Object value, String url) throws VirusScanException {
@@ -223,21 +223,6 @@ public class VirusTotalScannerImpl implements VirusScanner {
         @JsonProperty("type-unsupported")
         private Integer typeUnsupported;
         private Integer undetected;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ScanResult {
-        private String category;
-        @JsonProperty("engine_name")
-        private String engineName;
-        @JsonProperty("engine_version")
-        private String engineVersion;
-        private String result;
-        private String method;
-        @JsonProperty("engine_update")
-        private String engineUpdate;
     }
 
     @RequiredArgsConstructor

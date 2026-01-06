@@ -18,9 +18,9 @@ import org.telegram.bot.exception.virus.VirusScanException;
 import org.telegram.bot.exception.virus.VirusScanNoResponseException;
 import org.telegram.bot.services.BotStats;
 
-import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -151,7 +151,7 @@ class VirusTotalScannerImplTest {
                 ${command.virus.stats.typeunsupported}: <b>7</b>
                 
                 <a href="https://www.virustotal.com/gui/file/289a4f587f9db30666dbcc8eae39138f">${command.virus.stats.reportlink}</a>""";
-        ByteArrayInputStream file = new ByteArrayInputStream("http://example.com".getBytes());
+        byte[] file = "http://example.com".getBytes(StandardCharsets.UTF_8);
         VirusTotalScannerImpl.AnalysesResponse analysesResponse = getSomeAnalysesResponse();
 
         when(propertiesConfig.getVirusTotalApiKey()).thenReturn("123");

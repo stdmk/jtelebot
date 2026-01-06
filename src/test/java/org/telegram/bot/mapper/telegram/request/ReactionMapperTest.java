@@ -2,6 +2,7 @@ package org.telegram.bot.mapper.telegram.request;
 
 import org.junit.jupiter.api.Test;
 import org.telegram.bot.domain.model.request.Reactions;
+import org.telegram.bot.mapper.bot.request.ReactionMapper;
 import org.telegram.telegrambots.meta.api.objects.reactions.ReactionType;
 import org.telegram.telegrambots.meta.api.objects.reactions.ReactionTypeCustomEmoji;
 import org.telegram.telegrambots.meta.api.objects.reactions.ReactionTypeEmoji;

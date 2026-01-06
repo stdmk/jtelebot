@@ -33,7 +33,6 @@ import org.telegram.bot.services.GigaChatMessageService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -119,7 +118,7 @@ public class GigaChat implements SberApiProvider, Command {
 
         if (image != null) {
             return returnResponse(new FileResponse(message)
-                    .addFile(new File(FileType.IMAGE, new ByteArrayInputStream(image), "image"))
+                    .addFile(new File(FileType.IMAGE, image, "image"))
                     .setText("*" + RESPONSE_CAPTION + "* (" + model + "):\n" + responseText)
                     .setResponseSettings(FormattingStyle.MARKDOWN));
         }

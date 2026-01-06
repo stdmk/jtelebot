@@ -25,7 +25,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void save(org.telegram.bot.domain.model.request.Message message) {
-        if (message.hasReactions() || MessageKind.CALLBACK.equals(message.getMessageKind())) {
+        if (message.hasReactions() || MessageKind.CALLBACK.equals(message.getMessageKind()) || message.getMessageId() == null) {
             return;
         }
 

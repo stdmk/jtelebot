@@ -70,7 +70,7 @@ public class Calculator implements Command {
                 }
 
                 result = new JSONObject(response.getBody()).getString("result");
-                responseText = "`" + new BigDecimal(result).toPlainString() + "`";
+                responseText = "<code>" + new BigDecimal(result).toPlainString() + "</code>";
             } catch (HttpClientErrorException hce) {
                 log.error("Error from api:", hce);
                 responseText = new JSONObject(hce.getResponseBodyAsString()).getString("error");
@@ -78,12 +78,12 @@ public class Calculator implements Command {
                 botStats.incrementErrors(request, e, "service access error");
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             } catch (NumberFormatException e) {
-                responseText = "`" + result + "`";
+                responseText = "<code>" + result + "</code>";
             }
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

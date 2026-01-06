@@ -115,7 +115,7 @@ public class TimeDelta implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private DateTimeData getDateTimeDataFromText(String text, ZoneId zoneId) {
@@ -171,7 +171,7 @@ public class TimeDelta implements Command {
 
     private String buildResponseText(LocalDateTime firstDateTime, LocalDateTime secondDateTime) {
         return "${command.timedelta.from} " + formatDateTime(firstDateTime) + " ${command.timedelta.to} " + formatDateTime(secondDateTime) +
-                ":*\n" + deltaDatesToString(firstDateTime, secondDateTime) + "*";
+                ":<b>\n" + deltaDatesToString(firstDateTime, secondDateTime) + "</b>";
     }
 
     private LocalDateTime parseDateTime(String raw, DateTimeFormatter dateTimeFormatter) throws DateTimeParseException {

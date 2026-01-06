@@ -49,7 +49,7 @@ class PingTest {
     void parseWithArgumentUnreachableHostTest() throws UnknownHostException {
         final String expectedResponseText = """
                 ${command.ping.host} host (127.0.0.1):
-                ❌* ${command.ping.unreachable}*
+                ❌<b> ${command.ping.unreachable}</b>
                 """;
         final String host = "host";
         BotRequest request = TestUtils.getRequestFromGroup("ping " + host);
@@ -66,8 +66,8 @@ class PingTest {
     void parseWithArgumentReachableHostTest() throws UnknownHostException {
         final String expectedResponseText = """
                 ${command.ping.host} 127.0.0.1:
-                ✅* ${command.ping.reachable}*
-                ${command.ping.caption}: *6* ${command.ping.ms}.""";
+                ✅<b> ${command.ping.reachable}</b>
+                ${command.ping.caption}: <b>6</b> ${command.ping.ms}.""";
         final String host = "host";
         BotRequest request = TestUtils.getRequestFromGroup("ping " + host);
         when(networkUtils.pingHost(host))

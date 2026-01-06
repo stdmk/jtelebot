@@ -24,7 +24,6 @@ import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,7 +71,7 @@ public class GooglePics implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            InputStream image;
+            byte[] image;
             try {
                 image = networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl());
             } catch (Exception e) {

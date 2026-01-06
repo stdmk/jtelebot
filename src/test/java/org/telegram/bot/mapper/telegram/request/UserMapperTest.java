@@ -1,6 +1,7 @@
 package org.telegram.bot.mapper.telegram.request;
 
 import org.junit.jupiter.api.Test;
+import org.telegram.bot.mapper.bot.request.UserMapper;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

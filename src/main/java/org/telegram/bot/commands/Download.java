@@ -9,12 +9,12 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.InputStream;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.isThatUrl;
@@ -28,6 +28,7 @@ public class Download implements Command {
     private final NetworkUtils networkUtils;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final BotStats botStats;
 
     private static final String DEFAULT_FILE_NAME = "file";
 
@@ -49,7 +50,7 @@ public class Download implements Command {
 
             FileParams fileParams = getFileParams(commandArgument);
 
-            InputStream fileFromUrl;
+            byte[] fileFromUrl;
             try {
                 fileFromUrl = networkUtils.getFileFromUrlWithLimit(fileParams.url());
             } catch (Exception e) {

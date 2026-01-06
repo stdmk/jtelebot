@@ -63,8 +63,8 @@ public class Password implements Command {
         }
 
         return returnResponse(new TextResponse(message)
-                .setText("`" + password + "`")
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setText("<code>" + password + "</code>")
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private boolean isLooksLikePasswordCommandArgument(String argument) {
@@ -75,7 +75,7 @@ public class Password implements Command {
         int passwordLength;
         String specialSymbols;
 
-        if (argument == null || argument.isEmpty() || argument.isBlank()) {
+        if (argument == null || argument.isBlank()) {
             return new PasswordParams(DEFAULT_PASSWORD_LENGTH, SYMBOLS_SOURCE);
         }
 

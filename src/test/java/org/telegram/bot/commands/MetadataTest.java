@@ -21,9 +21,9 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,7 +86,7 @@ class MetadataTest {
         request.getMessage().setAttachments(List.of(attachment));
         request.getMessage().setMessageContentType(MessageContentType.VIDEO);
 
-        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenThrow(new BotException("internal error"));
+        when(bot.getBytesTelegramFile(attachment.getFileId())).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> metadata.parse(request));
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -100,8 +100,7 @@ class MetadataTest {
         request.getMessage().setAttachments(List.of(attachment));
         request.getMessage().setMessageContentType(MessageContentType.AUDIO);
 
-        InputStream inputStream = mock(InputStream.class);
-        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(attachment.getFileId())).thenReturn("content".getBytes(StandardCharsets.UTF_8));
 
         assertThrows(BotException.class, () -> metadata.parse(request));
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -114,7 +113,7 @@ class MetadataTest {
         request.getMessage().setAttachments(List.of(attachment));
 
         IOException exception = new IOException();
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         assertThrows((BotException.class), () -> metadata.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
@@ -129,7 +128,7 @@ class MetadataTest {
         request.getMessage().setAttachments(List.of(attachment));
 
         TelegramApiException exception = new TelegramApiException();
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         assertThrows((BotException.class), () -> metadata.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
@@ -139,15 +138,19 @@ class MetadataTest {
 
     @Test
     void parseTest() throws IOException, TelegramApiException {
-        Attachment attachment = TestUtils.getDocument();
+        byte[] file;
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("png.png")) {
+            if (is == null) {
+                fail("Unable to read png.png file for testing");
+            }
+            file = is.readAllBytes();
+        }
+        Attachment attachment = new Attachment().setFile(file).setSize((long) file.length);
         Message message = TestUtils.getMessage();
         message.setAttachments(List.of(attachment));
         message.setMessageContentType(MessageContentType.PHOTO);
 
         BotRequest request = TestUtils.getRequestWithRepliedMessage(message);
-        InputStream file = new FileInputStream("src/test/resources/png.png");
-
-        when(bot.getInputStreamFromTelegramFile(attachment.getFileId())).thenReturn(file);
 
         BotResponse botResponse = metadata.parse(request).get(0);
 

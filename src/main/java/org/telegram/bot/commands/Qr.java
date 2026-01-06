@@ -29,7 +29,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -68,7 +67,7 @@ public class Qr implements Command, MessageAnalyzer {
         }
     }
 
-    private InputStream generateQrFromText(String text) {
+    private byte[] generateQrFromText(String text) {
         Map<EncodeHintType, Object> map = new EnumMap<>(EncodeHintType.class);
         map.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8);
 
@@ -88,7 +87,7 @@ public class Qr implements Command, MessageAnalyzer {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 
-        return new ByteArrayInputStream(os.toByteArray());
+        return os.toByteArray();
     }
 
     @Override
@@ -102,16 +101,26 @@ public class Qr implements Command, MessageAnalyzer {
                     .map(photo -> {
                         BufferedImage image;
 
-                        try (InputStream inputStream = bot.getInputStreamFromTelegramFile(photo.getFileId())) {
-                            image = ImageIO.read(inputStream);
-                        } catch (IOException e) {
-                            log.error("Failed to read image", e);
-                            botStats.incrementErrors(request, e, "Failed to read image");
-                            return null;
-                        } catch (TelegramApiException e) {
-                            log.error("Failed to get file from telegram", e);
-                            botStats.incrementErrors(request, e, "Failed to get file from telegram");
-                            return null;
+                        if (photo.getFile() != null) {
+                            try {
+                                image = ImageIO.read(new ByteArrayInputStream(photo.getFile()));
+                            } catch (IOException e) {
+                                log.error("Failed to read image", e);
+                                botStats.incrementErrors(request, e, "Failed to read image");
+                                return null;
+                            }
+                        } else {
+                            try {
+                                image = ImageIO.read(new ByteArrayInputStream(bot.getBytesTelegramFile(photo.getFileId())));
+                            } catch (IOException e) {
+                                log.error("Failed to read image", e);
+                                botStats.incrementErrors(request, e, "Failed to read image");
+                                return null;
+                            } catch (TelegramApiException e) {
+                                log.error("Failed to get file from telegram", e);
+                                botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                                return null;
+                            }
                         }
 
                         String decodeResult;

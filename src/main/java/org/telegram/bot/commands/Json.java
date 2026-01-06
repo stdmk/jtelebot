@@ -20,9 +20,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -51,28 +49,28 @@ public class Json implements Command {
             Attachment attachment = message.getAttachments().get(0);
             fileName = attachment.getName();
 
-            InputStream file;
-            try {
-                file = bot.getInputStreamFromTelegramFile(attachment.getFileId());
-            } catch (TelegramApiException | IOException e) {
-                log.error("Failed to get file from telegram", e);
-                botStats.incrementErrors(request, e, "Failed to get file from telegram");
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            byte[] file;
+            if (attachment.getFile() != null) {
+                file = attachment.getFile();
+            } else {
+                try {
+                    file = bot.getBytesTelegramFile(attachment.getFileId());
+                } catch (TelegramApiException | IOException e) {
+                    log.error("Failed to get file from telegram", e);
+                    botStats.incrementErrors(request, e, "Failed to get file from telegram");
+                    throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+                }
             }
 
             try {
-                responseText = format(new String(file.readAllBytes(), StandardCharsets.UTF_8));
+                responseText = format(new String(file, StandardCharsets.UTF_8));
             } catch (JsonProcessingException e) {
                 fileName = null;
                 responseText = "`" + e.getMessage() + "`";
-            } catch (IOException e) {
-                log.error("Failed to read bytes of file from telegram", e);
-                botStats.incrementErrors(request, e, "Failed to read bytes of file from telegram");
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
         } else {
             try {
-                responseText = "```json\n" + format(commandArgument) + "```";
+                responseText = "<pre><code class=\"language-json\">\n" + format(commandArgument) + "</code></pre>";
             } catch (JsonProcessingException e) {
                 responseText = "`" + e.getMessage() + "`";
             }
@@ -81,12 +79,12 @@ public class Json implements Command {
         if (fileName != null) {
             return returnResponse(new FileResponse(message)
                     .addFile(new File(
-                            FileType.FILE, new ByteArrayInputStream(responseText.getBytes(StandardCharsets.UTF_8)), fileName)));
+                            FileType.FILE, responseText.getBytes(StandardCharsets.UTF_8), fileName)));
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private String format(String json) throws JsonProcessingException {

@@ -2,6 +2,7 @@ package org.telegram.bot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,6 +14,7 @@ import static org.telegram.bot.utils.FileUtils.checkPropertiesFileExists;
 @EnableConfigurationProperties(PropertiesConfig.class)
 @EnableScheduling
 @EnableAsync
+@ConfigurationPropertiesScan
 public class BotApplication {
     public static void main(String[] args) {
         checkPropertiesFileExists();

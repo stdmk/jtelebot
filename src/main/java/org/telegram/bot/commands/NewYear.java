@@ -24,8 +24,6 @@ import static org.telegram.bot.utils.DateUtils.durationToString;
 @RequiredArgsConstructor
 public class NewYear implements Command {
 
-    private static final String DEFAULT_TIME_ZONE = "GMT+03:00";
-
     private final Bot bot;
     private final UserCityService userCityService;
     private final Clock clock;
@@ -44,7 +42,7 @@ public class NewYear implements Command {
 
         UserCity userCity = userCityService.get(user, chat);
         if (userCity == null) {
-            userTimeZone = ZoneId.of(DEFAULT_TIME_ZONE);
+            userTimeZone = ZoneId.systemDefault();
         } else {
             userTimeZone = ZoneId.of(userCity.getCity().getTimeZone());
         }
@@ -53,7 +51,7 @@ public class NewYear implements Command {
         String duration = durationToString(dateTimeNow.toLocalDateTime(), dateTimeNow.plusYears(1).withDayOfYear(1).toLocalDate().atStartOfDay());
 
         return returnResponse(new TextResponse(message)
-                .setText("${command.newyear.caption}: *" + duration + "* (" + userTimeZone + ")")
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setText("${command.newyear.caption}: <b>" + duration + "</b> (" + userTimeZone + ")")
+                .setResponseSettings(FormattingStyle.HTML));
     }
 }

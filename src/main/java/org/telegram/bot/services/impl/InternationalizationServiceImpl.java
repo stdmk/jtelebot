@@ -6,6 +6,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.model.response.EmailResponse;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -77,6 +78,12 @@ public class InternationalizationServiceImpl implements InternationalizationServ
     public SendVideo internationalize(SendVideo sendVideo, @Nullable String lang) {
         sendVideo.setCaption(this.internationalize(sendVideo.getCaption(), lang));
         return sendVideo;
+    }
+
+    @Override
+    public EmailResponse internationalize(EmailResponse emailResponse, @org.jetbrains.annotations.Nullable String lang) {
+        emailResponse.setText(this.internationalize(emailResponse.getText(), lang));
+        return emailResponse;
     }
 
     @Override

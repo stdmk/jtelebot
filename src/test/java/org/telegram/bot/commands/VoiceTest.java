@@ -28,7 +28,6 @@ import org.telegram.bot.utils.ObjectCopier;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -75,7 +74,7 @@ class VoiceTest {
     @Test
     void analyzeRequestWithVoiceAndTelegramApiExceptionTest() throws SpeechParseException, TelegramApiException, IOException {
         BotRequest requestWithVoice = getRequestWithVoice();
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenThrow(new BotException("internal error"));
 
         assertThrows(BotException.class, () -> voice.analyze(requestWithVoice));
 
@@ -91,7 +90,7 @@ class VoiceTest {
         message.setAttachments(List.of(attachment));
         message.setMessageContentType(MessageContentType.VOICE);
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         List<BotResponse> botResponseList = voice.analyze(request);
         assertTrue(botResponseList.isEmpty());
@@ -111,9 +110,7 @@ class VoiceTest {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new SpeechParseException("error"));
 
         voice.analyze(requestWithVoice);
@@ -129,9 +126,7 @@ class VoiceTest {
         requestWithVoice.getMessage().getChat().setChatId(requestWithVoice.getMessage().getUser().getUserId());
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new TooLongSpeechException("error"));
 
         BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
@@ -146,9 +141,7 @@ class VoiceTest {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new TooLongSpeechException("error"));
 
         List<BotResponse> botResponses = voice.analyze(requestWithVoice);
@@ -161,9 +154,7 @@ class VoiceTest {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
 
         List<BotResponse> response = voice.analyze(requestWithVoice);
@@ -178,9 +169,7 @@ class VoiceTest {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
 
         BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
@@ -196,9 +185,7 @@ class VoiceTest {
         BotRequest requestWithVoice = getRequestWithVoice();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());
@@ -219,9 +206,7 @@ class VoiceTest {
         Message message = requestWithVoice.getMessage();
         byte[] file = "123".getBytes();
 
-        InputStream inputStream = mock(InputStream.class);
-        when(inputStream.readAllBytes()).thenReturn(file);
-        when(bot.getInputStreamFromTelegramFile(DEFAULT_FILE_ID)).thenReturn(inputStream);
+        when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(notNormalizedResponse);
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());

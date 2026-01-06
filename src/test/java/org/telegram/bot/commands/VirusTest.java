@@ -27,7 +27,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Stream;
@@ -62,7 +61,7 @@ class VirusTest {
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(new BotException("internal error"));
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(new BotException("internal error"));
 
         assertThrows((BotException.class), () -> virus.parse(request));
         verify(bot).sendTyping(TestUtils.DEFAULT_CHAT_ID);
@@ -70,14 +69,12 @@ class VirusTest {
 
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
-    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws VirusScanException, TelegramApiException, IOException {
+    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws TelegramApiException, IOException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
 
-        InputStream inputStream = Mockito.mock(InputStream.class);
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
-        when(virusScanner.scan(any(InputStream.class))).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(botSpeechTag);
@@ -109,7 +106,7 @@ class VirusTest {
         BotRequest request = TestUtils.getRequestFromGroup("virus http://example.com");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
@@ -167,9 +164,9 @@ class VirusTest {
         BotRequest request = TestUtils.getRequestWithRepliedMessage("abv");
         request.getMessage().getReplyToMessage().setAttachments(List.of(attachment));
 
-        InputStream inputStream = Mockito.mock(InputStream.class);
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenReturn(inputStream);
-        when(virusScanner.scan(any(InputStream.class))).thenReturn(expectedResponseText);
+        byte[] bytes = Mockito.mock(byte[].class);
+        when(bot.getBytesTelegramFile(anyString())).thenReturn(bytes);
+        when(virusScanner.scan(bytes)).thenReturn(expectedResponseText);
 
         BotResponse botResponse = virus.parse(request).get(0);
 

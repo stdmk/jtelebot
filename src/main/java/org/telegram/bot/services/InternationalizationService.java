@@ -1,5 +1,6 @@
 package org.telegram.bot.services;
 
+import org.telegram.bot.domain.model.response.EmailResponse;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -58,6 +59,8 @@ public interface InternationalizationService {
      * @return internationalized message.
      */
     SendVideo internationalize(SendVideo sendVideo, @Nullable String lang);
+
+    EmailResponse internationalize(EmailResponse emailResponse, @Nullable String lang);
 
     /**
      * Internationalize into all languages.

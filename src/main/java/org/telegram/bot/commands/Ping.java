@@ -42,7 +42,7 @@ public class Ping implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.MARKDOWN));
+                .setResponseSettings(FormattingStyle.HTML));
     }
 
     private String pingApi(Message message) {
@@ -71,7 +71,7 @@ public class Ping implements Command {
         if (pingResult.isReachable()) {
             emoji = Emoji.CHECK_MARK_BUTTON.getSymbol();
             reachable = "${command.ping.reachable}";
-            duration = "${command.ping.caption}: *" + pingResult.getDurationMillis() + "* ${command.ping.ms}.";
+            duration = "${command.ping.caption}: <b>" + pingResult.getDurationMillis() + "</b> ${command.ping.ms}.";
         } else {
             emoji = Emoji.DELETE.getSymbol();
             reachable = "${command.ping.unreachable}";
@@ -79,7 +79,7 @@ public class Ping implements Command {
         }
 
         return "${command.ping.host} " + hostAddress + ":\n"
-                + emoji + "* " + reachable + "*\n"
+                + emoji + "<b> " + reachable + "</b>\n"
                 + duration;
     }
 

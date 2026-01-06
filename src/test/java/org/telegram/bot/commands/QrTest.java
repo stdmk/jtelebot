@@ -20,7 +20,6 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -77,7 +76,7 @@ class QrTest {
         assertEquals(FileType.IMAGE, file.getFileType());
         assertEquals("qr", file.getName());
 
-        byte[] bytes = file.getInputStream().readAllBytes();
+        byte[] bytes = file.getBytes();
         assertNotNull(bytes);
 
         verify(bot).sendUploadPhoto(message.getChatId());
@@ -106,7 +105,7 @@ class QrTest {
         message.setAttachments(List.of(attachment));
         message.setMessageContentType(MessageContentType.PHOTO);
 
-        when(bot.getInputStreamFromTelegramFile(anyString())).thenThrow(exception);
+        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
 
         List<BotResponse> botResponseList = qr.analyze(request);
         assertTrue(botResponseList.isEmpty());
@@ -130,7 +129,7 @@ class QrTest {
         message.setMessageContentType(MessageContentType.PHOTO);
         message.setAttachments(List.of(new Attachment().setFileId(fileId)));
 
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(new ByteArrayInputStream(attachment));
+        when(bot.getBytesTelegramFile(fileId)).thenReturn(attachment);
 
         List<BotResponse> botResponseList = qr.analyze(request);
         assertTrue(botResponseList.isEmpty());
@@ -146,7 +145,22 @@ class QrTest {
         message.setMessageContentType(MessageContentType.PHOTO);
         message.setAttachments(List.of(new Attachment().setFileId(fileId)));
 
-        when(bot.getInputStreamFromTelegramFile(fileId)).thenReturn(new ByteArrayInputStream(attachment));
+        when(bot.getBytesTelegramFile(fileId)).thenReturn(attachment);
+
+        BotResponse botResponse = qr.analyze(request).get(0);
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+
+        assertEquals(expectedResponseText, textResponse.getText());
+    }
+
+    @Test
+    void analyzeFileBytesTest() throws IOException {
+        final String expectedResponseText = "QR_CODE: <code>test</code>\n";
+        final byte[] file = TestUtils.getResourceAsBytes("qr/qr.png");
+        BotRequest request = TestUtils.getRequestFromGroup();
+        Message message = request.getMessage();
+        message.setMessageContentType(MessageContentType.PHOTO);
+        message.setAttachments(List.of(new Attachment().setFile(file)));
 
         BotResponse botResponse = qr.analyze(request).get(0);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);

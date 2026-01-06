@@ -20,14 +20,17 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ImageTest {
+    
+    private static final byte[] CONTENT = "content".getBytes(StandardCharsets.UTF_8);
 
     @Mock
     private Bot bot;
@@ -82,7 +85,7 @@ class ImageTest {
         BotRequest request = TestUtils.getRequestFromGroup("image");
 
         when(imageUrlService.getRandom()).thenReturn(imageUrl);
-        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
         BotResponse response = image.parse(request).get(0);
@@ -112,7 +115,7 @@ class ImageTest {
         BotRequest request = TestUtils.getRequestFromGroup("image " + imageUrl.getUrl());
 
         when(imageUrlService.get(imageUrl.getUrl())).thenReturn(imageUrl);
-        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
         BotResponse response = image.parse(request).get(0);
@@ -134,7 +137,7 @@ class ImageTest {
 
         when(imageUrlService.get(imageUrl.getUrl())).thenReturn(null);
         when(imageUrlService.save(any(ImageUrl.class))).thenReturn(imageUrl);
-        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
         BotResponse response = image.parse(request).get(0);
@@ -175,7 +178,7 @@ class ImageTest {
         BotRequest request = TestUtils.getRequestFromGroup("image_" + imageUrlId);
 
         when(imageUrlService.get(imageUrlId)).thenReturn(imageUrl);
-        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
         BotResponse response = image.parse(request).get(0);
@@ -197,7 +200,7 @@ class ImageTest {
         BotRequest request = TestUtils.getRequestFromGroup("image " + searchingText);
 
         when(googlePics.searchImagesOnGoogle(searchingText)).thenReturn(List.of(imageUrl));
-        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(mock(InputStream.class));
+        when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
         BotResponse response = image.parse(request).get(0);

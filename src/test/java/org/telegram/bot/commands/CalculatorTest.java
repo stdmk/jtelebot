@@ -101,7 +101,7 @@ class CalculatorTest {
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());
-        checkDefaultTextResponseParams(textResponse, FormattingStyle.MARKDOWN);
+        checkDefaultTextResponseParams(textResponse, FormattingStyle.HTML);
 
         String actualErrorText = textResponse.getText();
         assertEquals(expectedErrorText, actualErrorText);
@@ -125,7 +125,7 @@ class CalculatorTest {
     @ParameterizedTest
     @ValueSource(strings = {"6", "Infinite"})
     void parseTest(String expressionResult) {
-        final String expectedResponseText = "`" + expressionResult + "`";
+        final String expectedResponseText = "<code>" + expressionResult + "</code>";
         BotRequest request = getRequestFromGroup("calc test");
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
@@ -135,7 +135,7 @@ class CalculatorTest {
 
         BotResponse botResponse = calculator.parse(request).get(0);
         verify(bot).sendTyping(request.getMessage().getChatId());
-        checkDefaultTextResponseParams(botResponse, FormattingStyle.MARKDOWN);
+        checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         String actualResponseText = textResponse.getText();

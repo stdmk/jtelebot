@@ -30,22 +30,31 @@ public class NetworkUtils {
     private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 10 * 1000;
     private static final int DEFAULT_READ_TIMEOUT_MILLIS = 10 * 1000;
 
-    public InputStream getFileFromUrlWithLimit(String url) throws IOException {
+    public byte[] getFileFromUrl(String url) throws IOException {
+        try (InputStream in = openStreamFromUrl(url)) {
+            return in.readAllBytes();
+        }
+    }
+
+    public byte[] getFileFromUrlWithLimit(String url) throws IOException {
         return getFileFromUrlWithLimit(url, TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES);
     }
 
-    public InputStream getFileFromUrlWithLimit(String url, int limitBytes) throws IOException {
-        return new BoundedInputStream(getFileFromUrl(url), limitBytes);
+    public byte[] getFileFromUrlWithLimit(String url, int limitBytes) throws IOException {
+        try (InputStream in = openStreamFromUrl(url);
+             BoundedInputStream bounded = new BoundedInputStream(in, limitBytes)) {
+
+            bounded.setPropagateClose(false);
+            return bounded.readAllBytes();
+        }
     }
 
-    public InputStream getFileFromUrl(String url) throws IOException {
+    private InputStream openStreamFromUrl(String url) throws IOException {
         URLConnection connection = new URL(url).openConnection();
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
         connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
-
         connection.connect();
-
         return connection.getInputStream();
     }
 

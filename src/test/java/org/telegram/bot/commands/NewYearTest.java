@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NewYearTest {
 
-    private static final String DEFAULT_TIME_ZONE = "GMT+03:00";
+    private static final String DEFAULT_TIME_ZONE = ZoneId.systemDefault().toString();
     private static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.of(2007, 2, 3, 4, 5, 6);
 
     @Mock
@@ -49,7 +49,7 @@ class NewYearTest {
 
     @Test
     void parseWithoutArgumentsUnknownUserTest() {
-        final String expectedResponseText = "${command.newyear.caption}: *331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. * (GMT+03:00)";
+        final String expectedResponseText = "${command.newyear.caption}: <b>331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. </b> (Europe/Moscow)";
         BotRequest request = TestUtils.getRequestFromGroup("newyear");
 
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.of(DEFAULT_TIME_ZONE)).toInstant());
@@ -65,7 +65,7 @@ class NewYearTest {
 
     @Test
     void parseWithoutArgumentsKnownUserTest() {
-        final String expectedResponseText = "${command.newyear.caption}: *331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. * (GMT+04:00)";
+        final String expectedResponseText = "${command.newyear.caption}: <b>331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. </b> (GMT+04:00)";
         BotRequest request = TestUtils.getRequestFromGroup("newyear");
 
         ZoneId userZoneId = ZoneId.of("GMT+04:00");
