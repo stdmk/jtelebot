@@ -87,6 +87,7 @@ public class SendMediaGroupExecutor implements TelegramMethodExecutor {
 
             SendMessage sendMessage = new SendMessage(sendMediaGroup.getChatId(), "${executor.sendmeadiagroup.failedtodownload}: " + inputMedia.getMedia() + "\n" + buf);
             sendMessage.setReplyToMessageId(sendMediaGroup.getReplyToMessageId());
+            sendMessage.enableWebPagePreview();
 
             internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 

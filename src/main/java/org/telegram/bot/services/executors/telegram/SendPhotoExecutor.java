@@ -77,7 +77,7 @@ public class SendPhotoExecutor implements TelegramMethodExecutor {
         SendMessage sendMessage = new SendMessage(sendPhoto.getChatId(), "${executor.sendphoto.failedtosend}: " + imageUrl + "\n" + sendPhoto.getCaption());
         sendMessage.setReplyToMessageId(sendPhoto.getReplyToMessageId());
         sendMessage.enableHtml(true);
-        sendMessage.disableWebPagePreview();
+        sendMessage.enableWebPagePreview();
 
         internationalizationService.internationalize(sendMessage, languageResolver.getChatLanguageCode(sendPhoto.getChatId()));
 
