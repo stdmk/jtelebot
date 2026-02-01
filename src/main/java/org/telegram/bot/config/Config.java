@@ -65,6 +65,9 @@ public class Config {
             "message_reaction",
             "message_reaction_count");
 
+    @Value("${defaultRequestTimeoutSeconds:10}")
+    private Integer defaultRequestTimeoutSeconds;
+
     @Value("${sberApiRequestTimeoutSeconds:60}")
     private Integer sberApiRequestTimeoutSeconds;
 
@@ -101,7 +104,12 @@ public class Config {
 
     @Bean
     public RestTemplate botRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(defaultRequestTimeoutSeconds * 1000);
+        requestFactory.setReadTimeout(defaultRequestTimeoutSeconds * 1000);
+
+        RestTemplate restTemplate = new RestTemplate(requestFactory);
 
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -132,7 +140,12 @@ public class Config {
 
     @Bean
     public RestTemplate defaultRestTemplate() {
-        return new RestTemplate();
+        HttpComponentsClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(defaultRequestTimeoutSeconds * 1000);
+        requestFactory.setReadTimeout(defaultRequestTimeoutSeconds * 1000);
+
+        return new RestTemplate(requestFactory);
     }
 
     @Bean

@@ -174,7 +174,10 @@ To receive a token contact @BotFather.
 **adminId**  
 Telegram-admin user ID to gain access to all commands.  
 To get the value of your ID, run the bot and use the /getid command.  
-Then the admin must send the /help command to the bot for getting admin rights.
+Then the admin must send the /help command to the bot for getting admin rights.  
+
+**defaultRequestTimeoutSeconds**  
+Timeout for requests to external systems' APIs  
 
 **openweathermapId** (/weather command)  
 OpenWeatherMap API access token.  
