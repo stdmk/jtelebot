@@ -59,7 +59,7 @@ public class TalkerQuestionsTimer extends TimerParent {
             }
 
             if (lastChatMessageDateTime.plusMinutes(talkerDegree.getChatIdleMinutes()).isBefore(dateTimeNow)) {
-                UserStats userStats = userStatsListOfChat.get(MathUtils.getRandomInRange(0, userStatsListOfChat.size() - 1));
+                UserStats userStats = userStatsListOfChat.get(MathUtils.getRandomInRange(0, userStatsListOfChat.size()));
                 LastMessage lastMessage = userStats.getLastMessage();
                 Long chatId = userStats.getChat().getChatId();
 

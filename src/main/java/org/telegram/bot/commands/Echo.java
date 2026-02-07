@@ -84,7 +84,7 @@ public class Echo implements Command, MessageAnalyzer {
             }
         } else {
             Integer degree = talkerDegreeService.get(message.getChatId()).getDegree();
-            if (MathUtils.getRandomInRange(1, 100) <= degree) {
+            if (MathUtils.getRandomInRange(1, 101) <= degree) {
                 sendMessage = true;
             }
         }

@@ -41,7 +41,7 @@ public class Truth implements Command {
             messageIdToReply = repliedMessage.getMessageId();
         }
 
-        int prob = getRandomInRange(0, 100);
+        int prob = getRandomInRange(0, 101);
         String responseText = buildResponseMessage(prob);
 
         File gif = getGif(prob);

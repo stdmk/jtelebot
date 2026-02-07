@@ -87,7 +87,7 @@ public class Random implements Command {
             max = Long.parseLong(strings[1]);
             return getRandomInRange(min, max).toString();
         } catch (NumberFormatException e) {
-            return strings[getRandomInRange(0, 1)];
+            return strings[getRandomInRange(0, 2)];
         }
     }
 
