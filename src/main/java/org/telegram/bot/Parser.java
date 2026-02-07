@@ -20,9 +20,7 @@ import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.UserService;
 import org.telegram.bot.services.executors.email.EmailExecutor;
 import org.telegram.bot.services.executors.telegram.TelegramMethodExecutor;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,46 +48,44 @@ public class Parser {
             return;
         }
 
-        List<BotResponse> responseList = new ArrayList<>(1);
+        List<BotResponse> responses = new ArrayList<>(1);
         try {
-            responseList.addAll(command.parse(botRequest));
+            responses.addAll(command.parse(botRequest));
         } catch (Exception e) {
-            BotResponse botResponse = handleException(botRequest, e);
-            if (botResponse != null) {
-                responseList.add(botResponse);
+            BotResponse errorResponse = handleException(botRequest, e);
+            if (errorResponse != null) {
+                responses.add(errorResponse);
             }
-        } finally {
-            responseTelegramMapper.toTelegramMethod(responseList)
-                    .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
-
-            emailExecutor.execute(responseList, botRequest);
-
-            botStats.incrementCommandsProcessed();
         }
+
+        dispatchResponses(responses, botRequest);
     }
 
     @Async
     public void analyzeMessageAsync(BotRequest botRequest, AccessLevel userAccessLevel) {
-        messageAnalyzerList.forEach(messageAnalyzer -> {
-            CommandProperties analyzerCommandProperties = commandPropertiesService.getCommand(messageAnalyzer.getClass());
-            if (analyzerCommandProperties == null
-                    || userService.isUserHaveAccessForCommand(userAccessLevel.getValue(), analyzerCommandProperties.getAccessLevel())) {
+        for (MessageAnalyzer analyzer : messageAnalyzerList) {
+            CommandProperties properties =
+                    commandPropertiesService.getCommand(analyzer.getClass());
 
-                List<BotResponse> botResponses = new ArrayList<>(1);
-                try {
-                    botResponses = messageAnalyzer.analyze(botRequest);
-                } catch (Exception e) {
-                    BotResponse botResponse = handleException(botRequest, e);
-                    if (botResponse != null) {
-                        botResponses.add(botResponse);
-                    }
-                }
+            if (properties != null
+                    && !userService.isUserHaveAccessForCommand(
+                    userAccessLevel.getValue(),
+                    properties.getAccessLevel())) {
+                continue;
+            }
 
-                if (botResponses != null && !botResponses.isEmpty()) {
-                    this.executeAsync(botRequest, botResponses);
+            List<BotResponse> responses = new ArrayList<>(1);
+            try {
+                responses = analyzer.analyze(botRequest);
+            } catch (Exception e) {
+                BotResponse errorResponse = handleException(botRequest, e);
+                if (errorResponse != null) {
+                    responses.add(errorResponse);
                 }
             }
-        });
+
+            dispatchResponses(responses, botRequest);
+        }
     }
 
     private TextResponse handleException(BotRequest botRequest, Throwable e) {
@@ -113,25 +109,24 @@ public class Parser {
     }
 
     @Async
-    public void executeAsync(BotRequest botRequest, @NotEmpty List<BotResponse> responseList) {
-        responseTelegramMapper.toTelegramMethod(responseList)
-                .forEach(method -> getExecutor(method.getMethod()).executeMethod(method, botRequest));
-
-        emailExecutor.execute(responseList, botRequest);
-
-        botStats.incrementCommandsProcessed();
-    }
-
-    @Async
     public void executeAsync(BotResponse response) {
         if (response == null) {
             return;
         }
+        dispatchResponses(List.of(response), null);
+    }
 
-        PartialBotApiMethod<?> method = responseTelegramMapper.toTelegramMethod(response);
-        getExecutor(method.getMethod()).executeMethod(method);
 
-        emailExecutor.execute(response);
+    private void dispatchResponses(List<BotResponse> responses, BotRequest botRequest) {
+        if (responses == null || responses.isEmpty()) {
+            return;
+        }
+
+        responseTelegramMapper.toTelegramMethod(responses)
+                .forEach(method ->
+                        getExecutor(method.getMethod()).executeMethod(method, botRequest));
+
+        emailExecutor.execute(responses, botRequest);
 
         botStats.incrementCommandsProcessed();
     }

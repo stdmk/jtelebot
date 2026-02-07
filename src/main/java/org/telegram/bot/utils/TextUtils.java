@@ -134,7 +134,7 @@ public class TextUtils {
 
         while (text.length() > TELEGRAM_MESSAGE_TEXT_MAX_LENGTH) {
             result.add(text.substring(0, TELEGRAM_MESSAGE_TEXT_MAX_LENGTH));
-            text = text.substring(TELEGRAM_MESSAGE_TEXT_MAX_LENGTH + 1);
+            text = text.substring(TELEGRAM_MESSAGE_TEXT_MAX_LENGTH);
         }
 
         result.add(text);

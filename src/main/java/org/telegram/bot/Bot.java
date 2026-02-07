@@ -31,6 +31,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -53,6 +54,19 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     private final LogService logService;
     private final Parser parser;
     private final TelegramClient telegramClient;
+
+    @PostConstruct
+    public void postConstruct() {
+        if (propertiesConfig.getTelegramBotUsername() == null) {
+            try {
+                User botUser = telegramClient.execute(new GetMe());
+                propertiesConfig.setTelegramBotUsername(botUser.getUserName());
+            } catch (TelegramApiException e) {
+                propertiesConfig.setTelegramBotUsername("jtelebot");
+            }
+        }
+    }
+
 
     @Override
     public void consume(Update update) {
@@ -165,19 +179,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
     }
 
     public String getBotUsername() {
-        String botUserName = propertiesConfig.getTelegramBotUsername();
-        if (botUserName == null) {
-            User botUser;
-            try {
-                botUser = telegramClient.execute(new GetMe());
-                botUserName = botUser.getUserName();
-                propertiesConfig.setTelegramBotUsername(botUserName);
-            } catch (TelegramApiException e) {
-                botUserName = "jtelebot";
-            }
-        }
-
-        return botUserName;
+        return propertiesConfig.getTelegramBotUsername();
     }
 
     public void sendMessage(TextResponse textResponse) {

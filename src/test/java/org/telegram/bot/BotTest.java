@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.commands.Command;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.*;
@@ -85,7 +86,7 @@ class BotTest {
 
         Message message = request.getMessage();
         message.setMessageKind(MessageKind.EDIT);
-        message.setDateTime(LocalDateTime.now().minusMinutes(1));
+        message.setDateTime(LocalDateTime.now().minusHours(1));
 
         when(requestMapper.toBotRequest(update)).thenReturn(request);
 
@@ -347,11 +348,12 @@ class BotTest {
         org.telegram.telegrambots.meta.api.objects.User user = new org.telegram.telegrambots.meta.api.objects.User(1L, "firstName", true);
         user.setUserName(expectedBotUsername);
         when(telegramClient.execute(any(GetMe.class))).thenReturn(user);
+        ReflectionTestUtils.invokeMethod(bot, "postConstruct");
 
-        String actualBotUsername = bot.getBotUsername();
+        bot.getBotUsername();
 
-        assertEquals(expectedBotUsername, actualBotUsername);
         verify(propertiesConfig).setTelegramBotUsername(expectedBotUsername);
+        verify(propertiesConfig, times(2)).getTelegramBotUsername();
     }
 
     @Test
@@ -359,11 +361,12 @@ class BotTest {
         final String expectedBotUsername = "jtelebot";
 
         when(telegramClient.execute(any(GetMe.class))).thenThrow(new TelegramApiException());
+        ReflectionTestUtils.invokeMethod(bot, "postConstruct");
 
-        String actualBotUsername = bot.getBotUsername();
+        bot.getBotUsername();
 
-        assertEquals(expectedBotUsername, actualBotUsername);
-        verify(propertiesConfig, never()).setTelegramBotUsername(expectedBotUsername);
+        verify(propertiesConfig).setTelegramBotUsername(expectedBotUsername);
+        verify(propertiesConfig, times(2)).getTelegramBotUsername();
     }
 
     @Test

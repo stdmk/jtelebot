@@ -85,6 +85,7 @@ public class Word implements Command {
         Optional<String> optionalExtract = Optional.ofNullable(response.getBody())
                 .map(WiktionaryData::getQuery)
                 .map(Query::getPages)
+                .filter(pages -> !pages.isEmpty())
                 .map(map -> map.entrySet().iterator().next())
                 .map(Map.Entry::getValue)
                 .map(PageData::getExtract);
