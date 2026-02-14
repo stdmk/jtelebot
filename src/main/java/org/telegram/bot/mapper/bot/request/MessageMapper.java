@@ -15,7 +15,7 @@ import org.telegram.bot.services.UserEmailService;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;

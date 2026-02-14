@@ -6,7 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.enums.GigaChatRole;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * GigaChatMessage entity.

@@ -6,7 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.domain.entities.User;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * UserCaloriesTarget entity.

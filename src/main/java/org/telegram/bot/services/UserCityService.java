@@ -7,7 +7,7 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.model.request.Message;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.time.ZoneId;
 import java.util.List;
 

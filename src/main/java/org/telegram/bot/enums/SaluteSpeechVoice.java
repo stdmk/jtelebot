@@ -3,7 +3,7 @@ package org.telegram.bot.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Arrays;
 
 @RequiredArgsConstructor

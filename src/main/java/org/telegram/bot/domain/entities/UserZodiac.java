@@ -6,7 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.enums.Zodiac;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * UserZodiac entity.
