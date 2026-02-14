@@ -18,7 +18,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;

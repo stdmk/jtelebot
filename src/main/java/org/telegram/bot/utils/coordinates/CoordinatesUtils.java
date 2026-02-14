@@ -2,7 +2,7 @@ package org.telegram.bot.utils.coordinates;
 
 import lombok.experimental.UtilityClass;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

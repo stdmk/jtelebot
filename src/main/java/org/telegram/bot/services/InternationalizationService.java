@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Set;
 
 /**

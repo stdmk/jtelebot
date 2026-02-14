@@ -26,7 +26,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.utils.DateUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;

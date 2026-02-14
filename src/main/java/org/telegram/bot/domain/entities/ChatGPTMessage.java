@@ -6,7 +6,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.enums.ChatGPTRole;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * ChatGPTMessage entity.

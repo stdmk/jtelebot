@@ -18,7 +18,7 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.calories.UserCaloriesTargetService;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.BiFunction;

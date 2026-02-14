@@ -17,7 +17,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;

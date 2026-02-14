@@ -22,7 +22,7 @@ import org.telegram.bot.services.executors.email.EmailExecutor;
 import org.telegram.bot.services.executors.telegram.TelegramMethodExecutor;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

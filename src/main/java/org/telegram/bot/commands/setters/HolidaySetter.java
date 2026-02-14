@@ -19,7 +19,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;

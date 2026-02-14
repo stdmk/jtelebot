@@ -17,7 +17,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

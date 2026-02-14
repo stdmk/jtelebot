@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @Component
 public class ParseModeMapper {

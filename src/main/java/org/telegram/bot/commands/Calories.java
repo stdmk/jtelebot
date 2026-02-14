@@ -21,7 +21,7 @@ import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.calories.*;
 import org.telegram.bot.utils.DateUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.time.*;
 import java.time.format.DateTimeParseException;
