@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
@@ -69,12 +68,14 @@ class VirusTest {
 
     @ParameterizedTest
     @MethodSource("provideVirusScanExceptions")
-    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws TelegramApiException, IOException {
+    void parseScanFileWithVirusScanExceptionTest(VirusScanException exception, BotSpeechTag botSpeechTag) throws TelegramApiException, IOException, VirusScanException {
         Attachment attachment = TestUtils.getDocument();
         BotRequest request = TestUtils.getRequestFromGroup("virus");
         request.getMessage().setAttachments(List.of(attachment));
 
-        when(bot.getBytesTelegramFile(anyString())).thenThrow(exception);
+        byte[] file = {};
+        when(bot.getBytesTelegramFile(attachment.getFileId())).thenReturn(file);
+        when(virusScanner.scan(file)).thenThrow(exception);
 
         assertThrows((BotException.class), () -> virus.parse(request));
         verify(speechService).getRandomMessageByTag(botSpeechTag);
@@ -134,7 +135,7 @@ class VirusTest {
         final String expectedResponseText = "${command.virus.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup("virus");
 
-        BotResponse botResponse = virus.parse(request).get(0);
+        BotResponse botResponse = virus.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -150,7 +151,7 @@ class VirusTest {
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = virus.parse(request).get(0);
+        BotResponse botResponse = virus.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -164,11 +165,11 @@ class VirusTest {
         BotRequest request = TestUtils.getRequestWithRepliedMessage("abv");
         request.getMessage().getReplyToMessage().setAttachments(List.of(attachment));
 
-        byte[] bytes = Mockito.mock(byte[].class);
+        byte[] bytes = new byte[]{};
         when(bot.getBytesTelegramFile(anyString())).thenReturn(bytes);
         when(virusScanner.scan(bytes)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = virus.parse(request).get(0);
+        BotResponse botResponse = virus.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -182,7 +183,7 @@ class VirusTest {
 
         when(virusScanner.scan(any(URL.class))).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = virus.parse(request).get(0);
+        BotResponse botResponse = virus.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

@@ -2,9 +2,9 @@ package org.telegram.bot.services.impl;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.soap.*;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +18,6 @@ import org.telegram.bot.services.PostTrackingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.soap.*;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
@@ -40,6 +38,8 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
     private final PropertiesConfig propertiesConfig;
     private final BotStats botStats;
     private final SpeechService speechService;
+
+    private final XmlMapper xmlMapper = new XmlMapper();
 
     @Override
     public List<TrackCodeEvent> getData(String barcode) {
@@ -150,15 +150,16 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
     }
 
     private TrackingData parseTrackingData(String xml) {
-        XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
         try {
             return xmlMapper.readValue(xml, TrackingData.class);
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse TrackingData: ", e);
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
+            log.error("Failed to parse TrackingData", e);
+            throw new BotException(
+                    speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)
+            );
         }
     }
+
 
     private List<TrackCodeEvent> mapTrackingDataToTrackCodeEventList(TrackingData trackingData) {
         List<HistoryRecord> historyRecords = Optional.ofNullable(trackingData.getBody())

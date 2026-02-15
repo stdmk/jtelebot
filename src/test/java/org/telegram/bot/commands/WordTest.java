@@ -1,6 +1,5 @@
 package org.telegram.bot.commands;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -34,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class WordTest {
 
     private static final String EXPECTED_USER_AGENT = "jtelebot/1.0 (https://github.com/stdmk/jtelebot)";
@@ -62,7 +60,7 @@ class WordTest {
     @Test
     void parseWithoutParamsTest() {
         BotRequest request = TestUtils.getRequestFromGroup();
-        BotResponse response = word.parse(request).get(0);
+        BotResponse response = word.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals("${command.word.commandwaitingstart}", textResponse.getText());
@@ -146,7 +144,7 @@ class WordTest {
         List<BotResponse> methods = word.parse(request);
         assertEquals(2, methods.size());
 
-        BotResponse response = methods.get(0);
+        BotResponse response = methods.getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertThat(expectedResponseText1).isEqualToNormalizingNewlines(textResponse.getText());
 
@@ -163,7 +161,7 @@ class WordTest {
         List<String> userAgents = headers.get(HttpHeaders.USER_AGENT);
         assertNotNull(userAgents);
         assertEquals(1, userAgents.size());
-        assertEquals(EXPECTED_USER_AGENT, userAgents.get(0));
+        assertEquals(EXPECTED_USER_AGENT, userAgents.getFirst());
     }
 
 }

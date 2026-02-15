@@ -1,6 +1,5 @@
 package org.telegram.bot.commands;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,7 +79,7 @@ class WeatherTest {
         when(propertiesConfig.getOpenweathermapId()).thenReturn("token");
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = weather.parse(request).get(0);
+        BotResponse botResponse = weather.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -116,43 +115,41 @@ class WeatherTest {
                         StandardCharsets.UTF_8));
 
         BotException botException = assertThrows(BotException.class, () -> weather.parse(request));
-        assertEquals("${command.weather.apiresponse}: " + expectedErrorText, botException.getMessage());
+        assertEquals("${command.weather.apiresponse}: {\"message\":\"" + expectedErrorText + "\"}", botException.getMessage());
         verify(bot).sendTyping(message.getChatId());
     }
 
-    @Disabled
     @Test
     void parseTest() {
         final String expectedResponseText = """
-                [cityName](https://openweathermap.org/city/123)(ru)
+                <a href="https://openweathermap.org/city/123">cityName</a>(ru)
                 Desc☂\uFE0F
-                `\uD83D\uDCA7${command.weather.perhour}:28,12 мм`
-                `\uD83D\uDCA7${command.weather.threehours}:29,12 мм`
-                `❄${command.weather.perhour}:31,12 мм`
-                `❄${command.weather.threehours}:32,12 мм`
-                `${command.weather.temperature}:+0,12°C`
-                `${command.weather.feelslike}:+1,12°C`
-                `${command.weather.humidity}:70%`
-                `${command.weather.wind}:27.123 ${command.weather.meterspersecond} ↙\uFE0F`
-                `${command.weather.gusts}:26.123 ${command.weather.meterspersecond} `
-                `${command.weather.cloudy}:1001%`
-                `${command.weather.visibility}:1.000123 ${command.weather.kilometers}.`
-                `${command.weather.pressure}:557.25 ${command.weather.mmhg}. `
-                `${command.weather.sunrise}:06:13:03`
-                `${command.weather.sunset}:13:07:03`
-                `${command.weather.daylength}:6 ${utils.date.h}. 54 ${utils.date.m}. `
-                `${command.weather.asof}:21:00:03`
-                *${command.weather.hourlyforecast}:*
-                `21 ☂\uFE0F +1° 71% 28${command.weather.meterspersecond} `
-                `21 ☂\uFE0F +2° 72% 29${command.weather.meterspersecond} `
-                `21 ☔ +3° 73% 30${command.weather.meterspersecond} `
-                `21 ❄ +4° 74% 31${command.weather.meterspersecond} `
-                `21 ❄ +5° 75% 32${command.weather.meterspersecond} `
-                *${command.weather.dailyforecast}:*
-                `02 Sun. ☂\uFE0F +2° ☂\uFE0F +2°`
-                `03 Mon. ☔ +3° ☔ +3°`
-                `04 Tue. ❄ +4° ❄ +4°`
-                `05 Wed. ❄ +5° ❄ +5°`
+                <code>\uD83D\uDCA7${command.weather.perhour}:28,12 мм</code>
+                <code>\uD83D\uDCA7${command.weather.threehours}:29,12 мм</code><code>❄${command.weather.perhour}:31,12 мм</code>
+                <code>❄${command.weather.threehours}:32,12 мм</code>
+                <code>${command.weather.temperature}:+0,12°C</code>
+                <code>${command.weather.feelslike}:+1,12°C</code>
+                <code>${command.weather.humidity}:70%</code>
+                <code>${command.weather.wind}:27.123 ${command.weather.meterspersecond} ↙\uFE0F</code>
+                <code>${command.weather.gusts}:26.123 ${command.weather.meterspersecond} </code>
+                <code>${command.weather.cloudy}:1001%</code>
+                <code>${command.weather.visibility}:1.000123 ${command.weather.kilometers}.</code>
+                <code>${command.weather.pressure}:557.25 ${command.weather.mmhg}. </code>
+                <code>${command.weather.sunrise}:06:13:03</code>
+                <code>${command.weather.sunset}:13:07:03</code>
+                <code>${command.weather.daylength}:6 ${utils.date.h}. 54 ${utils.date.m}. </code>
+                <code>${command.weather.asof}:21:00:03</code>
+                <b>${command.weather.hourlyforecast}:</b>
+                <code>21 ☂\uFE0F +1° 71% 28${command.weather.meterspersecond} </code>
+                <code>21 ☂\uFE0F +2° 72% 29${command.weather.meterspersecond} </code>
+                <code>21 ☔ +3° 73% 30${command.weather.meterspersecond} </code>
+                <code>21 ❄ +4° 74% 31${command.weather.meterspersecond} </code>
+                <code>21 ❄ +5° 75% 32${command.weather.meterspersecond} </code>
+                <b>${command.weather.dailyforecast}:</b>
+                <code>02 Sun. ☂\uFE0F +2° ☂\uFE0F +2°</code>
+                <code>03 Mon. ☔ +3° ☔ +3°</code>
+                <code>04 Tue. ❄ +4° ❄ +4°</code>
+                <code>05 Wed. ❄ +5° ❄ +5°</code>
                 """;
         final String token = "token";
         final int cityId = 123;
@@ -171,7 +168,7 @@ class WeatherTest {
         when(botRestTemplate.getForEntity(expectedForecastWeatherApiUrl, Weather.WeatherForecast.class)).thenReturn(weatherForecastResponseEntity);
         when(internationalizationService.internationalize(anyString(), anyString())).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = weather.parse(request).get(0);
+        BotResponse botResponse = weather.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

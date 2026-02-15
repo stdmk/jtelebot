@@ -2,7 +2,7 @@ package org.telegram.bot.providers.sber;
 
 import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public interface SpeechSynthesizer {
 

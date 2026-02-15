@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.NewsMessage;
 import org.telegram.bot.repositories.NewsMessageRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;

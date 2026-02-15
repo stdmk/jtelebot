@@ -20,13 +20,13 @@ class ReactionMapperTest {
 
     @Test
     void toReactionsTest() {
-        ReactionTypeEmoji oldEmoji = new ReactionTypeEmoji(ReactionType.EMOJI_TYPE, "emoji1");
-        ReactionTypeCustomEmoji oldCustomEmoji = new ReactionTypeCustomEmoji(ReactionType.CUSTOM_EMOJI_TYPE, "customEmojiId1");
-        ReactionTypePaid oldPaid = new ReactionTypePaid(ReactionType.PAID_TYPE);
+        ReactionTypeEmoji oldEmoji = new ReactionTypeEmoji("emoji1");
+        ReactionTypeCustomEmoji oldCustomEmoji = new ReactionTypeCustomEmoji("customEmojiId1");
+        ReactionTypePaid oldPaid = new ReactionTypePaid();
 
-        ReactionTypeEmoji newEmoji = new ReactionTypeEmoji(ReactionType.EMOJI_TYPE, "emoji2");
-        ReactionTypeCustomEmoji newCustomEmoji = new ReactionTypeCustomEmoji(ReactionType.CUSTOM_EMOJI_TYPE, "customEmojiId2");
-        ReactionTypePaid newPaid = new ReactionTypePaid(ReactionType.PAID_TYPE);
+        ReactionTypeEmoji newEmoji = new ReactionTypeEmoji("emoji2");
+        ReactionTypeCustomEmoji newCustomEmoji = new ReactionTypeCustomEmoji("customEmojiId2");
+        ReactionTypePaid newPaid = new ReactionTypePaid();
 
         List<ReactionType> oldReactions = List.of(oldEmoji, oldCustomEmoji, oldPaid, mock(ReactionType.class));
         List<ReactionType> newReactions = List.of(newEmoji, newCustomEmoji, newPaid, mock(ReactionType.class));
@@ -37,19 +37,19 @@ class ReactionMapperTest {
 
         List<String> oldEmojis = reactions.getOldEmojis();
         assertEquals(1, oldEmojis.size());
-        assertEquals(oldEmoji.getEmoji(), oldEmojis.get(0));
+        assertEquals(oldEmoji.getEmoji(), oldEmojis.getFirst());
 
         List<String> oldCustomEmojis = reactions.getOldCustomEmojisIds();
         assertEquals(1, oldCustomEmojis.size());
-        assertEquals(oldCustomEmoji.getCustomEmojiId(), oldCustomEmojis.get(0));
+        assertEquals(oldCustomEmoji.getCustomEmojiId(), oldCustomEmojis.getFirst());
 
         List<String> newEmojis = reactions.getNewEmojis();
         assertEquals(1, newEmojis.size());
-        assertEquals(newEmoji.getEmoji(), newEmojis.get(0));
+        assertEquals(newEmoji.getEmoji(), newEmojis.getFirst());
 
         List<String> newCustomEmojis = reactions.getNewCustomEmojisIds();
         assertEquals(1, newCustomEmojis.size());
-        assertEquals(newCustomEmoji.getCustomEmojiId(), newCustomEmojis.get(0));
+        assertEquals(newCustomEmoji.getCustomEmojiId(), newCustomEmojis.getFirst());
     }
 
 }

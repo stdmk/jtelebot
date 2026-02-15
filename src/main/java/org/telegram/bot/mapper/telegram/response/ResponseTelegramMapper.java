@@ -8,7 +8,7 @@ import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

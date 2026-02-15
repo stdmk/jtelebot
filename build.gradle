@@ -1,75 +1,65 @@
 plugins {
-    id 'org.springframework.boot' version '2.5.4'
-    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.springframework.boot' version '3.3.8'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
 }
 
-group 'telegram'
-version '1.0-SNAPSHOT'
-
-configurations.all {
-    exclude group: 'jakarta.activation'
-    exclude group: 'com.sun.activation'
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
+group = 'telegram'
+version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 dependencies {
-    implementation 'javax.validation:validation-api:2.0.1.Final'
+
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
-    implementation 'org.telegram:telegrambots-springboot-longpolling-starter:7.10.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
-    implementation 'org.telegram:telegrambots-client:7.4.2'
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation group: 'org.json', name: 'json', version: '20230227'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    implementation 'org.telegram:telegrambots-springboot-longpolling-starter:9.3.0'
+    implementation 'org.telegram:telegrambots-client:9.3.0'
+
     implementation 'org.liquibase:liquibase-core'
-    implementation group: 'com.sun.xml.ws', name: 'jaxws-rt', version: '4.0.0'
-    compileOnly 'org.projectlombok:lombok:1.18.32'
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    implementation 'org.json:json:20240303'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+    implementation 'com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations'
+
+    implementation 'jakarta.xml.soap:jakarta.xml.soap-api'
+    implementation 'com.sun.xml.messaging.saaj:saaj-impl'
+
+    implementation 'com.rometools:rome:1.15.0'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+    implementation 'org.apache.commons:commons-text:1.10.0'
+    implementation 'commons-codec:commons-codec'
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.google.zxing:javase:3.5.3'
+    implementation 'org.jfree:jfreechart:1.5.4'
+    implementation 'com.drewnoakes:metadata-extractor:2.18.0'
+    implementation 'com.knuddels:jtokkit:1.1.0'
+    implementation 'commons-net:commons-net:3.12.0'
+    implementation 'org.apache.tika:tika-core:3.2.3'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
     runtimeOnly 'com.h2database:h2:1.4.200'
-    implementation group: 'com.rometools', name: 'rome', version: '1.15.0'
-    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.3'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.3'
 
-    implementation 'org.apache.commons:commons-lang3:3.11'
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
-    implementation 'org.apache.httpcomponents:httpclient:4.5'
-    implementation group: 'commons-codec', name: 'commons-codec', version: '1.17.0'
-    implementation group: 'com.google.zxing', name: 'core', version: '3.5.3'
-    implementation group: 'com.google.zxing', name: 'javase', version: '3.5.3'
-    implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.4'
-    implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: '2.18.0'
-    implementation("com.knuddels:jtokkit:1.1.0")
-    implementation("commons-net:commons-net:3.12.0")
-    implementation 'javax.activation:activation:1.1.1'
-    implementation('com.sun.mail:javax.mail:1.6.2')
-    implementation("org.apache.tika:tika-core:3.2.3")
-
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.7.5'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
     useJUnitPlatform()
-}
-
-jar {
-    manifest {
-        attributes(
-                'Main-Class': 'org.telegram.bot.BotApplication'
-        )
-    }
 }
 
 bootJar {

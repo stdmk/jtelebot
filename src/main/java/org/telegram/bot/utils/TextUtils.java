@@ -3,7 +3,7 @@ package org.telegram.bot.utils;
 import lombok.experimental.UtilityClass;
 import org.telegram.bot.domain.entities.User;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;

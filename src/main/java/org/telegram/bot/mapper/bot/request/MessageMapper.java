@@ -1,5 +1,9 @@
 package org.telegram.bot.mapper.bot.request;
 
+import jakarta.annotation.Nullable;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,10 +19,6 @@ import org.telegram.bot.services.UserEmailService;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
 
-import javax.annotation.Nullable;
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -86,7 +86,7 @@ public class MessageMapper {
     }
 
     @Nullable
-    public Message toMessage(javax.mail.Message emailMessage) {
+    public Message toMessage(jakarta.mail.Message emailMessage) {
         try {
             Address[] emailAddresses = emailMessage.getFrom();
 
@@ -199,7 +199,7 @@ public class MessageMapper {
         return null;
     }
 
-    private LocalDateTime getDateTime(javax.mail.Message emailMessage) {
+    private LocalDateTime getDateTime(jakarta.mail.Message emailMessage) {
         try {
             Date receivedDate = emailMessage.getReceivedDate();
             if (receivedDate == null) {
@@ -220,7 +220,7 @@ public class MessageMapper {
             return MessageContentType.TEXT;
         }
 
-        String mimeType = attachments.get(0).getMimeType();
+        String mimeType = attachments.getFirst().getMimeType();
         if (mimeType == null || mimeType.isBlank()) {
             return MessageContentType.TEXT;
         }

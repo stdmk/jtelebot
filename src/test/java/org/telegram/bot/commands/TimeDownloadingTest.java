@@ -71,7 +71,7 @@ class TimeDownloadingTest {
         final String expectedResponseText = "${command.timedownloading.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup("timedownloading");
 
-        BotResponse botResponse = timeDownloading.parse(request).get(0);
+        BotResponse botResponse = timeDownloading.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -104,7 +104,7 @@ class TimeDownloadingTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = timeDownloading.parse(request).get(0);
+        BotResponse botResponse = timeDownloading.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expected, textResponse.getText());
@@ -113,8 +113,8 @@ class TimeDownloadingTest {
 
     private static Stream<Arguments> provideArguments() {
         return Stream.of(
-                Arguments.of("1 b 1000 mbit", "${command.timedownloading.file} *1.00 b* ${command.timedownloading.willdownload} *${command.timedownloading.instantly}*"),
-                Arguments.of("1 gb 50 mbit", "${command.timedownloading.file} *1024.00 Mb* ${command.timedownloading.willdownload} ${command.timedownloading.in} *2 ${utils.date.m}. 43 ${utils.date.s}. *")
+                Arguments.of("1 b 1000 mbit", "${command.timedownloading.file} <b>1.00 b</b> ${command.timedownloading.willdownload} <b>${command.timedownloading.instantly}</b>"),
+                Arguments.of("1 gb 50 mbit", "${command.timedownloading.file} <b>1024.00 Mb</b> ${command.timedownloading.willdownload} ${command.timedownloading.in} <b>2 ${utils.date.m}. 43 ${utils.date.s}. </b>")
         );
     }
 

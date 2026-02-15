@@ -98,7 +98,7 @@ class CaloriesTest {
         org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 0, 0);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -150,7 +150,7 @@ class CaloriesTest {
                 .setUser(user);
         when(userCaloriesTargetService.get(user)).thenReturn(userCaloriesTarget);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -240,7 +240,7 @@ class CaloriesTest {
                 .setCalories(2000D);
         when(userCaloriesTargetService.get(user)).thenReturn(userCaloriesTarget);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -299,7 +299,7 @@ class CaloriesTest {
                 .setCalories(2000D);
         when(userCaloriesTargetService.get(user)).thenReturn(userCaloriesTarget);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -401,7 +401,7 @@ class CaloriesTest {
                 .setCalories(2000D);
         when(userCaloriesTargetService.get(user)).thenReturn(userCaloriesTarget);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -455,7 +455,7 @@ class CaloriesTest {
         Product product = getSomeProduct(productId, request.getMessage().getUser());
         when(productService.get(productId)).thenReturn(product);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -519,7 +519,7 @@ class CaloriesTest {
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -575,7 +575,7 @@ class CaloriesTest {
         when(productService.get(productId)).thenReturn(product);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -634,7 +634,7 @@ class CaloriesTest {
         org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(3, 4, 5, 68, 50);
         when(caloricMapper.toCalories(eatenProduct)).thenReturn(calories1);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -692,7 +692,7 @@ class CaloriesTest {
         org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 300, 0);
         when(caloricMapper.toCalories(activity)).thenReturn(calories1);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -736,7 +736,7 @@ class CaloriesTest {
         setUpClock(chat, user);
         when(productService.find(user, productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(List.of(product));
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -769,7 +769,7 @@ class CaloriesTest {
         setUpInternationalization();
         when(productService.find(user, productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -816,7 +816,7 @@ class CaloriesTest {
         org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -844,7 +844,7 @@ class CaloriesTest {
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -884,7 +884,7 @@ class CaloriesTest {
         setUpInternationalization();
         when(caloricMapper.toCaloric(any(Double.class), any(Double.class), any(Double.class))).thenReturn(expectedCaloric);
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -930,7 +930,7 @@ class CaloriesTest {
         setUpInternationalization();
         setUpClock(message.getChat(), message.getUser());
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -979,7 +979,7 @@ class CaloriesTest {
 
         when(productService.find(productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(new PageImpl<>(products));
 
-        BotResponse response = calories.parse(request).get(0);
+        BotResponse response = calories.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -998,7 +998,7 @@ class CaloriesTest {
         when(clock.instant()).thenReturn(DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
-        ZoneId zoneId = mock(ZoneId.class);
+        ZoneId zoneId = ZoneId.systemDefault();
         when(userCityService.getZoneIdOfUserOrDefault(chat, user)).thenReturn(zoneId);
     }
 

@@ -16,7 +16,7 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.services.GigaChatMessageService;
 import org.telegram.bot.services.InternationalizationService;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;

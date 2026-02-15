@@ -1,11 +1,11 @@
 package org.telegram.bot.mapper.email.request;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeBodyPart;
 import org.junit.jupiter.api.Test;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileType;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeBodyPart;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 

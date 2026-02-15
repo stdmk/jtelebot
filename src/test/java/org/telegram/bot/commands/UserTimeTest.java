@@ -52,13 +52,13 @@ class UserTimeTest {
 
     @Test
     void parseWithoutArgumentsAndRepliedMessageTest() {
-        final String expectedResponseText = "[username](tg://user?id=1) ${command.usertime.citynotset}";
+        final String expectedResponseText = "<a href=\"tg://user?id=1\">username</a> ${command.usertime.citynotset}";
         BotRequest request = TestUtils.getRequestFromGroup("time");
         Message message = request.getMessage();
 
         when(userService.get(message.getUser().getUserId())).thenReturn(message.getUser());
 
-        BotResponse botResponse = userTime.parse(request).get(0);
+        BotResponse botResponse = userTime.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(message.getChatId());
@@ -68,7 +68,7 @@ class UserTimeTest {
     void parseWithCityAsArgumentWithoutRepliedMessageTest() {
         final String cityNameEn = "kitezhgrad";
         final String cityNameRu = "Китежград";
-        final String expectedResponseText = "${command.usertime.incity} Китежград ${command.usertime.now}: *00:00:00*";
+        final String expectedResponseText = "${command.usertime.incity} Китежград ${command.usertime.now}: <b>00:00:00</b>";
         BotRequest request = TestUtils.getRequestFromGroup("time " + cityNameEn);
 
         when(clock.instant()).thenReturn(DATE_TIME_NOW.atZone(ZoneId.systemDefault()).toInstant());
@@ -78,7 +78,7 @@ class UserTimeTest {
         city.setTimeZone(ZoneId.systemDefault().toString());
         when(cityService.get(cityNameEn)).thenReturn(city);
 
-        BotResponse botResponse = userTime.parse(request).get(0);
+        BotResponse botResponse = userTime.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -100,7 +100,7 @@ class UserTimeTest {
     void parseWithUserAsArgumentWithoutRepliedMessageTest() {
         final String cityNameRu = "Китежград";
         final String username = "username";
-        final String expectedResponseText = "${command.usertime.at} [username](tg://user?id=1) ${command.usertime.now} *00:00:00*";
+        final String expectedResponseText = "${command.usertime.at} <a href=\"tg://user?id=1\">username</a> ${command.usertime.now} <b>00:00:00</b>";
         BotRequest request = TestUtils.getRequestFromGroup("time " + username);
         Message message = request.getMessage();
 
@@ -112,7 +112,7 @@ class UserTimeTest {
         city.setTimeZone(ZoneId.systemDefault().toString());
         when(userCityService.get(message.getUser(), message.getChat())).thenReturn(new UserCity().setCity(city));
 
-        BotResponse botResponse = userTime.parse(request).get(0);
+        BotResponse botResponse = userTime.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(message.getChatId());
@@ -121,7 +121,8 @@ class UserTimeTest {
     @Test
     void parseWithoutArgumentsWithRepliedMessageTest() {
         final String cityNameRu = "Китежград";
-        final String expectedResponseText = "${command.usertime.at} [username](tg://user?id=2) ${command.usertime.now} *00:00:00*\n${command.usertime.was}: *31.12.1999 22:00:00*";
+        final String expectedResponseText = "${command.usertime.at} <a href=\"tg://user?id=2\">username</a> ${command.usertime.now} <b>00:00:00</b>\n" +
+                "${command.usertime.was}: <b>31.12.1999 22:00:00</b>";
         BotRequest request = TestUtils.getRequestWithRepliedMessage("");
         Message message = request.getMessage();
         Message repliedToMessage = message.getReplyToMessage();
@@ -135,7 +136,7 @@ class UserTimeTest {
         city.setTimeZone(ZoneId.systemDefault().toString());
         when(userCityService.get(repliedToMessage.getUser(), message.getChat())).thenReturn(new UserCity().setCity(city));
 
-        BotResponse botResponse = userTime.parse(request).get(0);
+        BotResponse botResponse = userTime.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
         verify(bot).sendTyping(message.getChatId());

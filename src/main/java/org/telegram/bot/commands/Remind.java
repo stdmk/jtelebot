@@ -22,7 +22,7 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;

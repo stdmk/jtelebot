@@ -1,6 +1,5 @@
 package org.telegram.bot.commands;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -67,7 +66,7 @@ class WhereTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = where.parse(request).get(0);
+        BotResponse botResponse = where.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -87,10 +86,9 @@ class WhereTest {
         verify(bot, never()).sendTyping(message.getChatId());
     }
 
-    @Disabled
     @Test
     void parseTest() {
-        final String expectedResponseText = "${command.where.lasttime} <b><a href=\"tg://user?id=1\">username</a></b> ${command.where.saw} 03.02.1999 04:05:06 (GMT+03:00)\n" +
+        final String expectedResponseText = "${command.where.lasttime} <b><a href=\"tg://user?id=1\">username</a></b> ${command.where.saw} 03.02.1999 04:05:06 (Europe/Moscow)\n" +
                 "${command.where.silent} 331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}.  (10 ${utils.date.months}. 29 ${utils.date.d}. )";
         final Integer expectedMessageId = 123;
         final String username = "username";
@@ -109,7 +107,7 @@ class WhereTest {
         when(clock.instant()).thenReturn(currentDateTime.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = where.parse(request).get(0);
+        BotResponse botResponse = where.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 

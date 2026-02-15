@@ -7,6 +7,7 @@ import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
+import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import java.util.List;

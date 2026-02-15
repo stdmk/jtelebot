@@ -23,8 +23,8 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Set;

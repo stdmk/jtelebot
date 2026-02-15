@@ -47,7 +47,7 @@ public class BackupTimer extends TimerParent {
 
                 if (attempts < propertiesConfig.getFtpRetryCount()) {
                     try {
-                        TimeUnit.MINUTES.sleep(5);
+                        TimeUnit.MILLISECONDS.sleep(propertiesConfig.getFtpRetryTimeoutMillis());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         return;

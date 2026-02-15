@@ -296,6 +296,9 @@ The maximum size (bytes) of stored backups. If the limit is exceeded, older back
 **ftpRetryCount** (ftp backup)  
 Number of FTP backup attempts.  
 
+**ftpRetryTimeoutMillis**  
+Time between backup attempts.  
+
 **reactions** (/reactions command)
 
 *minRepliesToGetTheTop* 
@@ -308,7 +311,7 @@ Messages count in /reactions command.
 number of days to store messages
 
 ### System
-Java 17 is required to run the bot  
+Java 21 is required to run the bot  
 To use the /webcam command, you need to install ffmpeg on your system
 
 ### Build

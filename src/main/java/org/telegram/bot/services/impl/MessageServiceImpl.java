@@ -1,5 +1,6 @@
 package org.telegram.bot.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,6 @@ import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.repositories.MessageRepository;
 import org.telegram.bot.services.MessageService;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor

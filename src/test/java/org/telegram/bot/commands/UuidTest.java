@@ -20,10 +20,11 @@ class UuidTest {
     void parseWithoutArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("uuid");
 
-        BotResponse botResponse = uuidCommand.parse(request).get(0);
+        BotResponse botResponse = uuidCommand.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        String responseUuid = textResponse.getText().replace("`", "");
+        String responseUuid = textResponse.getText().replace("<code>", "")
+                .replace("</code>", "");
         assertDoesNotThrow(() -> UUID.fromString(responseUuid));
     }
 
@@ -31,20 +32,20 @@ class UuidTest {
     void parseWithInvalidUuidAsArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("uuid tratatam");
 
-        BotResponse botResponse = uuidCommand.parse(request).get(0);
+        BotResponse botResponse = uuidCommand.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        assertEquals(Emoji.DELETE.getSymbol() + " UUID *${command.uuid.invalid}*", textResponse.getText());
+        assertEquals(Emoji.DELETE.getSymbol() + " UUID <b>${command.uuid.invalid}</b>", textResponse.getText());
     }
 
     @Test
     void parseWithValidUuidAsArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("uuid " + UUID.randomUUID());
 
-        BotResponse botResponse = uuidCommand.parse(request).get(0);
+        BotResponse botResponse = uuidCommand.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
-        assertEquals(Emoji.CHECK_MARK.getSymbol() + " UUID *${command.uuid.valid}*", textResponse.getText());
+        assertEquals(Emoji.CHECK_MARK.getSymbol() + " UUID <b>${command.uuid.valid}</b>", textResponse.getText());
     }
 
 }

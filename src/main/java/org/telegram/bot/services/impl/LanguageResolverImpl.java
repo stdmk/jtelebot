@@ -14,7 +14,7 @@ import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.services.UserLanguageService;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Locale;
 
 @Service

@@ -25,6 +25,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class Virus implements Command {
             Message repliedMessage = message.getReplyToMessage();
             if (repliedMessage != null) {
                 if (repliedMessage.hasAttachment()) {
-                    attachment = repliedMessage.getAttachments().get(0);
+                    attachment = repliedMessage.getAttachments().getFirst();
                 } else {
                     try {
                         commandArgument = TextUtils.findFirstUrlInText(repliedMessage.getText()).toString();
@@ -65,7 +66,7 @@ public class Virus implements Command {
                 messageIdToReply = repliedMessage.getMessageId();
             } else {
                 if (message.hasAttachment()) {
-                    attachment = message.getAttachments().get(0);
+                    attachment = message.getAttachments().getFirst();
                 }
                 commandArgument = message.getCommandArgument();
                 messageIdToReply = message.getMessageId();
@@ -103,7 +104,12 @@ public class Virus implements Command {
     private String sendFileToScan(Attachment attachment) throws TelegramApiException, IOException {
         String scanResult;
 
-        byte[] file = bot.getBytesTelegramFile(attachment.getFileId());
+        byte[] file;
+        if (attachment.getFile() != null) {
+            file = attachment.getFile();
+        } else {
+            file = bot.getBytesTelegramFile(attachment.getFileId());
+        }
 
         try {
             scanResult = virusScanner.scan(file);
@@ -117,8 +123,8 @@ public class Virus implements Command {
     private String sendUrlToScan(String urlString) {
         URL url;
         try {
-            url = new URL(urlString);
-        } catch (MalformedURLException e) {
+            url = URI.create(urlString).toURL();
+        } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 

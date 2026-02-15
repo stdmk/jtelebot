@@ -1,13 +1,13 @@
 package org.telegram.bot.mapper.email.request;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.model.response.File;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.util.ByteArrayDataSource;
 import java.io.IOException;
 
 @Component

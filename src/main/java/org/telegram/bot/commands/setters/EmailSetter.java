@@ -22,7 +22,7 @@ import org.telegram.bot.services.UserEmailService;
 import org.telegram.bot.services.email.EmailSender;
 import org.telegram.bot.utils.MathUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;

@@ -3,7 +3,7 @@ package org.telegram.bot.domain.model.response;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @RequiredArgsConstructor
 @Getter

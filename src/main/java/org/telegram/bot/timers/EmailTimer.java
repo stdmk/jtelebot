@@ -1,5 +1,7 @@
 package org.telegram.bot.timers;
 
+import jakarta.mail.*;
+import jakarta.mail.search.FlagTerm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -8,9 +10,6 @@ import org.telegram.bot.Bot;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.config.email.EmailProperties;
 import org.telegram.bot.domain.entities.Timer;
-
-import javax.mail.*;
-import javax.mail.search.FlagTerm;
 
 @RequiredArgsConstructor
 @Component
