@@ -64,7 +64,7 @@ public class RequestMapper {
         return messageMapper.toMessage(telegramMessage, telegramUser, messageText, messageKind);
     }
 
-    public BotRequest toBotRequest(javax.mail.Message emailMessage) {
+    public BotRequest toBotRequest(jakarta.mail.Message emailMessage) {
         Message message = messageMapper.toMessage(emailMessage);
         return new BotRequest().setMessage(message).setSource(RequestSource.EMAIL);
     }

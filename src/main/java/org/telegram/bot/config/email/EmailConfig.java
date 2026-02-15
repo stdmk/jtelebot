@@ -1,5 +1,10 @@
 package org.telegram.bot.config.email;
 
+import jakarta.mail.Authenticator;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,11 +17,6 @@ import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.services.EmailNotifier;
 import org.telegram.bot.services.executors.email.EmailExecutor;
 
-import javax.mail.Authenticator;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;

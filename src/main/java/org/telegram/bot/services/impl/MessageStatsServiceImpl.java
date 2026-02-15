@@ -1,5 +1,6 @@
 package org.telegram.bot.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,6 @@ import org.telegram.bot.repositories.MessageStatsRepository;
 import org.telegram.bot.services.MessageService;
 import org.telegram.bot.services.MessageStatsService;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

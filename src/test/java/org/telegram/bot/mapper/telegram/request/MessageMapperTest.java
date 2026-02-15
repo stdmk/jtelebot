@@ -1,5 +1,8 @@
 package org.telegram.bot.mapper.telegram.request;
 
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,9 +23,6 @@ import org.telegram.bot.services.UserEmailService;
 import org.telegram.telegrambots.meta.api.objects.reactions.MessageReactionUpdated;
 import org.telegram.telegrambots.meta.api.objects.reactions.ReactionType;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -179,7 +179,7 @@ class MessageMapperTest {
 
     @Test
     void toMessageFromEmailMessageWithUnknownAddressTest() throws MessagingException {
-        javax.mail.Message emailMessage = mock(javax.mail.Message.class);
+        jakarta.mail.Message emailMessage = mock(jakarta.mail.Message.class);
         Address[] from = new Address[]{new InternetAddress("email@example.com")};
         when(emailMessage.getFrom()).thenReturn(from);
 
@@ -192,7 +192,7 @@ class MessageMapperTest {
     void toMessageFromEmailMessageWithUnknownTypeOfMessageTest() throws MessagingException, IOException {
         final String emailAddress = "email@example.com";
 
-        javax.mail.Message emailMessage = mock(javax.mail.Message.class);
+        jakarta.mail.Message emailMessage = mock(jakarta.mail.Message.class);
         Address[] from = new Address[]{new InternetAddress(emailAddress)};
         when(emailMessage.getFrom()).thenReturn(from);
         when(emailMessage.getContent()).thenReturn(new Object());
@@ -206,7 +206,7 @@ class MessageMapperTest {
         verify(userEmailService).get(emailAddressesCaptor.capture());
         List<String> actualEmailAddresses = emailAddressesCaptor.getValue();
         assertEquals(1, actualEmailAddresses.size());
-        assertEquals(emailAddress, actualEmailAddresses.get(0));
+        assertEquals(emailAddress, actualEmailAddresses.getFirst());
 
         verify(botStats).incrementErrors(emailMessage, "Unexpected type of email message: " + emailMessage.getClass().getName());
     }
@@ -216,7 +216,7 @@ class MessageMapperTest {
         final String emailAddress = "email@example.com";
         final String error = "error";
 
-        javax.mail.Message emailMessage = mock(javax.mail.Message.class);
+        jakarta.mail.Message emailMessage = mock(jakarta.mail.Message.class);
         Address[] from = new Address[]{new InternetAddress(emailAddress)};
         when(emailMessage.getFrom()).thenReturn(from);
         UserEmail userEmail = new UserEmail().setUser(new User());
@@ -236,7 +236,7 @@ class MessageMapperTest {
         final String emailAddress = "email@example.com";
         final String messageText = "text";
 
-        javax.mail.Message emailMessage = mock(MimeMessage.class);
+        jakarta.mail.Message emailMessage = mock(MimeMessage.class);
         Address[] from = new Address[]{new InternetAddress(emailAddress)};
         when(emailMessage.getFrom()).thenReturn(from);
         when(emailMessage.getContent()).thenReturn(messageText);
@@ -261,7 +261,7 @@ class MessageMapperTest {
         verify(userEmailService).get(emailAddressesCaptor.capture());
         List<String> actualEmailAddresses = emailAddressesCaptor.getValue();
         assertEquals(1, actualEmailAddresses.size());
-        assertEquals(emailAddress, actualEmailAddresses.get(0));
+        assertEquals(emailAddress, actualEmailAddresses.getFirst());
     }
 
     @Test
@@ -271,7 +271,7 @@ class MessageMapperTest {
         final byte[] attachmentBytes = "content".getBytes(StandardCharsets.UTF_8);
         final int contentPartsCount = 2;
 
-        javax.mail.Message emailMessage = mock(MimeMessage.class);
+        jakarta.mail.Message emailMessage = mock(MimeMessage.class);
         Address[] from = new Address[]{new InternetAddress(emailAddress)};
         when(emailMessage.getFrom()).thenReturn(from);
         Multipart content = mock(Multipart.class);
@@ -321,7 +321,7 @@ class MessageMapperTest {
         List<Attachment> attachments = message.getAttachments();
         assertFalse(attachments.isEmpty());
         assertEquals(1, attachments.size());
-        Attachment attachment = attachments.get(0);
+        Attachment attachment = attachments.getFirst();
         assertEquals("application", attachment.getMimeType());
         assertNull(attachment.getFileUniqueId());
         assertNull(attachment.getFileId());
@@ -334,7 +334,7 @@ class MessageMapperTest {
         verify(userEmailService).get(emailAddressesCaptor.capture());
         List<String> actualEmailAddresses = emailAddressesCaptor.getValue();
         assertEquals(1, actualEmailAddresses.size());
-        assertEquals(emailAddress, actualEmailAddresses.get(0));
+        assertEquals(emailAddress, actualEmailAddresses.getFirst());
     }
 
 }

@@ -1,5 +1,9 @@
 package org.telegram.bot.mapper.email.request;
 
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMultipart;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -12,17 +16,12 @@ import org.telegram.bot.services.BotStats;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,7 +57,7 @@ class EmailMessageMapperTest {
         assertEquals(subject, emailMessage.getSubject());
 
         Object content = emailMessage.getContent();
-        assertTrue(content instanceof MimeMultipart);
+        assertInstanceOf(MimeMultipart.class, content);
 
         MimeMultipart multipart = (MimeMultipart) content;
         assertEquals(1, multipart.getCount());
@@ -121,7 +120,7 @@ class EmailMessageMapperTest {
         assertEquals(subject, emailMessage.getSubject());
 
         Object content = emailMessage.getContent();
-        assertTrue(content instanceof MimeMultipart);
+        assertInstanceOf(MimeMultipart.class, content);
 
         MimeMultipart multipart = (MimeMultipart) content;
         assertEquals(5, multipart.getCount());

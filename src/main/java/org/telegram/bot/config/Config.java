@@ -3,14 +3,17 @@ package org.telegram.bot.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import okhttp3.OkHttpClient;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.TrustStrategy;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +22,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.LocaleResolver;
@@ -37,12 +39,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import javax.net.ssl.SSLContext;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -104,46 +101,102 @@ public class Config {
 
     @Bean
     public RestTemplate botRestTemplate() {
+
+        int timeoutSeconds = defaultRequestTimeoutSeconds;
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(timeoutSeconds))
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultConnectionConfig(connectionConfig)
+                        .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(timeoutSeconds))
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
         HttpComponentsClientHttpRequestFactory requestFactory =
-                new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(defaultRequestTimeoutSeconds * 1000);
-        requestFactory.setReadTimeout(defaultRequestTimeoutSeconds * 1000);
+                new HttpComponentsClientHttpRequestFactory(httpClient);
 
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(Collections.singletonList(MediaType.ALL));
-        messageConverters.add(converter);
-        restTemplate.setMessageConverters(messageConverters);
+        MappingJackson2HttpMessageConverter converter =
+                new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(List.of(MediaType.ALL));
+
+        restTemplate.setMessageConverters(List.of(converter));
 
         return restTemplate;
     }
 
     @Bean
-    public RestTemplate sberRestTemplate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy)
+    public RestTemplate sberRestTemplate() throws Exception {
+        int timeoutSeconds = sberApiRequestTimeoutSeconds;
+
+        SSLContext sslContext = SSLContexts.custom()
+                .loadTrustMaterial((chain, authType) -> true)
                 .build();
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLSocketFactory(csf)
+
+        SSLConnectionSocketFactory sslSocketFactory =
+                new SSLConnectionSocketFactory(sslContext);
+
+        PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setSSLSocketFactory(sslSocketFactory)
+                        .setDefaultConnectionConfig(
+                                ConnectionConfig.custom()
+                                        .setConnectTimeout(Timeout.ofSeconds(timeoutSeconds))
+                                        .build()
+                        )
+                        .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(timeoutSeconds))
                 .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
         HttpComponentsClientHttpRequestFactory requestFactory =
-                new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
-        requestFactory.setReadTimeout(sberApiRequestTimeoutSeconds * 1000);
+                new HttpComponentsClientHttpRequestFactory(httpClient);
 
         return new RestTemplate(requestFactory);
     }
 
+
     @Bean
     public RestTemplate defaultRestTemplate() {
+        int timeoutSeconds = defaultRequestTimeoutSeconds;
+
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(timeoutSeconds))
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultConnectionConfig(connectionConfig)
+                        .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(timeoutSeconds))
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
         HttpComponentsClientHttpRequestFactory requestFactory =
-                new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(defaultRequestTimeoutSeconds * 1000);
-        requestFactory.setReadTimeout(defaultRequestTimeoutSeconds * 1000);
+                new HttpComponentsClientHttpRequestFactory(httpClient);
 
         return new RestTemplate(requestFactory);
     }
@@ -164,10 +217,8 @@ public class Config {
     @Bean
     public XmlMapper xmlMapper() {
         XmlMapper xmlMapper = new XmlMapper();
-
-        xmlMapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+        xmlMapper.findAndRegisterModules();
         xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
         return xmlMapper;
     }
 

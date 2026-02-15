@@ -3,12 +3,13 @@ package org.telegram.bot.commands;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -33,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.telegram.bot.utils.DateUtils.*;
@@ -69,6 +71,7 @@ public class Weather implements Command {
     };
 
     private final Bot bot;
+    private final ObjectMapper objectMapper;
     private final PropertiesConfig propertiesConfig;
     private final UserCityService userCityService;
     private final CommandWaitingService commandWaitingService;
@@ -179,7 +182,18 @@ public class Weather implements Command {
      * @return text of error message.
      */
     private String getErrorMessage(HttpClientErrorException e) {
-        return new JSONObject(e.getResponseBodyAsString()).getString("message");
+        String body = e.getResponseBodyAsString();
+
+        if (body.isBlank()) {
+            return "Unknown error";
+        }
+
+        try {
+            Map<String, Object> parsed = objectMapper.readValue(body, new TypeReference<>() {});
+            return String.valueOf(parsed.getOrDefault("message", body));
+        } catch (Exception ignored) {
+            return body;
+        }
     }
 
     /**
@@ -192,7 +206,7 @@ public class Weather implements Command {
     private String prepareCurrentWeatherText(WeatherCurrent weatherCurrent, String lang) {
         StringBuilder buf = new StringBuilder();
         Sys sys = weatherCurrent.getSys();
-        WeatherData weather = weatherCurrent.getWeather().get(0);
+        WeatherData weather = weatherCurrent.getWeather().getFirst();
         Main main = weatherCurrent.getMain();
         Wind wind = weatherCurrent.getWind();
 
@@ -270,7 +284,7 @@ public class Weather implements Command {
 
         weatherForecastList
                 .forEach(forecast -> buf.append("<code>").append(formatTime(forecast.getDt() + timezone), 0, 2).append(" ")
-                    .append(getWeatherEmoji(forecast.getWeather().get(0).getId())).append(" ")
+                    .append(getWeatherEmoji(forecast.getWeather().getFirst().getId())).append(" ")
                     .append(String.format("%-" + maxLengthOfTemp + "s", String.format(TEMPERATURE_CAPTION_FORMAT, forecast.getMain().getTemp()) + "°"))
                     .append(String.format("%-4s", forecast.getMain().getHumidity().intValue() + "% "))
                     .append(String.format("%.0f", forecast.getWind().getSpeed())).append("${command.weather.meterspersecond} ")
@@ -289,7 +303,7 @@ public class Weather implements Command {
     private String prepareDailyForecastWeatherText(WeatherForecast weatherForecast, String lang) {
         StringBuilder buf = new StringBuilder("<b>${command.weather.dailyforecast}:</b>\n");
         List<WeatherForecastData> forecastList = weatherForecast.getList();
-        LocalDate firstDate = forecastList.get(0).getNormalizedDate().toLocalDate();
+        LocalDate firstDate = forecastList.getFirst().getNormalizedDate().toLocalDate();
 
         List<LocalDate> dateOfForecast = Stream.of(1, 2, 3, 4).map(firstDate::plusDays).toList();
         List<List<WeatherForecastData>> forecastListList = dateOfForecast.stream().map(date -> getForecastDataByDate(forecastList, date)).toList();
@@ -316,17 +330,17 @@ public class Weather implements Command {
         WeatherForecastData max = forecastData
                 .stream()
                 .max(Comparator.comparing(weatherForecastData -> weatherForecastData.getMain().getTemp()))
-                .orElse(forecastData.get(0));
+                .orElse(forecastData.getFirst());
 
         WeatherForecastData min = forecastData
                 .stream()
                 .min(Comparator.comparing(weatherForecastData -> weatherForecastData.getMain().getTemp()))
-                .orElse(forecastData.get(0));
+                .orElse(forecastData.getFirst());
 
         return "<code>" + String.format("%02d", date.getDayOfMonth()) + " " + getDayOfWeek(date, lang) + " " +
-                getWeatherEmoji(max.getWeather().get(0).getId()) + " " +
+                getWeatherEmoji(max.getWeather().getFirst().getId()) + " " +
                 String.format("%-" + spaceCount + "s", String.format(TEMPERATURE_CAPTION_FORMAT, max.getMain().getTemp()) + "°") +
-                getWeatherEmoji(min.getWeather().get(0).getId()) + " " +
+                getWeatherEmoji(min.getWeather().getFirst().getId()) + " " +
                 String.format(TEMPERATURE_CAPTION_FORMAT, min.getMain().getTemp()) + "°" + "</code>\n";
     }
 

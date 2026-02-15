@@ -64,11 +64,11 @@ class JsonTest {
 
     @Test
     void parseCorruptedJsonTest() {
-        final String expectedResponseText = "`Unexpected end-of-input: expected close marker for Object (start marker at [Source: (String)\"{\"field\":\"value\"\"; line: 1, column: 1])\n" +
-                " at [Source: (String)\"{\"field\":\"value\"\"; line: 1, column: 17]`";
+        final String expectedResponseText = "`Unexpected end-of-input: expected close marker for Object (start marker at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1])\n" +
+                " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 17]`";
         BotRequest request = TestUtils.getRequestFromGroup("json {\"field\":\"value\"");
 
-        BotResponse botResponse = json.parse(request).get(0);
+        BotResponse botResponse = json.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -81,7 +81,7 @@ class JsonTest {
                 "}</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("json {\"field\":\"value\"}");
 
-        BotResponse botResponse = json.parse(request).get(0);
+        BotResponse botResponse = json.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -93,7 +93,7 @@ class JsonTest {
                 "{\"field\":\"value\"}</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("json {\n  \"field\" : \"value\"\n}");
 
-        BotResponse botResponse = json.parse(request).get(0);
+        BotResponse botResponse = json.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -151,11 +151,11 @@ class JsonTest {
 
         when(bot.getBytesTelegramFile(fileId)).thenReturn("{\n  \"field\" : \"value\"\n}".getBytes(StandardCharsets.UTF_8));
 
-        BotResponse botResponse = json.parse(request).get(0);
+        BotResponse botResponse = json.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(fileName, file.getName());
 
         String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
@@ -171,11 +171,11 @@ class JsonTest {
         message.setAttachments(List.of(new Attachment().setFile("{\n  \"field\" : \"value\"\n}".getBytes()).setName(fileName)));
         message.setMessageContentType(MessageContentType.FILE);
 
-        BotResponse botResponse = json.parse(request).get(0);
+        BotResponse botResponse = json.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(fileName, file.getName());
 
         String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);

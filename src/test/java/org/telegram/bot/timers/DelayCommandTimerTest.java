@@ -16,7 +16,9 @@ import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.DelayCommandService;
 import org.telegram.bot.services.UserStatsService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -24,6 +26,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DelayCommandTimerTest {
 
+    private static final LocalDateTime CURRENT_DATE_TIME = LocalDateTime.of(2000, 1, 1, 0, 0);
+
+    @Mock
+    private Clock clock;
     @Mock
     private Bot bot;
     @Mock
@@ -40,6 +46,8 @@ class DelayCommandTimerTest {
 
     @Test
     void executeWithoutDelayedCommandsTest() {
+        when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(delayCommandService.getAllBeforeDateTime(any(LocalDateTime.class))).thenReturn(List.of());
 
         delayCommandTimer.execute();
@@ -56,11 +64,14 @@ class DelayCommandTimerTest {
         final String jsonProcessingExceptionErrorMessage = "error";
 
         BotRequest request = TestUtils.getRequestFromGroup();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime afterNow = now.minusDays(1);
 
+        when(clock.instant()).thenReturn(now.atZone(ZoneId.systemDefault()).toInstant());
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         DelayCommand notTimeDelayedCommand = new DelayCommand().setDateTime(now.plusDays(1));
-        DelayCommand corruptedJsonDelayCommand = new DelayCommand().setDateTime(now).setRequestJson(corruptedJson);
-        DelayCommand validJsonDelayCommand = new DelayCommand().setDateTime(now).setRequestJson(validJson);
+        DelayCommand corruptedJsonDelayCommand = new DelayCommand().setDateTime(afterNow).setRequestJson(corruptedJson);
+        DelayCommand validJsonDelayCommand = new DelayCommand().setDateTime(afterNow).setRequestJson(validJson);
         List<DelayCommand> delayCommandList = List.of(notTimeDelayedCommand, corruptedJsonDelayCommand, validJsonDelayCommand);
         when(delayCommandService.getAllBeforeDateTime(any(LocalDateTime.class))).thenReturn(delayCommandList);
 

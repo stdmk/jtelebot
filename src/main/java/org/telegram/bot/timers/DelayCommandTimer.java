@@ -14,6 +14,7 @@ import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.DelayCommandService;
 import org.telegram.bot.services.UserStatsService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class DelayCommandTimer extends TimerParent {
 
+    private final Clock clock;
     private final Bot bot;
     private final BotStats botStats;
     private final ObjectMapper objectMapper;
@@ -30,7 +32,7 @@ public class DelayCommandTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 5000)
     public void execute() {
-        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime dateTimeNow = LocalDateTime.now(clock);
 
         for (DelayCommand delayCommand : delayCommandService.getAllBeforeDateTime(dateTimeNow)) {
             if (dateTimeNow.isAfter(delayCommand.getDateTime())) {

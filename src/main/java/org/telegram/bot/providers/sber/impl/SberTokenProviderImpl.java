@@ -2,6 +2,7 @@ package org.telegram.bot.providers.sber.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,7 +17,7 @@ import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.providers.sber.SberTokenProvider;
 
-import jakarta.annotation.PostConstruct;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SberTokenProviderImpl implements SberTokenProvider {
 
+    private final Clock clock;
     private final PropertiesConfig propertiesConfig;
     private final RestTemplate sberRestTemplate;
 
@@ -36,18 +38,16 @@ public class SberTokenProviderImpl implements SberTokenProvider {
 
     private static final String GET_ACCESS_TOKEN_API_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
 
-    @PostConstruct
-    private void postConstruct() {
-        long now = Instant.now().toEpochMilli();
-        Arrays.stream(SberScope.values())
-                .filter(sberScope -> !sberScope.getSecretFunction.apply(propertiesConfig).isBlank())
-                .forEach(sberScope ->
-                        accessTokenMap.put(sberScope, new SberAccessTokenResponseDto().setAccessToken(null).setExpiresAt(now)));
-    }
-
     @Override
     public String getToken(SberScope sberScope) throws GettingSberAccessTokenException {
+        if (accessTokenMap.isEmpty()) {
+            initMap();
+        }
+
         SberAccessTokenResponseDto accessToken = accessTokenMap.get(sberScope);
+        if (accessToken == null) {
+            throw new GettingSberAccessTokenException("empty sber token");
+        }
 
         if (isTokenExpired(accessToken)) {
             accessToken = getFromApi(sberScope);
@@ -61,6 +61,10 @@ public class SberTokenProviderImpl implements SberTokenProvider {
 
     @Override
     public void updateTokens() {
+        if (accessTokenMap.isEmpty()) {
+            initMap();
+        }
+
         accessTokenMap.forEach((sberScope, accessToken) -> {
             if (isTokenExpired(accessToken)) {
                 try {
@@ -73,8 +77,16 @@ public class SberTokenProviderImpl implements SberTokenProvider {
         });
     }
 
+    private void initMap() {
+        long now = Instant.now(clock).toEpochMilli();
+        Arrays.stream(SberScope.values())
+                .filter(sberScope -> StringUtils.isNotEmpty(sberScope.getSecretFunction.apply(propertiesConfig)))
+                .forEach(sberScope ->
+                        accessTokenMap.put(sberScope, new SberAccessTokenResponseDto().setAccessToken(null).setExpiresAt(now)));
+    }
+
     private boolean isTokenExpired(SberAccessTokenResponseDto accessToken) {
-        return Instant.now().toEpochMilli() > accessToken.getExpiresAt();
+        return accessToken.getAccessToken() == null || Instant.now(clock).toEpochMilli() > accessToken.getExpiresAt();
     }
 
     private SberAccessTokenResponseDto getFromApi(SberScope sberScope) throws GettingSberAccessTokenException {

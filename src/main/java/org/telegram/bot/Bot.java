@@ -1,5 +1,6 @@
 package org.telegram.bot;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -31,10 +32,9 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 
 @RequiredArgsConstructor
 @Component
@@ -75,7 +75,7 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         process(botRequest);
     }
 
-    public void consume(javax.mail.Message emailMessage) {
+    public void consume(jakarta.mail.Message emailMessage) {
         botStats.incrementReceivedMessages();
         BotRequest botRequest = requestMapper.toBotRequest(emailMessage);
         process(botRequest);
@@ -194,7 +194,8 @@ public class Bot implements SpringLongPollingBot, LongPollingSingleThreadUpdateC
         String filePath = telegramClient.execute(new GetFile(fileId)).getFilePath();
         String fileUrl = new File(null, null, null, filePath).getFileUrl(this.getBotToken());
 
-        try (InputStream inputStream = new URL(fileUrl).openStream()) {
+        URI uri = URI.create(fileUrl);
+        try (InputStream inputStream = uri.toURL().openStream()) {
             return inputStream.readAllBytes();
         }
     }

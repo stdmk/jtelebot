@@ -1,7 +1,6 @@
 package org.telegram.bot.providers.sber.impl;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -19,6 +18,7 @@ import org.telegram.bot.dto.SberAccessTokenResponseDto;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 
@@ -30,6 +30,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SberTokenProviderImplTest {
 
+    private static final Instant NOW = Instant.parse("2000-01-01T00:00:00Z");
+
+    @Mock
+    private Clock clock;
     @Mock
     private PropertiesConfig propertiesConfig;
     @Mock
@@ -41,21 +45,18 @@ class SberTokenProviderImplTest {
     @InjectMocks
     private SberTokenProviderImpl sberTokenProvider;
 
-    @BeforeEach
-    void init() {
-        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
-        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("salute");
-        ReflectionTestUtils.invokeMethod(sberTokenProvider, "postConstruct");
-    }
-
     @Test
     void updateAccessTokenWithoutSecretTest() {
+        when(clock.instant()).thenReturn(NOW);
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
         when(propertiesConfig.getSaluteSpeechSecret()).thenReturn(null);
         assertThrows(GettingSberAccessTokenException.class, () -> sberTokenProvider.getToken(SberScope.SALUTE_SPEECH_PERS));
     }
 
     @Test
     void updateAccessTokenWithRestClientExceptionTest() {
+        when(clock.instant()).thenReturn(NOW);
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
         when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("token");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenThrow(new RestClientException("error"));
@@ -64,7 +65,9 @@ class SberTokenProviderImplTest {
 
     @Test
     void updateAccessTokenWithEmptyResponseTest() {
-        when(propertiesConfig.getGigaChatSecret()).thenReturn("token");
+        when(clock.instant()).thenReturn(NOW);
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
+        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("token");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
         assertThrows(GettingSberAccessTokenException.class, () -> sberTokenProvider.getToken(SberScope.GIGACHAT_API_PERS));
@@ -72,11 +75,13 @@ class SberTokenProviderImplTest {
 
     @Test
     void updateAccessTest() {
+        when(clock.instant()).thenReturn(NOW);
         SberAccessTokenResponseDto response = new SberAccessTokenResponseDto()
                 .setAccessToken("access_token")
                 .setExpiresAt(Instant.now().plusSeconds(360).toEpochMilli());
         when(sberAccessTokenResponseDtoResponseEntity.getBody()).thenReturn(response);
-        when(propertiesConfig.getGigaChatSecret()).thenReturn("token");
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
+        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("token");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SberAccessTokenResponseDto>>any()))
                 .thenReturn(sberAccessTokenResponseDtoResponseEntity);
 
@@ -85,7 +90,9 @@ class SberTokenProviderImplTest {
 
     @Test
     void updateTokensWithGettingSberAccessTokenExceptionTest() {
-        when(propertiesConfig.getGigaChatSecret()).thenReturn("token");
+        when(clock.instant()).thenReturn(NOW);
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
+        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("token");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<?>>any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
@@ -98,21 +105,24 @@ class SberTokenProviderImplTest {
 
     @Test
     void updateTokensTest() {
+        when(clock.instant()).thenReturn(NOW);
         SberScope sperScope = SberScope.GIGACHAT_API_PERS;
-        Instant now = Instant.now();
 
         SberAccessTokenResponseDto response = new SberAccessTokenResponseDto()
                 .setAccessToken("access_token")
-                .setExpiresAt(now.plusSeconds(360).toEpochMilli());
+                .setExpiresAt(NOW.plusSeconds(360).toEpochMilli());
         when(sberAccessTokenResponseDtoResponseEntity.getBody()).thenReturn(response);
-        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("secret");
+        when(propertiesConfig.getGigaChatSecret()).thenReturn("gigachat");
+        when(propertiesConfig.getSaluteSpeechSecret()).thenReturn("token");
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), ArgumentMatchers.<Class<SberAccessTokenResponseDto>>any()))
                 .thenReturn(sberAccessTokenResponseDtoResponseEntity);
+
+        ReflectionTestUtils.invokeMethod(sberTokenProvider, "initMap");
 
         Map<SberScope, SberAccessTokenResponseDto> accessTokenMap = (Map<SberScope, SberAccessTokenResponseDto>) ReflectionTestUtils.getField(sberTokenProvider, "accessTokenMap");
         assertNotNull(accessTokenMap);
         SberAccessTokenResponseDto accessToken = accessTokenMap.get(sperScope);
-        accessToken.setExpiresAt(now.plusSeconds(720).toEpochMilli());
+        accessToken.setExpiresAt(NOW.plusSeconds(720).toEpochMilli());
         accessToken.setAccessToken("token2");
         accessTokenMap.put(sperScope, accessToken);
 

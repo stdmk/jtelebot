@@ -150,7 +150,7 @@ class ResponseEmailMapperTest {
 
         assertEquals("<u>01.01.2000 00:00:00 <a href=\"tg://user?id=1\">username</a></u>:<br><br>", emailResponse.getText());
 
-        assertTrue(emailResponse.getAttachments().isEmpty());
+        assertNull(emailResponse.getAttachments());
     }
 
     @Test

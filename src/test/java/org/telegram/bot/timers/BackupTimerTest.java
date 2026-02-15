@@ -59,7 +59,7 @@ class BackupTimerTest {
 
         List<org.telegram.bot.domain.model.response.File> files = response.getFiles();
         assertEquals(1, files.size());
-        org.telegram.bot.domain.model.response.File file = files.get(0);
+        org.telegram.bot.domain.model.response.File file = files.getFirst();
         assertNotNull(file);
         assertEquals(FileType.FILE, file.getFileType());
         assertEquals(backup, file.getDiskFile());
@@ -79,6 +79,7 @@ class BackupTimerTest {
         when(dbBackuper.getDbBackup()).thenReturn(backup);
         when(propertiesConfig.getFtpBackupUrl()).thenReturn("url");
         when(propertiesConfig.getFtpRetryCount()).thenReturn(2);
+        when(propertiesConfig.getFtpRetryTimeoutMillis()).thenReturn(100L);
         doThrow(BotException.class)
                 .doThrow(new RuntimeException(error))
                 .when(ftpBackupClient).process(anyString(), any(FileInputStream.class), any(), any());

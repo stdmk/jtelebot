@@ -12,6 +12,7 @@ import org.telegram.bot.mapper.bot.request.AttachmentMapper;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import java.util.List;
@@ -76,7 +77,7 @@ class MimeBodyPartMapperTest {
 
         assertEquals(2, attachments.size());
 
-        Attachment attachment1 = attachments.get(0);
+        Attachment attachment1 = attachments.getFirst();
         assertEquals(MimeTypeUtils.IMAGE_JPEG_VALUE, attachment1.getMimeType());
         assertEquals(fileId1, attachment1.getFileId());
         assertEquals(fileUniqueId1, attachment1.getFileUniqueId());
@@ -101,7 +102,7 @@ class MimeBodyPartMapperTest {
         List<Attachment> attachments = pair.getRight();
         assertEquals(1, attachments.size());
 
-        Attachment attachment = attachments.get(0);
+        Attachment attachment = attachments.getFirst();
         assertEquals(expectedMimeType, attachment.getMimeType());
         assertEquals(FILE_UNIQUE_ID, attachment.getFileUniqueId());
         assertEquals(FILE_ID, attachment.getFileId());
@@ -132,7 +133,7 @@ class MimeBodyPartMapperTest {
         when(message.hasSticker()).thenReturn(true);
         when(message.getSticker()).thenReturn(sticker);
 
-        return Arguments.of(message, MessageContentType.STICKER, null, sticker.getSetName(), null);
+        return Arguments.of(message, MessageContentType.STICKER, "image/webp", sticker.getSetName(), null);
     }
 
     private static Arguments getAnimationArguments() {
@@ -176,20 +177,20 @@ class MimeBodyPartMapperTest {
 
     private static Arguments getVideoNoteArguments() {
         final int duration = 123;
-        final String fileName = "videonote";
+        final String fileName = "video_note";
         VideoNote videoNote = new VideoNote(FILE_ID, FILE_UNIQUE_ID, 321, duration, new PhotoSize(), FILE_SIZE_INT);
         Message message = mock(Message.class);
         when(message.hasVideoNote()).thenReturn(true);
         when(message.getVideoNote()).thenReturn(videoNote);
 
-        return Arguments.of(message, MessageContentType.VIDEO_NOTE, null, fileName, duration);
+        return Arguments.of(message, MessageContentType.VIDEO_NOTE, "video/mp4", fileName, duration);
     }
 
     private static Arguments getVideoArguments() {
         final int duration = 123;
         final String fileName = "fileName";
         final String mimeType = "mimeType";
-        Video video = new Video(FILE_ID, FILE_UNIQUE_ID, 0, 0, duration, new PhotoSize(), mimeType, FILE_SIZE, fileName);
+        Video video = new Video(FILE_ID, FILE_UNIQUE_ID, 0, 0, duration, new PhotoSize(), mimeType, FILE_SIZE, fileName, List.of(), 0);
         Message message = mock(Message.class);
         when(message.hasVideo()).thenReturn(true);
         when(message.getVideo()).thenReturn(video);

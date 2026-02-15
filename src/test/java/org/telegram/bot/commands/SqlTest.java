@@ -1,5 +1,7 @@
 package org.telegram.bot.commands;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +20,6 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,12 +74,12 @@ class SqlTest {
     @Test
     void parseWithDbExceptionTest() {
         final String errorText = "error";
-        final String expectedResponse = "${command.sql.error}: `error`";
+        final String expectedResponse = "${command.sql.error}: <code>error</code>";
         BotRequest request = TestUtils.getRequestFromGroup("sql select 1");
 
         when(entityManager.createNativeQuery(anyString())).thenThrow(new RuntimeException(errorText));
 
-        BotResponse botResponse = sql.parse(request).get(0);
+        BotResponse botResponse = sql.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -87,14 +87,14 @@ class SqlTest {
 
     @Test
     void parseWithEmptyResponseForSelectQueryTest() {
-        final String expectedResponse = "```${command.sql.emptyresponse}```";
+        final String expectedResponse = "<pre><code class=\"language-sql\">${command.sql.emptyresponse}</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("sql select 1");
 
         Query query = mock(Query.class);
         when(query.getResultList()).thenReturn(List.of());
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
 
-        BotResponse botResponse = sql.parse(request).get(0);
+        BotResponse botResponse = sql.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -102,14 +102,14 @@ class SqlTest {
 
     @Test
     void parseWithSelectQueryTest() {
-        final String expectedResponse = "```[1, 2, 3]```";
+        final String expectedResponse = "<pre><code class=\"language-sql\">[1, 2, 3]</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("sql select 1");
 
         Query query = mock(Query.class);
         when(query.getResultList()).thenReturn(List.of("1", "2", "3"));
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
 
-        BotResponse botResponse = sql.parse(request).get(0);
+        BotResponse botResponse = sql.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -117,16 +117,15 @@ class SqlTest {
 
     @Test
     void parseWithSelectQueryObjectsTest() {
-        final String expectedResponse = """
-                ```[1, 2, 3]
-                [4, 5, 6]```""";
+        final String expectedResponse = "<pre><code class=\"language-sql\">[1, 2, 3]\n" +
+                "[4, 5, 6]</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("sql select 1");
 
         Query query = mock(Query.class);
         when(query.getResultList()).thenReturn(List.of(new Object[]{"1", "2", "3"}, new Object[]{"4", "5", "6"}));
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
 
-        BotResponse botResponse = sql.parse(request).get(0);
+        BotResponse botResponse = sql.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -135,14 +134,14 @@ class SqlTest {
     @ParameterizedTest
     @ValueSource(strings = {"update", "delete", "insert"})
     void parseWithUpdateQueryObjectsTest(String command) {
-        final String expectedResponse = "${command.sql.success}: `0`";
+        final String expectedResponse = "${command.sql.success}: <code>0</code>";
         BotRequest request = TestUtils.getRequestFromGroup("sql " + command + " 1");
 
         Query query = mock(Query.class);
         when(query.executeUpdate()).thenReturn(0);
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
 
-        BotResponse botResponse = sql.parse(request).get(0);
+        BotResponse botResponse = sql.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());

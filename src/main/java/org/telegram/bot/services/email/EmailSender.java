@@ -1,5 +1,8 @@
 package org.telegram.bot.services.email;
 
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Transport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -9,9 +12,6 @@ import org.telegram.bot.domain.model.response.EmailResponse;
 import org.telegram.bot.mapper.email.request.EmailMessageMapper;
 import org.telegram.bot.services.BotStats;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Transport;
 import java.io.IOException;
 
 @RequiredArgsConstructor

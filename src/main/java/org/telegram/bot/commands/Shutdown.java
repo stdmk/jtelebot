@@ -51,7 +51,6 @@ public class Shutdown implements Command {
                 .setText("${command.shutdown.switchingoff}..."));
 
         configurableApplicationContext.close();
-        System.exit(0);
 
         return returnResponse();
     }

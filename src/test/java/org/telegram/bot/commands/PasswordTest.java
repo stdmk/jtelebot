@@ -56,10 +56,10 @@ class PasswordTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "  ", " 4", " 4096", "!@$", " 16 !@$"})
+    @ValueSource(strings = {"", "  ", " 16", " 4096", "!@$", " 16 !@$"})
     void parseTest(String input) {
         BotRequest request = TestUtils.getRequestFromGroup("password" + input);
-        BotResponse botResponse = password.parse(request).get(0);
+        BotResponse botResponse = password.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertNotNull(textResponse);
