@@ -32,7 +32,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Todo implements Command {
 
-    private static final Pattern TAGS_PATTERN = Pattern.compile("(^|\\B)#(?![0-9_]+\\b)([a-zA-Zа-яА-Я0-9_]{1,30})(\\b|\\r)");
+    private static final Pattern TAGS_PATTERN = Pattern.compile(
+            "(?:(?<=^)|(?<!\\p{L}))#(?![0-9_]+(?:\\s|$))([\\p{L}0-9_]{1,30})(?=\\s|$)",
+            Pattern.UNICODE_CASE);
     private static final String TAG_SYMBOL = "#";
 
     private final Bot bot;
@@ -107,7 +109,7 @@ public class Todo implements Command {
 
         Matcher matcher = TAGS_PATTERN.matcher(text);
         while (matcher.find()) {
-            tags.add(matcher.group(2));
+            tags.add(matcher.group(1));
         }
 
         return tags;

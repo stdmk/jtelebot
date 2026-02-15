@@ -39,11 +39,11 @@ import static org.telegram.bot.utils.TextUtils.isThatUrl;
 public class News implements Command {
 
     private static final int MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT = 10;
-    private static final String WORD_PATTERN_TEMPLATE = "\\b(?:%s)\\b";
+    private static final String WORD_PATTERN_TEMPLATE = "(?<!\\p{L})(?:%s)(?!\\p{L})";
     private static final Pattern GET_ARRAY_OF_NEWS_PATTERN = Pattern.compile("_(\\d+)_(\\d+)");
     private static final Pattern PARAMS_PATTERN = Pattern.compile(
-            "(?:\"([^\"]*?)\"|(\\b\\w+\\b))(?:\\s|$)",
-            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
+            "(?:\"([^\"]*?)\"|(?<!\\p{L})([\\p{L}\\p{Nd}_]+)(?!\\p{L}))(?:\\s|$)",
+            Pattern.CASE_INSENSITIVE);
 
     private final Bot bot;
     private final NewsService newsService;
@@ -151,7 +151,7 @@ public class News implements Command {
         for (Map.Entry<NewsSource, List<NewsMessage>> entry : sourceNewsMessageMap.entrySet()) {
             NewsSource source = entry.getKey();
             List<NewsMessage> newsMessages = entry.getValue();
-            NewsMessage firstNewsMessageOfSource = newsMessages.get(0);
+            NewsMessage firstNewsMessageOfSource = newsMessages.getFirst();
 
             if (response.size() == MAX_FOUND_NEWS_MESSAGES_IN_MESSAGE_COUNT) {
                 List<NewsMessage> allFoundMessages = sourceNewsMessageMap.values().stream().flatMap(Collection::stream).toList();
@@ -164,7 +164,7 @@ public class News implements Command {
                 if (newsMessages.size() == 2) {
                     moreNews = "${command.news.morenews}:" + " /news_" + newsMessages.get(1).getId();
                 } else {
-                    moreNews = getNextMessagesArrayCommand(newsMessages.get(1).getId(), newsMessages.get(newsMessages.size() - 1).getId());
+                    moreNews = getNextMessagesArrayCommand(newsMessages.get(1).getId(), newsMessages.getLast().getId());
                 }
             }
 
@@ -325,7 +325,7 @@ public class News implements Command {
         SyndFeed syndFeed = getSyndFeedFromUrl(url);
 
         if (newsCount != null && newsCount == 1) {
-            return List.of(rssMapper.toFullNewsMessageText(syndFeed.getEntries().get(0)));
+            return List.of(rssMapper.toFullNewsMessageText(syndFeed.getEntries().getFirst()));
         }
 
         return newsMessageService.save(rssMapper.toNewsMessage(syndFeed.getEntries()))

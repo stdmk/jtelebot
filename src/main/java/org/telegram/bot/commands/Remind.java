@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,6 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
@@ -140,7 +140,7 @@ public class Remind implements Command {
                 .map(translations -> translations.split("#"))
                 .map(Arrays::asList)
                 .flatMap(List::stream)
-                .map(translation -> "(\\b" + translation + "\\b)")
+                .map(translation -> "(?<!\\p{L})" + Pattern.quote(translation) + "(?!\\p{L})")
                 .collect(Collectors.joining("|"));
     }
 

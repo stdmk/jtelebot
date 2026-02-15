@@ -70,12 +70,12 @@ class RemindTest {
 
     @Test
     void postConstructTest() {
-        final String expectedAfterMinutesPattern1 = "(in|через)\\s+(\\d+)\\s+((\\bminute\\b)|(\\bminutes\\b)|(\\bминуту\\b)|(\\bминуты\\b)|(\\bминут\\b))";
-        final String expectedAfterMinutesPattern2 = "(через|in)\\s+(\\d+)\\s+((\\bминуту\\b)|(\\bминуты\\b)|(\\bминут\\b)|(\\bminute\\b)|(\\bminutes\\b))";
-        final String expectedAfterHoursPattern1 = "(in|через)\\s+(\\d+)\\s+((\\bhour\\b)|(\\bhours\\b)|(\\bчас\\b)|(\\bчаса\\b)|(\\bчасов\\b))";
-        final String expectedAfterHoursPattern2 = "(через|in)\\s+(\\d+)\\s+((\\bчас\\b)|(\\bчаса\\b)|(\\bчасов\\b)|(\\bhour\\b)|(\\bhours\\b))";
-        final String expectedAfterDaysPattern1 = "(in|через)\\s+(\\d+)\\s+((\\bday\\b)|(\\bdays\\b)|(\\bдень\\b)|(\\bдня\\b)|(\\bдней\\b))";
-        final String expectedAfterDaysPattern2 = "(через|in)\\s+(\\d+)\\s+((\\bдень\\b)|(\\bдня\\b)|(\\bдней\\b)|(\\bday\\b)|(\\bdays\\b))";
+        final String expectedAfterMinutesPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qминуту\\E(?!\\p{L})|(?<!\\p{L})\\Qминуты\\E(?!\\p{L})|(?<!\\p{L})\\Qминут\\E(?!\\p{L})|(?<!\\p{L})\\Qminute\\E(?!\\p{L})|(?<!\\p{L})\\Qminutes\\E(?!\\p{L}))";
+        final String expectedAfterMinutesPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qминуту\\E(?!\\p{L})|(?<!\\p{L})\\Qминуты\\E(?!\\p{L})|(?<!\\p{L})\\Qминут\\E(?!\\p{L})|(?<!\\p{L})\\Qminute\\E(?!\\p{L})|(?<!\\p{L})\\Qminutes\\E(?!\\p{L}))";
+        final String expectedAfterHoursPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qчас\\E(?!\\p{L})|(?<!\\p{L})\\Qчаса\\E(?!\\p{L})|(?<!\\p{L})\\Qчасов\\E(?!\\p{L})|(?<!\\p{L})\\Qhour\\E(?!\\p{L})|(?<!\\p{L})\\Qhours\\E(?!\\p{L}))";
+        final String expectedAfterHoursPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qчас\\E(?!\\p{L})|(?<!\\p{L})\\Qчаса\\E(?!\\p{L})|(?<!\\p{L})\\Qчасов\\E(?!\\p{L})|(?<!\\p{L})\\Qhour\\E(?!\\p{L})|(?<!\\p{L})\\Qhours\\E(?!\\p{L}))";
+        final String expectedAfterDaysPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qдень\\E(?!\\p{L})|(?<!\\p{L})\\Qдня\\E(?!\\p{L})|(?<!\\p{L})\\Qдней\\E(?!\\p{L})|(?<!\\p{L})\\Qday\\E(?!\\p{L})|(?<!\\p{L})\\Qdays\\E(?!\\p{L}))";
+        final String expectedAfterDaysPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qдень\\E(?!\\p{L})|(?<!\\p{L})\\Qдня\\E(?!\\p{L})|(?<!\\p{L})\\Qдней\\E(?!\\p{L})|(?<!\\p{L})\\Qday\\E(?!\\p{L})|(?<!\\p{L})\\Qdays\\E(?!\\p{L}))";
 
         when(internationalizationService.getAllTranslations("command.remind.in")).thenReturn(Set.of("in", "через"));
         when(internationalizationService.getAllTranslations("command.remind.minutes")).thenReturn(Set.of("minute#minutes", "минуту#минуты#минут"));
@@ -135,22 +135,22 @@ class RemindTest {
 
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(List.of()));
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
 
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(2, keyboardButtonsList.size());
 
-        List<KeyboardButton> addRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> addRow = keyboardButtonsList.getFirst();
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals("\uD83C\uDD95${command.remind.button.add}", addButton.getName());
         assertEquals("remind add", addButton.getCallback());
 
         List<KeyboardButton> reloadRow = keyboardButtonsList.get(1);
         assertEquals(1, reloadRow.size());
-        KeyboardButton reloadButton = reloadRow.get(0);
+        KeyboardButton reloadButton = reloadRow.getFirst();
         assertEquals("\uD83D\uDD04${command.remind.button.reload}", reloadButton.getName());
         assertEquals("remind upd", reloadButton.getCallback());
 
@@ -171,7 +171,7 @@ class RemindTest {
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(getReminderWithRepeatabilityList()));
         when(internationalizationService.internationalize(anyString(), anyString())).then(returnsFirstArg());
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
 
@@ -186,7 +186,7 @@ class RemindTest {
         BotRequest request = TestUtils.getRequestWithCallback("reminder add");
         Message message = request.getMessage();
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 
         assertEquals(expectedResponseText, editResponse.getText());
@@ -215,7 +215,7 @@ class RemindTest {
         BotRequest request = TestUtils.getRequestWithCallback("reminder i1");
         Message message = request.getMessage();
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         DeleteResponse deleteResponse = TestUtils.checkDefaultDeleteResponseParams(botResponse);
 
         assertEquals(message.getChat().getChatId(), deleteResponse.getChatId());
@@ -244,7 +244,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 
         assertReminderInfoKeyboard(editResponse.getKeyboard().getKeyboardButtonsList(), reminder);
@@ -289,7 +289,7 @@ class RemindTest {
         BotRequest request = TestUtils.getRequestWithCallback("reminder s1");
         Message message = request.getMessage();
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         DeleteResponse deleteResponse = TestUtils.checkDefaultDeleteResponseParams(botResponse);
 
         assertEquals(message.getChat().getChatId(), deleteResponse.getChatId());
@@ -304,7 +304,7 @@ class RemindTest {
         BotRequest request = TestUtils.getRequestWithCallback("reminder s" + reminderId);
         Message message = request.getMessage();
 
-        Reminder changingReminder = getReminderWithRepeatabilityList().get(0);
+        Reminder changingReminder = getReminderWithRepeatabilityList().getFirst();
         changingReminder.setUser(TestUtils.getUser(TestUtils.ANOTHER_USER_ID));
         when(reminderService.get(reminderId)).thenReturn(changingReminder);
 
@@ -334,7 +334,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -365,7 +365,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -399,7 +399,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -434,7 +434,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -444,10 +444,10 @@ class RemindTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(6, keyboardButtonsList.size());
 
-        List<KeyboardButton> minutesRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> minutesRow = keyboardButtonsList.getFirst();
         assertEquals(5, minutesRow.size());
 
-        KeyboardButton button1 = minutesRow.get(0);
+        KeyboardButton button1 = minutesRow.getFirst();
         assertEquals("${command.remind.repeatability.minutes1}", button1.getName());
         assertEquals("remind s1r0", button1.getCallback());
 
@@ -470,7 +470,7 @@ class RemindTest {
         List<KeyboardButton> hoursRow = keyboardButtonsList.get(1);
         assertEquals(5, hoursRow.size());
 
-        KeyboardButton button6 = hoursRow.get(0);
+        KeyboardButton button6 = hoursRow.getFirst();
         assertEquals("${command.remind.repeatability.hours1}", button6.getName());
         assertEquals("remind s1r5", button6.getCallback());
 
@@ -493,7 +493,7 @@ class RemindTest {
         List<KeyboardButton> weekRow = keyboardButtonsList.get(2);
         assertEquals(7, weekRow.size());
 
-        KeyboardButton button11 = weekRow.get(0);
+        KeyboardButton button11 = weekRow.getFirst();
         assertEquals("${command.remind.repeatability.monday}", button11.getName());
         assertEquals("remind s1r10", button11.getCallback());
 
@@ -524,7 +524,7 @@ class RemindTest {
         List<KeyboardButton> othersRow = keyboardButtonsList.get(3);
         assertEquals(4, othersRow.size());
 
-        KeyboardButton button18 = othersRow.get(0);
+        KeyboardButton button18 = othersRow.getFirst();
         assertEquals("${command.remind.repeatability.day}", button18.getName());
         assertEquals("remind s1r17", button18.getCallback());
 
@@ -567,7 +567,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -604,7 +604,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -617,7 +617,7 @@ class RemindTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(2, keyboardButtonsList.size());
 
-        assertControlRow(keyboardButtonsList.get(0), changingReminder);
+        assertControlRow(keyboardButtonsList.getFirst(), changingReminder);
         assertBackRow(keyboardButtonsList.get(1));
     }
 
@@ -642,7 +642,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -655,7 +655,7 @@ class RemindTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(2, keyboardButtonsList.size());
 
-        assertControlRow(keyboardButtonsList.get(0), changingReminder);
+        assertControlRow(keyboardButtonsList.getFirst(), changingReminder);
         assertBackRow(keyboardButtonsList.get(1));
     }
 
@@ -682,7 +682,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -725,7 +725,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 //        assertEquals(expectedResponseText, editResponse.getText());
 
@@ -736,39 +736,39 @@ class RemindTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(8, keyboardButtonsList.size());
 
-        List<KeyboardButton> row1 = keyboardButtonsList.get(0);
+        List<KeyboardButton> row1 = keyboardButtonsList.getFirst();
         assertEquals(1, row1.size());
-        KeyboardButton button1 = row1.get(0);
+        KeyboardButton button1 = row1.getFirst();
         assertEquals("${command.remind.leave} 31.12.1999", button1.getName());
         assertEquals("remind s1d31.12.1999", button1.getCallback());
 
         List<KeyboardButton> row2 = keyboardButtonsList.get(1);
         assertEquals(1, row2.size());
-        KeyboardButton button2 = row2.get(0);
+        KeyboardButton button2 = row2.getFirst();
         assertEquals("${command.remind.today}", button2.getName());
         assertEquals("remind s1d01.01.2000", button2.getCallback());
 
         List<KeyboardButton> row3 = keyboardButtonsList.get(2);
         assertEquals(1, row3.size());
-        KeyboardButton button3 = row3.get(0);
+        KeyboardButton button3 = row3.getFirst();
         assertEquals("${command.remind.tomorrow}", button3.getName());
         assertEquals("remind s1d02.01.2000", button3.getCallback());
 
         List<KeyboardButton> row4 = keyboardButtonsList.get(3);
         assertEquals(1, row4.size());
-        KeyboardButton button4 = row4.get(0);
+        KeyboardButton button4 = row4.getFirst();
         assertEquals("${command.remind.aftertomorrow}", button4.getName());
         assertEquals("remind s1d03.01.2000", button4.getCallback());
 
         List<KeyboardButton> row5 = keyboardButtonsList.get(4);
         assertEquals(1, row5.size());
-        KeyboardButton button5 = row5.get(0);
+        KeyboardButton button5 = row5.getFirst();
         assertEquals("${command.remind.onsaturday}", button5.getName());
         assertEquals("remind s1d08.01.2000", button5.getCallback());
 
         List<KeyboardButton> row6 = keyboardButtonsList.get(5);
         assertEquals(1, row6.size());
-        KeyboardButton button6 = row6.get(0);
+        KeyboardButton button6 = row6.getFirst();
         assertEquals("${command.remind.onsunday}", button6.getName());
         assertEquals("remind s1d02.01.2000", button6.getCallback());
 
@@ -790,7 +790,7 @@ class RemindTest {
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(getReminderWithRepeatabilityList()));
         when(internationalizationService.internationalize(anyString(), anyString())).then(returnsFirstArg());
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 
         assertEquals(expectedResponseText, editResponse.getText());
@@ -828,7 +828,7 @@ class RemindTest {
     void deleteReminderByCallbackAlreadyDeletedTest() {
         BotRequest request = TestUtils.getRequestWithCallback("remind del1");
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TestUtils.checkDefaultDeleteResponseParams(botResponse);
     }
 
@@ -840,7 +840,7 @@ class RemindTest {
         Reminder reminder = getNotifiedReminder();
         when(reminderService.get(reminderId)).thenReturn(reminder);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TestUtils.checkDefaultDeleteResponseParams(botResponse);
 
         verify(reminderService).remove(reminder);
@@ -863,7 +863,7 @@ class RemindTest {
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(getReminderWithRepeatabilityList()));
         when(internationalizationService.internationalize(anyString(), anyString())).then(returnsFirstArg());
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 
         assertEquals(expectedResponseText, editResponse.getText());
@@ -898,7 +898,7 @@ class RemindTest {
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(getReminderWithRepeatabilityList()));
         when(internationalizationService.internationalize(anyString(), anyString())).then(returnsFirstArg());
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
 
         assertEquals(expectedResponseText, editResponse.getText());
@@ -916,7 +916,7 @@ class RemindTest {
     @Test
     void closeReminderMenuTest() {
         BotRequest request = TestUtils.getRequestWithCallback("remind c" + TestUtils.DEFAULT_USER_ID);
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TestUtils.checkDefaultDeleteResponseParams(botResponse);
     }
 
@@ -942,7 +942,7 @@ class RemindTest {
         when(reminderService.getByChatAndUser(message.getChat(), message.getUser(), 0)).thenReturn(new PageImpl<>(getReminderWithRepeatabilityList()));
         when(internationalizationService.internationalize(anyString(), anyString())).then(returnsFirstArg());
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -1056,7 +1056,7 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
 
@@ -1122,12 +1122,12 @@ class RemindTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.withZone(any(ZoneId.class))).thenReturn(clock);
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
 
         List<List<KeyboardButton>> keyboardButtonsList = textResponse.getKeyboard().getKeyboardButtonsList();
-        assertControlRow(keyboardButtonsList.get(0), reminder);
+        assertControlRow(keyboardButtonsList.getFirst(), reminder);
         assertBackRow(keyboardButtonsList.get(1));
 
         assertEquals(setDate, reminder.getDate());
@@ -1176,7 +1176,7 @@ class RemindTest {
 
         ReflectionTestUtils.invokeMethod(remind, "postConstruct");
 
-        BotResponse botResponse = remind.parse(request).get(0);
+        BotResponse botResponse = remind.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         ArgumentCaptor<Reminder> reminderArgumentCaptor = ArgumentCaptor.forClass(Reminder.class);
@@ -1235,10 +1235,10 @@ class RemindTest {
         List<List<KeyboardButton>> keyboardButtonsList = keyboard.getKeyboardButtonsList();
         assertEquals(5, keyboardButtonsList.size());
 
-        List<KeyboardButton> minutesRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> minutesRow = keyboardButtonsList.getFirst();
         assertEquals(5, minutesRow.size());
 
-        KeyboardButton button1 = minutesRow.get(0);
+        KeyboardButton button1 = minutesRow.getFirst();
         assertEquals("1 ${command.remind.m}.", button1.getName());
         assertEquals("remind s1PT1M", button1.getCallback());
 
@@ -1261,7 +1261,7 @@ class RemindTest {
         List<KeyboardButton> hoursRow = keyboardButtonsList.get(1);
         assertEquals(5, hoursRow.size());
 
-        KeyboardButton button6 = hoursRow.get(0);
+        KeyboardButton button6 = hoursRow.getFirst();
         assertEquals("1 ${command.remind.h}.", button6.getName());
         assertEquals("remind s1PT1H", button6.getCallback());
 
@@ -1284,7 +1284,7 @@ class RemindTest {
         List<KeyboardButton> weekDayRow = keyboardButtonsList.get(2);
         assertEquals(7, weekDayRow.size());
 
-        KeyboardButton button11 = weekDayRow.get(0);
+        KeyboardButton button11 = weekDayRow.getFirst();
         assertEquals("Mon", button11.getName());
         assertEquals("remind s1P2D", button11.getCallback());
 
@@ -1315,7 +1315,7 @@ class RemindTest {
         List<KeyboardButton> othersRow = keyboardButtonsList.get(3);
         assertEquals(4, othersRow.size());
 
-        KeyboardButton button18 = othersRow.get(0);
+        KeyboardButton button18 = othersRow.getFirst();
         assertEquals("${command.remind.day}", button18.getName());
         assertEquals("remind s1P1D", button18.getCallback());
 
@@ -1335,7 +1335,7 @@ class RemindTest {
     }
 
     private void assertReminderInfoKeyboard(List<List<KeyboardButton>> keyboardButtonsList, Reminder reminder) {
-        assertControlRow(keyboardButtonsList.get(0), reminder);
+        assertControlRow(keyboardButtonsList.getFirst(), reminder);
         assertBackRow(keyboardButtonsList.get(1));
     }
 
@@ -1344,39 +1344,39 @@ class RemindTest {
 
         assertEquals(8, keyboardButtonsList.size());
 
-        List<KeyboardButton> row1 = keyboardButtonsList.get(0);
+        List<KeyboardButton> row1 = keyboardButtonsList.getFirst();
         assertEquals(1, row1.size());
-        KeyboardButton button1 = row1.get(0);
+        KeyboardButton button1 = row1.getFirst();
         assertEquals("${command.remind.leave} 01:01", button1.getName());
         assertEquals(setDateString + "t01:01", button1.getCallback());
 
         List<KeyboardButton> row2 = keyboardButtonsList.get(1);
         assertEquals(1, row2.size());
-        KeyboardButton button2 = row2.get(0);
+        KeyboardButton button2 = row2.getFirst();
         assertEquals("${command.remind.morning} 07:00", button2.getName());
         assertEquals(setDateString + "t07:00", button2.getCallback());
 
         List<KeyboardButton> row3 = keyboardButtonsList.get(2);
         assertEquals(1, row3.size());
-        KeyboardButton button3 = row3.get(0);
+        KeyboardButton button3 = row3.getFirst();
         assertEquals("${command.remind.lunch} 13:00", button3.getName());
         assertEquals(setDateString + "t13:00", button3.getCallback());
 
         List<KeyboardButton> row4 = keyboardButtonsList.get(3);
         assertEquals(1, row4.size());
-        KeyboardButton button4 = row4.get(0);
+        KeyboardButton button4 = row4.getFirst();
         assertEquals("${command.remind.dinner} 18:00", button4.getName());
         assertEquals(setDateString + "t18:00", button4.getCallback());
 
         List<KeyboardButton> row5 = keyboardButtonsList.get(4);
         assertEquals(1, row5.size());
-        KeyboardButton button5 = row5.get(0);
+        KeyboardButton button5 = row5.getFirst();
         assertEquals("${command.remind.evening} 20:00", button5.getName());
         assertEquals(setDateString + "t20:00", button5.getCallback());
 
         List<KeyboardButton> row6 = keyboardButtonsList.get(5);
         assertEquals(1, row6.size());
-        KeyboardButton button6 = row6.get(0);
+        KeyboardButton button6 = row6.getFirst();
         assertEquals("${command.remind.night} 03:00", button6.getName());
         assertEquals(setDateString + "t03:00", button6.getCallback());
     }
@@ -1395,7 +1395,7 @@ class RemindTest {
 
         assertEquals(6, controlRow.size());
 
-        KeyboardButton setButton = controlRow.get(0);
+        KeyboardButton setButton = controlRow.getFirst();
         assertEquals("⚙\uFE0F", setButton.getName());
         assertEquals("remind s" + id, setButton.getCallback());
 
@@ -1432,7 +1432,7 @@ class RemindTest {
 
     private void assertBackRow(List<KeyboardButton> backRow) {
         assertEquals(1, backRow.size());
-        KeyboardButton backButton = backRow.get(0);
+        KeyboardButton backButton = backRow.getFirst();
         assertEquals("⬅\uFE0F${command.remind.button.back}", backButton.getName());
         assertEquals("remind ", backButton.getCallback());
     }
@@ -1440,33 +1440,33 @@ class RemindTest {
     private void assertReminderInfoList(List<List<KeyboardButton>> keyboardButtonsList) {
         assertEquals(5, keyboardButtonsList.size());
 
-        List<KeyboardButton> row1 = keyboardButtonsList.get(0);
+        List<KeyboardButton> row1 = keyboardButtonsList.getFirst();
         assertEquals(1, row1.size());
-        KeyboardButton button1 = row1.get(0);
+        KeyboardButton button1 = row1.getFirst();
         assertEquals("\uD83D\uDD15reminder1", button1.getName());
         assertEquals("remind i1", button1.getCallback());
 
         List<KeyboardButton> row2 = keyboardButtonsList.get(1);
         assertEquals(1, row2.size());
-        KeyboardButton button2 = row2.get(0);
+        KeyboardButton button2 = row2.getFirst();
         assertEquals("\uD83D\uDD14reminder2 w...", button2.getName());
         assertEquals("remind i2", button2.getCallback());
 
         List<KeyboardButton> row3 = keyboardButtonsList.get(2);
         assertEquals(1, row3.size());
-        KeyboardButton button3 = row3.get(0);
+        KeyboardButton button3 = row3.getFirst();
         assertEquals("\uD83D\uDD14reminder3", button3.getName());
         assertEquals("remind i3", button3.getCallback());
 
         List<KeyboardButton> addRow = keyboardButtonsList.get(3);
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals("\uD83C\uDD95${command.remind.button.add}", addButton.getName());
         assertEquals("remind add", addButton.getCallback());
 
         List<KeyboardButton> reloadRow = keyboardButtonsList.get(4);
         assertEquals(1, reloadRow.size());
-        KeyboardButton reloadButton = reloadRow.get(0);
+        KeyboardButton reloadButton = reloadRow.getFirst();
         assertEquals("\uD83D\uDD04${command.remind.button.reload}", reloadButton.getName());
         assertEquals("remind upd", reloadButton.getCallback());
     }

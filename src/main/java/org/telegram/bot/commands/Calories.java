@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.calories.*;
 import org.telegram.bot.utils.DateUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.time.*;
 import java.time.format.DateTimeParseException;
@@ -46,8 +46,8 @@ public class Calories implements Command {
     public static final int MAX_SIZE_OF_SEARCH_RESULTS = 15;
     private static final int MAX_PRODUCT_NAME_LENGTH = 255;
     private static final int MEAL_DURATION_SECONDS = 1800;
-    private static final String NUMERIC_PARAMETER_TEMPLATE = "\\b(\\d+[.,]?\\d*)\\s?[%s]\\b";
-    private static final String NEGATIVE_NUMERIC_PARAMETER_TEMPLATE = "-(\\d+[.,]?\\d*)\\s?[%s]\\b";
+    private static final String NUMERIC_PARAMETER_TEMPLATE = "(?<!\\p{L})(\\d+[.,]?\\d*)\\s?[%s](?!\\p{L})";
+    private static final String NEGATIVE_NUMERIC_PARAMETER_TEMPLATE = "-(\\d+[.,]?\\d*)\\s?[%s](?!\\p{L})";
     private static final DecimalFormat DF = new DecimalFormat("#.#");
     private static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");

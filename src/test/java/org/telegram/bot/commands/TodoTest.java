@@ -65,7 +65,7 @@ class TodoTest {
 
         when(todoService.get(any(Chat.class), any(User.class))).thenReturn(getSomeTodos());
 
-        BotResponse botResponse = todo.parse(request).get(0);
+        BotResponse botResponse = todo.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
@@ -114,7 +114,7 @@ class TodoTest {
                         .setUser(TestUtils.getUser(TestUtils.DEFAULT_USER_ID)));
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = todo.parse(request).get(0);
+        BotResponse botResponse = todo.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -131,7 +131,7 @@ class TodoTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = todo.parse(request).get(0);
+        BotResponse botResponse = todo.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -158,7 +158,7 @@ class TodoTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = todo.parse(request).get(0);
+        BotResponse botResponse = todo.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -209,7 +209,7 @@ class TodoTest {
 
         when(todoTagService.get(any(Chat.class), any(User.class), anyList())).thenReturn(todoTagsList);
 
-        BotResponse botResponse = todo.parse(request).get(0);
+        BotResponse botResponse = todo.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
