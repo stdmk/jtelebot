@@ -76,7 +76,7 @@ class HoroscopeTest {
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("horoscope_abv");
 
-        BotResponse botResponse = horoscope.parse(request).get(0);
+        BotResponse botResponse = horoscope.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
@@ -108,7 +108,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        BotResponse botResponse = horoscope.parse(request).get(0);
+        BotResponse botResponse = horoscope.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
@@ -125,7 +125,7 @@ class HoroscopeTest {
 
         List<BotResponse> botResponses = horoscope.parse(request);
         assertEquals(12, botResponses.size());
-        BotResponse botResponse = botResponses.get(0);
+        BotResponse botResponse = botResponses.getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
 
         TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
@@ -156,7 +156,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        BotResponse response = horoscope.parse(request).get(0);
+        BotResponse response = horoscope.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response, FormattingStyle.HTML);
@@ -176,7 +176,7 @@ class HoroscopeTest {
         when(xmlMapper.readValue(any(File.class), ArgumentMatchers.<Class<Horoscope.HoroscopeData>>any()))
                 .thenReturn(data);
 
-        BotResponse botResponse = horoscope.parse(request).get(0);
+        BotResponse botResponse = horoscope.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
@@ -185,7 +185,7 @@ class HoroscopeTest {
 
     private Horoscope.HoroscopeData getHoroscopeData() {
         return new Horoscope.HoroscopeData()
-                .setDate(new Horoscope.Date()
+                .setDate(new Horoscope.HoroscopeDate()
                         .setToday("today"))
                 .setAries(new Horoscope.HoroscopeElement().setToday("aries"))
                 .setTaurus(new Horoscope.HoroscopeElement().setToday("taurus"))
@@ -203,7 +203,7 @@ class HoroscopeTest {
 
     private Horoscope.HoroscopeData getHoroscopeBigData() {
         return new Horoscope.HoroscopeData()
-                .setDate(new Horoscope.Date()
+                .setDate(new Horoscope.HoroscopeDate()
                         .setToday("today"))
                 .setAries(new Horoscope.HoroscopeElement().setToday("aries".repeat(500)))
                 .setTaurus(new Horoscope.HoroscopeElement().setToday("taurus".repeat(500)))

@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -25,13 +26,11 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserZodiacService;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -169,7 +168,7 @@ public class Horoscope implements Command {
         Arrays.stream(org.telegram.bot.enums.Horoscope.values()).forEach(horoscope -> {
             String horoscopeName = horoscope.name().toLowerCase(Locale.ROOT) + ".xml";
             try {
-                FileUtils.copyURLToFile(new URL(HOROSCOPE_DATA_URL + horoscopeName), new File("horoscope/" + horoscopeName));
+                FileUtils.copyURLToFile(URI.create(HOROSCOPE_DATA_URL + horoscopeName).toURL(), new File("horoscope/" + horoscopeName));
             } catch (IOException e) {
                 log.error("Failed to download horoscope {}: {}", horoscopeName, e.getMessage());
             }
@@ -179,46 +178,47 @@ public class Horoscope implements Command {
     @Data
     @Accessors(chain = true)
     public static class HoroscopeData {
-        @XmlElement
+
+        @JacksonXmlProperty(localName = "horo")
         private Horo horo;
 
-        @XmlAttribute
-        private Date date;
+        @JacksonXmlProperty(isAttribute = true, localName = "date")
+        private HoroscopeDate date;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "aries")
         private HoroscopeElement aries;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "taurus")
         private HoroscopeElement taurus;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "gemini")
         private HoroscopeElement gemini;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "cancer")
         private HoroscopeElement cancer;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "leo")
         private HoroscopeElement leo;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "virgo")
         private HoroscopeElement virgo;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "libra")
         private HoroscopeElement libra;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "scorpio")
         private HoroscopeElement scorpio;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "sagittarius")
         private HoroscopeElement sagittarius;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "capricorn")
         private HoroscopeElement capricorn;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "aquarius")
         private HoroscopeElement aquarius;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "pisces")
         private HoroscopeElement pisces;
     }
 
@@ -227,33 +227,35 @@ public class Horoscope implements Command {
 
     @Data
     @Accessors(chain = true)
-    public static class Date {
-        @XmlElement
+    public static class HoroscopeDate {
+        @JacksonXmlProperty(localName = "yesterday")
         private String yesterday;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "today")
         private String today;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "tomorrow")
         private String tomorrow;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "tomorrow02")
         private String tomorrow02;
     }
 
     @Data
     @Accessors(chain = true)
     public static class HoroscopeElement {
-        @XmlElement
+
+        @JacksonXmlProperty(localName = "yesterday")
         private String yesterday;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "today")
         private String today;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "tomorrow")
         private String tomorrow;
 
-        @XmlElement
+        @JacksonXmlProperty(localName = "tomorrow02")
         private String tomorrow02;
     }
+
 }

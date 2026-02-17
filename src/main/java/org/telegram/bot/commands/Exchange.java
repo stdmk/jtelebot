@@ -2,6 +2,9 @@ package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +32,6 @@ import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
-import jakarta.annotation.Nullable;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -530,34 +530,37 @@ public class Exchange implements Command {
 
     @Data
     public static class ValCurs {
-        @XmlAttribute
+
+        @JacksonXmlProperty(isAttribute = true)
         private String name;
 
-        @XmlAttribute(name = "Date")
+        @JacksonXmlProperty(isAttribute = true, localName = "Date")
         private String date;
 
-        @XmlElement(name = "Valute")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        @JacksonXmlProperty(localName = "Valute")
         private List<Valute> valute;
     }
 
     @Data
     public static class Valute {
-        @XmlElement(name = "CharCode")
+
+        @JacksonXmlProperty(localName = "CharCode")
         private String charCode;
 
-        @XmlElement(name = "Value")
+        @JacksonXmlProperty(localName = "Value")
         private String value;
 
-        @XmlElement(name = "ID")
+        @JacksonXmlProperty(isAttribute = true, localName = "ID")
         private String id;
 
-        @XmlElement(name = "Nominal")
+        @JacksonXmlProperty(localName = "Nominal")
         private String nominal;
 
-        @XmlElement(name = "NumCode")
+        @JacksonXmlProperty(localName = "NumCode")
         private String numCode;
 
-        @XmlElement(name = "Name")
+        @JacksonXmlProperty(localName = "Name")
         private String name;
 
         public Float getValuteValue() {
@@ -567,38 +570,41 @@ public class Exchange implements Command {
 
     @Data
     public static class DynamicValCurs {
-        @XmlAttribute(name = "ID")
+        @JacksonXmlProperty(isAttribute = true, localName = "ID")
         private String id;
 
-        @XmlAttribute(name = "DateRange1")
+        @JacksonXmlProperty(isAttribute = true, localName = "DateRange1")
         private String dateRange1;
 
-        @XmlAttribute(name = "DateRange2")
+        @JacksonXmlProperty(isAttribute = true, localName = "DateRange2")
         private String dateRange2;
 
-        @XmlAttribute(name = "name")
+        @JacksonXmlProperty(isAttribute = true, localName = "name")
         private String name;
 
-        @XmlElement(name = "Record")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        @JacksonXmlProperty(localName = "Record")
         private List<Record> records;
     }
 
+
     @Data
     public static class Record {
-        @XmlAttribute(name = "Id")
+        @JacksonXmlProperty(isAttribute = true, localName = "Id")
         private String id;
 
-        @XmlAttribute(name = "Date")
+        @JacksonXmlProperty(isAttribute = true, localName = "Date")
         private String date;
 
-        @XmlElement(name = "Nominal")
+        @JacksonXmlProperty(localName = "Nominal")
         private String nominal;
 
-        @XmlElement(name = "Value")
+        @JacksonXmlProperty(localName = "Value")
         private String value;
 
         public Double getValuteValue() {
             return parseDouble(this.value);
         }
     }
+
 }
