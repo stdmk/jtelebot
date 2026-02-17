@@ -5,12 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.services.BotStats;
+import org.telegram.bot.services.ShutdownService;
 import org.telegram.bot.timers.FileManagerTimer;
 
 import java.util.List;
@@ -24,7 +24,7 @@ class ShutdownTest {
     @Mock
     private Bot bot;
     @Mock
-    private ConfigurableApplicationContext configurableApplicationContext;
+    private ShutdownService shutdownService;
     @Mock
     private BotStats botStats;
     @Mock
@@ -38,7 +38,7 @@ class ShutdownTest {
         BotRequest request = TestUtils.getRequestFromGroup("shutdown test");
         List<BotResponse> botResponses = shutdown.parse(request);
         assertTrue(botResponses.isEmpty());
-        verify(configurableApplicationContext, never()).close();
+        verify(shutdownService, never()).shutdown();
     }
 
     @Test
@@ -52,7 +52,7 @@ class ShutdownTest {
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
         verify(fileManagerTimer).deleteAllFiles();
-        verify(configurableApplicationContext).close();
+        verify(shutdownService).shutdown();
     }
 
     @Test
@@ -66,7 +66,7 @@ class ShutdownTest {
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
         verify(fileManagerTimer).deleteAllFiles();
-        verify(configurableApplicationContext).close();
+        verify(shutdownService).shutdown();
     }
 
     @Test
@@ -79,7 +79,7 @@ class ShutdownTest {
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
         verify(fileManagerTimer).deleteAllFiles();
-        verify(configurableApplicationContext).close();
+        verify(shutdownService).shutdown();
     }
 
 }

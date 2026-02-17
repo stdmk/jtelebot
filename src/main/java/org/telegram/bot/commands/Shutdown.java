@@ -2,7 +2,6 @@ package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -10,6 +9,7 @@ import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.services.BotStats;
+import org.telegram.bot.services.ShutdownService;
 import org.telegram.bot.timers.FileManagerTimer;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 public class Shutdown implements Command {
 
     private final Bot bot;
-    private final ConfigurableApplicationContext configurableApplicationContext;
+    private final ShutdownService shutdownService;
     private final BotStats botStats;
     private final FileManagerTimer fileManagerTimer;
 
@@ -32,26 +32,27 @@ public class Shutdown implements Command {
             return returnResponse();
         }
 
-        bot.sendTyping(request.getMessage().getChatId());
+        bot.sendTyping(message.getChatId());
         log.debug("From {} received command to shutdown", message.getUser());
 
         try {
             botStats.saveStats();
         } catch (Exception e) {
-            log.error("Failed to shutdown normally: {}", e.getMessage());
+            log.error("Failed to save stats: {}", e.getMessage());
         }
 
         try {
             fileManagerTimer.deleteAllFiles();
         } catch (Exception e) {
-            log.error("Failed to shutdown normally: {}", e.getMessage());
+            log.error("Failed to delete files: {}", e.getMessage());
         }
 
         bot.sendMessage(new TextResponse(message)
                 .setText("${command.shutdown.switchingoff}..."));
 
-        configurableApplicationContext.close();
+        shutdownService.shutdown();
 
         return returnResponse();
     }
+
 }
