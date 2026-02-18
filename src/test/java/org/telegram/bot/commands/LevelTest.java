@@ -61,7 +61,7 @@ class LevelTest {
 
         when(chatService.getChatAccessLevel(chatId)).thenReturn(5);
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -87,7 +87,7 @@ class LevelTest {
 
         when(userService.get(username)).thenReturn(TestUtils.getUser());
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -104,7 +104,7 @@ class LevelTest {
         when(chatService.get(chatId)).thenReturn(TestUtils.getChat(chatId));
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -150,7 +150,7 @@ class LevelTest {
         when(userService.get(username)).thenReturn(requestdUser);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -176,7 +176,7 @@ class LevelTest {
         when(commandPropertiesService.getCommand(command)).thenReturn(commandProperties);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -201,7 +201,7 @@ class LevelTest {
         CommandProperties commandProperties = new CommandProperties().setCommandName(command).setAccessLevel(5);
         when(commandPropertiesService.getCommand(command)).thenReturn(commandProperties);
 
-        BotResponse response = level.parse(request).get(0);
+        BotResponse response = level.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());

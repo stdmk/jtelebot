@@ -2,6 +2,7 @@ package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import jakarta.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
@@ -72,7 +72,7 @@ public class Xml implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            Attachment attachment = message.getAttachments().get(0);
+            Attachment attachment = message.getAttachments().getFirst();
             fileName = attachment.getName();
 
             byte[] file;

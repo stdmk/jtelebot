@@ -56,7 +56,7 @@ class NewYearTest {
         when(clock.withZone(ZoneId.of(DEFAULT_TIME_ZONE))).thenReturn(clock);
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = newYear.parse(request).get(0);
+        BotResponse botResponse = newYear.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -74,7 +74,7 @@ class NewYearTest {
         when(clock.withZone(userZoneId)).thenReturn(clock);
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = newYear.parse(request).get(0);
+        BotResponse botResponse = newYear.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

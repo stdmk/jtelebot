@@ -39,7 +39,7 @@ class MediaGroupMapperTest {
         List<InputMedia> medias = sendMediaGroup.getMedias();
         assertEquals(fileResponse.getFiles().size(), medias.size());
 
-        InputMediaPhoto inputMedia1 = (InputMediaPhoto) medias.get(0);
+        InputMediaPhoto inputMedia1 = (InputMediaPhoto) medias.getFirst();
         assertEquals(file1.getUrl(), inputMedia1.getMedia());
         assertEquals(file1.getName(), inputMedia1.getCaption());
         assertTrue(inputMedia1.getHasSpoiler());

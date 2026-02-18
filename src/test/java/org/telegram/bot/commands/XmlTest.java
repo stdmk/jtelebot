@@ -75,7 +75,7 @@ class XmlTest {
                 " at [Source: (StringReader); line: 1, column: 18]`";
         BotRequest request = TestUtils.getRequestFromGroup("xml <test>value</test");
 
-        BotResponse botResponse = xml.parse(request).get(0);
+        BotResponse botResponse = xml.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -89,7 +89,7 @@ class XmlTest {
                 "```";
         BotRequest request = TestUtils.getRequestFromGroup("xml <test><test2>value</test2></test>");
 
-        BotResponse botResponse = xml.parse(request).get(0);
+        BotResponse botResponse = xml.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -100,7 +100,7 @@ class XmlTest {
         final String expectedResponseText = "```xml\n<test><test2>value</test2></test>```";
         BotRequest request = TestUtils.getRequestFromGroup("xml <test>\n<test2>value</test2>\n</test>");
 
-        BotResponse botResponse = xml.parse(request).get(0);
+        BotResponse botResponse = xml.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -159,11 +159,11 @@ class XmlTest {
 
         when(bot.getBytesTelegramFile(fileId)).thenReturn(bytes);
 
-        BotResponse botResponse = xml.parse(request).get(0);
+        BotResponse botResponse = xml.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(fileName, file.getName());
 
         String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);
@@ -180,11 +180,11 @@ class XmlTest {
         message.setAttachments(List.of(new Attachment().setFile(bytes).setName(fileName)));
         message.setMessageContentType(MessageContentType.FILE);
 
-        BotResponse botResponse = xml.parse(request).get(0);
+        BotResponse botResponse = xml.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(fileName, file.getName());
 
         String actualResponseText = new String(file.getBytes(), StandardCharsets.UTF_8);

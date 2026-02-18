@@ -11,6 +11,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
+import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -19,9 +20,9 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.config.PropertiesConfig;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -99,7 +100,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        BotResponse botResponse = googleTranslate.parse(request).get(0);
+        BotResponse botResponse = googleTranslate.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
 
@@ -119,7 +120,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        BotResponse botResponse = googleTranslate.parse(request).get(0);
+        BotResponse botResponse = googleTranslate.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -132,7 +133,7 @@ class GoogleTranslateTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(null);
 
-        BotResponse botResponse = googleTranslate.parse(request).get(0);
+        BotResponse botResponse = googleTranslate.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -165,7 +166,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        BotResponse botResponse = googleTranslate.parse(request).get(0);
+        BotResponse botResponse = googleTranslate.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -186,7 +187,7 @@ class GoogleTranslateTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GoogleTranslate.TranslateResult>>any()))
                 .thenReturn(response);
 
-        BotResponse botResponse = googleTranslate.parse(request).get(0);
+        BotResponse botResponse = googleTranslate.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);

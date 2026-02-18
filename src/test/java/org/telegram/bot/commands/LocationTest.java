@@ -52,7 +52,7 @@ class LocationTest {
 
         BotRequest request = TestUtils.getRequestFromGroup("location 56.83417 35,90604");
 
-        BotResponse botResponse = location.parse(request).get(0);
+        BotResponse botResponse = location.parse(request).getFirst();
 
         LocationResponse locationResponse = TestUtils.checkDefaultLocationResponseParams(botResponse);
 

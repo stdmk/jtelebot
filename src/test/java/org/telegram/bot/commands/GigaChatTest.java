@@ -225,7 +225,7 @@ class GigaChatTest {
         when(sberRestTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), ArgumentMatchers.<Class<byte[]>>any()))
                 .thenReturn(new ResponseEntity<>("response".getBytes(StandardCharsets.UTF_8), HttpStatus.OK));
 
-        BotResponse botResponse = gigaChat.parse(request).get(0);
+        BotResponse botResponse = gigaChat.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         FileResponse photo = checkDefaultFileResponseImageParams(botResponse);
         assertEquals(expectedResponseText, photo.getText());
@@ -255,7 +255,7 @@ class GigaChatTest {
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        BotResponse botResponse = gigaChat.parse(request).get(0);
+        BotResponse botResponse = gigaChat.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
@@ -295,7 +295,7 @@ class GigaChatTest {
         when(sberRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        BotResponse botResponse = gigaChat.parse(request).get(0);
+        BotResponse botResponse = gigaChat.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 

@@ -37,7 +37,7 @@ class TruthTest {
 
         when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("error"));
 
-        BotResponse botResponse = truth.parse(request).get(0);
+        BotResponse botResponse = truth.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(request.getMessage().getMessageId(), textResponse.getReplyToMessageId());
@@ -53,10 +53,10 @@ class TruthTest {
         when(response.getBody()).thenReturn(new Truth.YesNo().setImage(image));
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
 
-        BotResponse botResponse = truth.parse(request).get(0);
+        BotResponse botResponse = truth.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
-        assertEquals(fileResponse.getFiles().get(0).getUrl(), image);
+        assertEquals(image, fileResponse.getFiles().getFirst().getUrl());
         assertEquals(request.getMessage().getReplyToMessage().getMessageId(), fileResponse.getReplyToMessageId());
         verify(bot).sendTyping(request.getMessage().getChatId());
     }

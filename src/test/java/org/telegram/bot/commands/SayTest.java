@@ -30,7 +30,7 @@ class SayTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
 
-        BotResponse botResponse = say.parse(request).get(0);
+        BotResponse botResponse = say.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -43,7 +43,7 @@ class SayTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
 
-        BotResponse botResponse = say.parse(request).get(0);
+        BotResponse botResponse = say.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

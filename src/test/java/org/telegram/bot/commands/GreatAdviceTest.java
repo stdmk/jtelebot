@@ -20,7 +20,8 @@ import org.telegram.bot.services.SpeechService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -83,7 +84,7 @@ class GreatAdviceTest {
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GreatAdvice.FuckingGreatAdvice>>any()))
                 .thenReturn(response);
 
-        BotResponse botResponse = greatAdvice.parse(request).get(0);
+        BotResponse botResponse = greatAdvice.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 

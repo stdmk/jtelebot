@@ -56,7 +56,7 @@ class GetidTest {
 
         when(userService.get(anyString())).thenReturn(TestUtils.getUser());
 
-        BotResponse response = getid.parse(request).get(0);
+        BotResponse response = getid.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
@@ -72,7 +72,7 @@ class GetidTest {
                 ${command.getid.yourid}: <code>1</code>""";
         BotRequest request = TestUtils.getRequestWithRepliedMessage("getid");
 
-        BotResponse response = getid.parse(request).get(0);
+        BotResponse response = getid.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
@@ -86,7 +86,7 @@ class GetidTest {
                 "${command.getid.yourid}: <code>1</code>";
         BotRequest request = TestUtils.getRequestFromGroup("getid");
 
-        BotResponse response = getid.parse(request).get(0);
+        BotResponse response = getid.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
@@ -99,7 +99,7 @@ class GetidTest {
         final String responseText = "${command.getid.yourid}: <code>1</code>";
         BotRequest request = TestUtils.getRequestFromPrivate("getid");
 
-        BotResponse response = getid.parse(request).get(0);
+        BotResponse response = getid.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);

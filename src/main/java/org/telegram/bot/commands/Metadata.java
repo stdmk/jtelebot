@@ -79,7 +79,7 @@ public class Metadata implements Command {
 
             byte[] file;
             try {
-                file = getFileFromMessage(messageWithFile.getAttachments().get(0));
+                file = getFileFromMessage(messageWithFile.getAttachments().getFirst());
             } catch (IOException e) {
                 log.error("Failed to get metadata from file", e);
                 botStats.incrementErrors(request, e, "Failed to get metadata from file");

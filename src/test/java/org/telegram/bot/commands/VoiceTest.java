@@ -129,7 +129,7 @@ class VoiceTest {
         when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenThrow(new TooLongSpeechException("error"));
 
-        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        BotResponse botResponse = voice.analyze(requestWithVoice).getFirst();
 
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
@@ -172,7 +172,7 @@ class VoiceTest {
         when(bot.getBytesTelegramFile(DEFAULT_FILE_ID)).thenReturn(file);
         when(speechParser.parse(file, DEFAULT_VOICE_DURATION)).thenReturn(expectedResponse);
 
-        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        BotResponse botResponse = voice.analyze(requestWithVoice).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
 
@@ -190,7 +190,7 @@ class VoiceTest {
         when(bot.getBotUsername()).thenReturn("jtelebot");
         when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());
 
-        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        BotResponse botResponse = voice.analyze(requestWithVoice).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
 
@@ -212,7 +212,7 @@ class VoiceTest {
         when(commandPropertiesService.findCommandInText(expectedResponse, "jtelebot")).thenReturn(new CommandProperties());
         when(objectCopier.copyObject(requestWithVoice, BotRequest.class)).thenReturn(requestWithVoice);
 
-        BotResponse botResponse = voice.analyze(requestWithVoice).get(0);
+        BotResponse botResponse = voice.analyze(requestWithVoice).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
         assertEquals(notNormalizedResponse, textResponse.getText());
 
@@ -287,7 +287,7 @@ class VoiceTest {
         when(languageResolver.getChatLanguageCode(requestFromGroup)).thenReturn(DEFAULT_LANG);
         when(speechSynthesizer.synthesize("test", DEFAULT_LANG)).thenReturn(expectedFile);
 
-        BotResponse response = voice.parse(requestFromGroup).get(0);
+        BotResponse response = voice.parse(requestFromGroup).getFirst();
         TestUtils.checkDefaultFileResponseVoiceParams(response);
     }
 
@@ -300,7 +300,7 @@ class VoiceTest {
         when(languageResolver.getChatLanguageCode(requestFromGroup)).thenReturn(DEFAULT_LANG);
         when(speechSynthesizer.synthesize("test", DEFAULT_LANG, SaluteSpeechVoice.KIN)).thenReturn(expectedFile);
 
-        BotResponse response = voice.parse(requestFromGroup).get(0);
+        BotResponse response = voice.parse(requestFromGroup).getFirst();
         TestUtils.checkDefaultFileResponseVoiceParams(response);
 
         verify(bot).sendTyping(DEFAULT_CHAT_ID);

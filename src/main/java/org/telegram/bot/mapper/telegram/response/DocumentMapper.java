@@ -23,7 +23,7 @@ public class DocumentMapper implements TelegramFileApiMethodMapper {
 
     @Override
     public PartialBotApiMethod<?> map(FileResponse fileResponse) {
-        InputFile inputFile = inputFileMapper.toInputFile(fileResponse.getFiles().get(0));
+        InputFile inputFile = inputFileMapper.toInputFile(fileResponse.getFiles().getFirst());
 
         SendDocument sendDocument = new SendDocument(fileResponse.getChatId().toString(), inputFile);
         sendDocument.setReplyToMessageId(fileResponse.getReplyToMessageId());

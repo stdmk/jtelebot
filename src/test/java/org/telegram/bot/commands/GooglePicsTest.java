@@ -64,7 +64,7 @@ class GooglePicsTest {
     void googlePicsWithEmptyTextMessageTest() {
         BotRequest request = TestUtils.getRequestFromGroup("picture");
 
-        BotResponse response = googlePics.parse(request).get(0);
+        BotResponse response = googlePics.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(response);
@@ -116,7 +116,7 @@ class GooglePicsTest {
         when(imageUrlService.get(anyLong())).thenReturn(new ImageUrl().setUrl(url).setTitle("title"));
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn("content".getBytes(StandardCharsets.UTF_8));
 
-        BotResponse response = googlePics.parse(request).get(0);
+        BotResponse response = googlePics.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         TestUtils.checkDefaultFileResponseImageParams(response);
     }
@@ -184,11 +184,11 @@ class GooglePicsTest {
                         new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle()),
                         new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle())));
 
-        BotResponse response = googlePics.parse(request).get(0);
+        BotResponse response = googlePics.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         FileResponse mediaGroup = TestUtils.checkDefaultResponseMultipleImagesParams(response);
 
-        File file = mediaGroup.getFiles().get(0);
+        File file = mediaGroup.getFiles().getFirst();
         assertEquals(googlePicsSearchItem.getLink(), file.getUrl());
 
         verify(botStats).incrementGoogleRequests();
@@ -198,7 +198,7 @@ class GooglePicsTest {
         List<ImageUrl> imageUrlList = imageUrlListCaptor.getValue();
         assertFalse(imageUrlList.isEmpty());
 
-        ImageUrl imageUrl = imageUrlList.get(0);
+        ImageUrl imageUrl = imageUrlList.getFirst();
         assertEquals(googlePicsSearchItem.getTitle(), imageUrl.getTitle());
         assertEquals(googlePicsSearchItem.getLink(), imageUrl.getUrl());
 

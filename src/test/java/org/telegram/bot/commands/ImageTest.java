@@ -68,7 +68,7 @@ class ImageTest {
         when(imageUrlService.getRandom()).thenReturn(imageUrl);
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenThrow(new RuntimeException());
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -88,7 +88,7 @@ class ImageTest {
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedResponseText, photo.getText());
@@ -118,7 +118,7 @@ class ImageTest {
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedResponseText, photo.getText());
@@ -140,7 +140,7 @@ class ImageTest {
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedResponseText, photo.getText());
@@ -181,7 +181,7 @@ class ImageTest {
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedResponseText, photo.getText());
@@ -203,7 +203,7 @@ class ImageTest {
         when(networkUtils.getFileFromUrlWithLimit(imageUrl.getUrl())).thenReturn(CONTENT);
         when(imageUrlService.isImageUrlExists(imageUrlId + 1)).thenReturn(true);
 
-        BotResponse response = image.parse(request).get(0);
+        BotResponse response = image.parse(request).getFirst();
 
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedResponseText, photo.getText());

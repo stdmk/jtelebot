@@ -53,7 +53,7 @@ class ResponseTelegramMapperTest {
 
         List<PartialBotApiMethod<?>> partialBotApiMethods = responseTelegramMapper.toTelegramMethod(responses);
 
-        assertEquals(partialBotApiMethods.get(0), partialBotApiMethod);
+        assertEquals(partialBotApiMethods.getFirst(), partialBotApiMethod);
     }
 
     @Test
@@ -66,7 +66,7 @@ class ResponseTelegramMapperTest {
 
         List<PartialBotApiMethod<?>> partialBotApiMethods = assertDoesNotThrow(() -> responseTelegramMapper.toTelegramMethod(responses));
 
-        assertEquals(partialBotApiMethods.get(0), partialBotApiMethod);
+        assertEquals(partialBotApiMethods.getFirst(), partialBotApiMethod);
 
         verify(botStats).incrementErrors(response, "Unable to find fileMapper for FileType: " + FileType.IMAGE);
     }
@@ -81,7 +81,7 @@ class ResponseTelegramMapperTest {
 
         List<PartialBotApiMethod<?>> partialBotApiMethods = responseTelegramMapper.toTelegramMethod(responses);
 
-        assertEquals(partialBotApiMethods.get(0), partialBotApiMethod);
+        assertEquals(partialBotApiMethods.getFirst(), partialBotApiMethod);
     }
 
     @Test
@@ -94,7 +94,7 @@ class ResponseTelegramMapperTest {
 
         List<PartialBotApiMethod<?>> partialBotApiMethods = responseTelegramMapper.toTelegramMethod(responses);
 
-        assertEquals(partialBotApiMethods.get(0), partialBotApiMethod);
+        assertEquals(partialBotApiMethods.getFirst(), partialBotApiMethod);
     }
 
 }

@@ -44,10 +44,10 @@ class KeyboardMapperTest {
         List<InlineKeyboardRow> mappedKeyboard = actual.getKeyboard();
         assertEquals(2, mappedKeyboard.size());
 
-        InlineKeyboardRow inlineKeyboardButtons1 = mappedKeyboard.get(0);
+        InlineKeyboardRow inlineKeyboardButtons1 = mappedKeyboard.getFirst();
         assertEquals(2, inlineKeyboardButtons1.size());
 
-        InlineKeyboardButton inlineKeyboardButton1 = inlineKeyboardButtons1.get(0);
+        InlineKeyboardButton inlineKeyboardButton1 = inlineKeyboardButtons1.getFirst();
         assertEquals(button1.getName(), inlineKeyboardButton1.getText());
         assertEquals(button1.getCallback(), inlineKeyboardButton1.getCallbackData());
 
@@ -58,7 +58,7 @@ class KeyboardMapperTest {
         InlineKeyboardRow inlineKeyboardButtons2 = mappedKeyboard.get(1);
         assertEquals(2, inlineKeyboardButtons2.size());
 
-        InlineKeyboardButton inlineKeyboardButton3 = inlineKeyboardButtons2.get(0);
+        InlineKeyboardButton inlineKeyboardButton3 = inlineKeyboardButtons2.getFirst();
         assertEquals(button3.getName(), inlineKeyboardButton3.getText());
         assertEquals(button3.getCallback(), inlineKeyboardButton3.getCallbackData());
 

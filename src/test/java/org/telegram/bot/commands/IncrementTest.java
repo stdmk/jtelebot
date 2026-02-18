@@ -51,7 +51,7 @@ class IncrementTest {
 
         when(incrementService.get(message.getChat(), message.getUser())).thenReturn(getSomeIncrements());
 
-        BotResponse botResponse = increment.parse(request).get(0);
+        BotResponse botResponse = increment.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -79,7 +79,7 @@ class IncrementTest {
 
         when(incrementService.get(message.getChat(), message.getUser(), incrementName)).thenReturn(getSomeIncrement(incrementName, BigDecimal.ZERO));
 
-        BotResponse botResponse = increment.parse(request).get(0);
+        BotResponse botResponse = increment.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -108,7 +108,7 @@ class IncrementTest {
         BotRequest request = TestUtils.getRequestFromGroup("increment " + incrementName + " " + incrementValue.toPlainString());
         Message message = request.getMessage();
 
-        BotResponse botResponse = increment.parse(request).get(0);
+        BotResponse botResponse = increment.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -134,7 +134,7 @@ class IncrementTest {
         org.telegram.bot.domain.entities.Increment entity = getSomeIncrement(incrementName, BigDecimal.ZERO);
         when(incrementService.get(message.getChat(), message.getUser(), incrementName)).thenReturn(entity);
 
-        BotResponse botResponse = increment.parse(request).get(0);
+        BotResponse botResponse = increment.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -152,7 +152,7 @@ class IncrementTest {
         org.telegram.bot.domain.entities.Increment entity = getSomeIncrement(incrementName, BigDecimal.ZERO);
         when(incrementService.get(message.getChat(), message.getUser(), incrementName)).thenReturn(entity);
 
-        BotResponse botResponse = increment.parse(request).get(0);
+        BotResponse botResponse = increment.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

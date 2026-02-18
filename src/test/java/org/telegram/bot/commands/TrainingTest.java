@@ -398,7 +398,7 @@ class TrainingTest {
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         Keyboard keyboard;
         if (callback) {
@@ -434,7 +434,7 @@ class TrainingTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(trainingStoppedService.isStopped(message.getUser())).thenReturn(true);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -476,7 +476,7 @@ class TrainingTest {
                         new TrainingEvent().setId(3L).setUser(user).setDateTime(CURRENT_DATE_TIME.minusHours(3)).setTraining(trainings.get(2)).setTrainSubscription(subscription).setCanceled(true).setCancellationReason("reason1")));
         when(trainSubscriptionService.getFirstActive(user)).thenReturn(subscription);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -507,7 +507,7 @@ class TrainingTest {
 
         when(trainingService.get(message.getUser())).thenReturn(Collections.emptyList());
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -527,7 +527,7 @@ class TrainingTest {
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -535,21 +535,21 @@ class TrainingTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(4, keyboardButtonsList.size());
 
-        List<KeyboardButton> addRow1 = keyboardButtonsList.get(0);
+        List<KeyboardButton> addRow1 = keyboardButtonsList.getFirst();
         assertEquals(1, addRow1.size());
-        KeyboardButton addButton1 = addRow1.get(0);
+        KeyboardButton addButton1 = addRow1.getFirst();
         assertEquals("\uD83C\uDD95" + TRAINING1_NAME + " " + TRAINING1_TIME_START + " (" + TRAINING1_COST + ")", addButton1.getName());
         assertEquals("training_add" + TRAINING1_ID, addButton1.getCallback());
 
         List<KeyboardButton> addRow2 = keyboardButtonsList.get(1);
         assertEquals(1, addRow2.size());
-        KeyboardButton addButton2 = addRow2.get(0);
+        KeyboardButton addButton2 = addRow2.getFirst();
         assertEquals("\uD83C\uDD95" + TRAINING2_NAME + " " + TRAINING2_TIME_START + " (" + TRAINING2_COST + ")", addButton2.getName());
         assertEquals("training_add" + TRAINING2_ID, addButton2.getCallback());
 
         List<KeyboardButton> addRow3 = keyboardButtonsList.get(2);
         assertEquals(1, addRow3.size());
-        KeyboardButton addButton3 = addRow3.get(0);
+        KeyboardButton addButton3 = addRow3.getFirst();
         assertEquals("\uD83C\uDD95" + TRAINING3_NAME + " " + TRAINING3_TIME_START + " (" + TRAINING3_COST + ")", addButton3.getName());
         assertEquals("training_add" + TRAINING3_ID, addButton3.getCallback());
 
@@ -562,7 +562,7 @@ class TrainingTest {
         BotRequest request = TestUtils.getRequestWithCallback("training_add" + TRAINING1_ID);
         Message message = request.getMessage();
 
-        org.telegram.bot.domain.entities.Training notPastTraining = getSomeTrainings().get(0);
+        org.telegram.bot.domain.entities.Training notPastTraining = getSomeTrainings().getFirst();
         notPastTraining.setTimeStart(CURRENT_DATE_TIME.plusMinutes(1).toLocalTime());
         when(trainingService.get(message.getUser(), TRAINING1_ID)).thenReturn(notPastTraining);
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
@@ -590,7 +590,7 @@ class TrainingTest {
         BotRequest request = TestUtils.getRequestWithCallback("training_add" + TRAINING1_ID);
         Message message = request.getMessage();
 
-        org.telegram.bot.domain.entities.Training training1 = getSomeTrainings().get(0);
+        org.telegram.bot.domain.entities.Training training1 = getSomeTrainings().getFirst();
         when(trainingService.get(message.getUser(), TRAINING1_ID)).thenReturn(training1);
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
@@ -599,7 +599,7 @@ class TrainingTest {
         when(trainSubscriptionService.getFirstActive(message.getUser())).thenReturn(subscription);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedSavedText);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -647,7 +647,7 @@ class TrainingTest {
         Chat chat = message.getChat();
         User user = message.getUser();
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -695,14 +695,14 @@ class TrainingTest {
                 .setId(eventId)
                 .setUser(message.getUser())
                 .setDateTime(CURRENT_DATE_TIME.plusHours(1))
-                .setTraining(getSomeTrainings().get(0))
+                .setTraining(getSomeTrainings().getFirst())
                 .setTrainSubscription(subscription);
         when(trainingEventService.get(user, eventId)).thenReturn(event);
         subscription.setCountLeft(ACTIVE_SUBSCRIPTION_COUNT_LEFT - 1);
         when(trainSubscriptionService.getFirstActive(message.getUser())).thenReturn(subscription);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -729,7 +729,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -752,7 +752,7 @@ class TrainingTest {
                 4);
         when(trainSubscriptionService.get(message.getUser(), page)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -801,7 +801,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -824,7 +824,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedResponseText, editResponse.getText());
@@ -846,7 +846,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(EXPECTED_REPORT, editResponse.getText());
@@ -868,7 +868,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(EXPECTED_REPORT, editResponse.getText());
@@ -890,7 +890,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(EXPECTED_REPORT, editResponse.getText());
@@ -910,7 +910,7 @@ class TrainingTest {
         PageImpl<TrainSubscription> trainSubscriptions = new PageImpl<>(List.of(getSomeActiveTrainingSubscription(), getSomeInactiveTrainingSubscription()));
         when(trainSubscriptionService.get(message.getUser(), 0)).thenReturn(trainSubscriptions);
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(EXPECTED_REPORT, editResponse.getText());
@@ -980,11 +980,11 @@ class TrainingTest {
         when(trainingEventService.getAll(user, subscription)).thenReturn(getSomeTrainingEvents());
         when(internationalizationService.internationalize(anyString(), eq("en"))).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().getFirst().getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
@@ -1005,11 +1005,11 @@ class TrainingTest {
         when(trainingEventService.getAllOfMonth(user, CURRENT_DATE_TIME.getMonth().getValue())).thenReturn(getSomeTrainingEvents());
         when(internationalizationService.internationalize(anyString(), eq("en"))).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().getFirst().getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
@@ -1029,11 +1029,11 @@ class TrainingTest {
         when(trainingEventService.getAllOfYear(user, CURRENT_DATE_TIME.getYear())).thenReturn(getSomeTrainingEvents());
         when(internationalizationService.internationalize(anyString(), eq("en"))).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().getFirst().getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
@@ -1051,11 +1051,11 @@ class TrainingTest {
         when(trainingEventService.getAll(user)).thenReturn(getSomeTrainingEvents());
         when(internationalizationService.internationalize(anyString(), eq("en"))).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = training.parse(request).get(0);
+        BotResponse botResponse = training.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedResponseText, fileResponse.getText());
-        String actualFileContent = new String(fileResponse.getFiles().get(0).getBytes(), StandardCharsets.UTF_8);
+        String actualFileContent = new String(fileResponse.getFiles().getFirst().getBytes(), StandardCharsets.UTF_8);
         assertEquals(expectedFileContent, actualFileContent);
 
         verify(bot).sendTyping(message.getChatId());
@@ -1157,21 +1157,21 @@ class TrainingTest {
 
         assertEquals(3, keyboardButtonsList.size());
 
-        List<KeyboardButton> addRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> addRow = keyboardButtonsList.getFirst();
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals("\uD83C\uDD95${command.training.button.unplannedtraining}", addButton.getName());
         assertEquals("training_add", addButton.getCallback());
 
         List<KeyboardButton> reportsRow = keyboardButtonsList.get(1);
         assertEquals(1, reportsRow.size());
-        KeyboardButton reportButton = reportsRow.get(0);
+        KeyboardButton reportButton = reportsRow.getFirst();
         assertEquals("\uD83D\uDCDD${command.training.button.reports}", reportButton.getName());
         assertEquals("training_r", reportButton.getCallback());
 
         List<KeyboardButton> setRow = keyboardButtonsList.get(2);
         assertEquals(1, setRow.size());
-        KeyboardButton setButton = setRow.get(0);
+        KeyboardButton setButton = setRow.getFirst();
         assertEquals("⚙\uFE0F${command.training.button.settings}", setButton.getName());
         assertEquals("${setter.command} ${setter.set.trainings}", setButton.getCallback());
     }
@@ -1199,14 +1199,14 @@ class TrainingTest {
         
         List<KeyboardButton> firstSubscriptionRow = keyboardButtonsList.get(i);
         assertEquals(1, firstSubscriptionRow.size());
-        KeyboardButton firstSubButton = firstSubscriptionRow.get(0);
+        KeyboardButton firstSubButton = firstSubscriptionRow.getFirst();
         assertEquals(DateUtils.formatDate(ACTIVE_SUBSCRIPTION_DATE_START) + " — " + DateUtils.formatDate(ACTIVE_SUBSCRIPTION_DATE_START.plus(ACTIVE_SUBSCRIPTION_PERIOD)) + " (" + ACTIVE_SUBSCRIPTION_COUNT + ")\n", firstSubButton.getName());
         assertEquals("training_r_sub" + ACTIVE_SUBSCRIPTION_ID, firstSubButton.getCallback());
         i = i + 1;
 
         List<KeyboardButton> secondSubscriptionRow = keyboardButtonsList.get(i);
         assertEquals(1, secondSubscriptionRow.size());
-        KeyboardButton secondSubButton = secondSubscriptionRow.get(0);
+        KeyboardButton secondSubButton = secondSubscriptionRow.getFirst();
         assertEquals(DateUtils.formatDate(INACTIVE_SUBSCRIPTION_DATE_START) + " — " + DateUtils.formatDate(INACTIVE_SUBSCRIPTION_DATE_START.plus(INACTIVE_SUBSCRIPTION_PERIOD)) + " (" + INACTIVE_SUBSCRIPTION_COUNT + ")\n", secondSubButton.getName());
         assertEquals("training_r_sub" + INACTIVE_SUBSCRIPTION_ID, secondSubButton.getCallback());
         i = i + 1;
@@ -1215,7 +1215,7 @@ class TrainingTest {
         if (hasPages) {
             assertEquals(2, pagesRow.size());
 
-            KeyboardButton backButton = pagesRow.get(0);
+            KeyboardButton backButton = pagesRow.getFirst();
             assertEquals("⬅\uFE0F${command.training.button.back}", backButton.getName());
             assertEquals("training_r1", backButton.getCallback());
 
@@ -1231,7 +1231,7 @@ class TrainingTest {
             List<KeyboardButton> downloadRow = keyboardButtonsList.get(i);
             assertEquals(1, downloadRow.size());
 
-            KeyboardButton backButton = downloadRow.get(0);
+            KeyboardButton backButton = downloadRow.getFirst();
             assertEquals("⬇\uFE0F${command.training.button.download}", backButton.getName());
             assertEquals(reportDownloadCommand, backButton.getCallback());
             i = i + 1;
@@ -1239,28 +1239,28 @@ class TrainingTest {
 
         List<KeyboardButton> currentMonthReportRow = keyboardButtonsList.get(i);
         assertEquals(1, currentMonthReportRow.size());
-        KeyboardButton currentMonthButton = currentMonthReportRow.get(0);
+        KeyboardButton currentMonthButton = currentMonthReportRow.getFirst();
         assertEquals("${command.training.button.forcurrentmonth}", currentMonthButton.getName());
         assertEquals("training_rm", currentMonthButton.getCallback());
         i = i + 1;
 
         List<KeyboardButton> currentYearReportRow = keyboardButtonsList.get(i);
         assertEquals(1, currentYearReportRow.size());
-        KeyboardButton currentYearButton = currentYearReportRow.get(0);
+        KeyboardButton currentYearButton = currentYearReportRow.getFirst();
         assertEquals("${command.training.button.forcurrentyear}", currentYearButton.getName());
         assertEquals("training_ry", currentYearButton.getCallback());
         i = i + 1;
 
         List<KeyboardButton> allTimeReportRow = keyboardButtonsList.get(i);
         assertEquals(1, allTimeReportRow.size());
-        KeyboardButton allTimeButton = allTimeReportRow.get(0);
+        KeyboardButton allTimeButton = allTimeReportRow.getFirst();
         assertEquals("${command.training.button.foralltime}", allTimeButton.getName());
         assertEquals("training_rall", allTimeButton.getCallback());
         i = i + 1;
 
         List<KeyboardButton> trainingsRow = keyboardButtonsList.get(i);
         assertEquals(1, trainingsRow.size());
-        KeyboardButton trainingsButton = trainingsRow.get(0);
+        KeyboardButton trainingsButton = trainingsRow.getFirst();
         assertEquals("\uD83C\uDFCB${command.training.button.trainings}", trainingsButton.getName());
         assertEquals("training", trainingsButton.getCallback());
     }

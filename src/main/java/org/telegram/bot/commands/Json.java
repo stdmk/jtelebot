@@ -46,7 +46,7 @@ public class Json implements Command {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
 
-            Attachment attachment = message.getAttachments().get(0);
+            Attachment attachment = message.getAttachments().getFirst();
             fileName = attachment.getName();
 
             byte[] file;

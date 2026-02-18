@@ -95,7 +95,7 @@ class ConverterTest {
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("convert" + arguments);
 
-        BotResponse botResponse = converter.parse(request).get(0);
+        BotResponse botResponse = converter.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
     }
@@ -105,7 +105,7 @@ class ConverterTest {
     void parseTest(BigDecimal value, String from, String to, String expected) {
         BotRequest request = TestUtils.getRequestFromGroup("convert " + value + " " + from + " " + to);
 
-        BotResponse botResponse = converter.parse(request).get(0);
+        BotResponse botResponse = converter.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expected, textResponse.getText());

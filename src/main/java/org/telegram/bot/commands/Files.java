@@ -176,7 +176,7 @@ public class Files implements Command {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
 
-        fileService.save(mapToFile(message.getAttachments().get(0), chat, user, parent));
+        fileService.save(mapToFile(message.getAttachments().getFirst(), chat, user, parent));
 
         return new TextResponse(message)
                 .setText(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))

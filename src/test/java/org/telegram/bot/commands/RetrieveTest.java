@@ -126,7 +126,7 @@ class RetrieveTest {
 
         when(networkUtils.readStringFromURL(any(java.net.URL.class))).thenReturn(DATA);
 
-        BotResponse botResponse = retrieve.parse(request).get(0);
+        BotResponse botResponse = retrieve.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expected, textResponse.getText());

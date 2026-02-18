@@ -49,7 +49,7 @@ class PhoneNumberTest {
         final String expectedResponseText = "${command.phonenumber.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup("number ");
 
-        BotResponse botResponse = phoneNumber.parse(request).get(0);
+        BotResponse botResponse = phoneNumber.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -84,7 +84,7 @@ class PhoneNumberTest {
         when(botRestTemplate.getForEntity(API_URL + number, PhoneNumber.ApiResponse.class))
                 .thenThrow(new RestClientException("404 Not Found: [{\"error\":\"" + errorText + "\"}]"));
 
-        BotResponse botResponse = phoneNumber.parse(request).get(0);
+        BotResponse botResponse = phoneNumber.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(errorText, textResponse.getText());
@@ -120,7 +120,7 @@ class PhoneNumberTest {
         when(botRestTemplate.getForEntity(API_URL + number, PhoneNumber.ApiResponse.class))
                 .thenReturn(response);
 
-        BotResponse botResponse = phoneNumber.parse(request).get(0);
+        BotResponse botResponse = phoneNumber.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(errorText, textResponse.getText());
@@ -144,7 +144,7 @@ class PhoneNumberTest {
         when(botRestTemplate.getForEntity(API_URL + number, PhoneNumber.ApiResponse.class))
                 .thenReturn(response);
 
-        BotResponse botResponse = phoneNumber.parse(request).get(0);
+        BotResponse botResponse = phoneNumber.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

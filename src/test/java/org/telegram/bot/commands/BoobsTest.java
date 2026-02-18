@@ -86,7 +86,7 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsDataArray);
 
-        BotResponse botResponse = boobs.parse(request).get(0);
+        BotResponse botResponse = boobs.parse(request).getFirst();
         FileResponse image = TestUtils.checkDefaultFileResponseImageParams(botResponse);
 
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
@@ -124,7 +124,7 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsDataArray);
 
-        BotResponse botResponse = boobs.parse(request).get(0);
+        BotResponse botResponse = boobs.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(botResponse);
         List<File> files = fileResponse.getFiles();
@@ -195,7 +195,7 @@ class BoobsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(boobsDataArray);
 
-        BotResponse botResponse = boobs.parse(request).get(0);
+        BotResponse botResponse = boobs.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(botResponse);
         List<File> files = fileResponse.getFiles();

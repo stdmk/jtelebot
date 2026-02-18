@@ -35,7 +35,7 @@ class BackupTest {
         BotRequest request = TestUtils.getRequestFromGroup();
         when(dbBackuper.getDbBackup()).thenReturn(mock(File.class));
 
-        BotResponse botResponse = backup.parse(request).get(0);
+        BotResponse botResponse = backup.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
 
@@ -47,7 +47,7 @@ class BackupTest {
         assertNotNull(files);
         assertFalse(files.isEmpty());
 
-        org.telegram.bot.domain.model.response.File file = files.get(0);
+        org.telegram.bot.domain.model.response.File file = files.getFirst();
         assertEquals(FileType.FILE, file.getFileType());
     }
 }

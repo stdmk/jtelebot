@@ -52,7 +52,7 @@ class QrTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = qr.parse(request).get(0);
+        BotResponse botResponse = qr.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -68,11 +68,11 @@ class QrTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = qr.parse(request).get(0);
+        BotResponse botResponse = qr.parse(request).getFirst();
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse, FileType.IMAGE);
         assertEquals(argument, fileResponse.getText());
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(FileType.IMAGE, file.getFileType());
         assertEquals("qr", file.getName());
 
@@ -147,7 +147,7 @@ class QrTest {
 
         when(bot.getBytesTelegramFile(fileId)).thenReturn(attachment);
 
-        BotResponse botResponse = qr.analyze(request).get(0);
+        BotResponse botResponse = qr.analyze(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -162,7 +162,7 @@ class QrTest {
         message.setMessageContentType(MessageContentType.PHOTO);
         message.setAttachments(List.of(new Attachment().setFile(file)));
 
-        BotResponse botResponse = qr.analyze(request).get(0);
+        BotResponse botResponse = qr.analyze(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

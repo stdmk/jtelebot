@@ -51,7 +51,7 @@ class WebcamTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = webcam.parse(request).get(0);
+        BotResponse botResponse = webcam.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -105,10 +105,10 @@ class WebcamTest {
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(ffmpegProvider.getVideo(url, duration)).thenReturn(expectedVideoFile);
 
-        BotResponse botResponse = webcam.parse(request).get(0);
+        BotResponse botResponse = webcam.parse(request).getFirst();
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse, FileType.VIDEO);
 
-        assertEquals(expectedVideoFile, fileResponse.getFiles().get(0).getDiskFile());
+        assertEquals(expectedVideoFile, fileResponse.getFiles().getFirst().getDiskFile());
     }
 
 }

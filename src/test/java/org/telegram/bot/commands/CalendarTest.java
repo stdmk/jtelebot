@@ -29,8 +29,8 @@ import org.telegram.bot.services.UserCityService;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Set;
 import java.util.*;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -97,7 +97,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML);
 
@@ -133,7 +133,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -165,7 +165,7 @@ class CalendarTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -202,7 +202,7 @@ class CalendarTest {
         when(responseEntity.getBody()).thenReturn(null);
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         TextResponse textResponse = checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -279,7 +279,7 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -295,7 +295,7 @@ class CalendarTest {
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse response = calendar.parse(request).get(0);
+        BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(userCityService).getZoneIdOfUser(any(Chat.class), any(User.class));
         checkDefaultEditResponseParams(response, FormattingStyle.HTML, false, true);

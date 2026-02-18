@@ -14,7 +14,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.telegram.bot.TestUtils.checkDefaultTextResponseParams;
 
@@ -40,7 +40,7 @@ class CmdTest {
     @Test
     void parseWrongCommandTest() {
         BotRequest request = TestUtils.getRequestFromGroup("cmd test");
-        BotResponse botResponse = cmd.parse(request).get(0);
+        BotResponse botResponse = cmd.parse(request).getFirst();
 
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -50,7 +50,7 @@ class CmdTest {
     @Test
     void parseTest() {
         BotRequest request = TestUtils.getRequestFromGroup("cmd help");
-        BotResponse botResponse = cmd.parse(request).get(0);
+        BotResponse botResponse = cmd.parse(request).getFirst();
 
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
         verify(bot).sendTyping(request.getMessage().getChatId());

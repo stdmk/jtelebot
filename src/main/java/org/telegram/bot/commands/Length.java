@@ -44,7 +44,7 @@ public class Length implements Command {
             }
 
             try {
-                length = getFileLength(message.getAttachments().get(0));
+                length = getFileLength(message.getAttachments().getFirst());
             } catch (TelegramApiException | IOException e) {
                 log.error("Failed to get file from telegram", e);
                 botStats.incrementErrors(request, e, "Failed to get file from telegram");

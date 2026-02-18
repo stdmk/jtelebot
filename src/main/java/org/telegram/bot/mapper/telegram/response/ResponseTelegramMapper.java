@@ -1,5 +1,6 @@
 package org.telegram.bot.mapper.telegram.response;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -8,7 +9,6 @@ import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +58,7 @@ public class ResponseTelegramMapper {
             return mediaGroupMapper.map(fileResponse);
         }
 
-        FileType responseFileType = files.get(0).getFileType();
+        FileType responseFileType = files.getFirst().getFileType();
         TelegramFileApiMethodMapper telegramFileApiMethodMapper = telegramFileApiMethodMapperMap.get(responseFileType);
 
         if (telegramFileApiMethodMapper == null) {

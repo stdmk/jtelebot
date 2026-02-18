@@ -75,7 +75,7 @@ class SteamTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse response = steam.parse(request).get(0);
+        BotResponse response = steam.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -107,7 +107,7 @@ class SteamTest {
         List<String> langHeader = httpEntity.getHeaders().get("Accept-Language");
         assertNotNull(langHeader);
         assertEquals(1, langHeader.size());
-        assertEquals(lang, langHeader.get(0));
+        assertEquals(lang, langHeader.getFirst());
     }
 
     @ParameterizedTest
@@ -163,7 +163,7 @@ class SteamTest {
         when(botRestTemplate.exchange(eq(expectedApiUrl), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenReturn(searchResponse);
 
-        BotResponse response = steam.parse(request).get(0);
+        BotResponse response = steam.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedMessageText, textResponse.getText());
@@ -237,12 +237,12 @@ class SteamTest {
         Steam.DetailResult detailResult = (Steam.DetailResult) steamResponse.get(APP_ID);
         when(objectMapper.convertValue(detailResult, Steam.DetailResult.class)).thenReturn(detailResult);
 
-        BotResponse response = steam.parse(request).get(0);
+        BotResponse response = steam.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedMessageText, fileResponse.getText());
         assertEquals(1, fileResponse.getFiles().size());
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(IMAGE_URL, file.getUrl());
     }
 
@@ -272,12 +272,12 @@ class SteamTest {
                 .thenReturn(new Steam.DetailResult().setSuccess(false))
                 .thenReturn(detailResult);
 
-        BotResponse response = steam.parse(request).get(0);
+        BotResponse response = steam.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedMessageText, fileResponse.getText());
         assertEquals(1, fileResponse.getFiles().size());
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(IMAGE_URL, file.getUrl());
     }
 

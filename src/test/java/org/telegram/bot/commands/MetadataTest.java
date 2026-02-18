@@ -56,7 +56,7 @@ class MetadataTest {
     void parseWithoutFilesTest() {
         BotRequest request = TestUtils.getRequestFromGroup("metadata");
 
-        BotResponse botResponse = metadata.parse(request).get(0);
+        BotResponse botResponse = metadata.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
 
@@ -152,7 +152,7 @@ class MetadataTest {
 
         BotRequest request = TestUtils.getRequestWithRepliedMessage(message);
 
-        BotResponse botResponse = metadata.parse(request).get(0);
+        BotResponse botResponse = metadata.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
 

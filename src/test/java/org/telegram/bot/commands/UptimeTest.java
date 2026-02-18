@@ -101,7 +101,7 @@ class UptimeTest {
         when(botStats.getLastTracksUpdate()).thenReturn(DATE_TIME_NOW.minusMinutes(40).atZone(ZoneId.systemDefault()).toEpochSecond() * 1000);
         when(talkerPhraseRepository.countByChat(message.getChat())).thenReturn(107L);
 
-        BotResponse botResponse = uptime.parse(request).get(0);
+        BotResponse botResponse = uptime.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

@@ -156,7 +156,7 @@ public class Echo implements Command, MessageAnalyzer {
             if (talkerPhrasesWithHighRatingCount > 1) {
                 selectedPhrase = talkerPhraseWithHighRatingList.get(MathUtils.getRandomInRange(0, talkerPhrasesWithHighRatingCount - 1));
             } else {
-                selectedPhrase = talkerPhraseWithHighRatingList.get(0);
+                selectedPhrase = talkerPhraseWithHighRatingList.getFirst();
             }
         }
 

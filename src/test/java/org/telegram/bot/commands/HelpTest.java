@@ -64,7 +64,7 @@ class HelpTest {
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
                 .thenReturn(List.of(new CommandProperties().setClassName("className")));
 
-        BotResponse botResponse = help.parse(request).get(0);
+        BotResponse botResponse = help.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -99,7 +99,7 @@ class HelpTest {
         when(commandPropertiesService.getAvailableCommandsForLevel(anyInt()))
                 .thenReturn(List.of(commandPropertiesOfAvailableCommand, commandPropertiesOfDisabledCommand));
 
-        BotResponse botResponse = help.parse(request).get(0);
+        BotResponse botResponse = help.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -133,7 +133,7 @@ class HelpTest {
 
         when(commandPropertiesService.getCommand(anyString())).thenReturn(commandProperties);
 
-        BotResponse botResponse = help.parse(request).get(0);
+        BotResponse botResponse = help.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 

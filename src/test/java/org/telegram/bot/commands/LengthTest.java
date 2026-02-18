@@ -111,7 +111,7 @@ class LengthTest {
 
         when(bot.getBytesTelegramFile(anyString())).thenReturn(fileContent.getBytes());
 
-        BotResponse botResponse = length.parse(request).get(0);
+        BotResponse botResponse = length.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
@@ -126,7 +126,7 @@ class LengthTest {
         BotRequest request = TestUtils.getRequestFromGroup("length");
         request.getMessage().setAttachments(List.of(attachment));
 
-        BotResponse botResponse = length.parse(request).get(0);
+        BotResponse botResponse = length.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());
@@ -139,7 +139,7 @@ class LengthTest {
         final String expectedResponse = "${command.length.responselength} <b>" + textParam.length() + "</b> ${command.length.symbols}";
         BotRequest request = TestUtils.getRequestFromGroup("length " + textParam);
 
-        BotResponse botResponse = length.parse(request).get(0);
+        BotResponse botResponse = length.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponse, textResponse.getText());

@@ -107,7 +107,7 @@ public class Wikipedia implements Command {
         if (titles.isEmpty()) {
             return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
         } else if (titles.size() == 1) {
-            Wiki wiki1 = getWiki(titles.get(0), lang);
+            Wiki wiki1 = getWiki(titles.getFirst(), lang);
             if (wiki1 == null || wiki1.getText().isEmpty()) {
                 return speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING);
             } else {

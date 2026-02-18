@@ -20,7 +20,8 @@ import org.telegram.bot.services.SpeechService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +74,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        BotResponse botResponse = dogs.parse(request).get(0);
+        BotResponse botResponse = dogs.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         TestUtils.checkDefaultFileResponseImageParams(botResponse);
     }
@@ -86,7 +87,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        BotResponse botResponse = dogs.parse(request).get(0);
+        BotResponse botResponse = dogs.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         TestUtils.checkDefaultFileResponseImageParams(botResponse);
     }
@@ -99,7 +100,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        BotResponse botResponse = dogs.parse(request).get(0);
+        BotResponse botResponse = dogs.parse(request).getFirst();
         verify(bot).sendUploadVideo(request.getMessage().getChatId());
         TestUtils.checkDefaultFileResponseVideoParams(botResponse);
     }
@@ -112,7 +113,7 @@ class DogsTest {
 
         when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Dogs.Dog>>any())).thenReturn(response);
 
-        BotResponse botResponse = dogs.parse(request).get(0);
+        BotResponse botResponse = dogs.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         TestUtils.checkDefaultFileResponseParams(botResponse);
     }

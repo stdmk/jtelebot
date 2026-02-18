@@ -22,7 +22,7 @@ public class PhotoMapper implements TelegramFileApiMethodMapper {
 
     @Override
     public PartialBotApiMethod<?> map(FileResponse fileResponse) {
-        org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().get(0);
+        org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().getFirst();
 
         SendPhoto sendPhoto = new SendPhoto(fileResponse.getChatId().toString(), inputFileMapper.toInputFile(file));
         sendPhoto.setReplyToMessageId(fileResponse.getReplyToMessageId());

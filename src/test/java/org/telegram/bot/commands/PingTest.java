@@ -39,7 +39,7 @@ class PingTest {
         BotRequest request = TestUtils.getRequestFromGroup("ping " + host);
         when(networkUtils.pingHost(host)).thenThrow(new UnknownHostException());
 
-        BotResponse botResponse = ping.parse(request).get(0);
+        BotResponse botResponse = ping.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -56,7 +56,7 @@ class PingTest {
         when(networkUtils.pingHost(host))
                 .thenReturn(new NetworkUtils.PingResult("host", "127.0.0.1", false, 6));
 
-        BotResponse botResponse = ping.parse(request).get(0);
+        BotResponse botResponse = ping.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -73,7 +73,7 @@ class PingTest {
         when(networkUtils.pingHost(host))
                 .thenReturn(new NetworkUtils.PingResult("127.0.0.1", "127.0.0.1", true, 6));
 
-        BotResponse botResponse = ping.parse(request).get(0);
+        BotResponse botResponse = ping.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -88,7 +88,7 @@ class PingTest {
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = ping.parse(request).get(0);
+        BotResponse botResponse = ping.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

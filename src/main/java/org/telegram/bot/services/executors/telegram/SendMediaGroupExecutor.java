@@ -69,7 +69,7 @@ public class SendMediaGroupExecutor implements TelegramMethodExecutor {
         StringBuilder buf = new StringBuilder("${executor.sendmeadiagroup.otherpictures}: \n");
         sendMediaGroup.getMedias().stream().skip(1).forEach(inputMedia -> buf.append(inputMedia.getCaption()).append("\n"));
 
-        InputMedia inputMedia = sendMediaGroup.getMedias().get(0);
+        InputMedia inputMedia = sendMediaGroup.getMedias().getFirst();
         InputFile inputFile = new InputFile();
         inputFile.setMedia(inputMedia.getMedia());
 

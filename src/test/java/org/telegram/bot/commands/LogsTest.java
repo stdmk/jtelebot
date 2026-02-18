@@ -13,7 +13,8 @@ import org.telegram.bot.domain.model.response.FileResponse;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,7 +43,7 @@ class LogsTest {
         BotRequest request = TestUtils.getRequestFromGroup("logs");
         Long expectedChatId = request.getMessage().getUser().getUserId();
 
-        BotResponse botResponse = logs.parse(request).get(0);
+        BotResponse botResponse = logs.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedChatId, fileResponse.getChatId());
@@ -54,7 +55,7 @@ class LogsTest {
         BotRequest request = TestUtils.getRequestFromPrivate("logs");
         Long expectedChatId = request.getMessage().getChatId();
 
-        BotResponse botResponse = logs.parse(request).get(0);
+        BotResponse botResponse = logs.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse);
         assertEquals(expectedChatId, fileResponse.getChatId());

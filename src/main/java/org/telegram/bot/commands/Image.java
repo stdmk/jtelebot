@@ -17,6 +17,7 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class Image implements Command {
 
             URL url;
             try {
-                url = new URL(commandArgument);
+                url = URI.create(commandArgument).toURL();
             } catch (MalformedURLException e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
             }
@@ -70,7 +71,7 @@ public class Image implements Command {
             }
         } else {
             log.debug("Request to search image by text {}", commandArgument);
-            imageUrl = googlePics.searchImagesOnGoogle(commandArgument).get(0);
+            imageUrl = googlePics.searchImagesOnGoogle(commandArgument).getFirst();
         }
 
         if (imageUrl == null) {

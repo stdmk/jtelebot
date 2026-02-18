@@ -83,10 +83,10 @@ public class WolframAlpha implements Command {
                 .map(WolframAlphaData::getQueryresult)
                 .map(QueryResult::getPods)
                 .filter(pods -> !pods.isEmpty())
-                .map(pods -> pods.get(0))
+                .map(List::getFirst)
                 .map(Pod::getSubpods)
                 .filter(subPods -> !subPods.isEmpty())
-                .map(subPods -> subPods.get(0))
+                .map(List::getFirst)
                 .map(SubPod::getPlaintext)
                 .filter(text -> !text.isEmpty())
                 .orElseGet(() -> speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));

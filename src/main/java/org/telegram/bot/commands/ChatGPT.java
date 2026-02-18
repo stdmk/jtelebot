@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingType;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -154,7 +154,7 @@ public class ChatGPT implements Command {
         Optional<String> imageUrl = Optional.of(createImageResponse)
                 .map(CreateImageResponse::getData)
                 .filter(imageUrls -> !imageUrls.isEmpty())
-                .map(imageUrls -> imageUrls.get(0))
+                .map(List::getFirst)
                 .map(ImageUrl::getUrl);
 
         if (imageUrl.isEmpty()) {
@@ -237,7 +237,7 @@ public class ChatGPT implements Command {
             return DEFAULT_MODEL;
         }
 
-        return chatGPTModelsAvailable.get(0);
+        return chatGPTModelsAvailable.getFirst();
     }
 
     @Nullable

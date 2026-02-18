@@ -91,7 +91,7 @@ class WebScreenTest {
         when(propertiesConfig.getScreenshotMachineToken()).thenReturn("token");
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = webScreen.parse(request).get(0);
+        BotResponse botResponse = webScreen.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -110,7 +110,7 @@ class WebScreenTest {
         when(propertiesConfig.getScreenshotMachineToken()).thenReturn("token");
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = webScreen.parse(request).get(0);
+        BotResponse botResponse = webScreen.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -164,10 +164,10 @@ class WebScreenTest {
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(expectedUrl)).thenReturn(file);
 
-        BotResponse botResponse = webScreen.parse(request).get(0);
+        BotResponse botResponse = webScreen.parse(request).getFirst();
 
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse, FileType.IMAGE);
-        assertEquals(file, fileResponse.getFiles().get(0).getBytes());
+        assertEquals(file, fileResponse.getFiles().getFirst().getBytes());
 
         verify(botStats).incrementScreenshots();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());

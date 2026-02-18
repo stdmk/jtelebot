@@ -226,7 +226,7 @@ class ChatGPTTest {
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
         when(chatGPTSettingService.get(request.getMessage().getChat())).thenReturn(chatGPTSettings);
 
-        BotResponse botResponse = chatGPT.parse(request).get(0);
+        BotResponse botResponse = chatGPT.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
@@ -241,9 +241,9 @@ class ChatGPTTest {
         ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
         verify(objectMapper).writeValueAsString(requestCaptor.capture());
         Object chatgptRequest = requestCaptor.getValue();
-        assertTrue(chatgptRequest instanceof ChatGPT.ChatRequest);
+        assertInstanceOf(ChatGPT.ChatRequest.class, chatgptRequest);
         ChatGPT.ChatRequest chatRequest = (ChatGPT.ChatRequest) chatgptRequest;
-        ChatGPT.Message messageWithPrompt = chatRequest.getMessages().get(0);
+        ChatGPT.Message messageWithPrompt = chatRequest.getMessages().getFirst();
         assertEquals(chatGPTSettings.getPrompt(), messageWithPrompt.getContent());
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -294,7 +294,7 @@ class ChatGPTTest {
                         new ChatGPTMessage().setId(3L).setRole(ChatGPTRole.USER).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500)),
                         new ChatGPTMessage().setId(4L).setRole(ChatGPTRole.ASSISTANT).setUser(new User().setUsername("username")).setContent("tratatam ".repeat(500))
         ));
-        List<ChatGPTMessage> chatGPTMessagesAfterReducing = new ArrayList<>(List.of(chatGPTMessages.get(0), chatGPTMessages.get(1)));
+        List<ChatGPTMessage> chatGPTMessagesAfterReducing = new ArrayList<>(List.of(chatGPTMessages.getFirst(), chatGPTMessages.get(1)));
 
         ChatGPT.Message message = new ChatGPT.Message();
         message.setContent(responseText);
@@ -312,7 +312,7 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        BotResponse botResponse = chatGPT.parse(request).get(0);
+        BotResponse botResponse = chatGPT.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
@@ -344,7 +344,7 @@ class ChatGPTTest {
         when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatus.OK));
 
-        BotResponse botResponse = chatGPT.parse(request).get(0);
+        BotResponse botResponse = chatGPT.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
@@ -421,11 +421,11 @@ class ChatGPTTest {
         postConstruct.setAccessible(true);
         postConstruct.invoke(chatGPT);
 
-        BotResponse botResponse = chatGPT.parse(request).get(0);
+        BotResponse botResponse = chatGPT.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         FileResponse fileResponse = checkDefaultFileResponseImageParams(botResponse);
 
-        assertEquals(expectedUrl, fileResponse.getFiles().get(0).getUrl());
+        assertEquals(expectedUrl, fileResponse.getFiles().getFirst().getUrl());
     }
 
     @ParameterizedTest

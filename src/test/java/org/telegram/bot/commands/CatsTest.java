@@ -17,7 +17,8 @@ import org.telegram.bot.services.SpeechService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -76,7 +77,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        BotResponse response = cats.parse(request).get(0);
+        BotResponse response = cats.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         checkDefaultFileResponseParams(response);
     }
@@ -91,7 +92,7 @@ class CatsTest {
         when(botRestTemplate.getForEntity(anyString(), any())).thenReturn(response);
         when(response.getBody()).thenReturn(catsArray);
 
-        BotResponse response = cats.parse(request).get(0);
+        BotResponse response = cats.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         checkDefaultFileResponseImageParams(response);
     }

@@ -500,7 +500,7 @@ class AliasSetterTest {
 
         int i = 0;
         for (Alias alias : aliasEntityList) {
-            KeyboardButton keyboardButton = keyboardButtonsList.get(i).get(0);
+            KeyboardButton keyboardButton = keyboardButtonsList.get(i).getFirst();
             String buttonName;
             if (deleteEmoji) {
                 buttonName = "❌" + alias.getName() + " — " + alias.getValue();
@@ -515,7 +515,7 @@ class AliasSetterTest {
         List<KeyboardButton> selectPageList = keyboardButtonsList.get(3);
         if (page > 0) {
             assertEquals(2, selectPageList.size());
-            KeyboardButton backButton = selectPageList.get(0);
+            KeyboardButton backButton = selectPageList.getFirst();
             assertEquals("⬅\uFE0F${setter.alias.button.back}", backButton.getName());
             assertEquals("${setter.command} ${setter.alias.emptycommand} ${setter.alias." + command + "} ${setter.alias.selectpage}0", backButton.getCallback());
             KeyboardButton forwardButton = selectPageList.get(1);
@@ -523,12 +523,12 @@ class AliasSetterTest {
             assertEquals("${setter.command} ${setter.alias.emptycommand} ${setter.alias." + command + "} ${setter.alias.selectpage}2", forwardButton.getCallback());
         } else {
             assertEquals(1, selectPageList.size());
-            KeyboardButton forwardButton = selectPageList.get(0);
+            KeyboardButton forwardButton = selectPageList.getFirst();
             assertEquals("${setter.alias.button.forward}➡\uFE0F", forwardButton.getName());
             assertEquals("${setter.command} ${setter.alias.emptycommand} ${setter.alias." + command + "} ${setter.alias.selectpage}1", forwardButton.getCallback());
         }
 
-        assertMainButtons(keyboardButtonsList.get(4).get(0), keyboardButtonsList.get(5).get(0), keyboardButtonsList.get(6).get(0), keyboardButtonsList.get(7).get(0));
+        assertMainButtons(keyboardButtonsList.get(4).getFirst(), keyboardButtonsList.get(5).getFirst(), keyboardButtonsList.get(6).getFirst(), keyboardButtonsList.get(7).getFirst());
     }
 
     private void assertMainButtons(KeyboardButton addButton, KeyboardButton selectButton, KeyboardButton updateButton, KeyboardButton backButton) {

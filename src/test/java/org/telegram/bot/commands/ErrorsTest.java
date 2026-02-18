@@ -46,7 +46,7 @@ class ErrorsTest {
 
         when(errorService.getAll()).thenReturn(errorList);
 
-        BotResponse response = errors.parse(request).get(0);
+        BotResponse response = errors.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(response);
     }
@@ -58,7 +58,7 @@ class ErrorsTest {
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseMessage);
 
-        BotResponse response = errors.parse(request).get(0);
+        BotResponse response = errors.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(errorService).clear();
@@ -114,7 +114,7 @@ class ErrorsTest {
 
         when(errorService.get(errorId)).thenReturn(error);
 
-        BotResponse response = errors.parse(request).get(0);
+        BotResponse response = errors.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultFileResponseParams(response);
     }

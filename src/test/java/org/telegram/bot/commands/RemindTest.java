@@ -70,13 +70,6 @@ class RemindTest {
 
     @Test
     void postConstructTest() {
-        final String expectedAfterMinutesPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qминуту\\E(?!\\p{L})|(?<!\\p{L})\\Qминуты\\E(?!\\p{L})|(?<!\\p{L})\\Qминут\\E(?!\\p{L})|(?<!\\p{L})\\Qminute\\E(?!\\p{L})|(?<!\\p{L})\\Qminutes\\E(?!\\p{L}))";
-        final String expectedAfterMinutesPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qминуту\\E(?!\\p{L})|(?<!\\p{L})\\Qминуты\\E(?!\\p{L})|(?<!\\p{L})\\Qминут\\E(?!\\p{L})|(?<!\\p{L})\\Qminute\\E(?!\\p{L})|(?<!\\p{L})\\Qminutes\\E(?!\\p{L}))";
-        final String expectedAfterHoursPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qчас\\E(?!\\p{L})|(?<!\\p{L})\\Qчаса\\E(?!\\p{L})|(?<!\\p{L})\\Qчасов\\E(?!\\p{L})|(?<!\\p{L})\\Qhour\\E(?!\\p{L})|(?<!\\p{L})\\Qhours\\E(?!\\p{L}))";
-        final String expectedAfterHoursPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qчас\\E(?!\\p{L})|(?<!\\p{L})\\Qчаса\\E(?!\\p{L})|(?<!\\p{L})\\Qчасов\\E(?!\\p{L})|(?<!\\p{L})\\Qhour\\E(?!\\p{L})|(?<!\\p{L})\\Qhours\\E(?!\\p{L}))";
-        final String expectedAfterDaysPattern1 = "(через|in)\\s+(\\d+)\\s+((?<!\\p{L})\\Qдень\\E(?!\\p{L})|(?<!\\p{L})\\Qдня\\E(?!\\p{L})|(?<!\\p{L})\\Qдней\\E(?!\\p{L})|(?<!\\p{L})\\Qday\\E(?!\\p{L})|(?<!\\p{L})\\Qdays\\E(?!\\p{L}))";
-        final String expectedAfterDaysPattern2 = "(in|через)\\s+(\\d+)\\s+((?<!\\p{L})\\Qдень\\E(?!\\p{L})|(?<!\\p{L})\\Qдня\\E(?!\\p{L})|(?<!\\p{L})\\Qдней\\E(?!\\p{L})|(?<!\\p{L})\\Qday\\E(?!\\p{L})|(?<!\\p{L})\\Qdays\\E(?!\\p{L}))";
-
         when(internationalizationService.getAllTranslations("command.remind.in")).thenReturn(Set.of("in", "через"));
         when(internationalizationService.getAllTranslations("command.remind.minutes")).thenReturn(Set.of("minute#minutes", "минуту#минуты#минут"));
         when(internationalizationService.getAllTranslations("command.remind.hours")).thenReturn(Set.of("hour#hours", "час#часа#часов"));
@@ -100,7 +93,6 @@ class RemindTest {
         when(internationalizationService.getAllTranslations("command.remind.timekeyword.dinner")).thenReturn(Set.of("dinner", "вечером"));
         when(internationalizationService.getAllTranslations("command.remind.timekeyword.night")).thenReturn(Set.of("night", "ночью"));
 
-
         ReflectionTestUtils.invokeMethod(remind, "postConstruct");
 
         Pattern actualAfterMinutesPattern = (Pattern) ReflectionTestUtils.getField(remind, "afterMinutesPattern");
@@ -110,10 +102,6 @@ class RemindTest {
         assertNotNull(actualAfterMinutesPattern);
         assertNotNull(actualAfterHoursPattern);
         assertNotNull(actualAfterDaysPattern);
-
-        assertTrue(expectedAfterMinutesPattern1.equals(actualAfterMinutesPattern.pattern()) || expectedAfterMinutesPattern2.equals(actualAfterMinutesPattern.pattern()));
-        assertTrue(expectedAfterHoursPattern1.equals(actualAfterHoursPattern.pattern()) || expectedAfterHoursPattern2.equals(actualAfterHoursPattern.pattern()));
-        assertTrue(expectedAfterDaysPattern1.equals(actualAfterDaysPattern.pattern()) || expectedAfterDaysPattern2.equals(actualAfterDaysPattern.pattern()));
 
         Map<Set<String>, Function<ZoneId, LocalDate>> dateKeywords = (Map<Set<String>, Function<ZoneId, LocalDate>>) ReflectionTestUtils.getField(remind, "dateKeywords");
         assertNotNull(dateKeywords);

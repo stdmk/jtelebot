@@ -27,7 +27,7 @@ class UpTest {
         final String expectedResponseText = ".\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${command.up.caption}";
         BotRequest request = TestUtils.getRequestFromGroup("up");
 
-        BotResponse botResponse = up.parse(request).get(0);
+        BotResponse botResponse = up.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

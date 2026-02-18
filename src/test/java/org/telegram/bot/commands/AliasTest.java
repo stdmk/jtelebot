@@ -64,7 +64,7 @@ class AliasTest {
 
         when(aliasService.get(any(org.telegram.bot.domain.entities.Chat.class), anyString())).thenReturn(aliasEntityList);
 
-        BotResponse botResponse = alias.parse(request).get(0);
+        BotResponse botResponse = alias.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.HTML);
 
         String actualResponseText = textResponse.getText();
@@ -83,7 +83,7 @@ class AliasTest {
         when(aliasService.getByChatAndUser(any(org.telegram.bot.domain.entities.Chat.class), any(org.telegram.bot.domain.entities.User.class)))
                 .thenReturn(aliasEntityList);
 
-        BotResponse botResponse = alias.parse(TestUtils.getRequestFromGroup()).get(0);
+        BotResponse botResponse = alias.parse(TestUtils.getRequestFromGroup()).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse, true, FormattingStyle.HTML);
 
         String actualResponseText = textResponse.getText();
@@ -113,7 +113,7 @@ class AliasTest {
     @Test
     void analyzeCopyErrorTest() {
         BotRequest request = TestUtils.getRequestFromGroup("test");
-        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().get(0);
+        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().getFirst();
 
         when(aliasService.get(
                 any(org.telegram.bot.domain.entities.Chat.class),
@@ -131,7 +131,7 @@ class AliasTest {
     @Test
     void analyzeTest() {
         BotRequest request = TestUtils.getRequestFromGroup("test");
-        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().get(0);
+        org.telegram.bot.domain.entities.Alias aliasEntity = getSomeAliasEntityList().getFirst();
 
         when(aliasService.get(
                         any(org.telegram.bot.domain.entities.Chat.class),

@@ -40,17 +40,17 @@ public @interface ConditionalOnPropertyNotEmpty {
 
             String[] propertyNames = (String[]) attrs.get("value");
 
-            boolean condition = true;
+            boolean condition;
             for (String propertyName : propertyNames) {
                 String value = properties.getProperty(propertyName);
                 condition = value != null && !value.trim().isEmpty();
 
                 if (!condition) {
-                    return condition;
+                    return false;
                 }
             }
 
-            return condition;
+            return true;
         }
     }
 }

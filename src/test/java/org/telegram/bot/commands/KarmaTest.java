@@ -76,7 +76,7 @@ class KarmaTest {
 
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        BotResponse response = karma.parse(request).get(0);
+        BotResponse response = karma.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -97,7 +97,7 @@ class KarmaTest {
         userStats.setNumberOfKarma(-1);
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(userStats);
 
-        BotResponse response = karma.parse(request).get(0);
+        BotResponse response = karma.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -167,7 +167,7 @@ class KarmaTest {
         when(userService.get(ANOTHER_USER_ID)).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        BotResponse response = karma.parse(request).get(0);
+        BotResponse response = karma.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -292,7 +292,7 @@ class KarmaTest {
         when(userService.get(ANOTHER_USER_ID)).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
         when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
 
-        BotResponse botResponse = karma.analyze(request).get(0);
+        BotResponse botResponse = karma.analyze(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 

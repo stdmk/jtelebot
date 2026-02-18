@@ -53,7 +53,7 @@ class DownloadTest {
     void parseWithEmptyArgumentTest() {
         BotRequest request = getRequestFromGroup("download");
 
-        BotResponse response = download.parse(request).get(0);
+        BotResponse response = download.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(response);
         Mockito.verify(commandWaitingService).add(request.getMessage(), Download.class);
@@ -76,11 +76,11 @@ class DownloadTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
-        BotResponse response = download.parse(request).get(0);
+        BotResponse response = download.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(FILE_NAME, file.getName());
     }
 
@@ -100,13 +100,13 @@ class DownloadTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
-        BotResponse response = download.parse(request).get(0);
+        BotResponse response = download.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         assertNotNull(response);
-        assertTrue(response instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, response);
 
         FileResponse fileResponse = (FileResponse) response;
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(DEFAULT_FILE_NAME, file.getName());
     }
 
@@ -117,11 +117,11 @@ class DownloadTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
 
-        BotResponse response = download.parse(request).get(0);
+        BotResponse response = download.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
-        File file = fileResponse.getFiles().get(0);
+        File file = fileResponse.getFiles().getFirst();
         assertEquals(FILE_NAME, file.getName());
     }
 

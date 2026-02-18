@@ -105,7 +105,7 @@ class TvTest {
         when(tvProgramService.get(channel1, DATE_TIME_NOW, HOURS_NUMBER_SHORT)).thenReturn(channel1Programs);
         when(tvProgramService.get(channel2, DATE_TIME_NOW, HOURS_NUMBER_SHORT)).thenReturn(channel2Programs);
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -181,7 +181,7 @@ class TvTest {
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
         when(tvProgramService.get(channel1, DATE_TIME_NOW, HOURS_NUMBER_LONG)).thenReturn(channel1Programs);
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -235,7 +235,7 @@ class TvTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(userCityService.getZoneIdOfUserOrDefault(request.getMessage())).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -267,7 +267,7 @@ class TvTest {
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
         when(tvProgramService.get(channel1, DATE_TIME_NOW, HOURS_NUMBER_LONG)).thenReturn(channel1Programs);
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -300,7 +300,7 @@ class TvTest {
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
         when(tvProgramService.get(channel1, DATE_TIME_NOW, HOURS_NUMBER_LONG)).thenReturn(channel1Programs);
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -358,7 +358,7 @@ class TvTest {
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
         when(tvProgramService.get(searchText, DATE_TIME_NOW, HOURS_NUMBER_DEFAULT)).thenReturn(programList);
 
-        BotResponse botResponse = tv.parse(request).get(0);
+        BotResponse botResponse = tv.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

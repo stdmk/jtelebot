@@ -97,7 +97,7 @@ class ReactionsTest {
         when(messageStatsService.getByRepliesCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of());
         when(messageStatsService.getByReactionsCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of());
 
-        BotResponse botResponse = reactions.parse(request).get(0);
+        BotResponse botResponse = reactions.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -128,7 +128,7 @@ class ReactionsTest {
         when(reactionDayStatsService.get(chat)).thenReturn(List.of());
         when(customReactionDayStatsService.get(chat)).thenReturn(List.of());
 
-        BotResponse botResponse = reactions.parse(request).get(0);
+        BotResponse botResponse = reactions.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -159,7 +159,7 @@ class ReactionsTest {
         when(reactionDayStatsService.get(chat)).thenReturn(List.of());
         when(customReactionDayStatsService.get(chat)).thenReturn(List.of());
 
-        BotResponse botResponse = reactions.parse(request).get(0);
+        BotResponse botResponse = reactions.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -210,7 +210,7 @@ class ReactionsTest {
         when(reactionDayStatsService.get(chat)).thenReturn(reactionsStats.getReactionDayStatsList());
         when(customReactionDayStatsService.get(chat)).thenReturn(customReactionsStats.getCustomReactionDayStats());
 
-        BotResponse botResponse = reactions.parse(request).get(0);
+        BotResponse botResponse = reactions.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -249,7 +249,7 @@ class ReactionsTest {
 
         ReflectionTestUtils.invokeMethod(reactions, "postConstruct");
 
-        BotResponse response = reactions.parse(request).get(0);
+        BotResponse response = reactions.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponse, textResponse.getText());
@@ -277,7 +277,7 @@ class ReactionsTest {
 
         ReflectionTestUtils.invokeMethod(reactions, "postConstruct");
 
-        BotResponse response = reactions.parse(request).get(0);
+        BotResponse response = reactions.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponse, textResponse.getText());

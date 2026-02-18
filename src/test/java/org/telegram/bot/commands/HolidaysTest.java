@@ -65,7 +65,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        BotResponse botResponse = holidays.parse(request).get(0);
+        BotResponse botResponse = holidays.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -109,7 +109,7 @@ class HolidaysTest {
                         .setUser(TestUtils.getUser()));
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        BotResponse botResponse = holidays.parse(request).get(0);
+        BotResponse botResponse = holidays.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -136,7 +136,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class), anyString())).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        BotResponse botResponse = holidays.parse(request).get(0);
+        BotResponse botResponse = holidays.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -168,7 +168,7 @@ class HolidaysTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
 
-        BotResponse botResponse = holidays.parse(request).get(0);
+        BotResponse botResponse = holidays.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -195,7 +195,7 @@ class HolidaysTest {
         when(holidayService.get(any(Chat.class))).thenReturn(holidayList);
         when(languageResolver.getChatLanguageCode(request)).thenReturn("en");
 
-        BotResponse botResponse = holidays.parse(request).get(0);
+        BotResponse botResponse = holidays.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 

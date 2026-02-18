@@ -59,7 +59,7 @@ class CalculatorTest {
         final String expectedText = "${command.calculator.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup();
 
-        BotResponse botResponse = calculator.parse(request).get(0);
+        BotResponse botResponse = calculator.parse(request).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         assertNotNull(textResponse);
@@ -97,7 +97,7 @@ class CalculatorTest {
                                 ("{\"error\":\"" + expectedErrorText + "\"}").getBytes(StandardCharsets.UTF_8),
                                 StandardCharsets.UTF_8));
 
-        BotResponse botResponse = calculator.parse(request).get(0);
+        BotResponse botResponse = calculator.parse(request).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -133,7 +133,7 @@ class CalculatorTest {
                 .thenReturn(response);
         when(response.getBody()).thenReturn("{\"result\":\"" + expressionResult + "\"}");
 
-        BotResponse botResponse = calculator.parse(request).get(0);
+        BotResponse botResponse = calculator.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(botResponse, FormattingStyle.HTML);
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);

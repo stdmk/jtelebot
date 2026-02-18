@@ -73,7 +73,7 @@ class GoogleTest {
 
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
 
-        BotResponse response = google.parse(request).get(0);
+        BotResponse response = google.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(response);
@@ -119,7 +119,7 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        BotResponse response = google.parse(request).get(0);
+        BotResponse response = google.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
@@ -151,12 +151,12 @@ class GoogleTest {
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(googleSearchResultService.get(anyLong())).thenReturn(googleSearchResult);
 
-        BotResponse response = google.parse(request).get(0);
+        BotResponse response = google.parse(request).getFirst();
 
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseImageParams(response);
-        File photo = fileResponse.getFiles().get(0);
+        File photo = fileResponse.getFiles().getFirst();
 
         assertNotNull(photo);
         assertEquals(imageUrl.getUrl(), photo.getUrl());
@@ -233,7 +233,7 @@ class GoogleTest {
         when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(cseImage.getSrc()).setTitle("imageTitle"));
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
-        BotResponse response = google.parse(request).get(0);
+        BotResponse response = google.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
@@ -257,7 +257,7 @@ class GoogleTest {
         List<GoogleSearchResult> resultList = googleSearchResultCaptor.getValue();
         assertFalse(resultList.isEmpty());
 
-        GoogleSearchResult actualGoogleSearchResult = resultList.get(0);
+        GoogleSearchResult actualGoogleSearchResult = resultList.getFirst();
         assertNotNull(actualGoogleSearchResult.getImageUrl());
         assertEquals(googleSearchItem.getTitle(), actualGoogleSearchResult.getTitle());
         assertEquals(googleSearchItem.getLink(), actualGoogleSearchResult.getLink());

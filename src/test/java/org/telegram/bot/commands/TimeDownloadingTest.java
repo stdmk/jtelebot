@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +49,7 @@ class TimeDownloadingTest {
     @BeforeEach
     void init() {
         Map<Long, Set<String>> weightNamesMultiplierMap = (Map<Long, Set<String>>) ReflectionTestUtils.getField(timeDownloading, "weightNamesMultiplierMap");
+        assertNotNull(weightNamesMultiplierMap);
         weightNamesMultiplierMap.put(1L, Set.of("b", "byte"));
         weightNamesMultiplierMap.put(1024L, Set.of("kb", "kilobyte"));
         weightNamesMultiplierMap.put(1024L * 1024L, Set.of("mb", "megabyte"));
@@ -58,6 +58,7 @@ class TimeDownloadingTest {
         weightNamesMultiplierMap.put(1024L * 1024L * 1024L * 1024L * 1024L, Set.of("pb", "petabyte"));
 
         Map<Long, Set<String>> speedNamesMultiplierMap = (Map<Long, Set<String>>) ReflectionTestUtils.getField(timeDownloading, "speedNamesMultiplierMap");
+        assertNotNull(speedNamesMultiplierMap);
         speedNamesMultiplierMap.put(1L, Set.of("bit"));
         speedNamesMultiplierMap.put(1024L, Set.of("kbit", "kilobit"));
         speedNamesMultiplierMap.put(1024L * 1024L, Set.of("mbit", "megabit"));

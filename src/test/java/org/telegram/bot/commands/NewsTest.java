@@ -75,7 +75,7 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -107,10 +107,10 @@ class NewsTest {
         final long newsId = 1;
         BotRequest request = TestUtils.getRequestFromGroup("news_" + newsId);
 
-        when(newsMessageService.get(newsId)).thenReturn(getSomeNews().get(0).getNewsSource().getNewsMessage());
+        when(newsMessageService.get(newsId)).thenReturn(getSomeNews().getFirst().getNewsSource().getNewsMessage());
         when(rssMapper.toFullNewsMessageText(any(NewsMessage.class))).thenReturn(expectedResponseText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -126,7 +126,7 @@ class NewsTest {
         when(newsMessageService.get(newsId)).thenReturn(getSomeNews().get(1).getNewsSource().getNewsMessage());
         when(rssMapper.toFullNewsMessageText(any(NewsMessage.class))).thenReturn(expectedResponseText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
 
         assertEquals(expectedResponseText, photo.getText());
@@ -169,7 +169,7 @@ class NewsTest {
         when(newsMessageService.getAll(anyList())).thenReturn(newsMessages);
         when(rssMapper.toShortNewsMessageText(any(NewsMessage.class))).thenAnswer(answer -> "news message" + ((NewsMessage) answer.getArgument(0)).getId());
 
-        BotResponse botResponse = news.parse(request).get(0);
+        BotResponse botResponse = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -186,7 +186,7 @@ class NewsTest {
     @Test
     void parseWithNewsSourceNameAsArgumentWithFeedExceptionTest() throws FeedException, IOException {
         BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
-        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
+        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().getFirst();
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new FeedException("error"));
@@ -201,7 +201,7 @@ class NewsTest {
     @Test
     void parseWithNewsSourceNameAsArgumentWithMalformedUrlExceptionTest() throws FeedException, IOException {
         BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
-        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
+        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().getFirst();
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new MalformedURLException("error"));
@@ -215,7 +215,7 @@ class NewsTest {
     @Test
     void parseWithNewsSourceNameAsArgumentWithIOExceptionTest() throws FeedException, IOException {
         BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
-        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
+        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().getFirst();
 
         when(newsService.get(any(Chat.class), anyString())).thenReturn(newsEntity);
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenThrow(new IOException("error"));
@@ -233,7 +233,7 @@ class NewsTest {
         final String secondNewsMessageText = "secondNewsMessageText";
         final String expectedResponseText = firstNewsMessageText + secondNewsMessageText;
         BotRequest request = TestUtils.getRequestFromGroup("news " + NEWS_SOURCE1_NAME);
-        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().get(0);
+        org.telegram.bot.domain.entities.News newsEntity = getSomeNews().getFirst();
         List<NewsMessage> newsMessageList = getSomeNews()
                 .stream()
                 .map(org.telegram.bot.domain.entities.News::getNewsSource)
@@ -249,7 +249,7 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -275,7 +275,7 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -302,7 +302,7 @@ class NewsTest {
         when(networkUtils.getRssFeedFromUrl(RSS_FEED_URL)).thenReturn(syndFeed);
         when(rssMapper.toFullNewsMessageText(any(SyndEntry.class))).thenReturn(fullNewsMessageText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(fullNewsMessageText, textResponse.getText());
@@ -376,7 +376,7 @@ class NewsTest {
                 .thenReturn(firstNewsMessageText)
                 .thenReturn(secondNewsMessageText);
 
-        BotResponse response = news.parse(request).get(0);
+        BotResponse response = news.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
 
         assertEquals(expectedResponseText, textResponse.getText());

@@ -153,7 +153,7 @@ class CitySetterTest {
         Chat chat = message.getChat();
         User user = message.getUser();
 
-        City city = getSomeCities(user).get(0);
+        City city = getSomeCities(user).getFirst();
         when(cityService.get(cityId)).thenReturn(city);
         UserCity storedUserCity = new UserCity().setId(1L).setChat(chat).setUser(user).setCity(city);
         when(userCityService.get(user, chat)).thenReturn(null).thenReturn(storedUserCity);
@@ -184,7 +184,7 @@ class CitySetterTest {
         Chat chat = message.getChat();
         User user = message.getUser();
 
-        City city = getSomeCities(user).get(0);
+        City city = getSomeCities(user).getFirst();
         when(cityService.get(cityId)).thenReturn(city);
         UserCity storedUserCity = new UserCity().setId(1L).setChat(chat).setUser(user).setCity(city);
         when(userCityService.get(user, chat)).thenReturn(storedUserCity).thenReturn(storedUserCity);
@@ -253,7 +253,7 @@ class CitySetterTest {
         final String argument = "city remove " + cityId;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
-        City city = getSomeCities(request.getMessage().getUser()).get(0);
+        City city = getSomeCities(request.getMessage().getUser()).getFirst();
         when(cityService.get(cityId)).thenReturn(city);
         when(userCityService.getAll(city)).thenReturn(List.of(new UserCity()));
         when(speechService.getRandomMessageByTag(BotSpeechTag.DATA_BASE_INTEGRITY)).thenReturn(expectedErrorText);
@@ -271,7 +271,7 @@ class CitySetterTest {
         User user = request.getMessage().getUser();
 
         List<City> cities = getSomeCities(user);
-        City city = cities.get(0);
+        City city = cities.getFirst();
         when(cityService.get(cityId)).thenReturn(city);
         when(cityService.getAll(user)).thenReturn(cities);
 
@@ -359,7 +359,7 @@ class CitySetterTest {
         final String argument = "city zone " + cityId + " " + timezone;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
-        City city = getSomeCities(request.getMessage().getUser()).get(0);
+        City city = getSomeCities(request.getMessage().getUser()).getFirst();
         when(cityService.get(cityId)).thenReturn(city);
 
         BotResponse response = citySetter.set(request, argument);
@@ -419,7 +419,7 @@ class CitySetterTest {
         final String argument = "city remove " + cityName;
         BotRequest request = TestUtils.getRequestFromGroup("set " + argument);
 
-        City city = getSomeCities(request.getMessage().getUser()).get(0);
+        City city = getSomeCities(request.getMessage().getUser()).getFirst();
         when(cityService.get(cityName)).thenReturn(city);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
@@ -514,7 +514,7 @@ class CitySetterTest {
             assertEquals(1, row.size());
 
             City city = cities.get(i);
-            KeyboardButton keyboardButton = row.get(0);
+            KeyboardButton keyboardButton = row.getFirst();
 
             String expectedCityName;
             if (deleteCommand) {
@@ -543,32 +543,32 @@ class CitySetterTest {
         List<List<KeyboardButton>> keyboardButtonsList = keyboard.getKeyboardButtonsList();
         assertEquals(5, keyboardButtonsList.size());
 
-        assertMainKeyboard(keyboardButtonsList.get(0), keyboardButtonsList.get(1), keyboardButtonsList.get(2), keyboardButtonsList.get(3), keyboardButtonsList.get(4));
+        assertMainKeyboard(keyboardButtonsList.getFirst(), keyboardButtonsList.get(1), keyboardButtonsList.get(2), keyboardButtonsList.get(3), keyboardButtonsList.get(4));
     }
 
     private void assertMainKeyboard(List<KeyboardButton> selectRow, List<KeyboardButton> addRow, List<KeyboardButton> removeRow, List<KeyboardButton> updateRow, List<KeyboardButton> backRow) {
         assertEquals(1, selectRow.size());
-        KeyboardButton selectButton = selectRow.get(0);
+        KeyboardButton selectButton = selectRow.getFirst();
         assertEquals("⤴\uFE0F${setter.city.button.select}", selectButton.getName());
         assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.select}", selectButton.getCallback());
 
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals("\uD83C\uDD95${setter.city.button.add}", addButton.getName());
         assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.add}", addButton.getCallback());
 
         assertEquals(1, removeRow.size());
-        KeyboardButton removeButton = removeRow.get(0);
+        KeyboardButton removeButton = removeRow.getFirst();
         assertEquals("❌${setter.city.button.remove}", removeButton.getName());
         assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.remove}", removeButton.getCallback());
 
         assertEquals(1, updateRow.size());
-        KeyboardButton updateButton = updateRow.get(0);
+        KeyboardButton updateButton = updateRow.getFirst();
         assertEquals("\uD83D\uDD04${setter.city.button.update}", updateButton.getName());
         assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.update}", updateButton.getCallback());
 
         assertEquals(1, backRow.size());
-        KeyboardButton backButton = backRow.get(0);
+        KeyboardButton backButton = backRow.getFirst();
         assertEquals("↩\uFE0F${setter.city.button.settings}", backButton.getName());
         assertEquals("${setter.command} back", backButton.getCallback());
     }
@@ -585,7 +585,7 @@ class CitySetterTest {
             List<KeyboardButton> row = keyboardButtonsList.get(i);
             assertEquals(1, row.size());
 
-            KeyboardButton button = row.get(0);
+            KeyboardButton button = row.getFirst();
             assertEquals(zone.getZone(), button.getName());
             assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.zone}" + " " + cityId + " " + zone.getZone(), button.getCallback());
 

@@ -95,7 +95,7 @@ public class RssMapper {
 
     private String getAttachUrl(SyndEntry syndEntry) {
         if (!syndEntry.getEnclosures().isEmpty()) {
-            return syndEntry.getEnclosures().get(0).getUrl();
+            return syndEntry.getEnclosures().getFirst().getUrl();
         }
 
         Optional<String> optionalDesc = Optional.of(syndEntry).map(SyndEntry::getDescription).map(SyndContent::getValue);

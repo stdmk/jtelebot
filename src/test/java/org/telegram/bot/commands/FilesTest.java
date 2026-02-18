@@ -95,7 +95,7 @@ class FilesTest {
                                 PageRequest.of(1, 10),
                                 100));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -104,17 +104,17 @@ class FilesTest {
         Keyboard keyboard = textResponse.getKeyboard();
         List<List<KeyboardButton>> buttons = keyboard.getKeyboardButtonsList();
 
-        List<KeyboardButton> filesButtons = buttons.get(0);
+        List<KeyboardButton> filesButtons = buttons.getFirst();
         assertEquals(1, filesButtons.size());
 
-        KeyboardButton fileButton = filesButtons.get(0);
+        KeyboardButton fileButton = filesButtons.getFirst();
         assertTrue(fileButton.getName().length() <= 30);
         assertNotNull(fileButton.getCallback());
 
         List<KeyboardButton> pagesButtons = buttons.get(1);
         assertEquals(1, pagesButtons.size());
 
-        KeyboardButton forwardButton = pagesButtons.get(0);
+        KeyboardButton forwardButton = pagesButtons.getFirst();
         assertEquals(Emoji.RIGHT_ARROW.getSymbol(), forwardButton.getName());
         assertNotNull(forwardButton.getCallback());
     }
@@ -136,7 +136,7 @@ class FilesTest {
                                 PageRequest.of(1, 10),
                                 100));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(response, FormattingStyle.HTML, false, true);
@@ -145,17 +145,17 @@ class FilesTest {
         Keyboard keyboard = editResponse.getKeyboard();
         List<List<KeyboardButton>> buttons = keyboard.getKeyboardButtonsList();
 
-        List<KeyboardButton> filesButtons = buttons.get(0);
+        List<KeyboardButton> filesButtons = buttons.getFirst();
         assertEquals(1, filesButtons.size());
 
-        KeyboardButton fileButton = filesButtons.get(0);
+        KeyboardButton fileButton = filesButtons.getFirst();
         assertTrue(fileButton.getName().length() <= 30);
         assertNotNull(fileButton.getCallback());
 
         List<KeyboardButton> pagesButtons = buttons.get(1);
         assertEquals(1, pagesButtons.size());
 
-        KeyboardButton forwardButton = pagesButtons.get(0);
+        KeyboardButton forwardButton = pagesButtons.getFirst();
         assertEquals(Emoji.RIGHT_ARROW.getSymbol(), forwardButton.getName());
         assertNotNull(forwardButton.getCallback());
     }
@@ -179,7 +179,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(new File().setId(1L).setName(dirName));
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response, FormattingStyle.HTML, false, true);
@@ -187,10 +187,10 @@ class FilesTest {
         
         List<List<KeyboardButton>> keyboard = textResponse.getKeyboard().getKeyboardButtonsList();
 
-        List<KeyboardButton> buttons = keyboard.get(0);
+        List<KeyboardButton> buttons = keyboard.getFirst();
         assertEquals(1, buttons.size());
 
-        KeyboardButton deleteButton = buttons.get(0);
+        KeyboardButton deleteButton = buttons.getFirst();
         assertTrue(deleteButton.getName().contains(Emoji.DELETE.getSymbol()));
         assertNotNull(deleteButton.getCallback());
     }
@@ -219,7 +219,7 @@ class FilesTest {
 
         when(fileService.get(anyLong())).thenReturn(getFile());
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(response, FormattingStyle.HTML, false, true);
 
@@ -238,7 +238,7 @@ class FilesTest {
                                 PageRequest.of(3, 10),
                                 100));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(response, FormattingStyle.HTML, false, true);
 
@@ -307,7 +307,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(getFile().setParentId(1L));
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(fileService).remove(any(Chat.class), any(File.class));
@@ -427,7 +427,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(dir);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(response);
@@ -461,7 +461,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(dir);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(response);
@@ -509,7 +509,7 @@ class FilesTest {
         when(fileService.get(anyLong())).thenReturn(parentFile);
         when(fileService.get(any(Chat.class), any(File.class), anyInt())).thenReturn(new PageImpl<>(new ArrayList<>()));
 
-        BotResponse response = files.parse(request).get(0);
+        BotResponse response = files.parse(request).getFirst();
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         TestUtils.checkDefaultTextResponseParams(response);

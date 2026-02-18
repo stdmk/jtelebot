@@ -82,7 +82,7 @@ class DelayTest {
         final String expectedResponseText = "${command.delay.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup("delay");
 
-        BotResponse botResponse = delay.parse(request).get(0);
+        BotResponse botResponse = delay.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -108,7 +108,7 @@ class DelayTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = delay.parse(request).get(0);
+        BotResponse botResponse = delay.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -151,7 +151,7 @@ class DelayTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
         when(userCityService.getZoneIdOfUserOrDefault(message)).thenReturn(ZoneId.systemDefault());
 
-        BotResponse botResponse = delay.parse(request).get(0);
+        BotResponse botResponse = delay.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 
@@ -181,7 +181,7 @@ class DelayTest {
         when(objectMapper.writeValueAsString(request)).thenReturn(expectedRequestJson);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
 
-        BotResponse botResponse = delay.parse(request).get(0);
+        BotResponse botResponse = delay.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
 

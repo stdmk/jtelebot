@@ -46,7 +46,7 @@ class MeTest {
         List<BotResponse> botResponses = me.parse(request);
         assertEquals(1, botResponses.size());
 
-        TestUtils.checkDefaultDeleteResponseParams(botResponses.get(0));
+        TestUtils.checkDefaultDeleteResponseParams(botResponses.getFirst());
     }
 
     @Test

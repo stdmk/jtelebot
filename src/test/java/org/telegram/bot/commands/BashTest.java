@@ -53,7 +53,7 @@ class BashTest {
 
         when(networkUtils.readStringFromURL(anyString())).thenReturn(rawRandomQuot);
 
-        BotResponse botResponse = bash.parse(request).get(0);
+        BotResponse botResponse = bash.parse(request).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -87,7 +87,7 @@ class BashTest {
 
         when(networkUtils.readStringFromURL(anyString())).thenReturn(rawDefinedQuot);
 
-        BotResponse botResponse = bash.parse(request).get(0);
+        BotResponse botResponse = bash.parse(request).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);
 
         verify(bot).sendTyping(request.getMessage().getChatId());

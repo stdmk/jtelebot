@@ -86,7 +86,7 @@ class HttpStatusCodeTest {
         when(environment.getProperty(lang + ".http.code." + code)).thenReturn("caption");
         when(environment.getProperty(lang + ".http.status." + code)).thenReturn("description");
 
-        BotResponse botResponse = httpStatusCode.parse(request).get(0);
+        BotResponse botResponse = httpStatusCode.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

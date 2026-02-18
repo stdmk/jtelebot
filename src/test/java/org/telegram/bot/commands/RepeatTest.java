@@ -137,7 +137,7 @@ class RepeatTest {
         BotResponse botResponse2 = mock(BotResponse.class);
         when(command.parse(request)).thenReturn(List.of(botResponse2));
 
-        BotResponse botResponse = repeat.analyze(request).get(0);
+        BotResponse botResponse = repeat.analyze(request).getFirst();
         assertEquals(botResponse2, botResponse);
 
         verify(userStatsService).incrementUserStatsCommands(message.getChat(), message.getUser());

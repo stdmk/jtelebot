@@ -21,7 +21,7 @@ public class VoiceMapper implements TelegramFileApiMethodMapper {
 
     @Override
     public PartialBotApiMethod<?> map(FileResponse fileResponse) {
-        InputFile inputFile = inputFileMapper.toInputFile(fileResponse.getFiles().get(0));
+        InputFile inputFile = inputFileMapper.toInputFile(fileResponse.getFiles().getFirst());
 
         SendVoice sendVoice = new SendVoice(fileResponse.getChatId().toString(), inputFile);
         sendVoice.setReplyToMessageId(fileResponse.getReplyToMessageId());

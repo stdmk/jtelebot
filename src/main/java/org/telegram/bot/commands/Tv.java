@@ -67,7 +67,7 @@ public class Tv implements Command {
         log.debug("Request to search in tv-channels and tv-programs by text {}", searchText);
         List<TvChannel> tvChannelList = tvChannelService.get(searchText);
         if (tvChannelList.size() == 1) {
-            TvChannel tvChannel = tvChannelList.get(0);
+            TvChannel tvChannel = tvChannelList.getFirst();
             return buildResponseTextWithProgramsToChannel(tvChannel, zoneId, HOURS_NUMBER_LONG);
         } else {
             TvChannel tvChannel = tvChannelList
@@ -176,7 +176,7 @@ public class Tv implements Command {
         result.add("<u>" + tvChannel.getName() + "</u>" + " /" + COMMAND_NAME + "_ch" + tvChannel.getId() + "\n");
 
         ZoneOffset zoneOffSet = zoneId.getRules().getOffset(LocalDateTime.now(clock));
-        TvProgram currentTvProgram = tvProgramList.get(0);
+        TvProgram currentTvProgram = tvProgramList.getFirst();
 
         result.add("<b>[" + formatTvTime(currentTvProgram.getStart(), zoneId) + "]</b> "
                 + currentTvProgram.getTitle()

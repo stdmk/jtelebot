@@ -75,7 +75,7 @@ class WikipediaTest {
 
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -128,7 +128,7 @@ class WikipediaTest {
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(wikiService.get(wikiId)).thenReturn(getSomeWiki());
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -151,7 +151,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(expectedSearchApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Object[].class))).thenReturn(responseSearch);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -176,7 +176,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(expectedSearchApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Object[].class))).thenReturn(responseSearch);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -201,7 +201,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(expectedSearchApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Object[].class))).thenReturn(responseSearch);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -235,7 +235,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(expectedSearchApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Object[].class))).thenReturn(responseSearch);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -270,7 +270,7 @@ class WikipediaTest {
         when(responseWikiData.getBody()).thenReturn(wikiData);
         when(botRestTemplate.exchange(eq(expectedApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Wikipedia.WikiData.class))).thenReturn(responseWikiData);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -301,7 +301,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(expectedSearchApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Object[].class))).thenReturn(responseSearch);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -335,7 +335,7 @@ class WikipediaTest {
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
         when(botRestTemplate.exchange(eq(afterSearchExpectedApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Wikipedia.WikiData.class))).thenReturn(responseWikiData);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -378,7 +378,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(afterSearchExpectedApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Wikipedia.WikiData.class))).thenReturn(afterSearchResponseWikiData);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedErrorText, textResponse.getText());
@@ -424,7 +424,7 @@ class WikipediaTest {
         when(afterSearchResponseWikiData.getBody()).thenReturn(wikiData);
         when(botRestTemplate.exchange(eq(afterSearchExpectedApiUrl), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Wikipedia.WikiData.class))).thenReturn(afterSearchResponseWikiData);
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -484,7 +484,7 @@ class WikipediaTest {
         when(botRestTemplate.exchange(eq(afterSearchExpectedApiUrlSecondTitle), eq(HttpMethod.GET), httpRequestCaptor.capture(), eq(Wikipedia.WikiData.class))).thenReturn(afterSearchResponseWikiData2);
         when(wikiService.save(any(Wiki.class))).thenAnswer(answer -> answer.getArgument(0));
 
-        BotResponse botResponse = wikipedia.parse(request).get(0);
+        BotResponse botResponse = wikipedia.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -499,7 +499,7 @@ class WikipediaTest {
         List<String> userAgents = headers.get(HttpHeaders.USER_AGENT);
         assertNotNull(userAgents);
         assertEquals(1, userAgents.size());
-        assertEquals(EXPECTED_USER_AGENT, userAgents.get(0));
+        assertEquals(EXPECTED_USER_AGENT, userAgents.getFirst());
     }
 
     private Wiki getSomeWiki() {

@@ -30,7 +30,7 @@ class LatinTest {
     @MethodSource("provideArguments")
     void parseTest(String argument, String expected) {
         BotRequest request = TestUtils.getRequestFromGroup("latin " + argument);
-        BotResponse botResponse = latin.parse(request).get(0);
+        BotResponse botResponse = latin.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expected, textResponse.getText());
     }

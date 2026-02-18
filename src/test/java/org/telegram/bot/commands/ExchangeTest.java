@@ -131,7 +131,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
         when(xmlMapper.readValue("3", Exchange.ValCurs.class)).thenReturn(valCurs3);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(response);
 //        assertEquals(expectedResponseText, textResponse.getText());
@@ -198,7 +198,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursUsd());
         when(xmlMapper.readValue("2", Exchange.DynamicValCurs.class)).thenReturn(getDynamicValCursEur());
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot, never()).sendTyping(request.getMessage().getChatId());
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         checkDefaultFileResponseImageParams(response);
@@ -225,7 +225,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -244,7 +244,7 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(response);
 //        assertEquals(expectedResponseText, textResponse.getText());
@@ -270,7 +270,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -289,7 +289,7 @@ class ExchangeTest {
                 .thenReturn("");
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         TextResponse textResponse = checkDefaultTextResponseParams(response);
 //        assertEquals(expectedResponseText, textResponse.getText());
 
@@ -315,7 +315,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("", Exchange.ValCurs.class)).thenReturn(valCurs);
         when(commandPropertiesService.getCommand(Exchange.class)).thenReturn(commandProperties);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         TextResponse textResponse = checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -339,7 +339,7 @@ class ExchangeTest {
         when(xmlMapper.readValue("1", Exchange.ValCurs.class)).thenReturn(valCurs1);
         when(xmlMapper.readValue("2", Exchange.ValCurs.class)).thenReturn(valCurs2);
 
-        BotResponse response = exchange.parse(request).get(0);
+        BotResponse response = exchange.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
         checkDefaultTextResponseParams(response);
 //        assertEquals(expectedResponseText, textResponse.getText());
@@ -370,7 +370,7 @@ class ExchangeTest {
         verify(xmlMapper, Mockito.times(2)).readValue(anyString(), ArgumentMatchers.<Class<Exchange.ValCurs>>any());
 
         Object value = ReflectionTestUtils.getField(exchange, "valCursDataMap");
-        assertTrue(value instanceof ConcurrentHashMap);
+        assertInstanceOf(ConcurrentHashMap.class, value);
 
         ConcurrentHashMap<?, ?> valCursDataMap = (ConcurrentHashMap<?, ?>) value;
         assertNotNull(valCursDataMap);

@@ -83,7 +83,7 @@ class ParcelTest {
                 """;
         BotRequest request = TestUtils.getRequestWithCallback("parcel");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedCaption, editResponse.getText());
@@ -91,15 +91,15 @@ class ParcelTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(2, keyboardButtonsList.size());
 
-        List<KeyboardButton> addRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> addRow = keyboardButtonsList.getFirst();
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals(EXPECTED_ADD_BUTTON_NAME, addButton.getName());
         assertEquals(EXPECTED_ADD_BUTTON_CALLBACK, addButton.getCallback());
 
         List<KeyboardButton> updateRow = keyboardButtonsList.get(1);
         assertEquals(1, updateRow.size());
-        KeyboardButton updateButton = updateRow.get(0);
+        KeyboardButton updateButton = updateRow.getFirst();
         assertEquals(EXPECTED_UPDATE_BUTTON_NAME, updateButton.getName());
         assertEquals(EXPECTED_UPDATE_BUTTON_CALLBACK, updateButton.getCallback());
     }
@@ -126,7 +126,7 @@ class ParcelTest {
 
         when(parcelService.get(request.getMessage().getUser())).thenReturn(getSomeStoredParcels());
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedCaption, editResponse.getText());
@@ -134,27 +134,27 @@ class ParcelTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(4, keyboardButtonsList.size());
 
-        List<KeyboardButton> deleteFirstParcelRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> deleteFirstParcelRow = keyboardButtonsList.getFirst();
         assertEquals(1, deleteFirstParcelRow.size());
-        KeyboardButton deleteFirstParcelButton = deleteFirstParcelRow.get(0);
+        KeyboardButton deleteFirstParcelButton = deleteFirstParcelRow.getFirst();
         assertEquals(EXPECTED_DELETE_FIRST_PARCEL_BUTTON_NAME, deleteFirstParcelButton.getName());
         assertEquals(EXPECTED_DELETE_FIRST_PARCEL_CALLBACK, deleteFirstParcelButton.getCallback());
 
         List<KeyboardButton> deleteSecondParcelRow = keyboardButtonsList.get(1);
         assertEquals(1, deleteSecondParcelRow.size());
-        KeyboardButton deleteSecondParcelButton = deleteSecondParcelRow.get(0);
+        KeyboardButton deleteSecondParcelButton = deleteSecondParcelRow.getFirst();
         assertEquals(EXPECTED_DELETE_SECOND_PARCEL_BUTTON_NAME, deleteSecondParcelButton.getName());
         assertEquals(EXPECTED_DELETE_SECOND_PARCEL_CALLBACK, deleteSecondParcelButton.getCallback());
 
         List<KeyboardButton> addRow = keyboardButtonsList.get(2);
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals(EXPECTED_ADD_BUTTON_NAME, addButton.getName());
         assertEquals(EXPECTED_ADD_BUTTON_CALLBACK, addButton.getCallback());
 
         List<KeyboardButton> updateRow = keyboardButtonsList.get(3);
         assertEquals(1, updateRow.size());
-        KeyboardButton updateButton = updateRow.get(0);
+        KeyboardButton updateButton = updateRow.getFirst();
         assertEquals(EXPECTED_UPDATE_BUTTON_NAME, updateButton.getName());
         assertEquals(EXPECTED_UPDATE_BUTTON_CALLBACK, updateButton.getCallback());
     }
@@ -212,7 +212,7 @@ class ParcelTest {
         when(parcelService.get(request.getMessage().getUser(), parcelId)).thenReturn(parcelWithoutEvents);
         when(parcelService.get(request.getMessage().getUser())).thenReturn(getSomeStoredParcels());
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(botResponse);
         assertEquals(expectedCaption, editResponse.getText());
@@ -220,27 +220,27 @@ class ParcelTest {
         List<List<KeyboardButton>> keyboardButtonsList = editResponse.getKeyboard().getKeyboardButtonsList();
         assertEquals(4, keyboardButtonsList.size());
 
-        List<KeyboardButton> deleteFirstParcelRow = keyboardButtonsList.get(0);
+        List<KeyboardButton> deleteFirstParcelRow = keyboardButtonsList.getFirst();
         assertEquals(1, deleteFirstParcelRow.size());
-        KeyboardButton deleteFirstParcelButton = deleteFirstParcelRow.get(0);
+        KeyboardButton deleteFirstParcelButton = deleteFirstParcelRow.getFirst();
         assertEquals(EXPECTED_DELETE_FIRST_PARCEL_BUTTON_NAME, deleteFirstParcelButton.getName());
         assertEquals(EXPECTED_DELETE_FIRST_PARCEL_CALLBACK, deleteFirstParcelButton.getCallback());
 
         List<KeyboardButton> deleteSecondParcelRow = keyboardButtonsList.get(1);
         assertEquals(1, deleteSecondParcelRow.size());
-        KeyboardButton deleteSecondParcelButton = deleteSecondParcelRow.get(0);
+        KeyboardButton deleteSecondParcelButton = deleteSecondParcelRow.getFirst();
         assertEquals(EXPECTED_DELETE_SECOND_PARCEL_BUTTON_NAME, deleteSecondParcelButton.getName());
         assertEquals(EXPECTED_DELETE_SECOND_PARCEL_CALLBACK, deleteSecondParcelButton.getCallback());
 
         List<KeyboardButton> addRow = keyboardButtonsList.get(2);
         assertEquals(1, addRow.size());
-        KeyboardButton addButton = addRow.get(0);
+        KeyboardButton addButton = addRow.getFirst();
         assertEquals(EXPECTED_ADD_BUTTON_NAME, addButton.getName());
         assertEquals(EXPECTED_ADD_BUTTON_CALLBACK, addButton.getCallback());
 
         List<KeyboardButton> updateRow = keyboardButtonsList.get(3);
         assertEquals(1, updateRow.size());
-        KeyboardButton updateButton = updateRow.get(0);
+        KeyboardButton updateButton = updateRow.getFirst();
         assertEquals(EXPECTED_UPDATE_BUTTON_NAME, updateButton.getName());
         assertEquals(EXPECTED_UPDATE_BUTTON_CALLBACK, updateButton.getCallback());
     }
@@ -249,7 +249,7 @@ class ParcelTest {
     void parseCallbackAddParcelTest() {
         final String expectedResponseText = "${command.parcel.parceladdinghint}: <code>${command.parcel.parceladdingexample}</code>";
         BotRequest request = TestUtils.getRequestWithCallback("parcel добавить");
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -311,7 +311,7 @@ class ParcelTest {
         when(propertiesConfig.getRussianPostRequestsLimit()).thenReturn(100);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TestUtils.checkDefaultTextResponseParams(botResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.SAVED);
@@ -344,7 +344,7 @@ class ParcelTest {
         when(propertiesConfig.getRussianPostRequestsLimit()).thenReturn(100);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TestUtils.checkDefaultTextResponseParams(botResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.SAVED);
@@ -363,7 +363,7 @@ class ParcelTest {
     void deleteParcelWrongArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("parcel удалить ");
 
-        assertThrows((BotException.class), () -> parcel.parse(request).get(0));
+        assertThrows((BotException.class), () -> parcel.parse(request).getFirst());
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(parcelService, never()).getByName(any(User.class), anyString());
@@ -374,7 +374,7 @@ class ParcelTest {
     void deleteUnknownParcelTest() {
         BotRequest request = TestUtils.getRequestFromGroup("parcel удалить test");
 
-        assertThrows((BotException.class), () -> parcel.parse(request).get(0));
+        assertThrows((BotException.class), () -> parcel.parse(request).getFirst());
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(parcelService, never()).remove(any(org.telegram.bot.domain.entities.Parcel.class));
@@ -390,7 +390,7 @@ class ParcelTest {
         when(parcelService.getByBarcode(message.getUser(), trackcode)).thenReturn(parcelEntity);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TestUtils.checkDefaultTextResponseParams(botResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.SAVED);
@@ -407,7 +407,7 @@ class ParcelTest {
         when(parcelService.getByName(message.getUser(), parcelName)).thenReturn(parcelEntity);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TestUtils.checkDefaultTextResponseParams(botResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.SAVED);
@@ -418,7 +418,7 @@ class ParcelTest {
     void deleteByWrongIdTest() {
         BotRequest request = TestUtils.getRequestFromGroup("parcel_da");
 
-        assertThrows((BotException.class), () -> parcel.parse(request).get(0));
+        assertThrows((BotException.class), () -> parcel.parse(request).getFirst());
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(parcelService, never()).remove(any(org.telegram.bot.domain.entities.Parcel.class));
@@ -428,7 +428,7 @@ class ParcelTest {
     void deleteByIdUnknownParcelTest() {
         BotRequest request = TestUtils.getRequestFromGroup("parcel_d1");
 
-        assertThrows((BotException.class), () -> parcel.parse(request).get(0));
+        assertThrows((BotException.class), () -> parcel.parse(request).getFirst());
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
         verify(parcelService, never()).remove(any(org.telegram.bot.domain.entities.Parcel.class));
@@ -444,7 +444,7 @@ class ParcelTest {
         when(parcelService.get(message.getUser(), parcelId)).thenReturn(parcelEntity);
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn("saved");
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TestUtils.checkDefaultTextResponseParams(botResponse);
 
         verify(speechService).getRandomMessageByTag(BotSpeechTag.SAVED);
@@ -475,7 +475,7 @@ class ParcelTest {
         when(parcelService.get(message.getUser(), parcelId)).thenReturn(parcelEntity);
         when(propertiesConfig.getRussianPostRequestsLimit()).thenReturn(5);
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -528,7 +528,7 @@ class ParcelTest {
         doAnswer(invocationOnMock -> parcelEntity.getTrackCode().getEvents().add(new TrackCodeEvent().setEventDateTime(SOME_DATE_TIME.plusMinutes(10))))
                 .when(trackCodeService).updateFromApi(parcelEntity.getTrackCode());
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());
@@ -590,7 +590,7 @@ class ParcelTest {
         doAnswer(invocationOnMock -> parcelEntity.getTrackCode().getEvents().add(new TrackCodeEvent().setEventDateTime(SOME_DATE_TIME.plusMinutes(10))))
                 .when(trackCodeService).updateFromApi(parcelEntity.getTrackCode());
 
-        BotResponse botResponse = parcel.parse(request).get(0);
+        BotResponse botResponse = parcel.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponse, textResponse.getText());

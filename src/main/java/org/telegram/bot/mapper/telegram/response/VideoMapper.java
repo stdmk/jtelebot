@@ -21,7 +21,7 @@ public class VideoMapper implements TelegramFileApiMethodMapper {
 
     @Override
     public PartialBotApiMethod<?> map(FileResponse fileResponse) {
-        org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().get(0);
+        org.telegram.bot.domain.model.response.File file = fileResponse.getFiles().getFirst();
         InputFile inputFile = inputFileMapper.toInputFile(file);
 
         SendVideo sendVideo = new SendVideo(fileResponse.getChatId().toString(), inputFile);

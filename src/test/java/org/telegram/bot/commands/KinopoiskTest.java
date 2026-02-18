@@ -142,7 +142,7 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        BotResponse response = kinopoisk.parse(request).get(0);
+        BotResponse response = kinopoisk.parse(request).getFirst();
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedCaption, photo.getText());
 
@@ -193,7 +193,7 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        BotResponse response = kinopoisk.parse(request).get(0);
+        BotResponse response = kinopoisk.parse(request).getFirst();
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedCaption, photo.getText());
 
@@ -254,7 +254,7 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
-        BotResponse response = kinopoisk.parse(request).get(0);
+        BotResponse response = kinopoisk.parse(request).getFirst();
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedCaption, photo.getText());
 
@@ -297,7 +297,7 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + movieYear, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
-        BotResponse response = kinopoisk.parse(request).get(0);
+        BotResponse response = kinopoisk.parse(request).getFirst();
         FileResponse photo = TestUtils.checkDefaultFileResponseImageParams(response);
         assertEquals(expectedCaption, photo.getText());
 
@@ -328,7 +328,7 @@ class KinopoiskTest {
         when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
-        BotResponse response = kinopoisk.parse(request).get(0);
+        BotResponse response = kinopoisk.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
         assertEquals(expectedResponseText, textResponse.getText());
 

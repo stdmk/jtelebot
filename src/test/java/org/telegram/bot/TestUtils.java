@@ -176,7 +176,7 @@ public class TestUtils {
     }
 
     public static TextResponse checkDefaultTextResponseParams(BotResponse botResponse, boolean disableWebPagePreview, FormattingStyle formattingStyle) {
-        assertTrue(botResponse instanceof TextResponse);
+        assertInstanceOf(TextResponse.class, botResponse);
         return checkDefaultTextResponseParams((TextResponse) botResponse, disableWebPagePreview, formattingStyle);
     }
 
@@ -188,7 +188,7 @@ public class TestUtils {
     }
 
     public static TextResponse checkDefaultTextResponseParams(BotResponse response, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertTrue(response instanceof TextResponse);
+        assertInstanceOf(TextResponse.class, response);
         return checkDefaultTextResponseParams((TextResponse) response, formattingStyle, disableWebPagePreview, hasKeyboard);
     }
 
@@ -217,17 +217,17 @@ public class TestUtils {
     }
 
     public static TextResponse checkDefaultTextResponseParams(BotResponse response, FormattingStyle formattingStyle) {
-        assertTrue(response instanceof TextResponse);
+        assertInstanceOf(TextResponse.class, response);
         return TestUtils.checkDefaultTextResponseParams((TextResponse) response, formattingStyle);
     }
 
     public static EditResponse checkDefaultEditResponseParams(BotResponse response) {
-        assertTrue(response instanceof EditResponse);
+        assertInstanceOf(EditResponse.class, response);
         return checkDefaultEditResponseParams((EditResponse) response);
     }
 
     public static EditResponse checkDefaultEditResponseParams(BotResponse response, FormattingStyle formattingStyle, boolean disableWebPagePreview, boolean hasKeyboard) {
-        assertTrue(response instanceof EditResponse);
+        assertInstanceOf(EditResponse.class, response);
         return checkDefaultEditResponseParams((EditResponse) response, formattingStyle, disableWebPagePreview, hasKeyboard);
     }
 
@@ -254,7 +254,7 @@ public class TestUtils {
     }
 
     public static TextResponse checkDefaultTextResponseParams(BotResponse response) {
-        assertTrue(response instanceof TextResponse);
+        assertInstanceOf(TextResponse.class, response);
         return checkDefaultTextResponseParams((TextResponse) response);
     }
 
@@ -271,11 +271,11 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultFileResponseParams(BotResponse response, FileType fileType) {
-        assertTrue(response instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, response);
 
         FileResponse fileResponse = (FileResponse) response;
         assertFalse(fileResponse.getFiles().isEmpty());
-        assertEquals(fileType, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(fileType, fileResponse.getFiles().getFirst().getFileType());
 
         return checkDefaultFileResponseParams(fileResponse);
     }
@@ -288,16 +288,16 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultFileResponseImageParams(BotResponse response) {
-        assertTrue(response instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, response);
 
         FileResponse fileResponse = (FileResponse) response;
         assertFalse(fileResponse.getFiles().isEmpty());
-        assertEquals(FileType.IMAGE, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(FileType.IMAGE, fileResponse.getFiles().getFirst().getFileType());
         return checkDefaultFileResponseImageParams(fileResponse);
     }
 
     public static FileResponse checkDefaultFileResponseImageParams(FileResponse fileResponse, boolean hasSpoiler) {
-        assertEquals(hasSpoiler, fileResponse.getFiles().get(0).getFileSettings().isSpoiler());
+        assertEquals(hasSpoiler, fileResponse.getFiles().getFirst().getFileSettings().isSpoiler());
         return checkDefaultFileResponseImageParams(fileResponse);
     }
 
@@ -311,11 +311,11 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultFileResponseVideoParams(BotResponse response) {
-        assertTrue(response instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, response);
 
         FileResponse fileResponse = (FileResponse) response;
         assertFalse(fileResponse.getFiles().isEmpty());
-        assertEquals(FileType.VIDEO, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(FileType.VIDEO, fileResponse.getFiles().getFirst().getFileType());
 
         return checkDefaultFileResponseVideoParams(fileResponse);
     }
@@ -330,12 +330,12 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultResponseMultipleImagesParams(BotResponse response) {
-        assertTrue(response instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, response);
 
         FileResponse fileResponse = (FileResponse) response;
         assertFalse(fileResponse.getFiles().isEmpty());
         assertTrue(fileResponse.getFiles().size() > 1);
-        assertEquals(FileType.IMAGE, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(FileType.IMAGE, fileResponse.getFiles().getFirst().getFileType());
 
         return checkDefaultResponseMultipleImagesParams(fileResponse);
     }
@@ -349,7 +349,7 @@ public class TestUtils {
     }
 
     public static LocationResponse checkDefaultLocationResponseParams(BotResponse botResponse) {
-        assertTrue(botResponse instanceof LocationResponse);
+        assertInstanceOf(LocationResponse.class, botResponse);
         return (checkDefaultLocationResponseParams((LocationResponse) botResponse));
     }
 
@@ -364,13 +364,13 @@ public class TestUtils {
     }
 
     public static FileResponse checkDefaultFileResponseVoiceParams(BotResponse botResponse) {
-        assertTrue(botResponse instanceof FileResponse);
+        assertInstanceOf(FileResponse.class, botResponse);
         return checkDefaultFileResponseVoiceParams((FileResponse) botResponse);
     }
 
     public static FileResponse checkDefaultFileResponseVoiceParams(FileResponse fileResponse) {
         assertFalse(fileResponse.getFiles().isEmpty());
-        assertEquals(FileType.VOICE, fileResponse.getFiles().get(0).getFileType());
+        assertEquals(FileType.VOICE, fileResponse.getFiles().getFirst().getFileType());
 
         assertNotNull(fileResponse);
         assertNotNull(fileResponse.getChatId());
@@ -380,7 +380,7 @@ public class TestUtils {
     }
 
     public static DeleteResponse checkDefaultDeleteResponseParams(BotResponse botResponse) {
-        assertTrue(botResponse instanceof DeleteResponse);
+        assertInstanceOf(DeleteResponse.class, botResponse);
         return checkDefaultDeleteResponseParams((DeleteResponse) botResponse);
     }
 

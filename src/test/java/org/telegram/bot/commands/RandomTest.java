@@ -40,14 +40,14 @@ class RandomTest {
         List<List<BotResponse>> responseList = IntStream.range(1, 1000).mapToObj(i -> random.parse(request)).toList();
 
         assertTrue(responseList.stream().noneMatch(response -> {
-            String responseText = ((TextResponse) response.get(0)).getText();
+            String responseText = ((TextResponse) response.getFirst()).getText();
             return !heads.equals(responseText) && !tails.equals(responseText);
         }));
 
-        assertTrue(responseList.stream().anyMatch(response ->  heads.equals(((TextResponse) response.get(0)).getText())));
-        assertTrue(responseList.stream().anyMatch(response ->  tails.equals(((TextResponse) response.get(0)).getText())));
+        assertTrue(responseList.stream().anyMatch(response ->  heads.equals(((TextResponse) response.getFirst()).getText())));
+        assertTrue(responseList.stream().anyMatch(response ->  tails.equals(((TextResponse) response.getFirst()).getText())));
 
-        TestUtils.checkDefaultTextResponseParams(responseList.get(0).get(0));
+        TestUtils.checkDefaultTextResponseParams(responseList.getFirst().getFirst());
     }
 
     @Test
@@ -61,7 +61,7 @@ class RandomTest {
     void parseWithZeroAsArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("random 0");
 
-        BotResponse botResponse = random.parse(request).get(0);
+        BotResponse botResponse = random.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         long randomValue = Long.parseLong(textResponse.getText());
@@ -73,7 +73,7 @@ class RandomTest {
     void parseWithOneIntArgumentTest(Long argument) {
         BotRequest request = TestUtils.getRequestFromGroup("random " + argument);
 
-        BotResponse botResponse = random.parse(request).get(0);
+        BotResponse botResponse = random.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         long randomValue = Long.parseLong(textResponse.getText());
@@ -90,7 +90,7 @@ class RandomTest {
         BotRequest request = TestUtils.getRequestFromGroup("random " + range);
         String[] arguments = range.split(" ");
 
-        BotResponse botResponse = random.parse(request).get(0);
+        BotResponse botResponse = random.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         String responseText = textResponse.getText();
@@ -101,7 +101,7 @@ class RandomTest {
     void parseWithRangeAsArgumentTest() {
         BotRequest request = TestUtils.getRequestFromGroup("random " + Long.MIN_VALUE + " " + Long.MAX_VALUE);
 
-        BotResponse botResponse = random.parse(request).get(0);
+        BotResponse botResponse = random.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertDoesNotThrow(() -> Long.parseLong(textResponse.getText()));
@@ -114,11 +114,11 @@ class RandomTest {
         List<String> arguments = Arrays.stream(elements.split(" ")).toList();
 
         List<List<BotResponse>> responseList = IntStream.range(1, 1000).mapToObj(i -> random.parse(request)).toList();
-        List<String> responseTextList = responseList.stream().map(responseList1 -> responseList1.get(0)).map(response -> ((TextResponse) response).getText()).toList();
+        List<String> responseTextList = responseList.stream().map(List::getFirst).map(response -> ((TextResponse) response).getText()).toList();
 
         assertTrue(responseTextList.containsAll(arguments));
 
-        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(responseList.get(0).get(0));
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(responseList.getFirst().getFirst());
         assertTrue(arguments.contains(textResponse.getText()));
 
     }

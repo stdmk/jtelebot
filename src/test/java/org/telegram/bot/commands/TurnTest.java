@@ -71,7 +71,7 @@ class TurnTest {
         when(languageResolver.getChatLanguageCode(request)).thenReturn(lang);
         when(internationalizationService.internationalize("${command.turn.layout}", lang)).thenReturn(RU_LAYOUT);
 
-        BotResponse botResponse = turn.parse(request).get(0);
+        BotResponse botResponse = turn.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -88,7 +88,7 @@ class TurnTest {
         when(languageResolver.getChatLanguageCode(request)).thenReturn(lang);
         when(internationalizationService.internationalize("${command.turn.layout}", lang)).thenReturn(RU_LAYOUT);
 
-        BotResponse botResponse = turn.parse(request).get(0);
+        BotResponse botResponse = turn.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -193,7 +193,7 @@ class TurnTest {
         when(internationalizationService.internationalize("${command.turn.layout}", lang)).thenReturn(RU_LAYOUT);
         ReflectionTestUtils.invokeMethod(turn, "postConstruct");
 
-        BotResponse botResponse = turn.analyze(request).get(0);
+        BotResponse botResponse = turn.analyze(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

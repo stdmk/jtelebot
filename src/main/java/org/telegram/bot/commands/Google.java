@@ -112,7 +112,7 @@ public class Google implements Command {
                         if (!CollectionUtils.isEmpty(cseImageList)) {
                             imageUrl = imageUrlService.save(new ImageUrl()
                                     .setTitle(googleSearchItem.getTitle())
-                                    .setUrl(cseImageList.get(0).getSrc()));
+                                    .setUrl(cseImageList.getFirst().getSrc()));
                         }
 
                         return new GoogleSearchResult()

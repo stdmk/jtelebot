@@ -118,7 +118,7 @@ public class Kinopoisk implements Command {
         if (total == 0) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         } else if (total == 1) {
-            Movie movie = movieSearchResult.getDocs().get(0);
+            Movie movie = movieSearchResult.getDocs().getFirst();
 
             Long id = movie.getId();
             if (id != null) {

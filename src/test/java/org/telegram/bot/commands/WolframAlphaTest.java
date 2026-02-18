@@ -73,7 +73,7 @@ class WolframAlphaTest {
         when(propertiesConfig.getWolframAlphaToken()).thenReturn("token");
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
 
-        BotResponse botResponse = wolframAlpha.parse(request).get(0);
+        BotResponse botResponse = wolframAlpha.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -118,7 +118,7 @@ class WolframAlphaTest {
         when(botRestTemplate.getForEntity(expectedApiUrl, WolframAlpha.WolframAlphaData.class)).thenReturn(response);
         when(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING)).thenReturn(expectedErrorText);
 
-        BotResponse botResponse = wolframAlpha.parse(request).get(0);
+        BotResponse botResponse = wolframAlpha.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedErrorText, textResponse.getText());
@@ -160,7 +160,7 @@ class WolframAlphaTest {
         when(response.getBody()).thenReturn(wolframAlphaData);
         when(botRestTemplate.getForEntity(expectedApiUrl, WolframAlpha.WolframAlphaData.class)).thenReturn(response);
 
-        BotResponse botResponse = wolframAlpha.parse(request).get(0);
+        BotResponse botResponse = wolframAlpha.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());

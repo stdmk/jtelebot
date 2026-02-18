@@ -94,7 +94,7 @@ class TopTest {
 
         when(userStatsService.get(eq(message.getChat()), any(User.class))).thenReturn(getSomeUserStats(message.getUser()));
 
-        BotResponse botResponse = top.parse(request).get(0);
+        BotResponse botResponse = top.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -154,7 +154,7 @@ class TopTest {
 
         when(userStatsService.get(eq(message.getChat()), any(User.class))).thenReturn(getSomeUserStats(message.getUser()));
 
-        BotResponse botResponse = top.parse(request).get(0);
+        BotResponse botResponse = top.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -205,7 +205,7 @@ class TopTest {
         when(userService.get(username)).thenReturn(message.getUser());
         when(userStatsService.get(eq(message.getChat()), any(User.class))).thenReturn(getSomeUserStats(message.getUser()));
 
-        BotResponse botResponse = top.parse(request).get(0);
+        BotResponse botResponse = top.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());
@@ -236,7 +236,7 @@ class TopTest {
         when(userStatsService.getSortedUserStatsListForChat(any(Chat.class), anyString(), anyInt()))
                 .thenReturn(Stream.of(0, 30, 60, 90, 120, 150).map(this::getSomeUserStats).toList());
 
-        BotResponse botResponse = top.parse(request).get(0);
+        BotResponse botResponse = top.parse(request).getFirst();
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
         assertEquals(expectedResponseText, textResponse.getText());

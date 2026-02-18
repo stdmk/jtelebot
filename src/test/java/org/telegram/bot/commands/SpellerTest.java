@@ -50,7 +50,7 @@ class SpellerTest {
         final String expectedResponseText = "${command.speller.commandwaitingstart}";
         BotRequest request = TestUtils.getRequestFromGroup("speller");
 
-        BotResponse botResponse = speller.parse(request).get(0);
+        BotResponse botResponse = speller.parse(request).getFirst();
 
         verify(commandWaitingService).add(request.getMessage(), Speller.class);
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
@@ -92,7 +92,7 @@ class SpellerTest {
         when(botRestTemplate.getForEntity(SPELLER_API_URL + spellingText, Speller.SpellResult[].class))
                 .thenReturn(response);
 
-        BotResponse botResponse = speller.parse(request).get(0);
+        BotResponse botResponse = speller.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
 
@@ -132,7 +132,7 @@ class SpellerTest {
         when(botRestTemplate.getForEntity(SPELLER_API_URL + spellingText, Speller.SpellResult[].class))
                 .thenReturn(response);
 
-        BotResponse botResponse = speller.parse(request).get(0);
+        BotResponse botResponse = speller.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(request.getMessage().getMessageId(), textResponse.getReplyToMessageId());
@@ -152,7 +152,7 @@ class SpellerTest {
         when(botRestTemplate.getForEntity(SPELLER_API_URL + spellingText, Speller.SpellResult[].class))
                 .thenReturn(response);
 
-        BotResponse botResponse = speller.parse(request).get(0);
+        BotResponse botResponse = speller.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
@@ -180,7 +180,7 @@ class SpellerTest {
         when(botRestTemplate.getForEntity(SPELLER_API_URL + spellingText, Speller.SpellResult[].class))
                 .thenReturn(response);
 
-        BotResponse botResponse = speller.parse(request).get(0);
+        BotResponse botResponse = speller.parse(request).getFirst();
 
         TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
         assertEquals(expectedResponseText, textResponse.getText());
