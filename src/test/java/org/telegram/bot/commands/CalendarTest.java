@@ -74,10 +74,10 @@ class CalendarTest {
         final String expectedResponseText = """
                 <b>January 2007</b>
                 <code>${command.calendar.daysofweekstring}
-                 1   2*  3*  4*  5*  6   7 \s
-                 8   9  10  11  12  13  14 \s
-                15  16  17  18  19  20  21 \s
-                22  23  24  25  26  27  28 \s
+                 1   2*  3*  4*  5*  6*  7*\s
+                 8   9  10  11  12  13* 14*\s
+                15  16  17  18  19  20* 21*\s
+                22  23  24  25  26  27* 28*\s
                 29  30  31 \s
                 </code>
                 <b>${command.calendar.holidayscaption}: </b>
@@ -110,10 +110,10 @@ class CalendarTest {
         final String expectedResponseText = """
                 <b>January 2007</b>
                 <code>${command.calendar.daysofweekstring}
-                 1   2*  3*  4*  5*  6   7 \s
-                 8   9  10  11  12  13  14 \s
-                15  16  17  18  19  20  21 \s
-                22  23  24  25  26  27  28 \s
+                 1   2*  3*  4*  5*  6*  7*\s
+                 8   9  10  11  12  13* 14*\s
+                15  16  17  18  19  20* 21*\s
+                22  23  24  25  26  27* 28*\s
                 29  30  31 \s
                 </code>
                 <b>${command.calendar.holidayscaption}: </b>
@@ -147,10 +147,10 @@ class CalendarTest {
         final String expectedResponseText = """
                 <b>January 2007</b>
                 <code>${command.calendar.daysofweekstring}
-                 1   2*  3*  4*  5*  6   7 \s
-                 8   9  10  11  12  13  14 \s
-                15  16  17  18  19  20  21 \s
-                22  23  24  25  26  27  28 \s
+                 1   2*  3*  4*  5*  6*  7*\s
+                 8   9  10  11  12  13* 14*\s
+                15  16  17  18  19  20* 21*\s
+                22  23  24  25  26  27* 28*\s
                 29  30  31 \s
                 </code>
                 <b>${command.calendar.holidayscaption}: </b>
@@ -179,10 +179,10 @@ class CalendarTest {
         final String expectedResponseText = """
                 <b>January 2007</b>
                 <code>${command.calendar.daysofweekstring}
-                 1   2   3   4   5   6   7 \s
-                 8   9  10  11  12  13  14 \s
-                15  16  17  18  19  20  21 \s
-                22  23  24  25  26  27  28 \s
+                 1   2   3   4   5   6*  7*\s
+                 8   9  10  11  12  13* 14*\s
+                15  16  17  18  19  20* 21*\s
+                22  23  24  25  26  27* 28*\s
                 29  30  31 \s
                 </code>
                 <b>${command.calendar.holidayscaption}: </b>

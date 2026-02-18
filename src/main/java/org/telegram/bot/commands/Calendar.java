@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.utils.DateUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -34,8 +34,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Set;
 import java.util.*;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -262,7 +262,7 @@ public class Calendar implements Command {
             while (j <= 7 && i <= daysInMonth) {
                 buf.append(String.format("%2d", i));
 
-                if (j != 6 && j != 7 && daysOffInMonth.contains(i)) {
+                if (j == 6 || j == 7 || daysOffInMonth.contains(i)) {
                     buf.append("* ");
                 } else {
                     buf.append("  ");
