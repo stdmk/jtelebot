@@ -86,9 +86,25 @@ public class Config {
     }
 
     @Bean
+    public TelegramBotsLongPollingApplication telegramBotsApplication() {
+        return new TelegramBotsLongPollingApplication() {
+            @Override
+            public BotSession registerBot(String botToken, Supplier<TelegramUrl> telegramUrlSupplier, Function<Integer, GetUpdates> getUpdatesGenerator, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
+                Function<Integer, GetUpdates> customGenerator = (offset) ->
+                        GetUpdates.builder()
+                                .offset(offset)
+                                .allowedUpdates(ALLOWED_UPDATES)
+                                .build();
+
+                return super.registerBot(botToken, telegramUrlSupplier, customGenerator, updatesConsumer);
+            }
+        };
+    }
+
+    @Bean
     public OkHttpClient telegramOkHttpClient(TelegramProxyProperties proxyProps) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .protocols(List.of(Protocol.HTTP_1_1)) // Telegram + прокси стабильнее так
+                .protocols(List.of(Protocol.HTTP_1_1))
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS);
@@ -134,22 +150,6 @@ public class Config {
     @Primary
     public TelegramClient telegramClient(OkHttpClient telegramOkHttpClient) {
         return new OkHttpTelegramClient(telegramOkHttpClient, telegramBotApiToken);
-    }
-
-    @Bean
-    public TelegramBotsLongPollingApplication telegramBotsApplication(OkHttpClient telegramOkHttpClient) {
-        return new TelegramBotsLongPollingApplication(ObjectMapper::new, () -> telegramOkHttpClient) {
-            @Override
-            public BotSession registerBot(String botToken, Supplier<TelegramUrl> telegramUrlSupplier, Function<Integer, GetUpdates> getUpdatesGenerator, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
-                Function<Integer, GetUpdates> customGenerator = (offset) ->
-                        GetUpdates.builder()
-                                .offset(offset)
-                                .allowedUpdates(ALLOWED_UPDATES)
-                                .build();
-
-                return super.registerBot(botToken, telegramUrlSupplier, customGenerator, updatesConsumer);
-            }
-        };
     }
 
     @Bean

@@ -20,13 +20,13 @@ class ReactionMapperTest {
 
     @Test
     void toReactionsTest() {
-        ReactionTypeEmoji oldEmoji = new ReactionTypeEmoji("emoji1");
-        ReactionTypeCustomEmoji oldCustomEmoji = new ReactionTypeCustomEmoji("customEmojiId1");
-        ReactionTypePaid oldPaid = new ReactionTypePaid();
+        ReactionTypeEmoji oldEmoji = new ReactionTypeEmoji(ReactionType.EMOJI_TYPE, "emoji1");
+        ReactionTypeCustomEmoji oldCustomEmoji = new ReactionTypeCustomEmoji(ReactionType.CUSTOM_EMOJI_TYPE, "customEmojiId1");
+        ReactionTypePaid oldPaid = new ReactionTypePaid(ReactionType.PAID_TYPE);
 
-        ReactionTypeEmoji newEmoji = new ReactionTypeEmoji("emoji2");
-        ReactionTypeCustomEmoji newCustomEmoji = new ReactionTypeCustomEmoji("customEmojiId2");
-        ReactionTypePaid newPaid = new ReactionTypePaid();
+        ReactionTypeEmoji newEmoji = new ReactionTypeEmoji(ReactionType.EMOJI_TYPE, "emoji2");
+        ReactionTypeCustomEmoji newCustomEmoji = new ReactionTypeCustomEmoji(ReactionType.CUSTOM_EMOJI_TYPE, "customEmojiId2");
+        ReactionTypePaid newPaid = new ReactionTypePaid(ReactionType.PAID_TYPE);
 
         List<ReactionType> oldReactions = List.of(oldEmoji, oldCustomEmoji, oldPaid, mock(ReactionType.class));
         List<ReactionType> newReactions = List.of(newEmoji, newCustomEmoji, newPaid, mock(ReactionType.class));

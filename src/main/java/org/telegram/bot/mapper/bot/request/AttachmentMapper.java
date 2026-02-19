@@ -7,7 +7,6 @@ import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
-import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import java.util.List;
@@ -73,7 +72,7 @@ public class AttachmentMapper {
     }
 
     private Attachment toAttachment(Animation animation) {
-        return toAttachment(animation.getMimeType(), animation.getFileUniqueId(), animation.getFileId(), animation.getFileName(), animation.getFileSize(), animation.getDuration(), null);
+        return toAttachment(animation.getMimetype(), animation.getFileUniqueId(), animation.getFileId(), animation.getFileName(), animation.getFileSize(), animation.getDuration(), null);
     }
 
     private Attachment toAttachment(Sticker sticker) {

@@ -20,8 +20,6 @@ public class ReactionMapper {
                 reactions.getOldEmojis().add(((ReactionTypeEmoji) oldReaction).getEmoji());
             } else if (ReactionType.CUSTOM_EMOJI_TYPE.equals(reactionType)) {
                 reactions.getOldCustomEmojisIds().add(((ReactionTypeCustomEmoji) oldReaction).getCustomEmojiId());
-            } else if (ReactionType.PAID_TYPE.equals(reactionType)) {
-                // nothing
             }
         }
 
@@ -31,8 +29,6 @@ public class ReactionMapper {
                 reactions.getNewEmojis().add(((ReactionTypeEmoji) newReaction).getEmoji());
             } else if (ReactionType.CUSTOM_EMOJI_TYPE.equals(reactionType)) {
                 reactions.getNewCustomEmojisIds().add(((ReactionTypeCustomEmoji) newReaction).getCustomEmojiId());
-            } else if (ReactionType.PAID_TYPE.equals(reactionType)) {
-                // nothing
             }
         }
 
