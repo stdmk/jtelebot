@@ -32,8 +32,8 @@ import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
-import org.telegram.telegrambots.longpolling.util.DefaultGetUpdatesGenerator;
 import org.telegram.telegrambots.meta.TelegramUrl;
+import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Configuration
 public class Config {
@@ -75,8 +77,14 @@ public class Config {
     public TelegramBotsLongPollingApplication telegramBotsApplication() {
         return new TelegramBotsLongPollingApplication() {
             @Override
-            public BotSession registerBot(String botToken, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
-                return registerBot(botToken, () -> TelegramUrl.DEFAULT_URL, new DefaultGetUpdatesGenerator(ALLOWED_UPDATES), updatesConsumer);
+            public BotSession registerBot(String botToken, Supplier<TelegramUrl> telegramUrlSupplier, Function<Integer, GetUpdates> getUpdatesGenerator, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
+                Function<Integer, GetUpdates> customGenerator = (offset) ->
+                        GetUpdates.builder()
+                                .offset(offset)
+                                .allowedUpdates(ALLOWED_UPDATES)
+                                .build();
+
+                return super.registerBot(botToken, telegramUrlSupplier, customGenerator, updatesConsumer);
             }
         };
     }
