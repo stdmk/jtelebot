@@ -57,7 +57,7 @@ public class ChatGPT implements Command {
     private static final String DEFAULT_MODEL = "gpt-5-mini";
     private static final String RESPONSE_CAPTION = "ChatGPT";
 
-    @Value("${chatGptApiUrl}")
+    @Value("${chatGptApiUrl:#{null}}")
     private String chatGptApiUrl;
 
     private final Set<String> imageCommands = new HashSet<>();
