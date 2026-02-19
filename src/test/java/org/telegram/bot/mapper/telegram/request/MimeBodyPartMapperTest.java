@@ -12,6 +12,7 @@ import org.telegram.bot.mapper.bot.request.AttachmentMapper;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.photo.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import java.util.List;
@@ -189,7 +190,7 @@ class MimeBodyPartMapperTest {
         final int duration = 123;
         final String fileName = "fileName";
         final String mimeType = "mimeType";
-        Video video = new Video(FILE_ID, FILE_UNIQUE_ID, 0, 0, duration, new PhotoSize(), mimeType, FILE_SIZE, fileName);
+        Video video = new Video(FILE_ID, FILE_UNIQUE_ID, 0, 0, duration, new PhotoSize(), mimeType, FILE_SIZE, fileName, List.of(), 0);
         Message message = mock(Message.class);
         when(message.hasVideo()).thenReturn(true);
         when(message.getVideo()).thenReturn(video);

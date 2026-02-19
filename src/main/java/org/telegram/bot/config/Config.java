@@ -92,7 +92,9 @@ public class Config {
             public BotSession registerBot(String botToken, Supplier<TelegramUrl> telegramUrlSupplier, Function<Integer, GetUpdates> getUpdatesGenerator, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
                 Function<Integer, GetUpdates> customGenerator = (offset) ->
                         GetUpdates.builder()
-                                .offset(offset)
+                                .offset(offset + 1)
+                                .timeout(50)
+                                .limit(100)
                                 .allowedUpdates(ALLOWED_UPDATES)
                                 .build();
 
