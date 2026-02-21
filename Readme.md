@@ -1,172 +1,110 @@
 # jtelebot
 Java Telegram Bot (Spring)
 
-### List of commands
-/echo — chatbot (need training).
+## List of commands  
 
-/level — command access level. From 0 (complete ignore) to 10 - full access.
-
-/boobs — erotic pictures.
-
-/butts — erotic pictures.
-
-/help — bot commands documentation.
-
-/getid — information on user and group IDs.
-
-/start — welcome message from the bot with initial information. (Also, obtaining administrator rights for the user id specified in the properties).
-
-/top — user statistics: the number of messages, images, karma etc. per day, month, all the time.
-
-/sql — SQL command line with access to the bot database (use with caution, make backups (/backup)).
-
-/bash — bash.org.ru site quotes.
-
-/todo — todo-list.
-
-/news — news from rss feeds.
-
-/logs — bot logs.
-
-/where — information about the last message of the specified user.
-
-/cmd — access to the system console of the machine where the bot is running (use with caution).
-
+### Core
+/echo — chatbot (need training).  
+/help — bot commands documentation.  
+/getid — information on user and group IDs.  
+/start — welcome message from the bot with initial information. (Also, obtaining administrator rights for the user id specified in the properties).  
+/top — user statistics: the number of messages, images, karma etc. per day, month, all the time.   
+/todo — todo-list.   
+/where — information about the last message of the specified user.  
 /set — various bot settings: news, city, aliases, tv, holidays, disable commands, talker, zodiac sign, trainings, chatgpt.
+/advice — random advices.  
+/newyear — remaining time until the new year.  
+/alias — set aliases of bot commands.  
+/karma — information and changing the karma of chat participants.  
+/time — current time of users (requires city setting).  
+/holidays — user-holiday information.  
+/say — bot repeats what is written.  
+/up — shift up list of chat messages.  
+/files — cloud storage.  
+/remind — reminder.  
+/training — accounting of trainings, subscriptions to them and statistics.  
+/me - third person text (skype or irc /me command analog).  
+/delay - delayed execution of commands.  
+/reactions - reaction statistic.  
+/increment - counting increments.  
+/http - HTTP status code description.  
+/steam - Information about games on Steam.  
+/calories - calorie counting.  
+/write - sending messages.  
 
-/weather — weather information.
+### Information
+/bash — bash.org.ru site quotes.  
+/news — news from rss feeds.  
+/google — search in google.  
+/weather — weather information.  
+/wiki — search on wikipedia.  
+/wolframalpha — access to Wolfram alpha system.  
+/exchange — exchange rates.  
+/tv — TV program.  
+/horoscope — horoscope.  
+/parcel — parcel tracking.  
+/movie — movie information.  
+/calendar — public holiday calendar.  
+/word — access to Wiktionary.  
 
-/password — password generation.
+### Administration
+**⚠ Security Notice**
+Some commands provide direct access to:
+- system console  
+- database  
+- file system  
+- server shutdown
 
-/google — search in google.
+/level — command access level. From 0 (complete ignore) to 10 - full access.  
+/sql — SQL command line with access to the bot database (use with caution, make backups (/backup)).  
+/logs — bot logs.  
+/cmd — access to the system console of the machine where the bot is running (use with caution).  
+/uptime — bot statistics.  
+/shutdown — shutdown bot.  
+/backup — bot database backup (sent as a file to telegram).  
+/errors — list of errors that have occurred in the bot (for administrators).  
+/delete - deleting messages.
 
-/picture — image search.
+### Media
+/boobs — erotic images.  
+/butts — erotic images.  
+/picture — image search.  
+/truth — truthfulness of expressions.  
+/turn — translation of text from one layout to another (ghbdtn -> привет).    
+/image — search or download images via direct links and send them to chat.  
+/cats — images of cats.  
+/webcam — webcam video.  
+/dogs — images of dogs.  
 
+### Utilities
+/password — password generation.  
 /ping — resources reachability.
-
-/webscreen — screenshots of web pages.
-
-/advice — random advices.
-
-/truth — truthfulness of expressions.
-
-/wiki — search on wikipedia.
-
-/newyear — remaining time until the new year.
-
-/turn — translation of text from one layout to another (ghbdtn -> привет).
-
-/wolframalpha — access to Wolfram alpha system.
-
-/alias — set aliases of bot commands.
-
-/image — search or download images via direct links and send them to chat.
-
-/karma — information and changing the karma of chat participants.
-
-/time — current time of users (requires city setting).
-
-/exchange — exchange rates.
-
-/tv — TV programm.
-
-/calc — calculator.
-
-/uptime — bot statistics.
-
-/shutdown — shutdown bot.
-
-/holidays — holiday information.
-
-/say — bot repeats what is written.
-
-/up — shift up list of chat messages.
-
-/speller — search for errors in the text.
-
-/files — cloud storage.
-
-/backup — bot database backup (sent as a file to telegram).
-
-/cats — images of cats.
-
-/timedelta — date time delta.
-
-/translate — translator.
-
-/qr — reading and generating qr-codes.
-
-/timedownloading — download time calculation.
-
-/horoscope — horoscope.
-
-/webcam — webcam video.
-
-/parcel — parcel tracking.
-
-/remind — reminder.
-
-/uuid — random uuid generation or checking.
-
-/download — download files via direct links and send them to chat
-
-/number — telephone number information.
-
-/training — accounting of trainings, subscriptions to them and statistics.
-
-/movie — movie information.
-
-/calendar — public holiday calendar.
-
-/errors — list of errors that have occurred in the bot (for administrators).
-
-/chatgpt — chat with ChatGPT.
-
+/webscreen — screenshots of web pages.  
+/calc — calculator.  
+/speller — search for errors in the text.  
+/timedelta — date time delta.  
+/translate — translator.  
+/qr — reading and generating qr-codes.  
+/timedownloading — download time calculation.  
+/uuid — random uuid generation or checking.  
+/download — download files via direct links and send them to chat.  
+/number — telephone number information.  
 /convert — unit conversion.
-
 /metadata — metadata from file.
+/location — sending location by coordinates.  
+/voice — speech synthesis (and recognizing).  
+/virus — checking files and links for malware.  
+/length — counting the number of characters in a text or text file.  
+/random - get random in range or in list.  
+/latin - search for non-Latin characters.  
+/json - json validation and formatting.  
+/xml - xml validation and formatting.  
 
-/location — sending location by coordinates.
-
-/dogs — images of dogs.
-
+### AI
+/chatgpt — chat with ChatGPT.  
 /gigachat — chat with Gigachat.
 
-/voice — speech synthesis (and recognizing).
-
-/virus — checking files and links for malware.
-
-/length — counting the number of characters in a text or text file
-
-/word — access to Wiktionary.
-
-/random - get random in range or in list
-
-/latin - search for non-Latin characters
-
-/me - third person text (skype or irc /me command analog) (needs admin rights)
-
-/delete - deleting messages
-
-/delay - delayed execution of commands
-
-/json - json validation and formatting
-
-/xml - xml validation and formatting
-
-/reactions - reaction statistic
-
-/increment - counting increments
-
-/http - HTTP status code description
-
-/steam - Information about games on Steam
-
-/calories - calorie counting  
-
-/write - sending messages  
-
-### Properties
+## Properties
 **telegramBotApiToken**  
 You must specify the bot api token in the file properties.properties.  
 To receive a token contact @BotFather.
@@ -310,26 +248,29 @@ Messages count in /reactions command.
 *messageExpirationDays*
 number of days to store messages
 
-### System
-Java 21 is required to run the bot  
-To use the /webcam command, you need to install ffmpeg on your system
+## System
+Java 21 is required to run the bot.
+To use the /webcam command, you need to install ffmpeg on your system.
 
-### Build
-To build jar-file:
+## Build
+To build the JAR file:  
+`gradlew build -x test`  
+(The file will be located in the build/libs/ folder)  
 
-`gradlew build`
+## Run
 
-### Run
-To run without jar-file:
+To run without the JAR file:
+1. Fill in the `TelegramBotApiToken` parameter in `properties.properties`.  
+2. Run:  
+   `gradlew bootrun`  
 
-`gradlew bootrun`
+To run with the JAR file:
+1. Fill in the `TelegramBotApiToken` parameter in `properties.properties`.  
+2. Place `properties.properties` in the same folder as the JAR file.  
+3. Run:  
+   `java -jar Bot.jar`  
 
-To run with jar file:
-
-put properties.properties in folder with jar file and
-
-`java -jar Bot.jar`
-
-Use this for reduce memory usage
-
-`java -Xms132m -Xmx264m -jar Bot.jar -XX:+UseSerialGC -Xss512k -XX:MaxRAM=72m`
+### Admin rights
+To get admin rights:  
+1. Fill in the `adminId` parameter in `properties.properties` (you can get it using the /getid command).  
+2. Send `/help` to the bot.

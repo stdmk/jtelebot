@@ -7,10 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 public class TelegramProxyProperties {
 
-    private boolean enabled;
+    private Boolean enabled;
     private ProxyType type;
     private String host;
-    private int port;
+    private Integer port;
     private String username;
     private String password;
 

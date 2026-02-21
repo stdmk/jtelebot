@@ -111,7 +111,7 @@ public class Config {
                 .writeTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS);
 
-        if (proxyProps.isEnabled()) {
+        if (Boolean.TRUE.equals(proxyProps.getEnabled())) {
             Proxy.Type proxyType = proxyProps.getType() == TelegramProxyProperties.ProxyType.SOCKS
                     ? Proxy.Type.SOCKS
                     : Proxy.Type.HTTP;
