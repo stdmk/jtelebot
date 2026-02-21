@@ -1,47 +1,87 @@
 package org.telegram.bot.timers;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.mail.*;
-import jakarta.mail.search.FlagTerm;
+import jakarta.mail.event.MessageCountAdapter;
+import jakarta.mail.event.MessageCountEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.eclipse.angus.mail.imap.IMAPFolder;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.config.email.EmailProperties;
-import org.telegram.bot.domain.entities.Timer;
 
 @RequiredArgsConstructor
 @Component
 @Slf4j
 @ConditionalOnPropertyNotEmpty("mail.imaps.host")
-public class EmailTimer extends Timer {
+public class EmailTimer {
 
     private final Bot bot;
     private final EmailProperties.ImapsConfig imapsConfig;
     private final Session imapsSession;
 
-    @Scheduled(fixedRate = 10000)
-    public void execute() throws MessagingException {
-        if (imapsConfig == null) {
-            return;
-        }
+    private volatile boolean running = true;
 
-        Store store = imapsSession.getStore();
+    @PostConstruct
+    public void start() {
+        Thread thread = new Thread(this::runIdleLoop, "imap-idle-thread");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void runIdleLoop() {
+        while (running) {
+            try {
+                connectAndIdle();
+            } catch (Exception e) {
+                log.error("IMAP connection lost. Reconnecting in 10 seconds...", e);
+                sleep();
+            }
+        }
+    }
+
+    private void connectAndIdle() throws Exception {
+        Store store = imapsSession.getStore("imaps");
         store.connect(imapsConfig.getUser(), imapsConfig.getPassword());
 
-        Folder inbox = store.getFolder("INBOX");
+        IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
         inbox.open(Folder.READ_WRITE);
 
-        Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+        log.info("IMAP IDLE connected");
 
-        for (Message message : messages) {
-            bot.consume(message);
-            message.setFlag(Flags.Flag.SEEN, true);
+        inbox.addMessageCountListener(new MessageCountAdapter() {
+            @Override
+            public void messagesAdded(MessageCountEvent event) {
+                for (Message message : event.getMessages()) {
+                    try {
+                        bot.consume(message);
+                        message.setFlag(Flags.Flag.DELETED, true);
+                    } catch (Exception e) {
+                        log.error("Failed to process email message", e);
+                    }
+                }
+            }
+        });
+
+        while (running && store.isConnected()) {
+            inbox.idle();
         }
 
-        inbox.close(false);
+        inbox.close(true);
         store.close();
     }
 
+    @PreDestroy
+    public void stop() {
+        running = false;
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ignored) {}
+    }
 }
