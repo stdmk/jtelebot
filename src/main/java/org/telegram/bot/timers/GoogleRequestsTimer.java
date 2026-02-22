@@ -23,18 +23,18 @@ public class GoogleRequestsTimer extends TimerParent {
     private final BotStats botStats;
 
     @Override
-    @Scheduled(fixedRate = 14400000)
+    @Scheduled(fixedRate = 86400000)
     public void execute() {
         Timer timer = timerService.get("googleRequestsTimer");
+        LocalDateTime dateTimeNow = LocalDateTime.now();
         if (timer == null) {
             timer = new Timer()
                     .setName("googleRequestsTimer")
-                    .setLastAlarmDt(LocalDateTime.now());
+                    .setLastAlarmDt(dateTimeNow);
             timerService.save(timer);
         }
 
-        LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusDays(1);
+        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1).withDayOfMonth(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             botStats.resetGoogleRequests();

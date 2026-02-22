@@ -69,7 +69,7 @@ public class Config {
             "message_reaction",
             "message_reaction_count");
 
-    @Value("${defaultRequestTimeoutSeconds:10}")
+    @Value("${defaultRequestTimeoutSeconds:60}")
     private Integer defaultRequestTimeoutSeconds;
 
     @Value("${sberApiRequestTimeoutSeconds:60}")

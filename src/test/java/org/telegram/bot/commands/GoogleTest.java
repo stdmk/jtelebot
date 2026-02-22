@@ -49,7 +49,7 @@ class GoogleTest {
     @Mock
     private BotStats botStats;
     @Mock
-    private ResponseEntity<Google.GoogleSearchData> response;
+    private ResponseEntity<Google.SerpSearchData> response;
     @Captor
     private ArgumentCaptor<List<GoogleSearchResult>> googleSearchResultCaptor;
 
@@ -176,7 +176,7 @@ class GoogleTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.SerpSearchData>>any()))
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> google.parse(request));
@@ -188,12 +188,12 @@ class GoogleTest {
     @Test
     void googleWithNullResponseTest() {
         BotRequest request = TestUtils.getRequestFromGroup("google test");
-        Google.GoogleSearchData googleSearchData = new Google.GoogleSearchData();
+        Google.SerpSearchData googleSearchData = new Google.SerpSearchData();
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googleSearchData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.SerpSearchData>>any()))
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> google.parse(request));
@@ -207,30 +207,26 @@ class GoogleTest {
     void googleNotFoundedText() {
         BotRequest request = TestUtils.getRequestFromGroup("google test");
 
-        Google.CseImage cseImage = new Google.CseImage().setSrc("src");
-        Google.GoogleSearchItem googleSearchItem = new Google.GoogleSearchItem()
+        Google.SerpOrganicResult googleSearchItem = new Google.SerpOrganicResult()
                 .setTitle("title")
                 .setLink("link")
-                .setDisplayLink("displayLink")
+                .setDisplayedLink("displayLink")
                 .setSnippet("snippet")
-                .setFormattedUrl("formattedUrl")
-                .setPagemap(
-                        new Google.Pagemap()
-                                .setCseImage(List.of(cseImage)));
-        Google.GoogleSearchData googleSearchData = new Google.GoogleSearchData().setItems(List.of(googleSearchItem));
+                .setThumbnail("thumbnail");
+        Google.SerpSearchData googleSearchData = new Google.SerpSearchData().setOrganicResults(List.of(googleSearchItem));
 
         GoogleSearchResult expectedGoogleSearchResult = new GoogleSearchResult()
                 .setId(1L)
                 .setLink(googleSearchItem.getLink())
-                .setDisplayLink(googleSearchItem.getDisplayLink())
+                .setDisplayLink(googleSearchItem.getDisplayedLink())
                 .setTitle(googleSearchItem.getTitle());
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googleSearchData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.SerpSearchData>>any()))
                 .thenReturn(response);
-        when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(cseImage.getSrc()).setTitle("imageTitle"));
+        when(imageUrlService.save(any(ImageUrl.class))).thenReturn(new ImageUrl().setUrl(googleSearchItem.getLink()).setTitle(googleSearchItem.getTitle()));
         when(googleSearchResultService.save(anyList())).thenReturn(List.of(expectedGoogleSearchResult));
 
         BotResponse response = google.parse(request).getFirst();
@@ -241,7 +237,7 @@ class GoogleTest {
 
         assertNotNull(responseText);
         assertTrue(responseText.contains(googleSearchItem.getLink()));
-        assertTrue(responseText.contains(googleSearchItem.getDisplayLink()));
+        assertTrue(responseText.contains(googleSearchItem.getDisplayedLink()));
         assertTrue(responseText.contains(googleSearchItem.getTitle()));
 
         verify(botStats).incrementGoogleRequests();
@@ -251,7 +247,7 @@ class GoogleTest {
         ImageUrl imageUrl = imageUrlCaptor.getValue();
 
         assertNotNull(imageUrl);
-        assertEquals(cseImage.getSrc(), imageUrl.getUrl());
+        assertEquals(googleSearchItem.getThumbnail(), imageUrl.getUrl());
 
         verify(googleSearchResultService).save(googleSearchResultCaptor.capture());
         List<GoogleSearchResult> resultList = googleSearchResultCaptor.getValue();
@@ -261,9 +257,8 @@ class GoogleTest {
         assertNotNull(actualGoogleSearchResult.getImageUrl());
         assertEquals(googleSearchItem.getTitle(), actualGoogleSearchResult.getTitle());
         assertEquals(googleSearchItem.getLink(), actualGoogleSearchResult.getLink());
-        assertEquals(googleSearchItem.getDisplayLink(), actualGoogleSearchResult.getDisplayLink());
+        assertEquals(googleSearchItem.getDisplayedLink(), actualGoogleSearchResult.getDisplayLink());
         assertEquals(googleSearchItem.getSnippet(), actualGoogleSearchResult.getSnippet());
-        assertEquals(googleSearchItem.getFormattedUrl(), actualGoogleSearchResult.getFormattedUrl());
     }
 
 }

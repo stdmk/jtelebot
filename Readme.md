@@ -11,7 +11,7 @@ Java Telegram Bot (Spring)
 /top — user statistics: the number of messages, images, karma etc. per day, month, all the time.   
 /todo — todo-list.   
 /where — information about the last message of the specified user.  
-/set — various bot settings: news, city, aliases, tv, holidays, disable commands, talker, zodiac sign, trainings, chatgpt.
+/set — various bot settings: news, city, aliases, tv, holidays, disable commands, talker, zodiac sign, trainings, chatgpt.  
 /advice — random advices.  
 /newyear — remaining time until the new year.  
 /alias — set aliases of bot commands.  
@@ -123,7 +123,10 @@ To get a token go to https://openweathermap.org/
 
 **googleToken** (/google /image /images commands)  
 Google search API access token.  
-To get a token go to https://developers.google.com/custom-search/v1/overview?hl=en#prerequisites
+To get a token go to https://serpapi.com    
+
+**googleSearchRequestsLimit**  
+API request limit  
 
 **googleTranslateToken** (/translate command)  
 Google Translator API access token.  
@@ -168,11 +171,17 @@ To get a token go to https://www.screenshotmachine.com/
 
 **wolframAlphaToken** (/wolframalpha command)  
 WolframAlphaToken API access token.
-To get a token go to https://products.wolframalpha.com/api
+To get a token go to https://products.wolframalpha.com/api  
+
+**wolframAlphaRequestsLimit**  
+API request limit
 
 **kinopoiskToken** (/kinopoisk command)  
 Kinopoisk.dev API access token.
-To get a token go to @kinopoiskdev_bot.
+To get a token go to @kinopoiskdev_bot.  
+
+**kinopoiskRequestsLimit**  
+API request limit  
 
 **chatGptApiUrl** (/chatgpt command)  
 API URL of ChatGPT.  

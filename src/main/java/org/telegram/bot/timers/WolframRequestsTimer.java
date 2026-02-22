@@ -26,15 +26,15 @@ public class WolframRequestsTimer extends TimerParent {
     @Scheduled(fixedRate = 86400000)
     public void execute() {
         Timer timer = timerService.get("wolframRequestsTimer");
+        LocalDateTime dateTimeNow = LocalDateTime.now();
         if (timer == null) {
             timer = new Timer()
                     .setName("wolframRequestsTimer")
-                    .setLastAlarmDt(LocalDateTime.now());
+                    .setLastAlarmDt(dateTimeNow);
             timerService.save(timer);
         }
 
-        LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1);
+        LocalDateTime nextAlarm = timer.getLastAlarmDt().plusMonths(1).withDayOfMonth(1);
 
         if (dateTimeNow.isAfter(nextAlarm)) {
             botStats.resetWolframRequests();

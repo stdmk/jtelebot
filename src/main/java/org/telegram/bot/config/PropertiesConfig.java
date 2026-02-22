@@ -21,6 +21,7 @@ public class PropertiesConfig {
     private Long adminId;
     private String openweathermapId;
     private String googleToken;
+    private Integer googleSearchRequestsLimit;
     private String googleTranslateToken;
     private String screenshotMachineToken;
     private String screenshotMachineDevice;
@@ -28,7 +29,9 @@ public class PropertiesConfig {
     private String screenshotMachineFormat;
     private String screenshotMachineTimeoutMs;
     private String wolframAlphaToken;
+    private Integer wolframAlphaRequestsLimit;
     private String kinopoiskToken;
+    private Integer kinopoiskRequestsLimit;
     private String chatGPTToken;
     private Boolean spyMode;
     private String russianPostLogin;

@@ -136,15 +136,15 @@ public class BotStats {
     }
 
     public void resetGoogleRequests() {
-        this.googleRequests = 100;
+        this.googleRequests = propertiesConfig.getGoogleSearchRequestsLimit();
     }
 
     public void resetKinopoiskRequests() {
-        this.kinopoiskRequests = 200;
+        this.kinopoiskRequests = propertiesConfig.getKinopoiskRequestsLimit();
     }
 
     public void resetWolframRequests() {
-        this.wolframRequests = 1000;
+        this.wolframRequests = propertiesConfig.getWolframAlphaRequestsLimit();
     }
 
     public void resetRussianPostRequests() {

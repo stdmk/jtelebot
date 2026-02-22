@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.bot.Bot;
@@ -26,7 +25,6 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,7 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class Google implements Command {
 
-    private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?";
+    private static final String SERP_API_URL = "https://serpapi.com/search.json?";
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -94,33 +92,29 @@ public class Google implements Command {
         } else {
             bot.sendTyping(chatId);
             log.debug("Request to get google results for: {}", commandArgument);
-            GoogleSearchData googleSearchData = getResultOfSearch(commandArgument, token);
+            SerpSearchData serpSearchData = getResultOfSearch(commandArgument, token);
 
-            if (googleSearchData.getItems() == null) {
+            if (serpSearchData == null || serpSearchData.getOrganicResults() == null) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
             }
 
-            List<GoogleSearchResult> googleSearchResults = googleSearchData.getItems()
+            List<GoogleSearchResult> googleSearchResults = serpSearchData.getOrganicResults()
                     .stream()
-                    .map(googleSearchItem -> {
+                    .map(result -> {
                         ImageUrl imageUrl = null;
 
-                        List<CseImage> cseImageList = Optional.ofNullable(googleSearchItem.getPagemap())
-                                .map(Pagemap::getCseImage)
-                                .orElse(null);
-
-                        if (!CollectionUtils.isEmpty(cseImageList)) {
+                        if (result.getThumbnail() != null) {
                             imageUrl = imageUrlService.save(new ImageUrl()
-                                    .setTitle(googleSearchItem.getTitle())
-                                    .setUrl(cseImageList.getFirst().getSrc()));
+                                    .setTitle(TextUtils.cutIfLongerThan(result.getTitle(), 255))
+                                    .setUrl(result.getThumbnail()));
                         }
 
                         return new GoogleSearchResult()
-                                .setTitle(googleSearchItem.getTitle())
-                                .setLink(googleSearchItem.getLink())
-                                .setDisplayLink(googleSearchItem.getDisplayLink())
-                                .setSnippet(googleSearchItem.getSnippet())
-                                .setFormattedUrl(googleSearchItem.getFormattedUrl())
+                                .setTitle(result.getTitle())
+                                .setLink(result.getLink())
+                                .setDisplayLink(result.getDisplayedLink())
+                                .setSnippet(result.getSnippet())
+                                .setFormattedUrl(result.getLink())
                                 .setImageUrl(imageUrl);
                     })
                     .collect(Collectors.toList());
@@ -146,14 +140,20 @@ public class Google implements Command {
      * Getting Google search results for request.
      *
      * @param requestText search text.
-     * @param googleToken service access token.
+     * @param apiKey service access token.
      * @return google search data.
      */
-    private GoogleSearchData getResultOfSearch(String requestText, String googleToken) {
-        ResponseEntity<GoogleSearchData> response;
+    private SerpSearchData getResultOfSearch(String requestText, String apiKey) {
+        ResponseEntity<SerpSearchData> response;
 
         try {
-            response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + requestText, GoogleSearchData.class);
+            response = botRestTemplate.getForEntity(
+                    SERP_API_URL +
+                            "engine=google" +
+                            "&q=" + requestText +
+                            "&json_restrictor=organic_results" +
+                            "&api_key=" + apiKey,
+                    SerpSearchData.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -167,46 +167,27 @@ public class Google implements Command {
     @Data
     @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class GoogleSearchData {
-        private SearchInformation searchInformation;
-        private List<GoogleSearchItem> items;
-    }
-
-    @Data
-    private static class SearchInformation {
-        private Float searchTime;
-        private String formattedSearchTime;
-        private String totalResults;
-        private String formattedTotalResults;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class GoogleSearchItem {
-        private String kind;
-        private String title;
-        private String htmlTitle;
-        private String link;
-        private String displayLink;
-        private String snippet;
-        private String htmlSnippet;
-        private String cacheId;
-        private String formattedUrl;
-        private String htmlFormattedUrl;
-        private Pagemap pagemap;
+    public static class SerpSearchData {
+        @JsonProperty("organic_results")
+        private List<SerpOrganicResult> organicResults;
     }
 
     @Data
     @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Pagemap {
-        @JsonProperty("cse_image")
-        private List<CseImage> cseImage;
+    public static class SerpOrganicResult {
+        private Integer position;
+
+        private String title;
+
+        private String link;
+
+        @JsonProperty("displayed_link")
+        private String displayedLink;
+
+        private String snippet;
+
+        private String thumbnail;
     }
 
-    @Data
-    @Accessors(chain = true)
-    public static class CseImage {
-        private String src;
-    }
 }

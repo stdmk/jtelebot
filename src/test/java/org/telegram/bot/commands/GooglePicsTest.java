@@ -53,7 +53,7 @@ class GooglePicsTest {
     @Mock
     private NetworkUtils networkUtils;
     @Mock
-    private ResponseEntity<GooglePics.GooglePicsSearchData> response;
+    private ResponseEntity<GooglePics.SerpImageSearchData> response;
     @Captor
     private ArgumentCaptor<List<ImageUrl>> imageUrlListCaptor;
 
@@ -139,7 +139,7 @@ class GooglePicsTest {
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.GoogleSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<Google.SerpSearchData>>any()))
                 .thenThrow(new RestClientException(""));
 
         assertThrows(BotException.class, () -> googlePics.parse(request));
@@ -150,12 +150,12 @@ class GooglePicsTest {
     @Test
     void googlePicsWithNullResponseTest() {
         BotRequest request = TestUtils.getRequestFromGroup("picture test");
-        GooglePics.GooglePicsSearchData googlePicsSearchData = new GooglePics.GooglePicsSearchData();
+        GooglePics.SerpImageSearchData googlePicsSearchData = new GooglePics.SerpImageSearchData();
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googlePicsSearchData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GooglePics.GooglePicsSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GooglePics.SerpImageSearchData>>any()))
                 .thenReturn(response);
 
         assertThrows(BotException.class, () -> googlePics.parse(request));
@@ -169,15 +169,16 @@ class GooglePicsTest {
         BotRequest request = TestUtils.getRequestFromGroup("picture test");
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        GooglePics.GooglePicsSearchItem googlePicsSearchItem = new GooglePics.GooglePicsSearchItem()
+        GooglePics.SerpImageResult googlePicsSearchItem = new GooglePics.SerpImageResult()
                 .setTitle("title")
-                .setLink("link");
-        GooglePics.GooglePicsSearchData googlePicsSearchData = new GooglePics.GooglePicsSearchData()
-                .setItems(List.of(googlePicsSearchItem));
+                .setThumbnail("thumbnail")
+                .setOriginal("link");
+        GooglePics.SerpImageSearchData googlePicsSearchData = new GooglePics.SerpImageSearchData()
+                .setImagesResults(List.of(googlePicsSearchItem));
 
         when(propertiesConfig.getGoogleToken()).thenReturn("123");
         when(response.getBody()).thenReturn(googlePicsSearchData);
-        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GooglePics.GooglePicsSearchData>>any()))
+        when(botRestTemplate.getForEntity(anyString(), ArgumentMatchers.<Class<GooglePics.SerpImageSearchData>>any()))
                 .thenReturn(response);
         when(imageUrlService.save(anyList())).thenReturn(
                 List.of(
@@ -200,7 +201,7 @@ class GooglePicsTest {
 
         ImageUrl imageUrl = imageUrlList.getFirst();
         assertEquals(googlePicsSearchItem.getTitle(), imageUrl.getTitle());
-        assertEquals(googlePicsSearchItem.getLink(), imageUrl.getUrl());
+        assertEquals(googlePicsSearchItem.getOriginal(), imageUrl.getUrl());
 
     }
 

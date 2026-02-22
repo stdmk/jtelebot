@@ -1,6 +1,7 @@
 package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -23,6 +24,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.ImageUrlService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +34,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GooglePics implements Command {
 
-    private static final String GOOGLE_URL = "https://www.googleapis.com/customsearch/v1?searchType=image&";
+    private static final String SERP_API_URL = "https://serpapi.com/search.json?";
+    private static final int IMAGES_RESULT_LIMIT = 10;
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;
@@ -89,7 +92,9 @@ public class GooglePics implements Command {
             log.debug("Request to search images for {}", commandArgument);
             List<File> images = searchImagesOnGoogle(commandArgument)
                     .stream()
-                    .map(imageUrl -> new File(FileType.IMAGE, imageUrl.getUrl(), "/image_" + imageUrl.getId()))
+                    .limit(IMAGES_RESULT_LIMIT)
+                    .map(imageUrl ->
+                            new File(FileType.IMAGE, imageUrl.getThumbnailUrl(), "/image_" + imageUrl.getId() + " — " + imageUrl.getTitle()))
                     .toList();
 
             return returnResponse(new FileResponse(message)
@@ -105,14 +110,23 @@ public class GooglePics implements Command {
      * @see ImageUrl
      */
     public List<ImageUrl> searchImagesOnGoogle(String text) {
-        String googleToken = propertiesConfig.getGoogleToken();
-        if (googleToken == null || googleToken.isEmpty()) {
+        String apiKey = propertiesConfig.getGoogleToken();
+        if (apiKey == null || apiKey.isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.UNABLE_TO_FIND_TOKEN));
         }
 
-        ResponseEntity<GooglePics.GooglePicsSearchData> response;
+        ResponseEntity<SerpImageSearchData> response;
+
         try {
-            response = botRestTemplate.getForEntity(GOOGLE_URL + "key=" + googleToken + "&q=" + text, GooglePicsSearchData.class);
+            response = botRestTemplate.getForEntity(
+                    SERP_API_URL +
+                            "engine=google_images" +
+                            "&q=" + text +
+                            "&ijn=0" +
+                            "&safe=active" +
+                            "&json_restrictor=images_results" +
+                            "&api_key=" + apiKey,
+                    SerpImageSearchData.class);
         } catch (RestClientException e) {
             log.error("Error receiving result of searching images: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
@@ -120,32 +134,42 @@ public class GooglePics implements Command {
 
         botStats.incrementGoogleRequests();
 
-        GooglePics.GooglePicsSearchData googlePicsSearchData = response.getBody();
+        SerpImageSearchData data = response.getBody();
 
-        if (googlePicsSearchData == null || googlePicsSearchData.getItems() == null) {
+        if (data == null || data.getImagesResults() == null || data.getImagesResults().isEmpty()) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
         }
 
-        return imageUrlService.save(googlePicsSearchData.getItems()
-                .stream()
-                .map(googlePicsSearchItem -> new ImageUrl()
-                        .setTitle(googlePicsSearchItem.getTitle())
-                        .setUrl(googlePicsSearchItem.getLink()))
-                .collect(Collectors.toList()));
+        return imageUrlService.save(
+                data.getImagesResults()
+                        .stream()
+                        .map(item -> new ImageUrl()
+                                .setTitle(TextUtils.cutIfLongerThan(item.getTitle(), 255))
+                                .setUrl(item.getOriginal())
+                                .setThumbnailUrl(item.getThumbnail()))
+                        .collect(Collectors.toList())
+        );
     }
 
     @Data
     @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class GooglePicsSearchData {
-        private List<GooglePicsSearchItem> items;
+    public static class SerpImageSearchData {
+        @JsonProperty("images_results")
+        private List<SerpImageResult> imagesResults;
     }
 
     @Data
     @Accessors(chain = true)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class GooglePicsSearchItem {
+    public static class SerpImageResult {
+        private Integer position;
         private String title;
+        private String thumbnail;
+        private String original;
         private String link;
+        @JsonProperty("displayed_link")
+        private String displayedLink;
     }
+
 }
