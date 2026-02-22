@@ -36,10 +36,15 @@ public class EmailTimer {
         while (running) {
             try {
                 connectAndIdle();
+            } catch (FolderClosedException e) {
+                log.debug("IMAP session closed by server (timeout). Reconnecting...");
+            } catch (MessagingException e) {
+                log.warn("IMAP messaging problem. Reconnecting...", e);
             } catch (Exception e) {
-                log.error("IMAP connection lost. Reconnecting in 10 seconds...", e);
-                sleep();
+                log.error("Unexpected IMAP error", e);
             }
+
+            sleep();
         }
     }
 

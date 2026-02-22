@@ -63,7 +63,7 @@ Some commands provide direct access to:
 /shutdown — shutdown bot.  
 /backup — bot database backup (sent as a file to telegram).  
 /errors — list of errors that have occurred in the bot (for administrators).  
-/delete - deleting messages.
+/delete - deleting messages (the bot needs permission to delete messages).  
 
 ### Media
 /boobs — erotic images.  
