@@ -9,7 +9,7 @@ import org.telegram.bot.providers.sber.SberTokenProvider;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SberTokenUpdateTimer extends TimerParent {
+public class SberTokenUpdateTimer implements Timer {
 
     private final SberTokenProvider sberTokenProvider;
 

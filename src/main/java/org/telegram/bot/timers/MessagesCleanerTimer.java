@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MessagesCleanerTimer extends TimerParent {
+public class MessagesCleanerTimer implements Timer {
 
     private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
             .setFormattingStyle(FormattingStyle.HTML)

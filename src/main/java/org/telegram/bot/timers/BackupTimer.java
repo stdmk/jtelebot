@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class BackupTimer extends TimerParent {
+public class BackupTimer implements Timer {
 
     private final Bot bot;
     private final PropertiesConfig propertiesConfig;

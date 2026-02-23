@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class FileManagerTimer extends TimerParent {
+public class FileManagerTimer implements Timer {
 
     private static final AtomicInteger FILES_COUNTER = new AtomicInteger();
     private static final Map<String, LocalDateTime> FILES = new HashMap<>();

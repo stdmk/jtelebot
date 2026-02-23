@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TrainingTimer extends TimerParent {
+public class TrainingTimer implements Timer {
 
     private final Bot bot;
     private final TrainingEventService trainingEventService;

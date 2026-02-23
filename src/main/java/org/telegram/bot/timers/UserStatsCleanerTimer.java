@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Top;
 import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.services.*;
 
@@ -24,7 +23,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class UserStatsCleanerTimer extends TimerParent {
+public class UserStatsCleanerTimer implements Timer {
 
     private final Bot bot;
     private final TimerService timerService;
@@ -48,9 +47,9 @@ public class UserStatsCleanerTimer extends TimerParent {
 
     @Transactional
     public void checkDailyStats() {
-        Timer timer = timerService.get("statsDailyCleanTimer");
+        org.telegram.bot.domain.entities.Timer timer = timerService.get("statsDailyCleanTimer");
         if (timer == null) {
-            timer = new Timer()
+            timer = new org.telegram.bot.domain.entities.Timer()
                     .setName("statsDailyCleanTimer")
                     .setLastAlarmDt(LocalDateTime.now());
             timerService.save(timer);
@@ -70,9 +69,9 @@ public class UserStatsCleanerTimer extends TimerParent {
 
     @Transactional
     public void checkMonthlyStats() {
-        Timer timer = timerService.get("statsCleanTimer");
+        org.telegram.bot.domain.entities.Timer timer = timerService.get("statsCleanTimer");
         if (timer == null) {
-            timer = new Timer()
+            timer = new org.telegram.bot.domain.entities.Timer()
                     .setName("statsCleanTimer")
                     .setLastAlarmDt(atStartOfDay(LocalDateTime.now().plusMonths(1).withDayOfMonth(1)));
             timerService.save(timer);

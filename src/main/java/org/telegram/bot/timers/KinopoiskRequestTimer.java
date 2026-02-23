@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
-import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.TimerService;
 
@@ -17,7 +16,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnPropertyNotEmpty("kinopoiskToken")
-public class KinopoiskRequestTimer extends TimerParent {
+public class KinopoiskRequestTimer implements Timer {
 
     private final TimerService timerService;
     private final BotStats botStats;
@@ -25,9 +24,9 @@ public class KinopoiskRequestTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 14400000)
     public void execute() {
-        Timer timer = timerService.get("kinopoiskRequestsTimer");
+        org.telegram.bot.domain.entities.Timer timer = timerService.get("kinopoiskRequestsTimer");
         if (timer == null) {
-            timer = new Timer()
+            timer = new org.telegram.bot.domain.entities.Timer()
                     .setName("kinopoiskRequestsTimer")
                     .setLastAlarmDt(LocalDateTime.now());
             timerService.save(timer);

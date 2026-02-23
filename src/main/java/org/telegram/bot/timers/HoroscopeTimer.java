@@ -9,7 +9,7 @@ import org.telegram.bot.commands.Horoscope;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class HoroscopeTimer extends TimerParent  {
+public class HoroscopeTimer implements Timer {
 
     private final Horoscope horoscope;
 

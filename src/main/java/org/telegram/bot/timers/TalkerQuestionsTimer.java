@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TalkerQuestionsTimer extends TimerParent {
+public class TalkerQuestionsTimer implements Timer {
 
     private final TalkerDegreeService talkerDegreeService;
     private final UserStatsService userStatsService;

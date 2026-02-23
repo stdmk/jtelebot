@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class DelayCommandTimer extends TimerParent {
+public class DelayCommandTimer implements Timer {
 
     private final Clock clock;
     private final Bot bot;

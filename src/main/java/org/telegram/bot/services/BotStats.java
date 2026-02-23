@@ -97,22 +97,27 @@ public class BotStats {
 
     public void incrementErrors(PartialBotApiMethod<?> response, Throwable throwable, String comment) {
         this.errors = this.errors + 1;
-        errorService.save(response, throwable, comment);
+        errorService.saveResponse(response, throwable, comment);
+    }
+
+    public void incrementErrors(Exception e, String comment) {
+        this.errors = this.errors + 1;
+        errorService.save(e, comment);
     }
 
     public void incrementErrors(Object request, String comment) {
         this.errors = this.errors + 1;
-        errorService.save(request, comment);
+        errorService.saveRequest(request, comment);
     }
 
     public void incrementErrors(Object request, Throwable throwable, String comment) {
         this.errors = this.errors + 1;
-        errorService.save(request, throwable, comment);
+        errorService.saveRequest(request, throwable, comment);
     }
 
     public void incrementErrors(Object request, PartialBotApiMethod<?> response, Throwable throwable, String comment) {
         this.errors = this.errors + 1;
-        errorService.save(request, response, throwable, comment);
+        errorService.saveRequest(request, response, throwable, comment);
     }
 
     public void incrementScreenshots() {

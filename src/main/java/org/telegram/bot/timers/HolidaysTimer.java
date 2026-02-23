@@ -18,7 +18,7 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class HolidaysTimer extends TimerParent {
+public class HolidaysTimer implements Timer {
 
     private final Bot bot;
     private final ChatService chatService;

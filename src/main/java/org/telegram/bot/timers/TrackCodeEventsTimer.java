@@ -26,7 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnPropertyNotEmpty({"russianPostLogin", "russianPostPassword"})
-public class TrackCodeEventsTimer extends TimerParent {
+public class TrackCodeEventsTimer implements Timer {
 
     private final Bot bot;
     private final BotStats botStats;

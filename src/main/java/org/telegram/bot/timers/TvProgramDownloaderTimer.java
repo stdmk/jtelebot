@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.config.PropertiesConfig;
-import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.domain.entities.TvProgram;
 import org.telegram.bot.exception.BotException;
@@ -24,7 +23,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +37,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnPropertyNotEmpty("xmlTvFileUrl")
-public class TvProgramDownloaderTimer extends TimerParent {
+public class TvProgramDownloaderTimer implements Timer {
 
     private static final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";
 
@@ -51,9 +50,9 @@ public class TvProgramDownloaderTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 14400000)
     public void execute() {
-        Timer timer = timerService.get("tvProgramDownloader");
+        org.telegram.bot.domain.entities.Timer timer = timerService.get("tvProgramDownloader");
         if (timer == null) {
-            timer = new Timer()
+            timer = new org.telegram.bot.domain.entities.Timer()
                     .setName("tvProgramDownloader")
                     .setLastAlarmDt(LocalDateTime.now().minusDays(1));
             timerService.save(timer);
@@ -104,7 +103,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private void transferTvProgramDataFile(String xmlTvFileUrl) throws IOException {
         String zipFileName = xmlTvFileUrl.substring(xmlTvFileUrl.lastIndexOf("/") + 1);
 
-        FileUtils.copyURLToFile(new URL(xmlTvFileUrl), new File(zipFileName));
+        FileUtils.copyURLToFile(URI.create(xmlTvFileUrl).toURL(), new File(zipFileName));
 
         try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFileName));
              OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {

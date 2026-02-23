@@ -26,7 +26,7 @@ import java.util.Locale;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ReminderTimer extends TimerParent {
+public class ReminderTimer implements Timer {
 
     private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
             .setFormattingStyle(FormattingStyle.HTML)

@@ -9,7 +9,7 @@ import org.telegram.bot.services.BotStats;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SaveDataTimer extends TimerParent {
+public class SaveDataTimer implements Timer {
     private final BotStats botStats;
 
     @Override

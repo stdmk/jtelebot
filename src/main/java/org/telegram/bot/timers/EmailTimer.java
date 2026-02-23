@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.config.email.EmailProperties;
+import org.telegram.bot.services.BotStats;
 
 @RequiredArgsConstructor
 @Component
@@ -20,6 +21,7 @@ import org.telegram.bot.config.email.EmailProperties;
 public class EmailTimer {
 
     private final Bot bot;
+    private final BotStats botStats;
     private final EmailProperties.ImapsConfig imapsConfig;
     private final Session imapsSession;
 
@@ -39,9 +41,11 @@ public class EmailTimer {
             } catch (FolderClosedException e) {
                 log.debug("IMAP session closed by server (timeout). Reconnecting...");
             } catch (MessagingException e) {
-                log.warn("IMAP messaging problem. Reconnecting...", e);
+                log.error("IMAP messaging problem. Reconnecting...", e);
             } catch (Exception e) {
-                log.error("Unexpected IMAP error", e);
+                String errorMessage = "Unexpected IMAP error: " + e.getMessage();
+                log.error(errorMessage, e);
+                botStats.incrementErrors(e, errorMessage);
             }
 
             sleep();

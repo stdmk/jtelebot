@@ -25,18 +25,23 @@ public class ErrorServiceImpl implements ErrorService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void save(PartialBotApiMethod<?> response, Throwable throwable, String comment) {
-        save(null, response, throwable, comment);
+    public void saveResponse(PartialBotApiMethod<?> response, Throwable throwable, String comment) {
+        saveRequest(null, response, throwable, comment);
     }
 
     @Override
-    public void save(Object request, String comment) {
-        save(request, null, null, comment);
+    public void save(Exception e, String comment) {
+        saveRequest(null, null, e, comment);
     }
 
     @Override
-    public void save(Object request, Throwable throwable, String comment) {
-        save(request, null, throwable, comment);
+    public void saveRequest(Object request, String comment) {
+        saveRequest(request, null, null, comment);
+    }
+
+    @Override
+    public void saveRequest(Object request, Throwable throwable, String comment) {
+        saveRequest(request, null, throwable, comment);
     }
 
     @Override
@@ -56,7 +61,7 @@ public class ErrorServiceImpl implements ErrorService {
     }
 
     @Override
-    public void save(Object request, PartialBotApiMethod<?> response, Throwable throwable, String comment) {
+    public void saveRequest(Object request, PartialBotApiMethod<?> response, Throwable throwable, String comment) {
         String requestJson = getStringOrEmpty(request, () -> getObjectJson(request));
         String responseJson = getStringOrEmpty(response, () -> getObjectJson(response));
         String stacktrace = getStringOrEmpty(throwable, () -> ExceptionUtils.getStackTrace(throwable));

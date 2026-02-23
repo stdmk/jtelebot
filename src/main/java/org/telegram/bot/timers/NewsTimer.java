@@ -26,7 +26,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NewsTimer extends TimerParent {
+public class NewsTimer implements Timer {
 
     private final Bot bot;
     private final NewsService newsService;

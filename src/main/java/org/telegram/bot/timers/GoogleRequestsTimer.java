@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
-import org.telegram.bot.domain.entities.Timer;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.TimerService;
 
@@ -17,7 +16,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnPropertyNotEmpty("googleToken")
-public class GoogleRequestsTimer extends TimerParent {
+public class GoogleRequestsTimer implements Timer {
 
     private final TimerService timerService;
     private final BotStats botStats;
@@ -25,10 +24,10 @@ public class GoogleRequestsTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 86400000)
     public void execute() {
-        Timer timer = timerService.get("googleRequestsTimer");
+        org.telegram.bot.domain.entities.Timer timer = timerService.get("googleRequestsTimer");
         LocalDateTime dateTimeNow = LocalDateTime.now();
         if (timer == null) {
-            timer = new Timer()
+            timer = new org.telegram.bot.domain.entities.Timer()
                     .setName("googleRequestsTimer")
                     .setLastAlarmDt(dateTimeNow);
             timerService.save(timer);
