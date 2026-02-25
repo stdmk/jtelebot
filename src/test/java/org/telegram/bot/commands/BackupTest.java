@@ -17,7 +17,8 @@ import java.io.File;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BackupTest {
@@ -33,7 +34,8 @@ class BackupTest {
     @Test
     void parseTest() {
         BotRequest request = TestUtils.getRequestFromGroup();
-        when(dbBackuper.getDbBackup()).thenReturn(mock(File.class));
+        File fileMock = TestUtils.getFileMock();
+        when(dbBackuper.getDbBackup()).thenReturn(fileMock);
 
         BotResponse botResponse = backup.parse(request).getFirst();
         verify(bot).sendUploadDocument(request.getMessage().getChatId());

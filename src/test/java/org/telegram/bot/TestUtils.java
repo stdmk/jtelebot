@@ -8,12 +8,15 @@ import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.enums.RequestSource;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestUtils {
 
@@ -397,6 +400,12 @@ public class TestUtils {
 
     public static byte[] getResourceAsBytes(String path) throws IOException {
         return IOUtils.toByteArray(new FileInputStream("src/test/resources/" + path));
+    }
+
+    public static File getFileMock() {
+        File file = mock(File.class);
+        when(file.exists()).thenReturn(true);
+        return file;
     }
 
 }

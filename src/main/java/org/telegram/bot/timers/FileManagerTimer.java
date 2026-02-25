@@ -2,6 +2,7 @@ package org.telegram.bot.timers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.services.BotStats;
@@ -9,6 +10,7 @@ import org.telegram.bot.services.BotStats;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +23,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class FileManagerTimer extends TimerParent {
 
+    @Value("${temporaryFileLifetimeSeconds:900}")
+    private Integer temporaryFileLifetimeSeconds;
+
     private static final AtomicInteger FILES_COUNTER = new AtomicInteger();
     private static final Map<String, LocalDateTime> FILES = new HashMap<>();
 
@@ -29,12 +34,11 @@ public class FileManagerTimer extends TimerParent {
     @Override
     @Scheduled(fixedRate = 30000)
     public void execute() {
-        final int fileLifeTimeMinutes = 5;
         LocalDateTime dateTimeNow = LocalDateTime.now();
         Set<String> fileNamesToRemove = new HashSet<>();
 
         FILES.forEach((key, value) -> {
-            if (dateTimeNow.isAfter(value.plusMinutes(fileLifeTimeMinutes)) && (deleteFileFromDisk(key))) {
+            if (dateTimeNow.isAfter(value.plusMinutes(temporaryFileLifetimeSeconds)) && (deleteFileFromDisk(key))) {
                 fileNamesToRemove.add(key);
             }
         });
@@ -84,6 +88,8 @@ public class FileManagerTimer extends TimerParent {
     private boolean deleteFileFromDisk(File file) {
         try {
             Files.delete(file.toPath());
+        } catch (NoSuchFileException e) {
+            log.error("File {} already deleted", file);
         } catch (IOException e) {
             log.error("Failed to delete file {}", file);
             botStats.incrementErrors(file, e, "Failed to delete file");

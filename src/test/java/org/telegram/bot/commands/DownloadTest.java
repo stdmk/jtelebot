@@ -13,8 +13,13 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.exception.youtube.YoutubeDownloadException;
+import org.telegram.bot.exception.youtube.YoutubeDownloadNoResponseException;
+import org.telegram.bot.exception.youtube.YtDlpException;
+import org.telegram.bot.providers.media.YoutubeVideoProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
@@ -24,8 +29,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +41,8 @@ class DownloadTest {
     private Bot bot;
     @Mock
     private NetworkUtils networkUtils;
+    @Mock
+    private YoutubeVideoProvider youtubeVideoProvider;
     @Mock
     private SpeechService speechService;
     @Mock
@@ -135,6 +141,53 @@ class DownloadTest {
         assertThrows(BotException.class, () -> download.parse(request));
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);
+    }
+
+    @Test
+    void parseWithYoutubeVideoAsArgumentWhenNoResponseTest() throws YoutubeDownloadException {
+        final String url = "https://youtube.com/shorts/QWERTYUIOP1";
+        BotRequest request = getRequestFromGroup("download " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(youtubeVideoProvider.getVideo(url)).thenThrow(new YoutubeDownloadNoResponseException("error"));
+
+        assertThrows(BotException.class, () -> download.parse(request));
+        verify(bot).sendUploadVideo(request.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
+    void parseWithYoutubeVideoAsArgumentWhenFailedToCallYtDlpTest() throws YoutubeDownloadException {
+        final String url = "https://youtube.com/shorts/QWERTYUIOP1";
+        BotRequest request = getRequestFromGroup("download " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(youtubeVideoProvider.getVideo(url)).thenThrow(new YtDlpException("error"));
+
+        assertThrows(BotException.class, () -> download.parse(request));
+        verify(bot).sendUploadVideo(request.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
+    }
+
+    @Test
+    void parseWithYoutubeVideoAsArgumentTest() throws YoutubeDownloadException {
+        final String url = "https://youtube.com/shorts/QWERTYUIOP1";
+        BotRequest request = getRequestFromGroup("download " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        java.io.File youtubeFile = mock(java.io.File.class);
+        when(youtubeFile.exists()).thenReturn(true);
+        when(youtubeVideoProvider.getVideo(url)).thenReturn(youtubeFile);
+
+        BotResponse response = download.parse(request).getFirst();
+
+        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.VIDEO);
+
+        File file = fileResponse.getFiles().getFirst();
+        assertNull(file.getName());
+        assertEquals(youtubeFile, file.getDiskFile());
+
+        verify(bot).sendUploadVideo(request.getMessage().getChatId());
     }
 
 }

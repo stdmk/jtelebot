@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.model.response.EmailResponse;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileType;
@@ -83,7 +84,7 @@ class EmailMessageMapperTest {
         final byte[] attachmentFileUrlBytes = "attachmentFileUrlBytes".getBytes(StandardCharsets.UTF_8);
 
         File attachmentBytes = new File(FileType.FILE, attachmentBytesBytes, "name");
-        File attachmentDiskFile = new File(FileType.FILE, new java.io.File(""));
+        File attachmentDiskFile = new File(FileType.FILE, TestUtils.getFileMock());
         File attachmentFileIdWithFail = new File(fileIdWithFail);
         File attachmentFileId = new File(fileId2);
         File attachmentUrlWithFail = new File(FileType.FILE, fileUrlWithFail);

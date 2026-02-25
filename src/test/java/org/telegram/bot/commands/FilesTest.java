@@ -536,6 +536,7 @@ class FilesTest {
     private File getFile() {
         return new File()
                 .setId(1L)
+                .setFileId("fileId")
                 .setName("filename")
                 .setDate(LocalDateTime.now())
                 .setType("text")

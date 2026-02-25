@@ -182,15 +182,15 @@ class GooglePicsTest {
                 .thenReturn(response);
         when(imageUrlService.save(anyList())).thenReturn(
                 List.of(
-                        new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle()),
-                        new ImageUrl().setUrl(googlePicsSearchItem.getLink()).setTitle(googlePicsSearchItem.getTitle())));
+                        new ImageUrl().setThumbnailUrl(googlePicsSearchItem.getThumbnail()).setTitle(googlePicsSearchItem.getTitle()),
+                        new ImageUrl().setThumbnailUrl(googlePicsSearchItem.getThumbnail()).setTitle(googlePicsSearchItem.getTitle())));
 
         BotResponse response = googlePics.parse(request).getFirst();
         verify(bot).sendUploadPhoto(request.getMessage().getChatId());
         FileResponse mediaGroup = TestUtils.checkDefaultResponseMultipleImagesParams(response);
 
         File file = mediaGroup.getFiles().getFirst();
-        assertEquals(googlePicsSearchItem.getLink(), file.getUrl());
+        assertEquals(googlePicsSearchItem.getThumbnail(), file.getUrl());
 
         verify(botStats).incrementGoogleRequests();
 

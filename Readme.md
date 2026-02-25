@@ -87,7 +87,7 @@ Some commands provide direct access to:
 /qr — reading and generating qr-codes.  
 /timedownloading — download time calculation.  
 /uuid — random uuid generation or checking.  
-/download — download files via direct links and send them to chat.  
+/download — download files via links and send them to chat.  
 /number — telephone number information.  
 /convert — unit conversion.
 /metadata — metadata from file.
@@ -246,6 +246,9 @@ Number of FTP backup attempts.
 **ftpRetryTimeoutMillis**  
 Time between backup attempts.  
 
+**temporaryFileLifetimeSeconds**  
+The lifetime of temporary files downloaded by the bot (15 minutes by default).  
+
 **reactions** (/reactions command)
 
 *minRepliesToGetTheTop* 
@@ -258,8 +261,9 @@ Messages count in /reactions command.
 number of days to store messages
 
 ## System
-Java 21 is required to run the bot.
-To use the /webcam command, you need to install ffmpeg on your system.
+Java 21 is required to run the bot.  
+To use the /webcam command, you need to install ffmpeg on your system.  
+To download youtube-videos by /download command, you need to install yt-dlp in your system.  
 
 ## Build
 To build the JAR file:  

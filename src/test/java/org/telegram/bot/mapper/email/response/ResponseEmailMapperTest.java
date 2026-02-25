@@ -177,9 +177,9 @@ class ResponseEmailMapperTest {
 
         when(chatService.get(chatId)).thenReturn(chat);
         List<File> files = List.of(
-                new File(FileType.FILE, new byte[]{}, "name", "add1"),
-                new File(FileType.FILE, new byte[]{}, "name"),
-                new File(FileType.FILE, new byte[]{}, "name", "add2"));
+                new File(FileType.FILE, new byte[]{0}, "name", "add1"),
+                new File(FileType.FILE, new byte[]{1}, "name"),
+                new File(FileType.FILE, new byte[]{2}, "name", "add2"));
         when(fileMapper.toFiles(attachments)).thenReturn(files);
 
         EmailResponse emailResponse = responseEmailMapper.toEmailResponse(botRequest, userEmails);

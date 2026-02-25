@@ -96,12 +96,12 @@ class WebcamTest {
 
     @Test
     void parseTest() throws FfmpegException {
-        final File expectedVideoFile = new File("");
         final String url = "http://example.com";
         final String duration = "5";
         BotRequest request = TestUtils.getRequestFromGroup("webcam " + url + " " + duration);
         Message message = request.getMessage();
 
+        File expectedVideoFile = TestUtils.getFileMock();
         when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
         when(ffmpegProvider.getVideo(url, duration)).thenReturn(expectedVideoFile);
 

@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.bot.Bot;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
@@ -44,7 +45,7 @@ class BackupTimerTest {
     @Test
     void executeWithoutFtpUrlTest() {
         final Long adminId = 12345L;
-        File backup = mock(File.class);
+        File backup = TestUtils.getFileMock();
         when(dbBackuper.getDbBackup()).thenReturn(backup);
         when(propertiesConfig.getAdminId()).thenReturn(adminId);
 

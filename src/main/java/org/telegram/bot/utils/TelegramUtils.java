@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @UtilityClass
 public class TelegramUtils {
 
+    public static final Long MAX_FILE_LIMIT_BYTES = 50L * 1024 * 1024; // 50 MB
     private static final Integer MESSAGE_EXPIRATION_TIME_SECONDS = 60;
 
     public static boolean isUnsupportedMessage(Message message) {

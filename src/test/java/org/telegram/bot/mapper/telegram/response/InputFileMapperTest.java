@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.bot.TestUtils;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.services.BotStats;
@@ -18,7 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class InputFileMapperTest {
@@ -50,7 +52,7 @@ class InputFileMapperTest {
     }
 
     private static Stream<Arguments> provideFiles() {
-        java.io.File diskFile = mock(java.io.File.class);
+        java.io.File diskFile = TestUtils.getFileMock();
         when(diskFile.getName()).thenReturn("name");
 
         return Stream.of(
