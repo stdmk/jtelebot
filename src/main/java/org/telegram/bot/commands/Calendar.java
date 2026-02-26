@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -21,10 +22,7 @@ import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.LanguageResolver;
-import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.services.UserCityService;
+import org.telegram.bot.services.*;
 import org.telegram.bot.utils.DateUtils;
 
 import java.time.Clock;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Calendar implements Command {
 
-    private static final String API_URL = "https://date.nager.at/api/v2/publicholidays/";
     private static final Pattern MONTH_YEAR_PATTERN = Pattern.compile("\\d{2}.\\d{4}");
     private static final Pattern MONTH_NAME_YEAR_PATTERN = Pattern.compile("([а-яА-Яa-zA-Z]+)\\s(\\d{4})", Pattern.UNICODE_CHARACTER_CLASS);
 
@@ -60,8 +57,12 @@ public class Calendar implements Command {
     private final SpeechService speechService;
     private final LanguageResolver languageResolver;
     private final RestTemplate botRestTemplate;
+    private final BotStats botStats;
     private final List<DaysOffProvider> daysOffProviderList;
     private final Clock clock;
+
+    @Value("${publicHolidaysApiUrl:https://date.nager.at/api/v2/publicholidays/}")
+    private String apiUrl;
 
     @PostConstruct
     private void postConstruct() {
@@ -296,14 +297,17 @@ public class Calendar implements Command {
     private List<PublicHoliday> getPublicHolidaysFromApi(int year, Locale locale) {
         ResponseEntity<PublicHoliday[]> responseEntity;
         try {
-            responseEntity = botRestTemplate.getForEntity(API_URL + year + "/" + locale.getLanguage(), PublicHoliday[].class);
+            responseEntity = botRestTemplate.getForEntity(apiUrl + year + "/" + locale.getLanguage(), PublicHoliday[].class);
         } catch (RestClientException e) {
-            return new ArrayList<>();
+            String errorMessage = "Public holidays api is unavailable: " + e.getMessage();
+            log.error(errorMessage, e);
+            botStats.incrementErrors(apiUrl, e, errorMessage);
+            return List.of();
         }
 
         PublicHoliday[] publicHolidays = responseEntity.getBody();
         if (publicHolidays == null) {
-            return new ArrayList<>();
+            return List.of();
         }
 
         return Arrays.asList(publicHolidays);

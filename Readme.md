@@ -249,6 +249,9 @@ Time between backup attempts.
 **temporaryFileLifetimeSeconds**  
 The lifetime of temporary files downloaded by the bot (15 minutes by default).  
 
+**publicHolidaysApiUrl**  
+Public holidays API URL for the /calendar command  
+
 **reactions** (/reactions command)
 
 *minRepliesToGetTheTop* 
