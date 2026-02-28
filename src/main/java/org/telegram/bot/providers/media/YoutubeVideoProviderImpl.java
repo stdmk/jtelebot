@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.exception.youtube.YoutubeDownloadBigFileException;
+import org.telegram.bot.exception.youtube.YoutubeDownloadException;
 import org.telegram.bot.exception.youtube.YoutubeDownloadNoResponseException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.services.BotStats;
@@ -26,7 +28,7 @@ public class YoutubeVideoProviderImpl implements YoutubeVideoProvider {
     private final BotStats botStats;
 
     @Override
-    public File getVideo(String url) throws YoutubeDownloadNoResponseException, YtDlpException {
+    public File getVideo(String url) throws YoutubeDownloadException {
         VideoInfo videoInfo = getSuitableFormatId(url);
         String fileName = getFileName(videoInfo.extension);
 
@@ -46,7 +48,7 @@ public class YoutubeVideoProviderImpl implements YoutubeVideoProvider {
         return videoFile;
     }
 
-    private VideoInfo getSuitableFormatId(String url) throws YtDlpException, YoutubeDownloadNoResponseException {
+    private VideoInfo getSuitableFormatId(String url) throws YtDlpException, YoutubeDownloadNoResponseException, YoutubeDownloadBigFileException {
         ProcessBuilder pb = new ProcessBuilder("yt-dlp", "-J", url);
         Process process;
         try {
@@ -107,9 +109,8 @@ public class YoutubeVideoProviderImpl implements YoutubeVideoProvider {
 
         if (bestFormat == null) {
             String errorMessage = "Unable to find best format";
-            log.error(errorMessage);
-            botStats.incrementErrors(url, errorMessage);
-            throw new YoutubeDownloadNoResponseException(errorMessage);
+            log.info(errorMessage);
+            throw new YoutubeDownloadBigFileException(errorMessage);
         }
 
         return new VideoInfo(bestFormat.get("format_id").asText(), bestFormat.get("ext").asText());

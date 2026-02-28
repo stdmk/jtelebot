@@ -61,7 +61,7 @@ public class Calendar implements Command {
     private final List<DaysOffProvider> daysOffProviderList;
     private final Clock clock;
 
-    @Value("${publicHolidaysApiUrl:https://date.nager.at/api/v2/publicholidays/}")
+    @Value("${publicHolidaysApiUrl:https://date.nager.at/api/v3/publicholidays/}")
     private String apiUrl;
 
     @PostConstruct

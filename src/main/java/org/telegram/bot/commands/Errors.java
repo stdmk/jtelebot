@@ -28,12 +28,15 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 public class Errors implements Command {
 
+    private static final String CLEAR_ERRORS_COMMAND = "_clear";
+    private static final ResponseSettings DEFAULT_RESPONSE_SETTINGS = new ResponseSettings()
+            .setFormattingStyle(FormattingStyle.HTML)
+            .setWebPagePreview(false);
+
     private final Bot bot;
     private final ErrorService errorService;
     private final SpeechService speechService;
     private final BotStats botStats;
-
-    private static final String CLEAR_ERRORS_COMMAND = "_clear";
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -79,7 +82,7 @@ public class Errors implements Command {
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
-                .setResponseSettings(FormattingStyle.HTML));
+                .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
     }
 
     private byte[] getDataFromError(Error error) {
