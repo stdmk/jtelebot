@@ -9,17 +9,16 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.exception.youtube.YoutubeDownloadException;
-import org.telegram.bot.exception.youtube.YoutubeDownloadNoResponseException;
-import org.telegram.bot.providers.media.YoutubeVideoProvider;
+import org.telegram.bot.exception.youtube.YtDlpException;
+import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
+import org.telegram.bot.providers.media.YtDlpProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 import static org.telegram.bot.utils.TextUtils.isThatUrl;
@@ -31,7 +30,7 @@ public class Download implements Command {
 
     private final Bot bot;
     private final NetworkUtils networkUtils;
-    private final YoutubeVideoProvider youtubeVideoProvider;
+    private final YtDlpProvider ytDlpProvider;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
 
@@ -54,9 +53,10 @@ public class Download implements Command {
             FileParams fileParams = getFileParams(commandArgument);
 
             File file;
-            if (isYoutubeVideo(fileParams.url)) {
+            MediaPlatform mediaPlatform = MediaPlatform.getByUrl(commandArgument);
+            if (mediaPlatform != null) {
                 bot.sendUploadVideo(chatId);
-                file = getVideoFromYoutube(fileParams.url);
+                file = getVideoFromMediaPlatform(mediaPlatform, fileParams.url);
             } else {
                 bot.sendUploadDocument(chatId);
                 file = getFile(fileParams.url, fileParams.name);
@@ -106,24 +106,13 @@ public class Download implements Command {
         return new FileParams(url, fileName);
     }
 
-    private boolean isYoutubeVideo(String text) {
-        URL url;
-        try {
-            url = TextUtils.findFirstUrlInText(text);
-        } catch (MalformedURLException e) {
-            return false;
-        }
-
-        return url.getHost().contains("youtube") || url.getHost().contains("youtu.be");
-    }
-
-    private File getVideoFromYoutube(String url) {
+    private File getVideoFromMediaPlatform(MediaPlatform mediaPlatform, String url) {
         java.io.File diskFile;
         try {
-            diskFile = youtubeVideoProvider.getVideo(url);
-        } catch (YoutubeDownloadNoResponseException e) {
+            diskFile = ytDlpProvider.getVideo(mediaPlatform, url);
+        } catch (YtDlpNoResponseException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
-        } catch (YoutubeDownloadException e) {
+        } catch (YtDlpException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
 

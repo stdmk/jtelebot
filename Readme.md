@@ -266,7 +266,7 @@ number of days to store messages
 ## System
 Java 21 is required to run the bot.  
 To use the /webcam command, you need to install ffmpeg on your system.  
-To download youtube-videos by /download command, you need to install yt-dlp in your system.  
+To download videos from supported platforms (YouTube, TikTok, Instagram, etc.) using the /download command, you need to install yt-dlp on your system.  
 
 ## Build
 To build the JAR file:  

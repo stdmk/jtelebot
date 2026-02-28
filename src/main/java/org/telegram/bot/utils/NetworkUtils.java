@@ -12,10 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -25,7 +22,7 @@ import java.time.LocalDateTime;
 @Component
 public class NetworkUtils {
 
-    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + "AppleWebKit/537.36 (KHTML, like Gecko) " + "Chrome/122.0.0.0 Safari/537.36";
     private static final int TELEGRAM_UPLOAD_MEDIA_LIMIT_BYTES = 52428800;
     private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 10 * 1000;
     private static final int DEFAULT_READ_TIMEOUT_MILLIS = 10 * 1000;
@@ -50,7 +47,7 @@ public class NetworkUtils {
     }
 
     private InputStream openStreamFromUrl(String url) throws IOException {
-        URLConnection connection = new URL(url).openConnection();
+        URLConnection connection = URI.create(url).toURL().openConnection();
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
         connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
@@ -59,7 +56,7 @@ public class NetworkUtils {
     }
 
     public String readStringFromURL(String url) throws IOException {
-        return readStringFromURL(new URL(url).toString(), StandardCharsets.UTF_8);
+        return readStringFromURL(URI.create(url).toURL().toString(), StandardCharsets.UTF_8);
     }
 
     public String readStringFromURL(URL url) throws IOException {
@@ -67,7 +64,7 @@ public class NetworkUtils {
     }
 
     public String readStringFromURL(String url, Charset encoding) throws IOException {
-        return readStringFromURL(new URL(url), encoding);
+        return readStringFromURL(URI.create(url).toURL(), encoding);
     }
 
     public String readStringFromURL(URL url, Charset encoding) throws IOException {
@@ -77,7 +74,7 @@ public class NetworkUtils {
     public SyndFeed getRssFeedFromUrl(String url) throws IOException, FeedException {
         SyndFeedInput syndFeedInput = new SyndFeedInput();
         syndFeedInput.setAllowDoctypes(true);
-        return syndFeedInput.build(new XmlReader(new URL(url)));
+        return syndFeedInput.build(new XmlReader(URI.create(url).toURL()));
     }
 
     public PingResult pingHost(String host) throws UnknownHostException {

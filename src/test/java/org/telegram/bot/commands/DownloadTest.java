@@ -15,11 +15,12 @@ import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.exception.youtube.YoutubeDownloadException;
-import org.telegram.bot.exception.youtube.YoutubeDownloadNoResponseException;
+import org.telegram.bot.exception.youtube.YtDlpCallException;
 import org.telegram.bot.exception.youtube.YtDlpException;
-import org.telegram.bot.providers.media.YoutubeVideoProvider;
+import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
+import org.telegram.bot.providers.media.YtDlpProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
@@ -42,7 +43,7 @@ class DownloadTest {
     @Mock
     private NetworkUtils networkUtils;
     @Mock
-    private YoutubeVideoProvider youtubeVideoProvider;
+    private YtDlpProvider ytDlpProvider;
     @Mock
     private SpeechService speechService;
     @Mock
@@ -144,12 +145,12 @@ class DownloadTest {
     }
 
     @Test
-    void parseWithYoutubeVideoAsArgumentWhenNoResponseTest() throws YoutubeDownloadException {
+    void parseWithYoutubeVideoAsArgumentWhenNoResponseTest() throws YtDlpException {
         final String url = "https://youtube.com/shorts/QWERTYUIOP1";
         BotRequest request = getRequestFromGroup("download " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(youtubeVideoProvider.getVideo(url)).thenThrow(new YoutubeDownloadNoResponseException("error"));
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpNoResponseException("error"));
 
         assertThrows(BotException.class, () -> download.parse(request));
         verify(bot).sendUploadVideo(request.getMessage().getChatId());
@@ -157,12 +158,12 @@ class DownloadTest {
     }
 
     @Test
-    void parseWithYoutubeVideoAsArgumentWhenFailedToCallYtDlpTest() throws YoutubeDownloadException {
+    void parseWithYoutubeVideoAsArgumentWhenFailedToCallYtDlpTest() throws YtDlpException {
         final String url = "https://youtube.com/shorts/QWERTYUIOP1";
         BotRequest request = getRequestFromGroup("download " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(youtubeVideoProvider.getVideo(url)).thenThrow(new YtDlpException("error"));
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpCallException("error"));
 
         assertThrows(BotException.class, () -> download.parse(request));
         verify(bot).sendUploadVideo(request.getMessage().getChatId());
@@ -170,14 +171,14 @@ class DownloadTest {
     }
 
     @Test
-    void parseWithYoutubeVideoAsArgumentTest() throws YoutubeDownloadException {
+    void parseWithYoutubeVideoAsArgumentTest() throws YtDlpException {
         final String url = "https://youtube.com/shorts/QWERTYUIOP1";
         BotRequest request = getRequestFromGroup("download " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         java.io.File youtubeFile = mock(java.io.File.class);
         when(youtubeFile.exists()).thenReturn(true);
-        when(youtubeVideoProvider.getVideo(url)).thenReturn(youtubeFile);
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenReturn(youtubeFile);
 
         BotResponse response = download.parse(request).getFirst();
 
