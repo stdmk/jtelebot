@@ -38,7 +38,7 @@ public class FileManagerTimer extends TimerParent {
         Set<String> fileNamesToRemove = new HashSet<>();
 
         FILES.forEach((key, value) -> {
-            if (dateTimeNow.isAfter(value.plusMinutes(temporaryFileLifetimeSeconds)) && (deleteFileFromDisk(key))) {
+            if (dateTimeNow.isAfter(value.plusSeconds(temporaryFileLifetimeSeconds)) && (deleteFileFromDisk(key))) {
                 fileNamesToRemove.add(key);
             }
         });
