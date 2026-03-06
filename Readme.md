@@ -284,7 +284,10 @@ To run with the JAR file:
 1. Fill in the `TelegramBotApiToken` parameter in `properties.properties`.  
 2. Place `properties.properties` in the same folder as the JAR file.  
 3. Run:  
-   `java -jar Bot.jar`  
+   `java -jar Bot.jar`
+  
+  To reduce memory usage, start the bot with the following JVM options:  
+`java -Xms128m -Xmx256m -XX:+UseSerialGC -jar Bot.jar`
 
 ### Admin rights
 To get admin rights:  
