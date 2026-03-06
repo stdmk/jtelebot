@@ -86,9 +86,8 @@ public class YtDlpProviderImpl implements YtDlpProvider {
 
         JsonNode formats = root.get("formats");
         if (formats == null || formats.isEmpty()) {
-            String errorMessage = "Youtube returns empty response";
+            String errorMessage = "Returns empty response";
             log.error(errorMessage);
-            botStats.incrementErrors(url, errorMessage);
             throw new YtDlpNoResponseException(errorMessage);
         }
 
