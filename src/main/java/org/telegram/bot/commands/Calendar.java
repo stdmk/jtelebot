@@ -296,12 +296,13 @@ public class Calendar implements Command {
 
     private List<PublicHoliday> getPublicHolidaysFromApi(int year, Locale locale) {
         ResponseEntity<PublicHoliday[]> responseEntity;
+        String url = apiUrl + year + "/" + locale.getLanguage();
         try {
-            responseEntity = botRestTemplate.getForEntity(apiUrl + year + "/" + locale.getLanguage(), PublicHoliday[].class);
+            responseEntity = botRestTemplate.getForEntity(url, PublicHoliday[].class);
         } catch (RestClientException e) {
             String errorMessage = "Public holidays api is unavailable: " + e.getMessage();
             log.error(errorMessage, e);
-            botStats.incrementErrors(apiUrl, e, errorMessage);
+            botStats.incrementErrors(url, e, errorMessage);
             return List.of();
         }
 

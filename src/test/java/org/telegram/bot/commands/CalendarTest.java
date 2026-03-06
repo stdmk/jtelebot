@@ -22,6 +22,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.providers.daysoff.DaysOffProvider;
+import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
@@ -54,6 +55,8 @@ class CalendarTest {
     private LanguageResolver languageResolver;
     @Mock
     private RestTemplate botRestTemplate;
+    @Mock
+    private BotStats botStats;
     @Mock
     private final DaysOffProvider daysOffProvider = Mockito.mock(DaysOffProvider.class);
     @Mock
@@ -156,14 +159,21 @@ class CalendarTest {
                 <b>${command.calendar.holidayscaption}: </b>
                 """;
         LocalDate date = LocalDate.of(2007, 5, 1);
+        final String apiUrl = "api.example.com/";
+        final String expectedUrl = apiUrl + date.getYear() + "/en";
+        final String error = "error";
+        final String expectedErrorMessage = "Public holidays api is unavailable: "  + error;
         BotRequest request = getRequestFromGroup("calendar 01.2007");
 
-        when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(new RestClientException("test"));
+        RestClientException restClientException = new RestClientException(error);
+        when(botRestTemplate.getForEntity(anyString(), any())).thenThrow(restClientException);
         when(daysOffProvider.getLocale()).thenReturn(DEFAULT_LOCALE);
         when(daysOffProvider.getDaysOffInMonth(anyInt(), anyInt())).thenReturn(List.of(2, 3, 4, 5));
         when(clock.instant()).thenReturn(date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(languageResolver.getChatLanguageCode(any(Message.class), any(User.class))).thenReturn("en");
+
+        ReflectionTestUtils.setField(calendar, "apiUrl", apiUrl);
 
         BotResponse response = calendar.parse(request).getFirst();
         verify(bot).sendTyping(request.getMessage().getChatId());
@@ -172,6 +182,8 @@ class CalendarTest {
 
         String actualResponseText = textResponse.getText();
         assertEquals(expectedResponseText, actualResponseText);
+
+        verify(botStats).incrementErrors(expectedUrl, restClientException, expectedErrorMessage);
     }
 
     @Test
