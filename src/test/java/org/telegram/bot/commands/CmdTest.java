@@ -49,7 +49,7 @@ class CmdTest {
 
     @Test
     void parseTest() {
-        BotRequest request = TestUtils.getRequestFromGroup("cmd help");
+        BotRequest request = TestUtils.getRequestFromGroup("cmd echo test");
         BotResponse botResponse = cmd.parse(request).getFirst();
 
         TextResponse textResponse = checkDefaultTextResponseParams(botResponse);

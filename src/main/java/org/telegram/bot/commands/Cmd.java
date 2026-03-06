@@ -2,7 +2,6 @@ package org.telegram.bot.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
@@ -15,15 +14,19 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class Cmd implements Command {
+
+    private static final boolean IS_WIN_OS = System.getProperty("os.name").toLowerCase().contains("win");
+    private static final int TIMEOUT_SECONDS = 60;
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -32,31 +35,48 @@ public class Cmd implements Command {
     public List<BotResponse> parse(BotRequest request) {
         Message message = request.getMessage();
         bot.sendTyping(message.getChatId());
-        String commandArgument = request.getMessage().getCommandArgument();
-        if (commandArgument == null || commandArgument.isEmpty()) {
+
+        String commandArgument = message.getCommandArgument();
+        if (StringUtils.isBlank(commandArgument)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
-        String responseText;
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandArgument.split(" "));
+        String responseText;
+        ProcessBuilder processBuilder = getProcessBuilder(commandArgument);
+        processBuilder.redirectErrorStream(true);
         log.debug("Request to execute {}", commandArgument);
 
-        Process process;
-        StringWriter writer = new StringWriter();
         try {
-            process = processBuilder.start();
-            IOUtils.copy(process.getInputStream(), writer, Charset.forName("cp866"));
-            responseText = writer.toString();
-            if (StringUtils.isEmpty(responseText)) {
-                responseText = "executing...";
+            Process process = processBuilder.start();
+            boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (!finished) {
+                process.destroyForcibly();
+                responseText = "timeout after " + TIMEOUT_SECONDS + "s";
+            } else {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+                responseText = output.toString();
+                if (StringUtils.isBlank(responseText)) responseText = "command executed";
             }
-        } catch (IOException e) {
-            log.debug("Error while executing command {}", commandArgument);
+        } catch (Exception e) {
+            log.debug("Error while executing command {}", commandArgument, e);
             responseText = e.getMessage();
         }
 
-        return returnResponse(new TextResponse(message)
-                .setText("<pre>" + responseText + "</pre>")
-                .setResponseSettings(FormattingStyle.HTML));
+        return returnResponse(new TextResponse(message).setText("<pre>" + responseText + "</pre>").setResponseSettings(FormattingStyle.HTML));
     }
+
+    private ProcessBuilder getProcessBuilder(String commandArgument) {
+        if (IS_WIN_OS) {
+            return new ProcessBuilder("cmd.exe", "/c", commandArgument);
+        } else {
+            return new ProcessBuilder("bash", "-c", commandArgument);
+        }
+    }
+
 }
