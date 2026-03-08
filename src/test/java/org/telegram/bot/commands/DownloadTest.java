@@ -2,12 +2,11 @@ package org.telegram.bot.commands;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -22,11 +21,13 @@ import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
 import org.telegram.bot.providers.media.YtDlpProvider;
 import org.telegram.bot.services.CommandWaitingService;
+import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,6 +39,8 @@ class DownloadTest {
 
     private static final byte[] FILE_FROM_URL = "content".getBytes(StandardCharsets.UTF_8);
 
+    @Mock
+    private InternationalizationService internationalizationService;
     @Mock
     private Bot bot;
     @Mock
@@ -53,7 +56,6 @@ class DownloadTest {
     private Download download;
 
     private final static String DEFAULT_FILE_NAME = "file";
-    private final static String FILE_NAME = "favicon.ico";
     private final static String URL = "http://example.org/";
 
     @Test
@@ -73,22 +75,6 @@ class DownloadTest {
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         assertThrows(BotException.class, () -> download.parse(request));
         verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"download " + URL + " " + FILE_NAME, "download " + FILE_NAME + " " + URL})
-    void parseWithTwoArgumentsTest(String command) throws Exception {
-        BotRequest request = getRequestFromGroup(command);
-
-        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
-
-        BotResponse response = download.parse(request).getFirst();
-        verify(bot).sendUploadDocument(request.getMessage().getChatId());
-        FileResponse fileResponse = checkDefaultFileResponseParams(response);
-
-        File file = fileResponse.getFiles().getFirst();
-        assertEquals(FILE_NAME, file.getName());
     }
 
     @Test
@@ -119,7 +105,7 @@ class DownloadTest {
 
     @Test
     void parseWithOneArgumentTest() throws Exception {
-        BotRequest request = getRequestFromGroup("download " + URL + FILE_NAME);
+        BotRequest request = getRequestFromGroup("download " + URL);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
         when(networkUtils.getFileFromUrlWithLimit(anyString())).thenReturn(FILE_FROM_URL);
@@ -129,7 +115,7 @@ class DownloadTest {
         FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
         File file = fileResponse.getFiles().getFirst();
-        assertEquals(FILE_NAME, file.getName());
+        assertEquals(DEFAULT_FILE_NAME, file.getName());
     }
 
     @Test
@@ -153,7 +139,7 @@ class DownloadTest {
         when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpNoResponseException("error"));
 
         assertThrows(BotException.class, () -> download.parse(request));
-        verify(bot).sendUploadVideo(request.getMessage().getChatId());
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
     }
 
@@ -166,7 +152,7 @@ class DownloadTest {
         when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpCallException("error"));
 
         assertThrows(BotException.class, () -> download.parse(request));
-        verify(bot).sendUploadVideo(request.getMessage().getChatId());
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR);
     }
 
@@ -188,7 +174,54 @@ class DownloadTest {
         assertNull(file.getName());
         assertEquals(youtubeFile, file.getDiskFile());
 
-        verify(bot).sendUploadVideo(request.getMessage().getChatId());
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+    }
+
+    @Test
+    void parseWithYoutubeAudioAsArgumentTest() throws YtDlpException {
+        final String url = "https://youtube.com/shorts/QWERTYUIOP1";
+        BotRequest request = getRequestFromGroup("download AuDiO " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        java.io.File youtubeFile = mock(java.io.File.class);
+        when(youtubeFile.exists()).thenReturn(true);
+        when(ytDlpProvider.getAudio(MediaPlatform.YOUTUBE, url)).thenReturn(youtubeFile);
+
+        Set<String> audioMediaTypes = Set.of("audio");
+        when(internationalizationService.getAllTranslations("command.download.videotype")).thenReturn(Set.of());
+        when(internationalizationService.getAllTranslations("command.download.audiotype")).thenReturn(audioMediaTypes);
+        ReflectionTestUtils.invokeMethod(download, "postConstruct");
+
+        BotResponse response = download.parse(request).getFirst();
+
+        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.AUDIO);
+
+        File file = fileResponse.getFiles().getFirst();
+        assertNull(file.getName());
+        assertEquals(youtubeFile, file.getDiskFile());
+
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+    }
+
+    @Test
+    void parseWithAudioArgumentTest() throws YtDlpException {
+        final String url = "https://soundcloud.com/group/track";
+        BotRequest request = getRequestFromGroup("download " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        java.io.File soundCloudFile = mock(java.io.File.class);
+        when(soundCloudFile.exists()).thenReturn(true);
+        when(ytDlpProvider.getAudio(MediaPlatform.SOUNDCLOUD, url)).thenReturn(soundCloudFile);
+
+        BotResponse response = download.parse(request).getFirst();
+
+        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.AUDIO);
+
+        File file = fileResponse.getFiles().getFirst();
+        assertNull(file.getName());
+        assertEquals(soundCloudFile, file.getDiskFile());
+
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }
 
 }

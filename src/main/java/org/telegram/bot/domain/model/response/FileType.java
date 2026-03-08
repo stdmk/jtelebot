@@ -1,15 +1,15 @@
 package org.telegram.bot.domain.model.response;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import jakarta.validation.constraints.NotNull;
 
 @RequiredArgsConstructor
 @Getter
 public enum FileType {
     IMAGE("image/*"),
     VIDEO("video/*"),
+    AUDIO("audio/*"),
     VOICE("audio/*"),
     FILE("application/octet-stream"),
     ;

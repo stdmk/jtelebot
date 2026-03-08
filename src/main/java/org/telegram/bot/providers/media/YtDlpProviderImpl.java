@@ -27,6 +27,7 @@ import java.util.List;
 public class YtDlpProviderImpl implements YtDlpProvider {
 
     private static final String FILE_PREFIX = "yt_dlp_";
+    private static final long MAX_AUDIO_BITS = TelegramUtils.MAX_FILE_LIMIT_BYTES * 8;
 
     private final ObjectMapper objectMapper;
     private final FileManagerTimer fileManagerTimer;
@@ -51,6 +52,97 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
 
         return videoFile;
+    }
+
+    @Override
+    public File getAudio(MediaPlatform mediaPlatform, String url) throws YtDlpException {
+        long duration = getDuration(mediaPlatform, url);
+        if (duration <= 0) {
+            throw new YtDlpNoResponseException("Unable to determine audio duration");
+        }
+
+        int bitrate = calculateAudioBitrate(duration);
+        String fileName = getFileName("mp3");
+        ProcessBuilder pb = new ProcessBuilder(getAudioArguments(mediaPlatform, url, fileName, bitrate));
+        pb.inheritIO();
+
+        try {
+            Process process = pb.start();
+            process.waitFor();
+        } catch (InterruptedException | IOException e) {
+            String errorMessage = "Failed to download audio: " + e.getMessage();
+            log.error(errorMessage);
+            botStats.incrementErrors(url, e, errorMessage);
+            throw new YtDlpCallException(errorMessage);
+        }
+
+        File audioFile = new File(fileName);
+        if (!audioFile.exists()) {
+            fileManagerTimer.deleteFile(fileName);
+
+            String errorMessage = "File " + fileName + " does not exist";
+            log.error(errorMessage);
+            botStats.incrementErrors(fileName, errorMessage);
+
+            throw new YtDlpNoResponseException(errorMessage);
+        }
+
+        return audioFile;
+    }
+
+    private long getDuration(MediaPlatform mediaPlatform, String url) throws YtDlpCallException {
+        ProcessBuilder pb = new ProcessBuilder(getFormatIdArguments(mediaPlatform, url));
+        try {
+            Process process = pb.start();
+            JsonNode root = objectMapper.readTree(process.getInputStream());
+            process.waitFor();
+            return root.path("duration").asLong(0);
+        } catch (IOException | InterruptedException e) {
+            String errorMessage = "Failed to get media duration: " + e.getMessage();
+            log.error(errorMessage);
+            botStats.incrementErrors(url, e, errorMessage);
+            throw new YtDlpCallException(errorMessage);
+        }
+    }
+
+    private int calculateAudioBitrate(long durationSeconds) {
+        long bitrate = MAX_AUDIO_BITS / durationSeconds;
+        int kbps = (int) (bitrate / 1000);
+
+        if (kbps > 320) {
+            kbps = 320;
+        }
+        if (kbps < 64) {
+            kbps = 64;
+        }
+
+        return kbps;
+    }
+
+    private List<String> getAudioArguments(MediaPlatform mediaPlatform, String url, String fileName, int bitrate) {
+        String quality = bitrate + "K";
+        if (mediaPlatform.isNeedsUserAgent()) {
+            return List.of(
+                    "yt-dlp",
+                    "--user-agent", NetworkUtils.USER_AGENT,
+                    "-x",
+                    "--audio-format", "mp3",
+                    "--audio-quality", quality,
+                    "--no-playlist",
+                    "-o", fileName,
+                    url
+            );
+        } else {
+            return List.of(
+                    "yt-dlp",
+                    "-x",
+                    "--audio-format", "mp3",
+                    "--audio-quality", quality,
+                    "--no-playlist",
+                    "-o", fileName,
+                    url
+            );
+        }
     }
 
     private VideoInfo getSuitableFormatId(MediaPlatform mediaPlatform, String url) throws YtDlpCallException, YtDlpNoResponseException, YtDlpBigFileException {
@@ -145,7 +237,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
 
         if (format.has("tbr") && !format.get("tbr").isNull() && duration > 0) {
-            double tbr = format.get("tbr").asDouble(); // кбит/с
+            double tbr = format.get("tbr").asDouble();
             double bytesPerSecond = (tbr * 1000) / 8;
             return (long) (bytesPerSecond * duration);
         }

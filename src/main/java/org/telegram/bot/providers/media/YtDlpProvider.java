@@ -10,4 +10,6 @@ public interface YtDlpProvider {
 
     File getVideo(@NotNull MediaPlatform mediaPlatform, @NotNull String url) throws YtDlpException;
 
+    File getAudio(@NotNull MediaPlatform mediaPlatform, @NotNull String url) throws YtDlpException;
+
 }
