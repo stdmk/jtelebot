@@ -11,7 +11,7 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.ShutdownService;
-import org.telegram.bot.timers.FileManagerTimer;
+import org.telegram.bot.services.TemporaryFileManager;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ class ShutdownTest {
     @Mock
     private BotStats botStats;
     @Mock
-    private FileManagerTimer fileManagerTimer;
+    private TemporaryFileManager temporaryFileManager;
 
     @InjectMocks
     private Shutdown shutdown;
@@ -51,21 +51,21 @@ class ShutdownTest {
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
-        verify(fileManagerTimer).deleteAllFiles();
+        verify(temporaryFileManager).deleteAllFiles();
         verify(shutdownService).shutdown();
     }
 
     @Test
     void parseWithDeleteFilesExceptionTest() {
         BotRequest request = TestUtils.getRequestFromGroup("shutdown");
-        doThrow(RuntimeException.class).when(fileManagerTimer).deleteAllFiles();
+        doThrow(RuntimeException.class).when(temporaryFileManager).deleteAllFiles();
 
         List<BotResponse> botResponses = shutdown.parse(request);
         assertTrue(botResponses.isEmpty());
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
-        verify(fileManagerTimer).deleteAllFiles();
+        verify(temporaryFileManager).deleteAllFiles();
         verify(shutdownService).shutdown();
     }
 
@@ -78,7 +78,7 @@ class ShutdownTest {
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).saveStats();
-        verify(fileManagerTimer).deleteAllFiles();
+        verify(temporaryFileManager).deleteAllFiles();
         verify(shutdownService).shutdown();
     }
 

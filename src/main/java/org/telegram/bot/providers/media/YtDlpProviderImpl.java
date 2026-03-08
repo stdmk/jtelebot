@@ -11,7 +11,7 @@ import org.telegram.bot.exception.youtube.YtDlpCallException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
 import org.telegram.bot.services.BotStats;
-import org.telegram.bot.timers.FileManagerTimer;
+import org.telegram.bot.services.TemporaryFileManager;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TelegramUtils;
 
@@ -30,7 +30,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
     private static final long MAX_AUDIO_BITS = TelegramUtils.MAX_FILE_LIMIT_BYTES * 8;
 
     private final ObjectMapper objectMapper;
-    private final FileManagerTimer fileManagerTimer;
+    private final TemporaryFileManager temporaryFileManager;
     private final BotStats botStats;
 
     @Override
@@ -40,14 +40,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
 
         download(mediaPlatform, url, videoInfo.formatId, fileName);
 
-        java.io.File videoFile = new java.io.File(fileName);
-        if (!videoFile.exists()) {
-            fileManagerTimer.deleteFile(fileName);
-
+        java.io.File videoFile = temporaryFileManager.get(fileName);
+        if (videoFile == null) {
             String errorMessage = "File " + fileName + " does not exists";
             log.error("File {} does not exists", fileName);
             botStats.incrementErrors(fileName, errorMessage);
-
             throw new YtDlpNoResponseException(errorMessage);
         }
 
@@ -76,14 +73,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpCallException(errorMessage);
         }
 
-        File audioFile = new File(fileName);
-        if (!audioFile.exists()) {
-            fileManagerTimer.deleteFile(fileName);
-
+        File audioFile = temporaryFileManager.get(fileName);
+        if (audioFile == null) {
             String errorMessage = "File " + fileName + " does not exist";
             log.error(errorMessage);
             botStats.incrementErrors(fileName, errorMessage);
-
             throw new YtDlpNoResponseException(errorMessage);
         }
 
@@ -278,7 +272,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
     }
 
     private String getFileName(String extension) {
-        return fileManagerTimer.addFile(FILE_PREFIX, "." + extension);
+        return temporaryFileManager.addFile(FILE_PREFIX, "." + extension);
     }
 
     private void download(MediaPlatform mediaPlatform, String url, String formatId, String fileName) throws YtDlpCallException {

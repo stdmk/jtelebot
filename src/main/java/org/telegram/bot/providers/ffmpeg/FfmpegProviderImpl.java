@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.exception.ffmpeg.FfmpegException;
-import org.telegram.bot.timers.FileManagerTimer;
+import org.telegram.bot.services.TemporaryFileManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,11 +19,11 @@ public class FfmpegProviderImpl implements FfmpegProvider {
     private static final String FILE_NAME_POSTFIX = ".mp4";
     private static final String COMMAND_TEMPLATE = "ffmpeg -re -t {1} -i {0} -c:v copy -c:a copy -bsf:a aac_adtstoasc -t {1} {2}";
 
-    private final FileManagerTimer fileManagerTimer;
+    private final TemporaryFileManager temporaryFileManager;
 
     @Override
     public File getVideo(String url, String duration) throws FfmpegException {
-        String fileName = fileManagerTimer.addFile(FILE_NAME_PREFIX, FILE_NAME_POSTFIX);
+        String fileName = temporaryFileManager.addFile(FILE_NAME_PREFIX, FILE_NAME_POSTFIX);
 
         String command = MessageFormat.format(COMMAND_TEMPLATE, url, duration, fileName);
 
@@ -38,9 +38,8 @@ public class FfmpegProviderImpl implements FfmpegProvider {
             throw new FfmpegException(e.getMessage());
         }
 
-        File videoFile = new File(fileName);
-        if (!videoFile.exists()) {
-            fileManagerTimer.deleteFile(fileName);
+        File videoFile = temporaryFileManager.get(fileName);
+        if (videoFile == null) {
             log.error("File {} does not exists", fileName);
             throw new FfmpegException("File does not exists");
         }

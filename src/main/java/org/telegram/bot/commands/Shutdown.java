@@ -10,7 +10,7 @@ import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.ShutdownService;
-import org.telegram.bot.timers.FileManagerTimer;
+import org.telegram.bot.services.TemporaryFileManager;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class Shutdown implements Command {
     private final Bot bot;
     private final ShutdownService shutdownService;
     private final BotStats botStats;
-    private final FileManagerTimer fileManagerTimer;
+    private final TemporaryFileManager temporaryFileManager;
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -42,7 +42,7 @@ public class Shutdown implements Command {
         }
 
         try {
-            fileManagerTimer.deleteAllFiles();
+            temporaryFileManager.deleteAllFiles();
         } catch (Exception e) {
             log.error("Failed to delete files: {}", e.getMessage());
         }
