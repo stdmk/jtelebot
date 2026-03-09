@@ -2,6 +2,7 @@ package org.telegram.bot.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.TemporaryFileManager;
@@ -21,6 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @Slf4j
 public class TemporaryFileManagerImpl implements TemporaryFileManager {
+
+    @Value("${temporaryFileLifetimeSeconds:900}")
+    private Integer temporaryFileLifetimeSeconds;
 
     private static final AtomicInteger FILES_COUNTER = new AtomicInteger();
     private static final Map<String, LocalDateTime> FILES = new HashMap<>();
@@ -71,12 +75,12 @@ public class TemporaryFileManagerImpl implements TemporaryFileManager {
     }
 
     @Override
-    public void cleanup(LocalDateTime expirationDateTime) {
+    public void cleanup() {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         Set<String> fileNamesToRemove = new HashSet<>();
 
         FILES.forEach((key, value) -> {
-            if (dateTimeNow.isAfter(expirationDateTime) && (deleteFileFromDisk(key))) {
+            if (value.plusSeconds(temporaryFileLifetimeSeconds).isAfter(dateTimeNow) && (deleteFileFromDisk(key))) {
                 fileNamesToRemove.add(key);
             }
         });

@@ -226,8 +226,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpBigFileException(errorMessage);
         }
 
-        String fileName = TextUtils.sanitize(root.path("uploader").asText("uploader")
-                + " - " + root.path("title").asText("video"));
+        String fileName = TextUtils.sanitize(root.path("title").asText("video"));
         String ext = bestFormat.get("ext").asText();
 
         return new VideoInfo(bestFormat.get("format_id").asText(), fileName, ext);
