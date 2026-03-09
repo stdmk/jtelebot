@@ -68,7 +68,7 @@ public class Cmd implements Command {
             responseText = e.getMessage();
         }
 
-        return returnResponse(new TextResponse(message).setText("<pre>" + responseText + "</pre>").setResponseSettings(FormattingStyle.HTML));
+        return returnResponse(new TextResponse(message).setText("<pre><code class=\"language-shell\">" + responseText + "</code></pre>").setResponseSettings(FormattingStyle.HTML));
     }
 
     private ProcessBuilder getProcessBuilder(String commandArgument) {
