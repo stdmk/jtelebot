@@ -14,6 +14,7 @@ import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.TemporaryFileManager;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TelegramUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +27,6 @@ import java.util.List;
 @Slf4j
 public class YtDlpProviderImpl implements YtDlpProvider {
 
-    private static final String FILE_PREFIX = "yt_dlp_";
     private static final long MAX_AUDIO_BITS = TelegramUtils.MAX_FILE_LIMIT_BYTES * 8;
 
     private final ObjectMapper objectMapper;
@@ -36,7 +36,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
     @Override
     public File getVideo(MediaPlatform mediaPlatform, String url) throws YtDlpException {
         VideoInfo videoInfo = getSuitableFormatId(mediaPlatform, url);
-        String fileName = getFileName(videoInfo.extension);
+        String fileName = getFileName(videoInfo.title, videoInfo.ext);
 
         download(mediaPlatform, url, videoInfo.formatId, fileName);
 
@@ -58,8 +58,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpNoResponseException("Unable to determine audio duration");
         }
 
+        AudioInfo audioInfo = getAudioInfo(mediaPlatform, url);
+        String fileName = getFileName(audioInfo.title, audioInfo.ext);
+
         int bitrate = calculateAudioBitrate(duration);
-        String fileName = getFileName("mp3");
+        temporaryFileManager.addFile(fileName, audioInfo.ext);
         ProcessBuilder pb = new ProcessBuilder(getAudioArguments(mediaPlatform, url, fileName, bitrate));
         pb.inheritIO();
 
@@ -93,6 +96,26 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             return root.path("duration").asLong(0);
         } catch (IOException | InterruptedException e) {
             String errorMessage = "Failed to get media duration: " + e.getMessage();
+            log.error(errorMessage);
+            botStats.incrementErrors(url, e, errorMessage);
+            throw new YtDlpCallException(errorMessage);
+        }
+    }
+
+    private AudioInfo getAudioInfo(MediaPlatform mediaPlatform, String url) throws YtDlpCallException {
+        ProcessBuilder pb = new ProcessBuilder(getFormatIdArguments(mediaPlatform, url));
+        try {
+            Process process = pb.start();
+            JsonNode root = objectMapper.readTree(process.getInputStream());
+            process.waitFor();
+
+            long duration = root.path("duration").asLong(0);
+            String title = root.path("title").asText("audio");
+            String ext = "mp3";
+
+            return new AudioInfo(duration, title, ext);
+        } catch (IOException | InterruptedException e) {
+            String errorMessage = "Failed to get audio info: " + e.getMessage();
             log.error(errorMessage);
             botStats.incrementErrors(url, e, errorMessage);
             throw new YtDlpCallException(errorMessage);
@@ -203,7 +226,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpBigFileException(errorMessage);
         }
 
-        return new VideoInfo(bestFormat.get("format_id").asText(), bestFormat.get("ext").asText());
+        String fileName = TextUtils.sanitize(root.path("uploader").asText("uploader")
+                + " - " + root.path("title").asText("video"));
+        String ext = bestFormat.get("ext").asText();
+
+        return new VideoInfo(bestFormat.get("format_id").asText(), fileName, ext);
     }
 
     private List<String> getFormatIdArguments(MediaPlatform mediaPlatform, String url) {
@@ -271,8 +298,8 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
     }
 
-    private String getFileName(String extension) {
-        return temporaryFileManager.addFile(FILE_PREFIX, "." + extension);
+    private String getFileName(String fileName, String ext) {
+        return temporaryFileManager.addFile(fileName, "." + ext);
     }
 
     private void download(MediaPlatform mediaPlatform, String url, String formatId, String fileName) throws YtDlpCallException {
@@ -318,6 +345,8 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
     }
 
-    private record VideoInfo(String formatId, String extension) {}
+    private record VideoInfo(String formatId, String title, String ext) {}
+
+    private record AudioInfo(long duration, String title, String ext) {}
 
 }

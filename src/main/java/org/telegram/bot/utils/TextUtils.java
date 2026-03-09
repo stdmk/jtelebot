@@ -1,10 +1,11 @@
 package org.telegram.bot.utils;
 
+import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import org.telegram.bot.domain.entities.User;
 
-import jakarta.annotation.Nullable;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -270,7 +271,7 @@ public class TextUtils {
 
     public static boolean isThatUrl(String text) {
         try {
-            new URL(text);
+            URI.create(text).toURL();
         } catch (MalformedURLException e) {
             return false;
         }
@@ -322,7 +323,7 @@ public class TextUtils {
             }
         }
 
-        return new URL(stringUrl);
+        return URI.create(stringUrl).toURL();
     }
 
     public static boolean isNotEmpty(String text) {
@@ -343,6 +344,12 @@ public class TextUtils {
         }
 
         return text;
+    }
+
+    public String sanitize(String name) {
+        return name
+                .replaceAll("[\\\\/:*?\"<>|]", "_")
+                .trim();
     }
 
 }
