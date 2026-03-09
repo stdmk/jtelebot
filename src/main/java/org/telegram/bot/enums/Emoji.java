@@ -75,7 +75,8 @@ public enum Emoji {
     FIRE("\uD83D\uDD25"),
     CHICKEN("\uD83D\uDC14"),
     PIG("\uD83D\uDC16"),
-    BREAD("\uD83C\uDF5E")
+    BREAD("\uD83C\uDF5E"),
+    EAR_OF_RICE("\uD83C\uDF3E"),
     ;
 
     private final String symbol;

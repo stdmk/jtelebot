@@ -59,7 +59,7 @@ public class Virus implements Command {
                 } else {
                     try {
                         commandArgument = TextUtils.findFirstUrlInText(repliedMessage.getText()).toString();
-                    } catch (MalformedURLException e) {
+                    } catch (MalformedURLException | IllegalArgumentException e) {
                         throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
                     }
                 }

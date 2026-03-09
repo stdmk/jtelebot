@@ -1,12 +1,11 @@
 package org.telegram.bot.domain.entities.calories;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.domain.entities.User;
-
-import jakarta.persistence.*;
 
 /**
  * UserCaloriesTarget entity.
@@ -35,6 +34,9 @@ public class UserCaloriesTarget {
 
     @Column(name = "carbs")
     private Double carbs;
+
+    @Column(name = "fibers")
+    private Double fibers;
 
     @Column(name = "caloric")
     private Double calories;

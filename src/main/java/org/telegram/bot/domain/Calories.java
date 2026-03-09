@@ -11,6 +11,7 @@ public class Calories {
     private double proteins;
     private double fats;
     private double carbs;
+    private double fibers;
     private double caloric;
     private double grams;
 
@@ -18,6 +19,7 @@ public class Calories {
         this.proteins = this.proteins + calories.getProteins();
         this.fats = this.fats + calories.getFats();
         this.carbs = this.carbs + calories.getCarbs();
+        this.fibers = this.fibers + calories.getFibers();
         this.caloric = this.caloric + calories.getCaloric();
         this.grams = this.grams + calories.getGrams();
     }

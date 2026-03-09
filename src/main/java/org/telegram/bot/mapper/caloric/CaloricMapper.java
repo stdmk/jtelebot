@@ -16,6 +16,7 @@ public class CaloricMapper {
         double proteins = 0;
         double fats = 0;
         double carbs = 0;
+        double fibers = 0;
         double grams = 0;
 
         for (Calories calories : caloriesList) {
@@ -23,10 +24,11 @@ public class CaloricMapper {
             proteins = proteins + calories.getProteins();
             fats = fats + calories.getFats();
             carbs = carbs + calories.getCarbs();
+            fibers = fibers + calories.getFibers();
             grams = grams + calories.getGrams();
         }
 
-        return new Calories(proteins, fats, carbs, caloric, grams);
+        return new Calories(proteins, fats, carbs, fibers, caloric, grams);
     }
 
     public Calories toCalories(EatenProduct eatenProduct) {
@@ -34,16 +36,17 @@ public class CaloricMapper {
     }
 
     public Calories toCalories(Activity activity) {
-        return new Calories(0, 0, 0, activity.getCalories(), 0);
+        return new Calories(0, 0, 0, 0, activity.getCalories(), 0);
     }
 
     public Calories toCalories(Product product, double grams) {
         double proteins = product.getProteins() == 0D ? 0D : product.getProteins() / 100 * grams;
         double fats = product.getFats() == 0D ? 0D : product.getFats() / 100 * grams;
         double carbs = product.getCarbs() == 0D ? 0D : product.getCarbs() / 100 * grams;
+        double fibers = product.getFibers() == 0D ? 0D : product.getFibers() / 100 * grams;
         double caloric = product.getCaloric() == 0D ? 0D : product.getCaloric() / 100 * grams;
 
-        return new Calories(proteins, fats, carbs, caloric, grams);
+        return new Calories(proteins, fats, carbs, fibers, caloric, grams);
     }
 
     public double toCaloric(double proteins, double fats, double carbs) {

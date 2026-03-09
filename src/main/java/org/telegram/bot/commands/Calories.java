@@ -67,6 +67,7 @@ public class Calories implements Command {
     private Pattern fatsPattern;
     private Pattern carbsPattern;
     private Pattern kcalPattern;
+    private Pattern fibersPattern;
     private Pattern gramsPattern;
     private Pattern negativeKcalPattern;
 
@@ -76,6 +77,7 @@ public class Calories implements Command {
         fatsPattern = Pattern.compile(getNumericParameterPattern("command.calories.fatssymbol"));
         carbsPattern = Pattern.compile(getNumericParameterPattern("command.calories.carbssymbol"));
         kcalPattern = Pattern.compile(getNumericParameterPattern("command.calories.calsymbol"));
+        fibersPattern = Pattern.compile(getNumericParameterPattern("command.calories.fiberssymbol"));
         gramsPattern = Pattern.compile(getNumericParameterPattern("command.calories.gramssymbol"));
         negativeKcalPattern = Pattern.compile(
                 String.format(
@@ -246,13 +248,13 @@ public class Calories implements Command {
         if (commandList.length > 1) {
             StringBuilder buf = new StringBuilder();
             for (String command : commandList) {
-                buf.append(getMatchedCommadResult(chat, user, command)).append("\n").append(BORDER);
+                buf.append(getMatchedCommandResult(chat, user, command)).append("\n").append(BORDER);
             }
 
             return buf.toString();
         }
 
-        return getMatchedCommadResult(chat, user, commandArgument);
+        return getMatchedCommandResult(chat, user, commandArgument);
     }
 
     private String[] getCommandList(String data) {
@@ -263,7 +265,7 @@ public class Calories implements Command {
         return new String[]{data};
     }
 
-    private String getMatchedCommadResult(Chat chat, User user, String commandArgument) {
+    private String getMatchedCommandResult(Chat chat, User user, String commandArgument) {
         Matcher gramsMatcher = gramsPattern.matcher(commandArgument);
         if (gramsMatcher.find()) {
             return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
@@ -340,12 +342,14 @@ public class Calories implements Command {
         Matcher proteinsMatcher = proteinsPattern.matcher(command);
         Matcher fatsMatcher = fatsPattern.matcher(command);
         Matcher carbsMatcher = carbsPattern.matcher(command);
+        Matcher fibersMatcher = fibersPattern.matcher(command);
         Matcher kcalMarcher = kcalPattern.matcher(command);
 
         String name = command;
         double proteins = 0;
         double fats = 0;
         double carbs = 0;
+        double fibers = 0;
         double kcal = 0;
         if (proteinsMatcher.find()) {
             proteins = parseValue(proteinsMatcher.group(1));
@@ -358,6 +362,10 @@ public class Calories implements Command {
         if (carbsMatcher.find()) {
             carbs = parseValue(carbsMatcher.group(1));
             name = name.replace(carbsMatcher.group(), "");
+        }
+        if (fibersMatcher.find()) {
+            fibers = parseValue(fibersMatcher.group(1));
+            name = name.replace(fibersMatcher.group(), "");
         }
         if (kcalMarcher.find()) {
             kcal = parseValue(kcalMarcher.group(1));
@@ -385,6 +393,7 @@ public class Calories implements Command {
                 .setProteins(proteins)
                 .setFats(fats)
                 .setCarbs(carbs)
+                .setFibers(fibers)
                 .setCaloric(kcal);
     }
 
@@ -464,16 +473,22 @@ public class Calories implements Command {
     }
 
     private String buildSubtractCaloriesString(org.telegram.bot.domain.Calories calories) {
-        return buildChangedCaloriesString("${command.calories.deleted}", calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getCaloric());
+        return buildChangedCaloriesString("${command.calories.deleted}", calories);
     }
 
     private String buildAddedCaloriesString(org.telegram.bot.domain.Calories calories) {
-        return buildChangedCaloriesString("${command.calories.added}", calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getCaloric());
+        return buildChangedCaloriesString("${command.calories.added}", calories);
     }
 
-    private String buildChangedCaloriesString(String caption, double proteins, double fats, double carbs, double caloric) {
+    private String buildChangedCaloriesString(String caption, org.telegram.bot.domain.Calories calories) {
+        double proteins = calories.getProteins();
+        double fats = calories.getFats();
+        double carbs = calories.getCarbs();
+        double fibers = calories.getFibers();
+        double caloric = calories.getCaloric();
+
         String PFC;
-        if (proteins == 0D && fats == 0D && carbs == 0D) {
+        if (proteins == 0D && fats == 0D && carbs == 0D && fibers == 0D) {
             PFC = "";
         } else {
             String proteinsString = "";
@@ -491,7 +506,12 @@ public class Calories implements Command {
                 carbsString = "<b>" + DF.format(carbs) + "</b> ${command.calories.carbssymbol}. ";
             }
 
-            PFC = "(" + proteinsString + fatsString + carbsString + ")";
+            String fibersString = "";
+            if (fibers != 0D) {
+                fibersString = "<b>" + DF.format(fibers) + "</b> ${command.calories.fiberssymbol}. ";
+            }
+
+            PFC = "(" + proteinsString + fatsString + carbsString + fibersString + ")";
         }
 
         return caption + ": <b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n" + PFC;
@@ -513,7 +533,7 @@ public class Calories implements Command {
                             LinkedHashMap::new));
         }
 
-        org.telegram.bot.domain.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values()); // product parameters may change, so it is better to recalculate each time
+        org.telegram.bot.domain.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values());
 
         Set<Activity> activities = userCalories.getActivities();
         double caloriesBurned = activities.stream().mapToDouble(Activity::getCalories).sum();
@@ -522,6 +542,7 @@ public class Calories implements Command {
         String proteinsOfTargetInfo = "";
         String fatsOfTargetInfo = "";
         String carbsOfTargetInfo = "";
+        String fibersOfTargetInfo = "";
         UserCaloriesTarget userCaloriesTarget = userCaloriesTargetService.get(userCalories.getUser());
         if (userCaloriesTarget != null) {
             Double caloriesTarget = userCaloriesTarget.getCalories();
@@ -547,6 +568,9 @@ public class Calories implements Command {
             }
             if (userCaloriesTarget.getCarbs() != null) {
                 carbsOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getCarbs(), calories.getCarbs())) + "%)";
+            }
+            if (userCaloriesTarget.getFibers() != null) {
+                fibersOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getFibers(), calories.getFibers())) + "%)";
             }
         }
 
@@ -574,6 +598,8 @@ public class Calories implements Command {
                 + fatsOfTargetInfo + "\n"
                 + "${command.calories.carbs}: <b>" + DF.format(calories.getCarbs()) + "</b> ${command.calories.gramssymbol}. "
                 + carbsOfTargetInfo + "\n"
+                + "${command.calories.fibers}: <b>" + DF.format(calories.getFibers()) + "</b> ${command.calories.gramssymbol}. "
+                + fibersOfTargetInfo + "\n"
                 + "${command.calories.weight}: <b>" + DF.format(calories.getGrams()) + "</b> ${command.calories.gramssymbol}. "
                 + "\n\n"
                 + buildDetailsInfo(dayDetails);
@@ -668,16 +694,19 @@ public class Calories implements Command {
         Double targetProteins = null;
         Double targetFats = null;
         Double targetCarbs = null;
+        Double targetFibers = null;
 
         if (caloriesTarget != null) {
             targetProteins = caloriesTarget.getProteins();
             targetFats = caloriesTarget.getFats();
             targetCarbs = caloriesTarget.getCarbs();
+            targetFibers = caloriesTarget.getFibers();
         }
 
         return getMealCaloricParamInfo(mealCalories.getProteins(), targetProteins, "${command.calories.proteins}")
                 + getMealCaloricParamInfo(mealCalories.getFats(), targetFats, "${command.calories.fats}")
                 + getMealCaloricParamInfo(mealCalories.getCarbs(), targetCarbs, "${command.calories.carbs}")
+                + getMealCaloricParamInfo(mealCalories.getFibers(), targetFibers, "${command.calories.fibers}")
                 + getMealCaloricParamInfo(mealCalories.getGrams(), null, "${command.calories.weight}");
     }
 
@@ -708,18 +737,19 @@ public class Calories implements Command {
     }
 
     private String getPFCInfo(Product product) {
-        return getPFCInfo(product.getCaloric(), product.getProteins(), product.getFats(), product.getCarbs());
+        return getPFCInfo(product.getCaloric(), product.getProteins(), product.getFats(), product.getCarbs(), product.getFibers());
     }
 
     private String getPFCInfo(org.telegram.bot.domain.Calories calories) {
-        return getPFCInfo(calories.getCaloric(), calories.getProteins(), calories.getFats(), calories.getCarbs());
+        return getPFCInfo(calories.getCaloric(), calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getFibers());
     }
 
-    private String getPFCInfo(double caloric, double proteins, double fats, double carbs) {
+    private String getPFCInfo(double caloric, double proteins, double fats, double carbs, double fibers) {
         return "<b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n"
                 + "${command.calories.proteinssymbol}: <b>" + DF.format(proteins) + "</b> ${command.calories.gramssymbol}. "
                 + "${command.calories.fatssymbol}: <b>" + DF.format(fats) + "</b>${command.calories.gramssymbol}. "
-                + "${command.calories.carbssymbol}: <b>" + DF.format(carbs) + "</b>${command.calories.gramssymbol}.";
+                + "${command.calories.carbssymbol}: <b>" + DF.format(carbs) + "</b>${command.calories.gramssymbol}. "
+                + "${command.calories.fiberssymbol}: <b>" + DF.format(fibers) + "</b>${command.calories.gramssymbol}. ";
     }
 
     private LocalDateTime getUsersCurrentDateTime(Chat chat, User user) {

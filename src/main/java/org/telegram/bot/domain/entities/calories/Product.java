@@ -1,12 +1,11 @@
 package org.telegram.bot.domain.entities.calories;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.telegram.bot.domain.entities.User;
-
-import jakarta.persistence.*;
 
 /**
  * Product entity.
@@ -38,6 +37,9 @@ public class Product {
 
     @Column(name = "carbs")
     private double carbs;
+
+    @Column(name = "fibers")
+    private double fibers;
 
     @Column(name = "caloric")
     private double caloric;

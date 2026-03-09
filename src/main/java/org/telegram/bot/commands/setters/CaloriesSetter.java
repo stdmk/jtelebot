@@ -1,5 +1,6 @@
 package org.telegram.bot.commands.setters;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.entities.Chat;
@@ -18,7 +19,6 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.calories.UserCaloriesTargetService;
 
-import jakarta.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.BiFunction;
@@ -38,6 +38,8 @@ public class CaloriesSetter implements Setter<BotResponse> {
     private static final String CALLBACK_SET_FATS_TARGET_COMMAND = CALLBACK_COMMAND + SET_FATS_TARGET_COMMAND;
     private static final String SET_CARBS_TARGET_COMMAND = EMPTY_CALORIES_COMMAND + "cr";
     private static final String CALLBACK_SET_CARBS_TARGET_COMMAND = CALLBACK_COMMAND + SET_CARBS_TARGET_COMMAND;
+    private static final String SET_FIBERS_TARGET_COMMAND = EMPTY_CALORIES_COMMAND + "fb";
+    private static final String CALLBACK_SET_FIBERS_TARGET_COMMAND = CALLBACK_COMMAND + SET_FIBERS_TARGET_COMMAND;
 
     private static final DecimalFormat DF = new DecimalFormat("#.#");
 
@@ -83,6 +85,8 @@ public class CaloriesSetter implements Setter<BotResponse> {
                 return setFatsTargetByCallback(message, chat, user);
             } else if (lowerCaseCommandText.startsWith(SET_CARBS_TARGET_COMMAND)) {
                 return setCarbsTargetByCallback(message, chat, user);
+            } else if (lowerCaseCommandText.startsWith(SET_FIBERS_TARGET_COMMAND)) {
+                return setFibersTargetByCallback(message, chat, user);
             }
         }
 
@@ -94,6 +98,8 @@ public class CaloriesSetter implements Setter<BotResponse> {
             return setFatsTarget(message, chat, user, commandText);
         } else if (lowerCaseCommandText.startsWith(SET_CARBS_TARGET_COMMAND)) {
             return setCarbsTarget(message, chat, user, commandText);
+        } else if (lowerCaseCommandText.startsWith(SET_FIBERS_TARGET_COMMAND)) {
+            return setFibersTarget(message, chat, user, commandText);
         }
 
         return getMainKeyboard(message, user, true);
@@ -113,6 +119,10 @@ public class CaloriesSetter implements Setter<BotResponse> {
 
     private BotResponse setCarbsTargetByCallback(Message message, Chat chat, User user) {
         return setCommandWaiting(message, chat, user, CALLBACK_SET_CARBS_TARGET_COMMAND, "${setter.calories.setcarbshelp}");
+    }
+
+    private BotResponse setFibersTargetByCallback(Message message, Chat chat, User user) {
+        return setCommandWaiting(message, chat, user, CALLBACK_SET_FIBERS_TARGET_COMMAND, "${setter.calories.setfibershelp}");
     }
 
     private BotResponse setCommandWaiting(Message message, Chat chat, User user, String callback, String messageText) {
@@ -140,6 +150,11 @@ public class CaloriesSetter implements Setter<BotResponse> {
     private BotResponse setCarbsTarget(Message message, Chat chat, User user, String command) {
         double value = parseValue(command.substring(SET_CARBS_TARGET_COMMAND.length()));
         return setTarget(message, chat, user, value, UserCaloriesTarget::setCarbs);
+    }
+
+    private BotResponse setFibersTarget(Message message, Chat chat, User user, String command) {
+        double value = parseValue(command.substring(SET_FIBERS_TARGET_COMMAND.length()));
+        return setTarget(message, chat, user, value, UserCaloriesTarget::setFibers);
     }
 
     private BotResponse setTarget(Message message, Chat chat, User user, double value, BiFunction<UserCaloriesTarget, Double, UserCaloriesTarget> setter) {
@@ -186,8 +201,12 @@ public class CaloriesSetter implements Setter<BotResponse> {
             if (userCaloriesTarget.getCarbs() != null) {
                 carbsTarget = "${setter.calories.carbs}: <b>" + DF.format(userCaloriesTarget.getCarbs()) + "</b> ${setter.calories.gramssymbol}.\n";
             }
+            String fibersTarget = "";
+            if (userCaloriesTarget.getFibers() != null) {
+                fibersTarget = "${setter.calories.fibers}: <b>" + DF.format(userCaloriesTarget.getFibers()) + "</b> ${setter.calories.gramssymbol}.\n";
+            }
 
-            responseText = "${setter.calories.currenttargets}:\n" + caloricTarget + proteinsTarget + fatsTarget + carbsTarget;
+            responseText = "${setter.calories.currenttargets}:\n" + caloricTarget + proteinsTarget + fatsTarget + carbsTarget + fibersTarget;
         }
 
         if (newMessage) {
@@ -217,6 +236,9 @@ public class CaloriesSetter implements Setter<BotResponse> {
                 List.of(new KeyboardButton()
                         .setName(Emoji.BREAD.getSymbol() + "${setter.calories.button.carbs}")
                         .setCallback(CALLBACK_SET_CARBS_TARGET_COMMAND)),
+                List.of(new KeyboardButton()
+                        .setName(Emoji.EAR_OF_RICE.getSymbol() + "${setter.calories.button.fibers}")
+                        .setCallback(CALLBACK_SET_FIBERS_TARGET_COMMAND)),
                 List.of(new KeyboardButton()
                         .setName(Emoji.UPDATE.getSymbol() + "${setter.calories.button.update}")
                         .setCallback(CALLBACK_COMMAND + UPDATE_CALORIES_COMMAND)),

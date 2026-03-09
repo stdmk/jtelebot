@@ -272,7 +272,7 @@ public class TextUtils {
     public static boolean isThatUrl(String text) {
         try {
             URI.create(text).toURL();
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
             return false;
         }
 

@@ -169,4 +169,5 @@
     <include file="db/changelog/20231125123900_added_command_Voice.xml"/>
     <include file="db/changelog/2024/changelog.xml"/>
     <include file="db/changelog/2025/changelog.xml"/>
+    <include file="db/changelog/2026/changelog.xml"/>
 </databaseChangeLog>

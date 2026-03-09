@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <include file="db/changelog/2026/20260309084900_update_Product_add_column_fibers.xml"/>
+    <include file="db/changelog/2026/20260309085100_update_UserCaloriesTarget_add_column_fibers.xml"/>
+</databaseChangeLog>

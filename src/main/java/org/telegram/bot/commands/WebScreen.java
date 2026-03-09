@@ -79,7 +79,7 @@ public class WebScreen implements Command {
     private URL findFirstUrlInText(String text) {
         try {
             return TextUtils.findFirstUrlInText(text);
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
     }
