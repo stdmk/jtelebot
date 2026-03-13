@@ -130,14 +130,11 @@ public class Download implements Command {
             }
         }
 
-        java.io.File diskFile;
         try {
             if (MediaType.VIDEO.equals(mediaType)) {
-                diskFile = ytDlpProvider.getVideo(mediaPlatform, fileParams.url);
-                return new File(FileType.VIDEO, diskFile);
+                return ytDlpProvider.getVideo(mediaPlatform, fileParams.url);
             } else if (MediaType.AUDIO.equals(mediaType)) {
-                diskFile = ytDlpProvider.getAudio(mediaPlatform, fileParams.url);
-                return new File(FileType.AUDIO, diskFile);
+                return ytDlpProvider.getAudio(mediaPlatform, fileParams.url);
             } else {
                 String errorMessage = "Unable to find method to download media type " + mediaType;
                 log.error(errorMessage);
@@ -148,7 +145,6 @@ public class Download implements Command {
         } catch (YtDlpException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
-
 
     }
 

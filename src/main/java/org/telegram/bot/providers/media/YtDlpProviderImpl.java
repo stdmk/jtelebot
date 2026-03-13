@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.model.response.File;
+import org.telegram.bot.domain.model.response.FileSettings;
+import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.youtube.YtDlpBigFileException;
 import org.telegram.bot.exception.youtube.YtDlpCallException;
@@ -16,7 +19,6 @@ import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -48,7 +50,13 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpNoResponseException(errorMessage);
         }
 
-        return videoFile;
+        return new File(
+                FileType.VIDEO,
+                videoFile,
+                new FileSettings()
+                        .setDuration(videoInfo.duration)
+                        .setWidth(videoInfo.width)
+                        .setHeight(videoInfo.height));
     }
 
     @Override
@@ -76,7 +84,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpCallException(errorMessage);
         }
 
-        File audioFile = temporaryFileManager.get(fileName);
+        java.io.File audioFile = temporaryFileManager.get(fileName);
         if (audioFile == null) {
             String errorMessage = "File " + fileName + " does not exist";
             log.error(errorMessage);
@@ -84,7 +92,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpNoResponseException(errorMessage);
         }
 
-        return audioFile;
+        return new File(FileType.AUDIO, audioFile, new FileSettings().setDuration(duration));
     }
 
     private long getDuration(MediaPlatform mediaPlatform, String url) throws YtDlpCallException {
@@ -113,7 +121,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             String title = root.path("title").asText("audio");
             String ext = "mp3";
 
-            return new AudioInfo(duration, title, ext);
+            return new AudioInfo(title, ext, duration);
         } catch (IOException | InterruptedException e) {
             String errorMessage = "Failed to get audio info: " + e.getMessage();
             log.error(errorMessage);
@@ -227,9 +235,15 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
 
         String fileName = TextUtils.sanitize(root.path("title").asText("video"));
-        String ext = bestFormat.get("ext").asText();
 
-        return new VideoInfo(bestFormat.get("format_id").asText(), fileName, ext);
+        return new VideoInfo(
+                bestFormat.get("format_id").asText(),
+                fileName,
+                bestFormat.get("ext").asText(),
+                duration,
+                bestFormat.path("width").asInt(0),
+                bestFormat.path("height").asInt(0)
+        );
     }
 
     private List<String> getFormatIdArguments(MediaPlatform mediaPlatform, String url) {
@@ -344,8 +358,10 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
     }
 
-    private record VideoInfo(String formatId, String title, String ext) {}
+    private record VideoInfo(String formatId, String title, String ext, long duration, int width, int height) {
+    }
 
-    private record AudioInfo(long duration, String title, String ext) {}
+    private record AudioInfo(String title, String ext, long duration) {
+    }
 
 }

@@ -3,6 +3,7 @@ package org.telegram.bot.mapper.telegram.response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.domain.model.response.FileResponse;
+import org.telegram.bot.domain.model.response.FileSettings;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
@@ -25,9 +26,15 @@ public class VideoMapper implements TelegramFileApiMethodMapper {
         InputFile inputFile = inputFileMapper.toInputFile(file);
 
         SendVideo sendVideo = new SendVideo(fileResponse.getChatId().toString(), inputFile);
+
+        FileSettings fileSettings = file.getFileSettings();
+        sendVideo.setDuration((int) fileSettings.getDuration());
+        sendVideo.setWidth(fileSettings.getWidth());
+        sendVideo.setHeight(fileSettings.getHeight());
+        sendVideo.setSupportsStreaming(true);
         sendVideo.setReplyToMessageId(fileResponse.getReplyToMessageId());
 
-        if (file.getFileSettings().isSpoiler()) {
+        if (fileSettings.isSpoiler()) {
             sendVideo.setHasSpoiler(true);
         }
 

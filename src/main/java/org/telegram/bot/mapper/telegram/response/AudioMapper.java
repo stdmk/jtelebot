@@ -2,6 +2,7 @@ package org.telegram.bot.mapper.telegram.response;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
@@ -21,9 +22,11 @@ public class AudioMapper implements TelegramFileApiMethodMapper {
 
     @Override
     public PartialBotApiMethod<?> map(FileResponse fileResponse) {
-        InputFile inputFile = inputFileMapper.toInputFile(fileResponse.getFiles().getFirst());
+        File file = fileResponse.getFiles().getFirst();
+        InputFile inputFile = inputFileMapper.toInputFile(file);
 
         SendAudio sendAudio = new SendAudio(fileResponse.getChatId().toString(), inputFile);
+        sendAudio.setDuration((int) file.getFileSettings().getDuration());
         sendAudio.setReplyToMessageId(fileResponse.getReplyToMessageId());
 
         return sendAudio;

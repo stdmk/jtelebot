@@ -12,7 +12,6 @@ import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileResponse;
-import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
@@ -31,7 +30,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.telegram.bot.TestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -162,17 +162,16 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup("download " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        java.io.File youtubeFile = mock(java.io.File.class);
-        when(youtubeFile.exists()).thenReturn(true);
+        File youtubeFile = new File("fileId");
         when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenReturn(youtubeFile);
 
         BotResponse response = download.parse(request).getFirst();
 
-        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.VIDEO);
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
         File file = fileResponse.getFiles().getFirst();
         assertNull(file.getName());
-        assertEquals(youtubeFile, file.getDiskFile());
+        assertEquals(youtubeFile, file);
 
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }
@@ -183,8 +182,7 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup("download AuDiO " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        java.io.File youtubeFile = mock(java.io.File.class);
-        when(youtubeFile.exists()).thenReturn(true);
+        File youtubeFile = new File("fileId");
         when(ytDlpProvider.getAudio(MediaPlatform.YOUTUBE, url)).thenReturn(youtubeFile);
 
         Set<String> audioMediaTypes = Set.of("audio");
@@ -194,11 +192,11 @@ class DownloadTest {
 
         BotResponse response = download.parse(request).getFirst();
 
-        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.AUDIO);
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
         File file = fileResponse.getFiles().getFirst();
         assertNull(file.getName());
-        assertEquals(youtubeFile, file.getDiskFile());
+        assertEquals(youtubeFile, file);
 
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }
@@ -209,17 +207,16 @@ class DownloadTest {
         BotRequest request = getRequestFromGroup("download " + url);
 
         when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
-        java.io.File soundCloudFile = mock(java.io.File.class);
-        when(soundCloudFile.exists()).thenReturn(true);
+        File soundCloudFile = new File("fileId");
         when(ytDlpProvider.getAudio(MediaPlatform.SOUNDCLOUD, url)).thenReturn(soundCloudFile);
 
         BotResponse response = download.parse(request).getFirst();
 
-        FileResponse fileResponse = checkDefaultFileResponseParams(response, FileType.AUDIO);
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
 
         File file = fileResponse.getFiles().getFirst();
         assertNull(file.getName());
-        assertEquals(soundCloudFile, file.getDiskFile());
+        assertEquals(soundCloudFile, file);
 
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }

@@ -5,9 +5,6 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class FileSettings {
+public class FileParams {
     private long duration;
-    private int width;
-    private int height;
-    private boolean spoiler;
 }

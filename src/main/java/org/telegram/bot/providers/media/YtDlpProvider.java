@@ -1,10 +1,9 @@
 package org.telegram.bot.providers.media;
 
 import com.drew.lang.annotations.NotNull;
+import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.youtube.YtDlpException;
-
-import java.io.File;
 
 public interface YtDlpProvider {
 
