@@ -12,4 +12,6 @@ import org.telegram.bot.domain.entities.Token;
 public interface TokenRepository extends JpaRepository<Token, Long> {
 
     Token findByName(String name);
+
+    Token findByToken(String token);
 }
