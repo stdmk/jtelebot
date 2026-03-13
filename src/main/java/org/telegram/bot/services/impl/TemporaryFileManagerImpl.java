@@ -40,7 +40,7 @@ public class TemporaryFileManagerImpl implements TemporaryFileManager {
             return addFile(prefix, postfix);
         }
 
-        FILES.put(fileName, LocalDateTime.now());
+        FILES.put(fileName, LocalDateTime.now().plusSeconds(temporaryFileLifetimeSeconds));
         return fileName;
     }
 
@@ -80,7 +80,7 @@ public class TemporaryFileManagerImpl implements TemporaryFileManager {
         Set<String> fileNamesToRemove = new HashSet<>();
 
         FILES.forEach((key, value) -> {
-            if (value.plusSeconds(temporaryFileLifetimeSeconds).isAfter(dateTimeNow) && (deleteFileFromDisk(key))) {
+            if (value.isBefore(dateTimeNow) && (deleteFileFromDisk(key))) {
                 fileNamesToRemove.add(key);
             }
         });
