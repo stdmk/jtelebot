@@ -15,6 +15,7 @@ import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.exception.youtube.YtDlpBigFileException;
 import org.telegram.bot.exception.youtube.YtDlpCallException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
@@ -141,6 +142,19 @@ class DownloadTest {
         assertThrows(BotException.class, () -> download.parse(request));
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
         verify(speechService).getRandomMessageByTag(BotSpeechTag.NO_RESPONSE);
+    }
+
+    @Test
+    void parseWithYoutubeVideoAsArgumentWhenTooBigFileTest() throws YtDlpException {
+        final String url = "https://youtube.com/shorts/QWERTYUIOP1";
+        BotRequest request = getRequestFromGroup("download " + url);
+
+        when(commandWaitingService.getText(request.getMessage())).thenReturn(request.getMessage().getCommandArgument());
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpBigFileException("error"));
+
+        assertThrows(BotException.class, () -> download.parse(request));
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE);
     }
 
     @Test

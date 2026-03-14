@@ -13,6 +13,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.enums.yt_dlp.MediaType;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.exception.youtube.YtDlpBigFileException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
 import org.telegram.bot.providers.media.YtDlpProvider;
@@ -140,6 +141,8 @@ public class Download implements Command {
                 log.error(errorMessage);
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
             }
+        } catch (YtDlpBigFileException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
         } catch (YtDlpNoResponseException e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
         } catch (YtDlpException e) {
