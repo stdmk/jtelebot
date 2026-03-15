@@ -1,6 +1,7 @@
-package org.telegram.bot.utils.coordinates;
+package org.telegram.bot.domain.model;
 
 import jakarta.validation.constraints.NotNull;
+
 import java.util.Objects;
 
 public record Coordinates(@NotNull Double latitude, @NotNull Double longitude) {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20260314164500" author="stdmk">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM bot.commandproperties WHERE id = 63
+            </sqlCheck>
+        </preConditions>
+
+        <insert schemaName="bot" tableName="commandproperties">
+            <column name="id" value="63"/>
+            <column name="commandname" value="location"/>
+            <column name="russifiedname" value="локация"/>
+            <column name="enruname" value="kjrfwbz"/>
+            <column name="classname" value="location"/>
+            <column name="accesslevel" value="0"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

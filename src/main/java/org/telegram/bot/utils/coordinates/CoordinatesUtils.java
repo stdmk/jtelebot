@@ -1,8 +1,9 @@
 package org.telegram.bot.utils.coordinates;
 
-import lombok.experimental.UtilityClass;
-
 import jakarta.annotation.Nullable;
+import lombok.experimental.UtilityClass;
+import org.telegram.bot.domain.model.Coordinates;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,7 +13,7 @@ public class CoordinatesUtils {
     public static final Pattern COORDINATE_PATTERN1 = Pattern.compile("(\\d+)\\s*°\\s*(\\d+)\\s*'\\s*(\\d+[.,]*\\d*)\""); //35° 54' 36.24"
     public static final Pattern COORDINATE_PATTERN2 = Pattern.compile("(\\d+)\\s*°\\s*(\\d+[.,]*\\d*)\\s*'"); //35° 54.24"
     public static final Pattern COORDINATE_PATTERN3 = Pattern.compile("(\\d+[.,]*\\d*)"); //35.543624
-    public static final Pattern COORDINATE_PATTERN4 = Pattern.compile("(\\d+)_(\\d+)_(\\d+)_(\\d+)"); ///location_56_503_35_543624
+    public static final Pattern COORDINATE_PATTERN4 = Pattern.compile("(m?\\d+)_(\\d+)_(m?\\d+)_(\\d+)"); ///location_56_503_35_543624
 
     @Nullable
     public Coordinates parseCoordinates(String data) {
@@ -72,9 +73,12 @@ public class CoordinatesUtils {
     }
 
     private Coordinates getCoordinateFromPattern4(Matcher matcher) {
-        return new Coordinates(
-                Double.parseDouble(matcher.group(1) + "." + matcher.group(2)), 
-                Double.parseDouble(matcher.group(3) + "." + matcher.group(4)));
+        String latInt = matcher.group(1).replace("m", "-");
+        String latFrac = matcher.group(2);
+        String lonInt = matcher.group(3).replace("m", "-");
+        String lonFrac = matcher.group(4);
+
+        return new Coordinates(Double.parseDouble(latInt + "." + latFrac), Double.parseDouble(lonInt + "." + lonFrac));
     }
 
     private String replaceComma(String text) {

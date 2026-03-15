@@ -1,9 +1,9 @@
 package org.telegram.bot.mapper.caloric;
 
 import org.junit.jupiter.api.Test;
-import org.telegram.bot.domain.Calories;
 import org.telegram.bot.domain.entities.calories.EatenProduct;
 import org.telegram.bot.domain.entities.calories.Product;
+import org.telegram.bot.domain.model.calories.Calories;
 
 import java.util.List;
 

@@ -11,6 +11,7 @@ import org.telegram.bot.enums.RequestSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -406,6 +407,23 @@ public class TestUtils {
         File file = mock(File.class);
         when(file.exists()).thenReturn(true);
         return file;
+    }
+
+    public static void assertAllFieldsAreNull(Object obj) {
+        for (Field field : obj.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            Object value;
+            try {
+                value = field.get(obj);
+            } catch (IllegalAccessException e) {
+                fail("Failed to get value of field " + field.getName() + ": " + e.getMessage());
+                return;
+            }
+
+            if (!field.getType().isPrimitive()) {
+                assertNull(value, "Field not null: " + field.getName());
+            }
+        }
     }
 
 }

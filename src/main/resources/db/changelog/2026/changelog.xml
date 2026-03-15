@@ -5,4 +5,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <include file="db/changelog/2026/20260309084900_update_Product_add_column_fibers.xml"/>
     <include file="db/changelog/2026/20260309085100_update_UserCaloriesTarget_add_column_fibers.xml"/>
+    <include file="db/changelog/2026/20260314161000_added_command_Ip.xml"/>
+    <include file="db/changelog/2026/20260314164500_added_command_Location.xml"/>
 </databaseChangeLog>

@@ -96,7 +96,7 @@ class CaloriesTest {
                 .setDate(DATE)
                 .setEatenProducts(new HashSet<>());
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 0, 0, 0);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(0, 0, 0, 0, 0, 0);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).getFirst();
@@ -146,7 +146,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(getSomeEatenProducts(userCalories));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 10, 1097, 523);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(100, 33, 100, 10, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -235,7 +235,7 @@ class CaloriesTest {
         userCalories.setActivities(Set.of(getSomeActivity(5L, userCalories), getSomeActivity(10L, userCalories)));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 12, 1097, 523);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(100, 33, 100, 12, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -296,7 +296,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(someEatenProducts);
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 13, 2100, 666);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(100, 33, 100, 13, 2100, 666);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -402,7 +402,7 @@ class CaloriesTest {
         userCalories.setEatenProducts(LongStream.range(1, 13).mapToObj(id -> getSomeEatenProduct(userCalories, id)).collect(Collectors.toSet()));
         when(caloricMapper.toCalories(any(EatenProduct.class))).thenAnswer(answer -> getSomeCalories(answer.getArgument(0)));
         when(userCaloriesService.get(user, expectedDate)).thenReturn(userCalories);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(100, 33, 100, 14, 1097, 523);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(100, 33, 100, 14, 1097, 523);
         when(caloricMapper.sum(anyCollection())).thenReturn(calories1);
         UserCaloriesTarget userCaloriesTarget = new UserCaloriesTarget()
                 .setId(1L)
@@ -527,7 +527,7 @@ class CaloriesTest {
 
         Product product = getSomeProduct(productId, user);
         when(productService.get(productId)).thenReturn(product);
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 15, 300, 200);
+        org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 15, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
@@ -643,7 +643,7 @@ class CaloriesTest {
 
         EatenProduct eatenProduct = getSomeEatenProduct(new UserCalories().setUser(request.getMessage().getUser()), eatenProductId);
         when(eatenProductService.get(eatenProductId)).thenReturn(eatenProduct);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(3, 4, 5, 2, 68, 50);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(3, 4, 5, 2, 68, 50);
         when(caloricMapper.toCalories(eatenProduct)).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).getFirst();
@@ -701,7 +701,7 @@ class CaloriesTest {
 
         Activity activity = getSomeActivity(activityId, new UserCalories().setUser(request.getMessage().getUser()));
         when(activityService.get(activityId)).thenReturn(activity);
-        org.telegram.bot.domain.Calories calories1 = new org.telegram.bot.domain.Calories(0, 0, 0, 0, 300, 0);
+        org.telegram.bot.domain.model.calories.Calories calories1 = new org.telegram.bot.domain.model.calories.Calories(0, 0, 0, 0, 300, 0);
         when(caloricMapper.toCalories(activity)).thenReturn(calories1);
 
         BotResponse response = calories.parse(request).getFirst();
@@ -743,7 +743,7 @@ class CaloriesTest {
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName)).thenReturn(List.of());
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 3, 300, 200);
+        org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 3, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
         when(productService.find(user, productName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(List.of(product));
@@ -825,7 +825,7 @@ class CaloriesTest {
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName1)).thenReturn(List.of(product));
         when(productService.find(user, productName2, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 2, 300, 200);
+        org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 2, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
 
         BotResponse response = calories.parse(request).getFirst();
@@ -852,7 +852,7 @@ class CaloriesTest {
         setUpInternationalization();
         Product product = getSomeProduct(1L, user);
         when(productService.get(user, productName)).thenReturn(List.of(product));
-        org.telegram.bot.domain.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.Calories(10, 3, 20, 2, 300, 200);
+        org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 2, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
         setUpClock(chat, user);
 
@@ -1057,7 +1057,7 @@ class CaloriesTest {
                 .setCaloric(id * 80);
     }
 
-    private org.telegram.bot.domain.Calories getSomeCalories(EatenProduct eatenProduct) {
+    private org.telegram.bot.domain.model.calories.Calories getSomeCalories(EatenProduct eatenProduct) {
         Product product = eatenProduct.getProduct();
         Double grams = eatenProduct.getGrams();
 
@@ -1067,7 +1067,7 @@ class CaloriesTest {
         double fibers = product.getFibers() / 100 * grams;
         double caloric = product.getCaloric() / 100 * grams;
 
-        return new org.telegram.bot.domain.Calories(proteins, fats, carbs, fibers, caloric, grams);
+        return new org.telegram.bot.domain.model.calories.Calories(proteins, fats, carbs, fibers, caloric, grams);
     }
 
 }
