@@ -3,6 +3,7 @@ package org.telegram.bot.utils;
 import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.Coordinates;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -350,6 +351,17 @@ public class TextUtils {
         return name
                 .replaceAll("[\\\\/:*?\"<>|]", "_")
                 .trim();
+    }
+
+    public String coordinatesToCommand(Coordinates coordinates) {
+        return formatCoordinateForCommand(coordinates.latitude()) + "_"
+                + formatCoordinateForCommand(coordinates.longitude());
+    }
+
+    private String formatCoordinateForCommand(Double coordinate) {
+        return String.format("%.4f", coordinate).replace(".", "_")
+                .replace(",", "_")
+                .replace("-", "m");
     }
 
 }

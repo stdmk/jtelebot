@@ -1,4 +1,4 @@
-package org.telegram.bot.domain;
+package org.telegram.bot.domain.model.calories;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

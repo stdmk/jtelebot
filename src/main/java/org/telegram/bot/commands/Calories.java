@@ -472,15 +472,15 @@ public class Calories implements Command {
         return product.getName() + " " + getPFCInfo(product);
     }
 
-    private String buildSubtractCaloriesString(org.telegram.bot.domain.Calories calories) {
+    private String buildSubtractCaloriesString(org.telegram.bot.domain.model.calories.Calories calories) {
         return buildChangedCaloriesString("${command.calories.deleted}", calories);
     }
 
-    private String buildAddedCaloriesString(org.telegram.bot.domain.Calories calories) {
+    private String buildAddedCaloriesString(org.telegram.bot.domain.model.calories.Calories calories) {
         return buildChangedCaloriesString("${command.calories.added}", calories);
     }
 
-    private String buildChangedCaloriesString(String caption, org.telegram.bot.domain.Calories calories) {
+    private String buildChangedCaloriesString(String caption, org.telegram.bot.domain.model.calories.Calories calories) {
         double proteins = calories.getProteins();
         double fats = calories.getFats();
         double carbs = calories.getCarbs();
@@ -519,7 +519,7 @@ public class Calories implements Command {
 
     private String getCaloriesInfo(UserCalories userCalories, LocalDate date) {
         Set<EatenProduct> eatenProducts = userCalories.getEatenProducts();
-        Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap;
+        Map<EatenProduct, org.telegram.bot.domain.model.calories.Calories> eatenProductCaloriesMap;
         if (eatenProducts == null) {
             eatenProductCaloriesMap = Map.of();
         } else {
@@ -533,7 +533,7 @@ public class Calories implements Command {
                             LinkedHashMap::new));
         }
 
-        org.telegram.bot.domain.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values());
+        org.telegram.bot.domain.model.calories.Calories calories = caloricMapper.sum(eatenProductCaloriesMap.values());
 
         Set<Activity> activities = userCalories.getActivities();
         double caloriesBurned = activities.stream().mapToDouble(Activity::getCalories).sum();
@@ -616,16 +616,16 @@ public class Calories implements Command {
                 .map(Map.Entry::getValue).collect(Collectors.joining("\n"));
     }
 
-    private Map<LocalDateTime, String> getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
+    private Map<LocalDateTime, String> getEatenProductListInfo(Map<EatenProduct, org.telegram.bot.domain.model.calories.Calories> eatenProductCaloriesMap, UserCaloriesTarget userCaloriesTarget) {
         Map<LocalDateTime, String> result = new HashMap<>();
         StringBuilder mealBuf = new StringBuilder();
 
         LocalDateTime startMealDateTime = null;
         LocalDateTime stopMealDateTime = null;
-        org.telegram.bot.domain.Calories mealCalories = new org.telegram.bot.domain.Calories();
-        for (Map.Entry<EatenProduct, org.telegram.bot.domain.Calories> entry : eatenProductCaloriesMap.entrySet()) {
+        org.telegram.bot.domain.model.calories.Calories mealCalories = new org.telegram.bot.domain.model.calories.Calories();
+        for (Map.Entry<EatenProduct, org.telegram.bot.domain.model.calories.Calories> entry : eatenProductCaloriesMap.entrySet()) {
             EatenProduct eatenProduct = entry.getKey();
-            org.telegram.bot.domain.Calories calories = entry.getValue();
+            org.telegram.bot.domain.model.calories.Calories calories = entry.getValue();
 
             if (startMealDateTime != null) {
                 Duration mealDuration = Duration.between(startMealDateTime, eatenProduct.getDateTime());
@@ -633,7 +633,7 @@ public class Calories implements Command {
                     result.put(stopMealDateTime, buildTimeCutoff(startMealDateTime, stopMealDateTime, mealCalories, userCaloriesTarget) + BORDER + mealBuf);
 
                     mealBuf = new StringBuilder();
-                    mealCalories = new org.telegram.bot.domain.Calories();
+                    mealCalories = new org.telegram.bot.domain.model.calories.Calories();
                     startMealDateTime = eatenProduct.getDateTime();
                 }
             } else {
@@ -664,11 +664,11 @@ public class Calories implements Command {
                         activity -> getActivityInfo(activity) + "\n"));
     }
 
-    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
+    private String buildTimeCutoff(LocalDateTime from, LocalDateTime to, org.telegram.bot.domain.model.calories.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
         return buildTimeCutoff(from.toLocalTime(), to.toLocalTime(), mealCalories, caloriesTarget);
     }
 
-    private String buildTimeCutoff(LocalTime from, LocalTime to, org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
+    private String buildTimeCutoff(LocalTime from, LocalTime to, org.telegram.bot.domain.model.calories.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
         String timeCutoff;
         if (from.equals(to)) {
             timeCutoff = DateUtils.formatShortTime(from);
@@ -690,7 +690,7 @@ public class Calories implements Command {
         return "<u><b>" + timeCutoff + "</b></u>: " + caloricInfo + getMealCaloricInfo(mealCalories, caloriesTarget);
     }
 
-    private String getMealCaloricInfo(org.telegram.bot.domain.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
+    private String getMealCaloricInfo(org.telegram.bot.domain.model.calories.Calories mealCalories, UserCaloriesTarget caloriesTarget) {
         Double targetProteins = null;
         Double targetFats = null;
         Double targetCarbs = null;
@@ -723,7 +723,7 @@ public class Calories implements Command {
         return buf.toString();
     }
 
-    private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.Calories calories) {
+    private String getEatenProductInfo(EatenProduct eatenProduct, org.telegram.bot.domain.model.calories.Calories calories) {
         Product product = eatenProduct.getProduct();
         return product.getName() + " (" + DF.format(eatenProduct.getGrams()) + " ${command.calories.gramssymbol}.) — "
                 + getPFCInfo(calories) + "\n"
@@ -740,7 +740,7 @@ public class Calories implements Command {
         return getPFCInfo(product.getCaloric(), product.getProteins(), product.getFats(), product.getCarbs(), product.getFibers());
     }
 
-    private String getPFCInfo(org.telegram.bot.domain.Calories calories) {
+    private String getPFCInfo(org.telegram.bot.domain.model.calories.Calories calories) {
         return getPFCInfo(calories.getCaloric(), calories.getProteins(), calories.getFats(), calories.getCarbs(), calories.getFibers());
     }
 

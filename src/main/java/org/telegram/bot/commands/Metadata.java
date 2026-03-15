@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.model.Coordinates;
 import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -19,7 +20,7 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
-import org.telegram.bot.utils.coordinates.Coordinates;
+import org.telegram.bot.utils.TextUtils;
 import org.telegram.bot.utils.coordinates.CoordinatesUtils;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -167,16 +168,11 @@ public class Metadata implements Command {
         if (latitudeData != null && longitudeData != null) {
             Coordinates coordinates = CoordinatesUtils.parseCoordinates(latitudeData + " " + longitudeData);
             if (coordinates != null) {
-                return formatCoordinateForCommand(coordinates.latitude()) + "_"
-                        + formatCoordinateForCommand(coordinates.longitude());
+                return TextUtils.coordinatesToCommand(coordinates);
             }
         }
 
         return null;
-    }
-
-    private String formatCoordinateForCommand(Double coordinate) {
-        return String.format("%.4f", coordinate).replace(".", "_").replace(",", "_");
     }
 
 }

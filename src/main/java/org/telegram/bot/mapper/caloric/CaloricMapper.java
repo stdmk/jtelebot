@@ -1,10 +1,10 @@
 package org.telegram.bot.mapper.caloric;
 
 import org.springframework.stereotype.Component;
-import org.telegram.bot.domain.Calories;
 import org.telegram.bot.domain.entities.calories.Activity;
 import org.telegram.bot.domain.entities.calories.EatenProduct;
 import org.telegram.bot.domain.entities.calories.Product;
+import org.telegram.bot.domain.model.calories.Calories;
 
 import java.util.Collection;
 
