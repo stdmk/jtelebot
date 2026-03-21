@@ -642,7 +642,7 @@ public class Calories implements Command {
 
             mealCalories.addCalories(calories);
             stopMealDateTime = eatenProduct.getDateTime();
-            mealBuf.append("<b>•</b> ").append(getEatenProductInfo(eatenProduct, calories)).append("\n");
+            mealBuf.append("• ").append(getEatenProductInfo(eatenProduct, calories)).append("\n");
         }
 
         if (startMealDateTime != null && stopMealDateTime != null) {
@@ -732,7 +732,7 @@ public class Calories implements Command {
 
     private String getActivityInfo(Activity activity) {
         return "<u><b>" + DateUtils.formatShortTime(activity.getDateTime().toLocalTime()) + "</b></u>:\n"
-                + "<b>•</b> " + activity.getName() + " — <b>-" + DF.format(activity.getCalories()) + "</b> ${command.calories.kcal}.\n"
+                + "• " + activity.getName() + " — -" + DF.format(activity.getCalories()) + " ${command.calories.kcal}.\n"
                 + " " + ROOT_COMMAND + DELETE_ACTIVITY_COMMAND + activity.getId();
     }
 
@@ -745,11 +745,11 @@ public class Calories implements Command {
     }
 
     private String getPFCInfo(double caloric, double proteins, double fats, double carbs, double fibers) {
-        return "<b>" + DF.format(caloric) + "</b> ${command.calories.kcal}.\n"
-                + "${command.calories.proteinssymbol}: <b>" + DF.format(proteins) + "</b> ${command.calories.gramssymbol}. "
-                + "${command.calories.fatssymbol}: <b>" + DF.format(fats) + "</b>${command.calories.gramssymbol}. "
-                + "${command.calories.carbssymbol}: <b>" + DF.format(carbs) + "</b>${command.calories.gramssymbol}. "
-                + "${command.calories.fiberssymbol}: <b>" + DF.format(fibers) + "</b>${command.calories.gramssymbol}. ";
+        return DF.format(caloric) + " ${command.calories.kcal}.\n"
+                + "${command.calories.proteinssymbol}: " + DF.format(proteins) + " ${command.calories.gramssymbol}. "
+                + "${command.calories.fatssymbol}: " + DF.format(fats) + "${command.calories.gramssymbol}. "
+                + "${command.calories.carbssymbol}: " + DF.format(carbs) + "${command.calories.gramssymbol}. "
+                + "${command.calories.fiberssymbol}: " + DF.format(fibers) + "${command.calories.gramssymbol}. ";
     }
 
     private LocalDateTime getUsersCurrentDateTime(Chat chat, User user) {
