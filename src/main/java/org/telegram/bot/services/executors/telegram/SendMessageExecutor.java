@@ -116,6 +116,7 @@ public class SendMessageExecutor implements TelegramMethodExecutor {
     }
 
     private boolean tryToSendMessageWithoutMarkdown(SendMessage sendMessage) {
+        sendMessage.setText(TextUtils.cutHtmlTags(sendMessage.getText()));
         sendMessage.setParseMode(null);
 
         try {

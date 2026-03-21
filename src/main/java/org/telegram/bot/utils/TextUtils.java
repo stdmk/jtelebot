@@ -99,8 +99,7 @@ public class TextUtils {
     }
 
     public static String cutHtmlTags(String text) {
-        text = text.replaceAll("<.*?>","");
-        return text.replace("<", "");
+        return text.replaceAll("<[^>]*>", "");
     }
 
     public static boolean hasLineBreaks(String text) {
