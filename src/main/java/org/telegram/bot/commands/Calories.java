@@ -246,12 +246,34 @@ public class Calories implements Command {
     private String matchCommand(Chat chat, User user, String commandArgument) {
         String[] commandList = getCommandList(commandArgument);
         if (commandList.length > 1) {
-            StringBuilder buf = new StringBuilder();
+            List<AddedCaloriesByProduct> addedResults = new ArrayList<>(commandList.length);
+            List<String> notFoundCommands = new ArrayList<>();
             for (String command : commandList) {
-                buf.append(getMatchedCommandResult(chat, user, command)).append("\n").append(BORDER);
+                Matcher matcher = gramsPattern.matcher(command);
+                if (!matcher.find()) {
+                    notFoundCommands.add(command);
+                    continue;
+                }
+
+                addedResults.add(addCaloriesByProduct(chat, user, matcher, command));
             }
 
-            return buf.toString();
+            String addedProducts = addedResults
+                    .stream()
+                    .filter(addedCaloriesByProduct -> addedCaloriesByProduct.added)
+                    .map(addedCaloriesByProduct -> addedCaloriesByProduct.text)
+                    .collect(Collectors.joining("\n" + BORDER));
+            String notAddedProducts = addedResults
+                    .stream()
+                    .filter(addedCaloriesByProduct -> !addedCaloriesByProduct.added)
+                    .map(addedCaloriesByProduct -> addedCaloriesByProduct.text)
+                    .collect(Collectors.joining("\n" + BORDER));
+            String invalidInput = "";
+            if (!notFoundCommands.isEmpty()) {
+                invalidInput = "\n" + BORDER + "<b>${command.calories.invalidinput}:</b> " + String.join("; ", notFoundCommands);
+            }
+
+            return addedProducts + "\n" + BORDER + notAddedProducts + invalidInput;
         }
 
         return getMatchedCommandResult(chat, user, commandArgument);
@@ -268,7 +290,7 @@ public class Calories implements Command {
     private String getMatchedCommandResult(Chat chat, User user, String commandArgument) {
         Matcher gramsMatcher = gramsPattern.matcher(commandArgument);
         if (gramsMatcher.find()) {
-            return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument);
+            return addCaloriesByProduct(chat, user, gramsMatcher, commandArgument).text;
         }
 
         Matcher matcher = negativeKcalPattern.matcher(commandArgument);
@@ -403,7 +425,7 @@ public class Calories implements Command {
         }
     }
 
-    private String addCaloriesByProduct(Chat chat, User user, Matcher matcher, String command) {
+    private AddedCaloriesByProduct addCaloriesByProduct(Chat chat, User user, Matcher matcher, String command) {
         double grams = parseValue(matcher.group(1));
 
         if (grams == 0D) {
@@ -425,16 +447,22 @@ public class Calories implements Command {
             LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
             userCaloriesService.addCalories(user, dateTime, product, grams);
 
-            return buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n" + product.getName();
+            return new AddedCaloriesByProduct(
+                    true,
+                    buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n" + product.getName());
         } else {
             int intGrams = (int) grams;
             String foundProductsInfo = products
                     .stream()
                     .map(product -> buildFoundToAddCaloriesProduct(product, intGrams))
                     .collect(Collectors.joining("\n"));
-            return "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo;
+            return new AddedCaloriesByProduct(
+                    false,
+                    "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo);
         }
     }
+
+    private record AddedCaloriesByProduct(boolean added, String text) {}
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {
         double caloric = product.getCaloric() / 100 * grams;

@@ -811,20 +811,24 @@ class CaloriesTest {
                  /calories_add_3_50 <b>+120</b> ${command.calories.kcal}
                 
                 -----------------------------
-                """;
-        final String productName1 = "name1";
-        final String productName2 = "name2";
+                <b>${command.calories.invalidinput}:</b> name3 50""";
+        final String foundProductName = "name1";
+        final String notFoundProductName = "name2";
+        final String invalidCommandProductName = "name3";
         final int grams = 50;
         BotRequest request = TestUtils.getRequestFromGroup("/calories "
-                + productName1 + " " + grams + "g\n"
-                + productName2 + " " + grams + "g");
+                + invalidCommandProductName + " " + grams + "\n"
+                + notFoundProductName + " " + grams + "g\n"
+                + foundProductName + " " + grams + "g\n"
+        );
         User user = request.getMessage().getUser();
 
         setUpInternationalization();
         setUpClock(request.getMessage().getChat(), user);
         Product product = getSomeProduct(1L, user);
-        when(productService.get(user, productName1)).thenReturn(List.of(product));
-        when(productService.find(user, productName2, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
+        when(productService.get(user, foundProductName)).thenReturn(List.of(product));
+        when(productService.get(user, notFoundProductName)).thenReturn(List.of());
+        when(productService.find(user, notFoundProductName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
         org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 2, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
 
@@ -889,9 +893,9 @@ class CaloriesTest {
         final String expectedResponseText = """
                 ${command.calories.saveproduct}:
                 name 300 ${command.calories.kcal}.
-                ${command.calories.proteinssymbol}: 10 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 20${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 30${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 0${command.calories.gramssymbol}.\s""";
+                ${command.calories.proteinssymbol}: 10 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 20${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 30${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 5${command.calories.gramssymbol}.\s""";
         final String productName = "name";
-        BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " 10p 20f 30c");
+        BotRequest request = TestUtils.getRequestFromGroup("/calories " + productName + " 10p 20f 30c 5d");
 
         setUpInternationalization();
         when(caloricMapper.toCaloric(any(Double.class), any(Double.class), any(Double.class))).thenReturn(expectedCaloric);
