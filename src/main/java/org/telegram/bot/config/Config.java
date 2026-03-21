@@ -86,10 +86,14 @@ public class Config {
     }
 
     @Bean
-    public TelegramBotsLongPollingApplication telegramBotsApplication() {
-        return new TelegramBotsLongPollingApplication() {
+    public TelegramBotsLongPollingApplication telegramBotsApplication(OkHttpClient telegramOkHttpClient) {
+        return new TelegramBotsLongPollingApplication(ObjectMapper::new, () -> telegramOkHttpClient) {
             @Override
-            public BotSession registerBot(String botToken, Supplier<TelegramUrl> telegramUrlSupplier, Function<Integer, GetUpdates> getUpdatesGenerator, LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
+            public BotSession registerBot(String botToken,
+                                          Supplier<TelegramUrl> telegramUrlSupplier,
+                                          Function<Integer, GetUpdates> getUpdatesGenerator,
+                                          LongPollingUpdateConsumer updatesConsumer) throws TelegramApiException {
+
                 Function<Integer, GetUpdates> customGenerator = (offset) ->
                         GetUpdates.builder()
                                 .offset(offset + 1)
