@@ -65,11 +65,11 @@ class NewYearTest {
 
     @Test
     void parseWithoutArgumentsKnownUserTest() {
-        final String expectedResponseText = "${command.newyear.caption}: <b>331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. </b> (GMT+04:00)";
+        final String expectedResponseText = "${command.newyear.caption}: <b>331 ${utils.date.d}. 19 ${utils.date.h}. 54 ${utils.date.m}. 54 ${utils.date.s}. </b> (Europe/Moscow)";
         BotRequest request = TestUtils.getRequestFromGroup("newyear");
 
-        ZoneId userZoneId = ZoneId.of("GMT+04:00");
-        when(userCityService.get(request.getMessage().getUser(), request.getMessage().getChat())).thenReturn(new UserCity().setCity(new City().setTimeZone("GMT+04:00")));
+        ZoneId userZoneId = ZoneId.of("Europe/Moscow");
+        when(userCityService.get(request.getMessage().getUser(), request.getMessage().getChat())).thenReturn(new UserCity().setCity(new City().setZoneId("Europe/Moscow")));
         when(clock.instant()).thenReturn(CURRENT_DATE_TIME.atZone(ZoneId.of(DEFAULT_TIME_ZONE)).toInstant());
         when(clock.withZone(userZoneId)).thenReturn(clock);
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());

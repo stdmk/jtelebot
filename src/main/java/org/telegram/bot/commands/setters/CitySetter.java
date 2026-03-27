@@ -1,5 +1,6 @@
 package org.telegram.bot.commands.setters;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,12 +19,10 @@ import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 
-import jakarta.annotation.PostConstruct;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.telegram.bot.utils.DateUtils.TimeZones;
 import static org.telegram.bot.utils.TextUtils.containsStartWith;
 import static org.telegram.bot.utils.TextUtils.getStartsWith;
 
@@ -41,16 +40,21 @@ public class CitySetter implements Setter<BotResponse> {
     private static final String CALLBACK_DELETE_CITY_COMMAND = CALLBACK_COMMAND + DELETE_CITY_COMMAND;
     private static final String ADD_CITY_COMMAND = EMPTY_CITY_COMMAND + " ${setter.city.add}";
     private static final String CALLBACK_ADD_CITY_COMMAND = CALLBACK_COMMAND + ADD_CITY_COMMAND;
-    private static final String SET_TIMEZONE = EMPTY_CITY_COMMAND + " ${setter.city.zone}";
+    private static final String SET_TIMEZONE_CITY = EMPTY_CITY_COMMAND + " rc";
+    private static final String CALLBACK_SET_TIMEZONE_CITY = CALLBACK_COMMAND + SET_TIMEZONE_CITY;
+    private static final String SET_TIMEZONE = EMPTY_CITY_COMMAND + " tz";
     private static final String CALLBACK_SET_TIMEZONE = CALLBACK_COMMAND + SET_TIMEZONE;
     private static final String ADDING_HELP_TEXT_NAMES = "${setter.city.commandwaitingstart}";
     private static final String ADDING_HELP_TEXT_TIMEZONE = "${setter.city.selectzonehelp}";
+    private static final java.util.Set<String> ALLOWED_REGIONS = java.util.Set.of(
+            "Europe", "Asia", "Africa", "America", "Australia", "Pacific", "Atlantic", "Indian", "Antarctica");
 
     private final java.util.Set<String> emptyCityCommands = new HashSet<>();
     private final java.util.Set<String> updateCityCommands = new HashSet<>();
     private final java.util.Set<String> deleteCityCommands = new HashSet<>();
     private final java.util.Set<String> addCityCommands = new HashSet<>();
     private final java.util.Set<String> selectCityCommands = new HashSet<>();
+    private final java.util.Set<String> setTimeZoneCityCommands = new HashSet<>();
     private final java.util.Set<String> setTimeZoneCommands = new HashSet<>();
 
     private final CityService cityService;
@@ -66,6 +70,7 @@ public class CitySetter implements Setter<BotResponse> {
         deleteCityCommands.addAll(internationalizationService.internationalize(DELETE_CITY_COMMAND));
         addCityCommands.addAll(internationalizationService.internationalize(ADD_CITY_COMMAND));
         selectCityCommands.addAll(internationalizationService.internationalize(SELECT_CITY_COMMAND));
+        setTimeZoneCityCommands.addAll(internationalizationService.internationalize(SET_TIMEZONE_CITY));
         setTimeZoneCommands.addAll(internationalizationService.internationalize(SET_TIMEZONE));
     }
 
@@ -94,14 +99,16 @@ public class CitySetter implements Setter<BotResponse> {
             } else if (containsStartWith(deleteCityCommands, lowerCaseCommandText)) {
                 return deleteCityByCallback(message, user, commandText);
             } else if (containsStartWith(addCityCommands, lowerCaseCommandText)) {
-                return addCityByCallback(message,  chat, user, false);
+                return addCityByCallback(message, chat, user, false);
+            } else if (containsStartWith(setTimeZoneCityCommands, lowerCaseCommandText)) {
+                return setTimeZoneRegionForCity(message, chat, user, commandText);
             } else if (containsStartWith(setTimeZoneCommands, lowerCaseCommandText)) {
-                return setTimeZoneForCity(message, chat, user, commandText);
+                return setTimeZone(message, chat, user, commandText);
             }
         }
 
         if (emptyCityCommands.contains(lowerCaseCommandText)) {
-            return getMainKeyboard(message,  chat, user, true);
+            return getMainKeyboard(message, chat, user, true);
         } else if (containsStartWith(deleteCityCommands, lowerCaseCommandText)) {
             return deleteCity(message, user, commandText);
         } else if (containsStartWith(addCityCommands, lowerCaseCommandText)) {
@@ -148,7 +155,7 @@ public class CitySetter implements Setter<BotResponse> {
 
         log.debug("Request to add new city");
         if (command.toLowerCase(Locale.ROOT).equals(addCityCommand)) {
-            return addCityByCallback(message,  chat, user, true);
+            return addCityByCallback(message, chat, user, true);
         }
 
         commandWaitingService.remove(chat, user);
@@ -162,11 +169,11 @@ public class CitySetter implements Setter<BotResponse> {
         City newCity = new City()
                 .setNameRu(params.substring(0, i))
                 .setNameEn(params.substring(i + 1))
-                .setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()).getID())
+                .setZoneId(ZoneId.systemDefault().getId())
                 .setUser(user);
         cityService.save(newCity);
 
-        return getKeyboardWithTimeZones(message, newCity.getId());
+        return getKeyboardWithTimeZoneRegions(message, newCity.getId());
     }
 
     private TextResponse deleteCity(Message message, User user, String command) throws BotException {
@@ -193,7 +200,31 @@ public class CitySetter implements Setter<BotResponse> {
                 .setResponseSettings(FormattingStyle.HTML);
     }
 
-    private EditResponse setTimeZoneForCity(Message message, Chat chat, User user, String command) throws BotException {
+    private EditResponse setTimeZoneRegionForCity(Message message, Chat chat, User user, String command) {
+        String setTimezoneCityCommand = getLocalizedCommand(command, SET_TIMEZONE_CITY);
+
+        String params;
+        try {
+            params = command.substring(setTimezoneCityCommand.length() + 1);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        long cityId;
+        String region;
+
+        int i = params.indexOf(" ");
+        try {
+            cityId = Long.parseLong(params.substring(0, i));
+            region = params.substring(i + 1);
+        } catch (Exception e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return getKeyboardWithTimeZoneRegionCities(message, region, cityId);
+    }
+
+    private EditResponse setTimeZone(Message message, Chat chat, User user, String command) throws BotException {
         String setTimezoneCommand = getLocalizedCommand(command, SET_TIMEZONE);
 
         log.debug("Request to set timezone for city");
@@ -206,7 +237,7 @@ public class CitySetter implements Setter<BotResponse> {
         }
 
         long cityId;
-        TimeZone timeZone;
+        ZoneId zoneId;
 
         int i = params.indexOf(" ");
         if (i < 0) {
@@ -215,7 +246,7 @@ public class CitySetter implements Setter<BotResponse> {
 
         try {
             cityId = Long.parseLong(params.substring(0, i));
-            timeZone = TimeZone.getTimeZone(params.substring(i + 1));
+            zoneId = ZoneId.of(params.substring(i + 1));
         } catch (Exception e) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
         }
@@ -225,13 +256,13 @@ public class CitySetter implements Setter<BotResponse> {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER));
         }
 
-        city.setTimeZone(timeZone.getID());
+        city.setZoneId(zoneId.getId());
         cityService.save(city);
 
         return (EditResponse) getMainKeyboard(message, chat, user, false);
     }
 
-    private BotResponse addCityByCallback(Message message,  Chat chat, User user, boolean newMessage) {
+    private BotResponse addCityByCallback(Message message, Chat chat, User user, boolean newMessage) {
         commandWaitingService.add(chat, user, Set.class, CALLBACK_ADD_CITY_COMMAND);
 
         if (newMessage) {
@@ -292,8 +323,8 @@ public class CitySetter implements Setter<BotResponse> {
         }
 
         List<List<KeyboardButton>> cityRows = cities.stream().map(city -> List.of(new KeyboardButton()
-                .setName(emoji + city.getNameRu())
-                .setCallback(callbackCommand + " " + city.getId())))
+                        .setName(emoji + city.getNameRu())
+                        .setCallback(callbackCommand + " " + city.getId())))
                 .collect(Collectors.toList());
 
         cityRows.addAll(prepareMainKeyboard());
@@ -311,7 +342,7 @@ public class CitySetter implements Setter<BotResponse> {
         if (userCity == null || userCity.getCity() == null) {
             responseText = "${setter.city.citynotset}. ${setter.city.pushbutton} \"${setter.city.button.select}\"";
         } else {
-            responseText = "${setter.city.selectedcity}: " + userCity.getCity().getNameRu() + " (" + userCity.getCity().getTimeZone() + ")";
+            responseText = "${setter.city.selectedcity}: " + userCity.getCity().getNameRu() + " (" + userCity.getCity().getZoneId() + ")";
         }
 
         if (newMessage) {
@@ -345,16 +376,52 @@ public class CitySetter implements Setter<BotResponse> {
                         .setCallback(CALLBACK_COMMAND + "back"))));
     }
 
-    private TextResponse getKeyboardWithTimeZones(Message message, Long cityId) {
-        List<List<KeyboardButton>> rows = Arrays
-                .stream(TimeZones.values())
-                .map(zone -> List.of(
+    private TextResponse getKeyboardWithTimeZoneRegions(Message message, Long cityId) {
+        java.util.Set<String> regions = ZoneId.getAvailableZoneIds().stream()
+                .filter(zone -> zone.contains("/"))
+                .filter(zone -> !zone.startsWith("Etc/"))
+                .filter(zone -> ALLOWED_REGIONS.contains(zone.split("/")[0]))
+                .map(zone -> {
+                    int idx = zone.lastIndexOf('/');
+                    return (idx > 0) ? zone.substring(0, idx) : zone;
+                })
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        List<List<KeyboardButton>> rows = regions
+                .stream()
+                .map(region -> List.of(
                         new KeyboardButton()
-                                .setName(zone.getZone())
-                                .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + zone.getZone())))
+                                .setName(region)
+                                .setCallback(CALLBACK_SET_TIMEZONE_CITY + " " + cityId + " " + region)))
                 .toList();
 
         return new TextResponse(message)
+                .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)
+                .setKeyboard(new Keyboard(rows))
+                .setResponseSettings(FormattingStyle.HTML);
+    }
+
+    private EditResponse getKeyboardWithTimeZoneRegionCities(Message message, String region, Long cityId) {
+        List<String> regionCities = ZoneId.getAvailableZoneIds()
+                .stream()
+                .filter(zone -> zone.startsWith(region + "/"))
+                .map(zone -> {
+                    String[] parts = zone.split("/");
+                    return parts[parts.length - 1];
+                })
+                .distinct()
+                .sorted()
+                .toList();
+
+        List<List<KeyboardButton>> rows = regionCities
+                .stream()
+                .map(city -> List.of(
+                        new KeyboardButton()
+                                .setName(city)
+                                .setCallback(CALLBACK_SET_TIMEZONE + " " + cityId + " " + region + "/" + city)))
+                .toList();
+
+        return new EditResponse(message)
                 .setText("\n" + ADDING_HELP_TEXT_TIMEZONE)
                 .setKeyboard(new Keyboard(rows))
                 .setResponseSettings(FormattingStyle.HTML);

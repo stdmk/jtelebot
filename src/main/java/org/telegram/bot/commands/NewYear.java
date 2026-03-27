@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.City;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.entities.UserCity;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -44,7 +45,15 @@ public class NewYear implements Command {
         if (userCity == null) {
             userTimeZone = ZoneId.systemDefault();
         } else {
-            userTimeZone = ZoneId.of(userCity.getCity().getTimeZone());
+            City city = userCity.getCity();
+            String zoneId;
+            if (city.getZoneId() == null) {
+                zoneId = city.getTimeZone();
+            } else {
+                zoneId = city.getZoneId();
+            }
+
+            userTimeZone = ZoneId.of(zoneId);
         }
 
         ZonedDateTime dateTimeNow = ZonedDateTime.now(clock.withZone(userTimeZone));

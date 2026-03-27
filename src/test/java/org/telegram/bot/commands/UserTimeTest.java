@@ -75,7 +75,7 @@ class UserTimeTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         City city = new City();
         city.setNameRu(cityNameRu);
-        city.setTimeZone(ZoneId.systemDefault().toString());
+        city.setZoneId(ZoneId.systemDefault().toString());
         when(cityService.get(cityNameEn)).thenReturn(city);
 
         BotResponse botResponse = userTime.parse(request).getFirst();
@@ -109,7 +109,7 @@ class UserTimeTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         City city = new City();
         city.setNameRu(cityNameRu);
-        city.setTimeZone(ZoneId.systemDefault().toString());
+        city.setZoneId(ZoneId.systemDefault().toString());
         when(userCityService.get(message.getUser(), message.getChat())).thenReturn(new UserCity().setCity(city));
 
         BotResponse botResponse = userTime.parse(request).getFirst();
@@ -133,7 +133,7 @@ class UserTimeTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         City city = new City();
         city.setNameRu(cityNameRu);
-        city.setTimeZone(ZoneId.systemDefault().toString());
+        city.setZoneId(ZoneId.systemDefault().toString());
         when(userCityService.get(repliedToMessage.getUser(), message.getChat())).thenReturn(new UserCity().setCity(city));
 
         BotResponse botResponse = userTime.parse(request).getFirst();

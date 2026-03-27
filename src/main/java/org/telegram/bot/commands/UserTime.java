@@ -73,13 +73,14 @@ public class UserTime implements Command {
                 responseText = getHtmlLinkToUser(user) + " ${command.usertime.citynotset}";
             } else {
                 log.debug("Request to get time of city {}", city.getNameEn());
-                String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(ZoneId.of(city.getTimeZone())));
+                ZoneId zoneId = getZoneId(city);
+                String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(zoneId));
                 responseText = "${command.usertime.incity} " + city.getNameRu() + " ${command.usertime.now}: <b>" + dateTimeNow + "</b>";
             }
         } else {
             log.debug("Request to get time of user {}", user);
 
-            ZoneId userZoneId = ZoneId.of(userCity.getCity().getTimeZone());
+            ZoneId userZoneId = getZoneId(userCity.getCity());
             String dateTimeNow = formatTime(ZonedDateTime.now(clock).withZoneSameInstant(userZoneId));
             responseText = "${command.usertime.at} " + getHtmlLinkToUser(user) + " ${command.usertime.now} <b>" + dateTimeNow + "</b>";
             if (repliedMessageDateTime != null) {
@@ -92,4 +93,9 @@ public class UserTime implements Command {
                 .setText(responseText)
                 .setResponseSettings(FormattingStyle.HTML));
     }
+
+    private ZoneId getZoneId(City city) {
+        return city.getZoneId() != null ? ZoneId.of(city.getZoneId()) : ZoneId.of(city.getTimeZone());
+    }
+
 }

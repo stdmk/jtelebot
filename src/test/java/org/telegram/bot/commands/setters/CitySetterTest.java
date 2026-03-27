@@ -369,7 +369,7 @@ class CitySetterTest {
 
         assertMainKeyboard(editResponse.getKeyboard());
 
-        assertEquals(TimeZone.getTimeZone(timezone).getID(), city.getTimeZone());
+        assertEquals(TimeZone.getTimeZone(timezone).getID(), city.getZoneId());
     }
 
     @Test
@@ -488,7 +488,7 @@ class CitySetterTest {
         City storedCity = cityArgumentCaptor.getValue();
         assertEquals(ruName, storedCity.getNameRu());
         assertEquals(enName, storedCity.getNameEn());
-        assertEquals(TimeZone.getTimeZone(ZoneId.systemDefault()).getID(), storedCity.getTimeZone());
+        assertEquals(TimeZone.getTimeZone(ZoneId.systemDefault()).getID(), storedCity.getZoneId());
         assertEquals(user, storedCity.getUser());
 
         assertTimeZoneKeyboard(textResponse.getKeyboard(), cityId);
@@ -595,9 +595,9 @@ class CitySetterTest {
 
     private static List<City> getSomeCities(User user) {
         return List.of(
-                new City().setId(1L).setNameRu("Тест1").setNameEn("Test1").setTimeZone("GMT+01:00").setUser(user),
-                new City().setId(2L).setNameRu("Тест2").setNameEn("Test2").setTimeZone("GMT+02:00").setUser(user),
-                new City().setId(3L).setNameRu("Тест3").setNameEn("Test3").setTimeZone("GMT+03:00").setUser(user)
+                new City().setId(1L).setNameRu("Тест1").setNameEn("Test1").setZoneId("Europe/Paris").setUser(user),
+                new City().setId(2L).setNameRu("Тест2").setNameEn("Test2").setZoneId("Europe/Helsinki").setUser(user),
+                new City().setId(3L).setNameRu("Тест3").setNameEn("Test3").setZoneId("Europe/Moscow").setUser(user)
         );
     }
 

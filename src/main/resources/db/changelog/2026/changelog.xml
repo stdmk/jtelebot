@@ -7,4 +7,5 @@
     <include file="db/changelog/2026/20260309085100_update_UserCaloriesTarget_add_column_fibers.xml"/>
     <include file="db/changelog/2026/20260314161000_added_command_Ip.xml"/>
     <include file="db/changelog/2026/20260314164500_added_command_Location.xml"/>
+    <include file="db/changelog/2026/20260322083400_update_City_add_column_zoneid.xml"/>
 </databaseChangeLog>

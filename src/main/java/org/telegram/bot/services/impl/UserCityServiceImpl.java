@@ -69,7 +69,15 @@ public class UserCityServiceImpl implements UserCityService {
 
         UserCity userCity = this.get(user, chat);
         if (userCity != null) {
-            return ZoneId.of(userCity.getCity().getTimeZone());
+            City city = userCity.getCity();
+            String zoneId;
+            if (city.getZoneId() != null) {
+                zoneId = city.getZoneId();
+            } else {
+                zoneId = city.getTimeZone();
+            }
+
+            return ZoneId.of(zoneId);
         }
 
         return null;
