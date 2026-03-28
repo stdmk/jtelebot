@@ -118,11 +118,11 @@ class SqlTest {
     @Test
     void parseWithSelectQueryObjectsTest() {
         final String expectedResponse = "<pre><code class=\"language-sql\">[1, 2, 3]\n" +
-                "[4, 5, 6]</code></pre>";
+                "[4, null, 6]</code></pre>";
         BotRequest request = TestUtils.getRequestFromGroup("sql select 1");
 
         Query query = mock(Query.class);
-        when(query.getResultList()).thenReturn(List.of(new Object[]{"1", "2", "3"}, new Object[]{"4", "5", "6"}));
+        when(query.getResultList()).thenReturn(List.of(new Object[]{"1", "2", "3"}, new Object[]{"4", null, "6"}));
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
 
         BotResponse botResponse = sql.parse(request).getFirst();

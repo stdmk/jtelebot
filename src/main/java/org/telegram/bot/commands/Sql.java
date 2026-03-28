@@ -1,5 +1,7 @@
 package org.telegram.bot.commands;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,8 +18,6 @@ import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -93,13 +93,21 @@ public class Sql implements Command {
                 return resultList
                         .stream()
                         .map(results -> Arrays.stream((Object[]) results)
-                                .map(Object::toString)
+                                .map(this::objectToString)
                                 .collect(Collectors.joining(", ", "[", "]")))
                         .collect(Collectors.joining("\n"));
             } else {
                 return resultList.stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]"));
             }
         }
+    }
+
+    private String objectToString(Object object) {
+        if (object == null) {
+            return null;
+        }
+
+        return object.toString();
     }
 
     private int executeUpdateQuery(String query) {
