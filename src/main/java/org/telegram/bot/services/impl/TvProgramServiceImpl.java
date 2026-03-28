@@ -1,5 +1,7 @@
 package org.telegram.bot.services.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,9 @@ import java.util.List;
 public class TvProgramServiceImpl implements TvProgramService {
 
     private final TvProgramRepository tvProgramRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public TvProgram get(Integer tvProgramId) {
@@ -44,9 +49,12 @@ public class TvProgramServiceImpl implements TvProgramService {
     }
 
     @Override
-    public List<TvProgram> save(List<TvProgram> tvProgramList) {
+    @Transactional
+    public void save(List<TvProgram> tvProgramList) {
         log.debug("Request to save TvProgramList: {}", tvProgramList);
-        return tvProgramRepository.saveAll(tvProgramList);
+        tvProgramRepository.saveAll(tvProgramList);
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Override

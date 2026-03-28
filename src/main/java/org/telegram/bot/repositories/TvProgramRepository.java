@@ -14,6 +14,6 @@ public interface TvProgramRepository extends JpaRepository<TvProgram, Integer> {
     List<TvProgram> findByChannelAndStopBetween(TvChannel tvChannel, LocalDateTime dateStart, LocalDateTime dateEnd);
 
     @Modifying
-    @Query("DELETE FROM TvProgram")
+    @Query(value = "TRUNCATE TABLE bot.tvprogram", nativeQuery = true)
     void clearTable();
 }

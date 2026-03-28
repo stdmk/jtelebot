@@ -11,6 +11,6 @@ public interface TvChannelRepository extends JpaRepository<TvChannel, Integer> {
     List<TvChannel> findByNameContainsIgnoreCase(String name);
 
     @Modifying
-    @Query("DELETE FROM TvChannel")
+    @Query(value = "TRUNCATE TABLE bot.tvchannel", nativeQuery = true)
     void clearTable();
 }

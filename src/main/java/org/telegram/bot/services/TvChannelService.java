@@ -3,6 +3,7 @@ package org.telegram.bot.services;
 import org.springframework.data.domain.Page;
 import org.telegram.bot.domain.entities.TvChannel;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -43,9 +44,8 @@ public interface TvChannelService {
      * Save a list of TvChannel.
      *
      * @param tvChannelList entities to save.
-     * @return list of persisted entities.
      */
-    List<TvChannel> save(List<TvChannel> tvChannelList);
+    void save(Collection<TvChannel> tvChannelList);
 
     /**
      * Clear a TvChannel table.

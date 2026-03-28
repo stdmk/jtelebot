@@ -24,12 +24,14 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import static org.telegram.bot.utils.DateUtils.atStartOfDay;
@@ -41,6 +43,7 @@ import static org.telegram.bot.utils.DateUtils.atStartOfDay;
 public class TvProgramDownloaderTimer extends TimerParent {
 
     private static final String TV_PROGRAM_DATA_XML_FILE_NAME = "tvguide.xml";
+    private static final int SAVING_BATCH_SIZE = 1000;
 
     private final TimerService timerService;
     private final TvChannelService tvChannelService;
@@ -104,7 +107,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
     private void transferTvProgramDataFile(String xmlTvFileUrl) throws IOException {
         String zipFileName = xmlTvFileUrl.substring(xmlTvFileUrl.lastIndexOf("/") + 1);
 
-        FileUtils.copyURLToFile(new URL(xmlTvFileUrl), new File(zipFileName));
+        FileUtils.copyURLToFile(URI.create(xmlTvFileUrl).toURL(), new File(zipFileName));
 
         try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(zipFileName));
              OutputStream out = new FileOutputStream(TV_PROGRAM_DATA_XML_FILE_NAME)) {
@@ -124,7 +127,7 @@ public class TvProgramDownloaderTimer extends TimerParent {
     /**
      * Parsing tv data from file.
      *
-     * @throws IOException if failed to read.
+     * @throws IOException        if failed to read.
      * @throws XMLStreamException if failed to parse xml.
      */
     private void parseTvProgramData() throws IOException, XMLStreamException {
@@ -132,11 +135,13 @@ public class TvProgramDownloaderTimer extends TimerParent {
         XMLEventReader reader = xmlInputFactory.createXMLEventReader(new FileInputStream(TV_PROGRAM_DATA_XML_FILE_NAME));
 
         TvChannel tvChannel = null;
-        List<Integer> tvChannelIdList = new ArrayList<>();
+        HashMap<Integer, TvChannel> tvChannelMap = new HashMap<>();
         TvProgram tvProgram = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyMMddHHmmss");
 
         int attemptsReadNumber = 0;
+        List<TvChannel> tvChannelToSave = new ArrayList<>();
+        List<TvProgram> tvProgramsBatch = new ArrayList<>(SAVING_BATCH_SIZE);
         while (reader.hasNext()) {
             if (attemptsReadNumber > 10) {
                 log.error("Unable to read tv file");
@@ -157,8 +162,8 @@ public class TvProgramDownloaderTimer extends TimerParent {
                 switch (startElement.getName().getLocalPart()) {
                     case "channel": {
                         Integer channelId = Integer.parseInt(startElement.getAttributeByName(new QName("id")).getValue());
-                        tvChannelIdList.add(channelId);
-                        tvChannel = new TvChannel().setId(channelId);
+                        tvChannel = getById(tvChannelMap, tvChannelToSave, channelId);
+                        tvChannelMap.put(channelId, tvChannel);
                         break;
                     }
                     case "display-name": {
@@ -170,12 +175,12 @@ public class TvProgramDownloaderTimer extends TimerParent {
                     }
                     case "programme": {
                         Integer channelId = Integer.parseInt(startElement.getAttributeByName(new QName("channel")).getValue());
-                        if (tvChannelIdList.contains(channelId)) {
+                        if (tvChannelMap.containsKey(channelId)) {
                             String start = startElement.getAttributeByName(new QName("start")).getValue();
                             String stop = startElement.getAttributeByName(new QName("stop")).getValue();
 
                             tvProgram = new TvProgram()
-                                    .setChannel(new TvChannel().setId(channelId))
+                                    .setChannel(getById(tvChannelMap, tvChannelToSave, channelId))
                                     .setStart(LocalDateTime.parse(start.substring(0, 14), formatter))
                                     .setStop(LocalDateTime.parse(stop.substring(0, 14), formatter));
                         }
@@ -209,15 +214,37 @@ public class TvProgramDownloaderTimer extends TimerParent {
             if (nextEvent.isEndElement()) {
                 EndElement endElement = nextEvent.asEndElement();
                 if (endElement.getName().getLocalPart().equals("channel")) {
-                    tvChannelService.save(tvChannel);
                     tvChannel = null;
                 } else if (endElement.getName().getLocalPart().equals("programme")) {
-                    tvProgramService.save(tvProgram);
+                    tvProgramsBatch.add(tvProgram);
                     tvProgram = null;
                 }
             }
+
+            if (SAVING_BATCH_SIZE == tvProgramsBatch.size()) {
+                tvChannelService.save(tvChannelToSave);
+                tvChannelToSave.clear();
+                tvProgramService.save(tvProgramsBatch);
+                tvProgramsBatch.clear();
+            }
+        }
+
+        tvChannelService.save(tvChannelToSave);
+        if (!tvProgramsBatch.isEmpty()) {
+            tvProgramService.save(tvProgramsBatch);
         }
 
         reader.close();
     }
+
+    private TvChannel getById(Map<Integer, TvChannel> tvChannelMap, List<TvChannel> tvChannelsToSave, Integer channelId) {
+        TvChannel tvChannel = tvChannelMap.get(channelId);
+        if (tvChannel == null) {
+            tvChannel = new TvChannel().setId(channelId);
+            tvChannelsToSave.add(tvChannel);
+        }
+
+        return tvChannel;
+    }
+
 }

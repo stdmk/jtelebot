@@ -1,5 +1,7 @@
 package org.telegram.bot.services.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,6 +12,7 @@ import org.telegram.bot.domain.entities.TvChannel;
 import org.telegram.bot.repositories.TvChannelRepository;
 import org.telegram.bot.services.TvChannelService;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -18,6 +21,9 @@ import java.util.List;
 public class TvChannelServiceImpl implements TvChannelService {
 
     private final TvChannelRepository tvChannelRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public TvChannel get(Integer tvChannelId) {
@@ -44,9 +50,12 @@ public class TvChannelServiceImpl implements TvChannelService {
     }
 
     @Override
-    public List<TvChannel> save(List<TvChannel> tvChannelList) {
+    @Transactional
+    public void save(Collection<TvChannel> tvChannelList) {
         log.debug("Request to save TvChannelList: {}", tvChannelList);
-        return tvChannelRepository.saveAll(tvChannelList);
+        tvChannelRepository.saveAll(tvChannelList);
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Override
