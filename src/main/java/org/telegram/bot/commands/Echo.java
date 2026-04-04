@@ -35,6 +35,7 @@ public class Echo implements Command, MessageAnalyzer {
     private final TalkerPhraseService talkerPhraseService;
     private final CommandPropertiesService commandPropertiesService;
     private final TalkerDegreeService talkerDegreeService;
+    private final TalkerUserSettingsService talkerUserSettingsService;
 
     private static final Pattern WORDS_PATTERN = Pattern.compile("[а-яА-Я]{3,}", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern PHRASES_PATTERN = Pattern.compile("([^.!?),]+[.!?]?)", Pattern.UNICODE_CHARACTER_CLASS);
@@ -48,6 +49,12 @@ public class Echo implements Command, MessageAnalyzer {
 
         if (responseText == null) {
             responseText = speechService.getRandomMessageByTag(BotSpeechTag.ECHO);
+        }
+
+        if (talkerUserSettingsService.doNotReply(message.getUser())) {
+            return returnResponse(new TextResponse()
+                    .setChatId(message.getChatId())
+                    .setText(responseText));
         }
 
         return returnResponse(new TextResponse(message)

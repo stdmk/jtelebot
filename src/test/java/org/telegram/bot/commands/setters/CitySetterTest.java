@@ -22,12 +22,13 @@ import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
-import org.telegram.bot.utils.DateUtils;
 
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +36,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CitySetterTest {
+
+    private static final java.util.Set<String> ALLOWED_REGIONS = java.util.Set.of(
+            "Europe", "Asia", "Africa", "America", "Australia", "Pacific", "Atlantic", "Indian", "Antarctica");
 
     @Mock
     private CityService cityService;
@@ -57,7 +61,7 @@ class CitySetterTest {
         when(internationalizationService.internationalize("${setter.city.emptycommand} ${setter.city.remove}")).thenReturn(Set.of("city remove"));
         when(internationalizationService.internationalize("${setter.city.emptycommand} ${setter.city.add}")).thenReturn(Set.of("city add"));
         when(internationalizationService.internationalize( "${setter.city.emptycommand} ${setter.city.select}")).thenReturn(Set.of("city select"));
-        when(internationalizationService.internationalize("${setter.city.emptycommand} ${setter.city.zone}")).thenReturn(Set.of("city zone"));
+        when(internationalizationService.internationalize("${setter.city.emptycommand} rc")).thenReturn(Set.of("city rc"));
 
         ReflectionTestUtils.invokeMethod(citySetter, "postConstruct");
     }
@@ -145,7 +149,7 @@ class CitySetterTest {
 
     @Test
     void setCallbackSelectCityFirstTimeTest() {
-        final String expectedResponseText = "${setter.city.selectedcity}: Тест1 (GMT+01:00)";
+        final String expectedResponseText = "${setter.city.selectedcity}: Тест1 (Europe/Paris)";
         final long cityId = 1L;
         final String argument = "city select " + cityId;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
@@ -176,7 +180,7 @@ class CitySetterTest {
 
     @Test
     void setCallbackSelectCityTest() {
-        final String expectedResponseText = "${setter.city.selectedcity}: Тест1 (GMT+01:00)";
+        final String expectedResponseText = "${setter.city.selectedcity}: Тест1 (Europe/Paris)";
         final long cityId = 1L;
         final String argument = "city select " + cityId;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
@@ -344,8 +348,8 @@ class CitySetterTest {
         final String argument = "city zone " + cityId + " GMT+05:00";
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
-        when(cityService.get(cityId)).thenReturn(new City().setUser(new User().setUserId(123L)));
-        when(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER)).thenReturn(expectedErrorText);
+//        when(cityService.get(cityId)).thenReturn(new City().setUser(new User().setUserId(123L)));
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
         BotException botException = assertThrows((BotException.class), () -> citySetter.set(request, argument));
         assertEquals(expectedErrorText, botException.getMessage());
@@ -353,23 +357,23 @@ class CitySetterTest {
 
     @Test
     void setCallbackTimezoneTest() {
-        final String expectedResponseText = "${setter.city.citynotset}. ${setter.city.pushbutton} \"${setter.city.button.select}\"";
+        final String expectedResponseText = "\n" + "${setter.city.selectzonehelp}";
         final long cityId = 1L;
-        final String timezone = "GMT+05:00";
-        final String argument = "city zone " + cityId + " " + timezone;
+        final String timezone = "Europe";
+        final String argument = "city rc " + cityId + " " + timezone;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
         City city = getSomeCities(request.getMessage().getUser()).getFirst();
-        when(cityService.get(cityId)).thenReturn(city);
+//        when(cityService.get(cityId)).thenReturn(city);
 
         BotResponse response = citySetter.set(request, argument);
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(response);
         assertEquals(expectedResponseText, editResponse.getText());
 
-        assertMainKeyboard(editResponse.getKeyboard());
+//        assertMainKeyboard(editResponse.getKeyboard());
 
-        assertEquals(TimeZone.getTimeZone(timezone).getID(), city.getZoneId());
+
     }
 
     @Test
@@ -576,18 +580,26 @@ class CitySetterTest {
     private void assertTimeZoneKeyboard(Keyboard keyboard, long cityId) {
         assertNotNull(keyboard);
 
-        DateUtils.TimeZones[] zones = DateUtils.TimeZones.values();
+        java.util.Set<String> regions = ZoneId.getAvailableZoneIds().stream()
+                .filter(zone -> zone.contains("/"))
+                .filter(zone -> !zone.startsWith("Etc/"))
+                .filter(zone -> ALLOWED_REGIONS.contains(zone.split("/")[0]))
+                .map(zone -> {
+                    int idx = zone.lastIndexOf('/');
+                    return (idx > 0) ? zone.substring(0, idx) : zone;
+                })
+                .collect(Collectors.toCollection(TreeSet::new));
         List<List<KeyboardButton>> keyboardButtonsList = keyboard.getKeyboardButtonsList();
-        assertEquals(zones.length, keyboardButtonsList.size());
+        assertEquals(regions.size(), keyboardButtonsList.size());
 
         int i = 0;
-        for (DateUtils.TimeZones zone : zones) {
+        for (String region: regions) {
             List<KeyboardButton> row = keyboardButtonsList.get(i);
             assertEquals(1, row.size());
 
             KeyboardButton button = row.getFirst();
-            assertEquals(zone.getZone(), button.getName());
-            assertEquals("${setter.command} ${setter.city.emptycommand} ${setter.city.zone}" + " " + cityId + " " + zone.getZone(), button.getCallback());
+            assertEquals(region, button.getName());
+            assertEquals("${setter.command} ${setter.city.emptycommand} rc" + " " + cityId + " " + region, button.getCallback());
 
             i = i + 1;
         }

@@ -8,4 +8,5 @@
     <include file="db/changelog/2026/20260314161000_added_command_Ip.xml"/>
     <include file="db/changelog/2026/20260314164500_added_command_Location.xml"/>
     <include file="db/changelog/2026/20260322083400_update_City_add_column_zoneid.xml"/>
+    <include file="db/changelog/2026/20260404075400_added_entity_UserTalkerSetting.xml"/>
 </databaseChangeLog>

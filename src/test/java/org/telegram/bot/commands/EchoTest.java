@@ -42,6 +42,8 @@ class EchoTest {
     private Bot bot;
     @Mock
     private ObjectCopier objectCopier;
+    @Mock
+    private TalkerUserSettingsService talkerUserSettingsService;
 
     @InjectMocks
     private Echo echo;
@@ -51,6 +53,23 @@ class EchoTest {
         final String expectedResponseText = "чо?";
         BotRequest request = getRequestFromGroup("bot");
 
+        when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
+
+        BotResponse botResponse = echo.parse(request).getFirst();
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+        checkDefaultTextResponseParams(textResponse);
+
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.ECHO);
+    }
+
+    @Test
+    void parseWithEmptyTextDoNotReplyTest() {
+        final String expectedResponseText = "чо?";
+        BotRequest request = getRequestFromGroup("bot");
+
+        when(talkerUserSettingsService.doNotReply(request.getMessage().getUser())).thenReturn(true);
         when(speechService.getRandomMessageByTag(BotSpeechTag.ECHO)).thenReturn(expectedResponseText);
 
         BotResponse botResponse = echo.parse(request).getFirst();
