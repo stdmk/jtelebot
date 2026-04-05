@@ -87,52 +87,61 @@ public class Set implements Command {
     }
 
     private Keyboard buildMainKeyboard() {
-        return new Keyboard(List.of(
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.news}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.news}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.city}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.city}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.alias}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.alias}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.tv}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.tv}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.holiday}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.holiday}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.command}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.command}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.talker}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.talker}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.zodiac}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.zodiac}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.trainings}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.trainings}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.chatgpt}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.chatgpt}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.gigachat}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.gigachat}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.lang}")
-                        .setCallback(EMPTY_COMMAND + "${setter.set.lang}")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.results}")
-                        .setCallback(EMPTY_COMMAND + "results")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.calories}")
-                        .setCallback(EMPTY_COMMAND + "calories")),
-                List.of(new KeyboardButton()
-                        .setName("${setter.set.email}")
-                        .setCallback(EMPTY_COMMAND + "email"))
-        ));
+        return new Keyboard()
+                .addRow(List.of(
+                        new KeyboardButton()
+                                .setName("${setter.set.news}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.news}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.city}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.city}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.alias}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.alias}")
+                ))
+                .addRow(List.of(
+                        new KeyboardButton()
+                                .setName("${setter.set.tv}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.tv}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.holiday}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.holiday}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.command}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.command}")
+                ))
+                .addRow(List.of(
+                        new KeyboardButton()
+                                .setName("${setter.set.talker}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.talker}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.zodiac}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.zodiac}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.trainings}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.trainings}")
+                ))
+                .addRow(List.of(
+                        new KeyboardButton()
+                                .setName("${setter.set.chatgpt}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.chatgpt}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.gigachat}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.gigachat}"),
+                        new KeyboardButton()
+                                .setName("${setter.set.lang}")
+                                .setCallback(EMPTY_COMMAND + "${setter.set.lang}")
+                ))
+                .addRow(List.of(
+                        new KeyboardButton()
+                                .setName("${setter.set.results}")
+                                .setCallback(EMPTY_COMMAND + "results"),
+                        new KeyboardButton()
+                                .setName("${setter.set.calories}")
+                                .setCallback(EMPTY_COMMAND + "calories"),
+                        new KeyboardButton()
+                                .setName("${setter.set.email}")
+                                .setCallback(EMPTY_COMMAND + "email")
+                ));
     }
 }

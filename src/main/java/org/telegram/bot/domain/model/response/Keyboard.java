@@ -25,6 +25,16 @@ public class Keyboard {
         return this;
     }
 
+    public Keyboard addRow(List<KeyboardButton> keyboardButtons) {
+        if (this.keyboardButtonsList == null) {
+            this.keyboardButtonsList = new ArrayList<>();
+        }
+
+        this.keyboardButtonsList.add(keyboardButtons);
+
+        return this;
+    }
+
     private List<List<KeyboardButton>> keyboardButtonsList;
 
 }
