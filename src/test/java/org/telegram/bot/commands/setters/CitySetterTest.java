@@ -62,6 +62,7 @@ class CitySetterTest {
         when(internationalizationService.internationalize("${setter.city.emptycommand} ${setter.city.add}")).thenReturn(Set.of("city add"));
         when(internationalizationService.internationalize( "${setter.city.emptycommand} ${setter.city.select}")).thenReturn(Set.of("city select"));
         when(internationalizationService.internationalize("${setter.city.emptycommand} rc")).thenReturn(Set.of("city rc"));
+        when(internationalizationService.internationalize("${setter.city.emptycommand} tz")).thenReturn(Set.of("city tz"));
 
         ReflectionTestUtils.invokeMethod(citySetter, "postConstruct");
     }
@@ -348,10 +349,22 @@ class CitySetterTest {
         final String argument = "city zone " + cityId + " GMT+05:00";
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
-//        when(cityService.get(cityId)).thenReturn(new City().setUser(new User().setUserId(123L)));
         when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
         BotException botException = assertThrows((BotException.class), () -> citySetter.set(request, argument));
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void setCallbackTimezoneWrongParamsTest() {
+        final String expectedErrorText = "error";
+        final long cityId = 1L;
+        final String argument = "city rc " + cityId;
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> citySetter.set(request, argument));
+
         assertEquals(expectedErrorText, botException.getMessage());
     }
 
@@ -363,17 +376,80 @@ class CitySetterTest {
         final String argument = "city rc " + cityId + " " + timezone;
         BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
 
-        City city = getSomeCities(request.getMessage().getUser()).getFirst();
-//        when(cityService.get(cityId)).thenReturn(city);
-
         BotResponse response = citySetter.set(request, argument);
 
         EditResponse editResponse = TestUtils.checkDefaultEditResponseParams(response);
         assertEquals(expectedResponseText, editResponse.getText());
 
-//        assertMainKeyboard(editResponse.getKeyboard());
+        assertNotNull(editResponse.getKeyboard());
+    }
 
+    @Test
+    void setTimezoneWithoutZoneIdTest() {
+        final String expectedErrorText = "error";
+        final String argument = "city tz";
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
 
+        BotException botException = assertThrows(BotException.class, () -> citySetter.set(request, argument));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void setTimezoneWrongCityIdTest() {
+        final String expectedErrorText = "error";
+        final String argument = "city tz a Europe/Moscow";
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> citySetter.set(request, argument));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void setTimezoneWrongZoneIdTest() {
+        final String expectedErrorText = "error";
+        final String argument = "city tz a EuropeMoscow";
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> citySetter.set(request, argument));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void setTimezoneForAnotherUsersCityTest() {
+        final Long cityId = 1L;
+        final String expectedErrorText = "error";
+        final String argument = "city tz " + cityId + " Europe/Moscow";
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+
+        City city = getSomeCities(TestUtils.getUser(TestUtils.ANOTHER_USER_ID)).getFirst();
+        when(cityService.get(cityId)).thenReturn(city);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NOT_OWNER)).thenReturn(expectedErrorText);
+
+        BotException botException = assertThrows(BotException.class, () -> citySetter.set(request, argument));
+
+        assertEquals(expectedErrorText, botException.getMessage());
+    }
+
+    @Test
+    void setTimezoneTest() {
+        final Long cityId = 1L;
+        final ZoneId zoneId = ZoneId.of("Europe/Moscow");
+        final String argument = "city tz " + cityId + " " + zoneId;
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+
+        City city = getSomeCities(request.getMessage().getUser()).getFirst();
+        when(cityService.get(cityId)).thenReturn(city);
+
+        citySetter.set(request, argument);
+
+        assertEquals(zoneId.toString(), city.getZoneId());
+        verify(cityService).save(city);
     }
 
     @Test
