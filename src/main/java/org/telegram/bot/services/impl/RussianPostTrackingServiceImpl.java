@@ -139,7 +139,8 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             soapResponse.writeTo(out);
             String xml = out.toString(StandardCharsets.UTF_8);
-            Envelope envelope = xmlMapper.readValue(xml, Envelope.class);
+            String sanitizedXml = removeNamespaces(xml);
+            Envelope envelope = xmlMapper.readValue(sanitizedXml, Envelope.class);
             TrackingData trackingData = new TrackingData();
             trackingData.setBody(envelope.getBody());
             return trackingData;
@@ -151,6 +152,12 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         }
     }
 
+
+    private String removeNamespaces(String xml) {
+        return xml
+                .replaceAll("xmlns(:[A-Za-z0-9_\\-]+)?=\"[^\"]*\"", "")
+                .replaceAll("(<\\/?)([A-Za-z0-9_\\-]+):", "$1");
+    }
 
     private List<TrackCodeEvent> mapTrackingDataToTrackCodeEventList(TrackingData trackingData) {
         List<HistoryRecord> historyRecords = Optional.ofNullable(trackingData.getBody())
