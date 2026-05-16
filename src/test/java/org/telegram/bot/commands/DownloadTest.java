@@ -27,6 +27,7 @@ import org.telegram.bot.utils.NetworkUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -231,6 +232,87 @@ class DownloadTest {
         File file = fileResponse.getFiles().getFirst();
         assertNull(file.getName());
         assertEquals(soundCloudFile, file);
+
+        verify(bot).sendUploadDocument(request.getMessage().getChatId());
+    }
+
+    @Test
+    void analyzeUnknownPlatformTest() {
+        final String url = "https://example.com";
+        BotRequest request = getRequestFromGroup(url);
+
+        List<BotResponse> botResponses = download.analyze(request);
+
+        assertNotNull(botResponses);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
+    void analyzeFromGroupChatWithBotExceptionTest() throws YtDlpException {
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromGroup(url);
+
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpNoResponseException("error"));
+
+        List<BotResponse> botResponses = assertDoesNotThrow(() -> download.analyze(request));
+
+        assertNotNull(botResponses);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
+    void analyzeFromPrivateChatWithBotExceptionTest() throws YtDlpException {
+        final String errorText = "error";
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromPrivate(url);
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(errorText);
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenThrow(new YtDlpNoResponseException("error"));
+
+        BotException botException = assertThrows(BotException.class, () -> download.analyze(request));
+
+        assertEquals(errorText, botException.getMessage());
+    }
+
+    @Test
+    void analyzeFromGroupChatWithNullableResponseTest() {
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromGroup(url);
+
+        List<BotResponse> botResponses = assertDoesNotThrow(() -> download.analyze(request));
+
+        assertNotNull(botResponses);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
+    void analyzeFromPrivateChatWithNullableResponseTest() {
+        final String errorText = "error";
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromPrivate(url);
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE)).thenReturn(errorText);
+
+        BotException botException = assertThrows(BotException.class, () -> download.analyze(request));
+
+        assertEquals(errorText, botException.getMessage());
+    }
+
+    @Test
+    void analyzeTest() throws YtDlpException {
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromGroup(url);
+
+        File youtubeFile = new File("fileId");
+        when(ytDlpProvider.getVideo(MediaPlatform.YOUTUBE, url)).thenReturn(youtubeFile);
+
+        BotResponse response = download.analyze(request).getFirst();
+
+        FileResponse fileResponse = checkDefaultFileResponseParams(response);
+
+        File file = fileResponse.getFiles().getFirst();
+        assertNull(file.getName());
+        assertEquals(youtubeFile, file);
 
         verify(bot).sendUploadDocument(request.getMessage().getChatId());
     }

@@ -21,6 +21,7 @@ import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
+import org.telegram.bot.utils.TelegramUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +32,7 @@ import static org.telegram.bot.utils.TextUtils.isThatUrl;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Download implements Command {
+public class Download implements Command, MessageAnalyzer {
 
     private final InternationalizationService internationalizationService;
     private final Bot bot;
@@ -69,11 +70,10 @@ public class Download implements Command {
 
             File file;
             MediaPlatform mediaPlatform = MediaPlatform.getByUrl(commandArgument);
+            bot.sendUploadDocument(chatId);
             if (mediaPlatform != null) {
-                bot.sendUploadDocument(chatId);
                 file = getFileFromMediaPlatform(mediaPlatform, fileParams);
             } else {
-                bot.sendUploadDocument(chatId);
                 file = getFile(fileParams.url);
             }
 
@@ -161,6 +161,36 @@ public class Download implements Command {
         }
 
         return new File(FileType.FILE, fileFromUrl, DEFAULT_FILE_NAME);
+    }
+
+    @Override
+    public List<BotResponse> analyze(BotRequest request) {
+        Message message = request.getMessage();
+        String text = message.getText();
+
+        File file = null;
+        MediaPlatform mediaPlatform = MediaPlatform.getByUrl(text);
+        if (mediaPlatform != null) {
+            bot.sendUploadDocument(message.getChatId());
+            try {
+                file = getFileFromMediaPlatform(mediaPlatform, new FileParams(text, null));
+            } catch (BotException e) {
+                if (TelegramUtils.isPrivateChat(message.getChat())) {
+                    throw e;
+                }
+            }
+        }
+
+        if (file == null) {
+            if (TelegramUtils.isPrivateChat(message.getChat())) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_FILE));
+            } else {
+                return returnResponse();
+            }
+        }
+
+        return returnResponse(new FileResponse(message)
+                .addFile(file));
     }
 
     private record FileParams(String url, MediaType mediaType) {
