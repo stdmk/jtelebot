@@ -179,6 +179,8 @@ public class Download implements Command, MessageAnalyzer {
                     throw e;
                 }
             }
+        } else {
+            return returnResponse();
         }
 
         if (file == null) {

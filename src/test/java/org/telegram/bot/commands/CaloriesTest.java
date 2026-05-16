@@ -796,6 +796,10 @@ class CaloriesTest {
                 (<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. <b>2</b> ${command.calories.fiberssymbol}. )
                 productName1
                 -----------------------------
+                ${command.calories.added}: <b>300</b> ${command.calories.kcal}.
+                (<b>10</b> ${command.calories.proteinssymbol}. <b>3</b> ${command.calories.fatssymbol}. <b>20</b> ${command.calories.carbssymbol}. <b>2</b> ${command.calories.fiberssymbol}. )
+                -----------------------------
+                -----------------------------
                 ${command.calories.unknownproduct}: <b>name2</b>
                 
                 productName1 80 ${command.calories.kcal}.
@@ -831,6 +835,7 @@ class CaloriesTest {
         when(productService.find(user, notFoundProductName, MAX_SIZE_OF_SEARCH_RESULTS)).thenReturn(getSomeProducts(user));
         org.telegram.bot.domain.model.calories.Calories caloriesOfAddedProduct = new org.telegram.bot.domain.model.calories.Calories(10, 3, 20, 2, 300, 200);
         when(caloricMapper.toCalories(product, grams)).thenReturn(caloriesOfAddedProduct);
+        when(caloricMapper.sum(anyList())).thenReturn(caloriesOfAddedProduct);
 
         BotResponse response = calories.parse(request).getFirst();
 

@@ -258,12 +258,21 @@ public class Calories implements Command {
                 addedResults.add(addCaloriesByProduct(chat, user, matcher, command));
             }
 
-            String addedProducts = addedResults
+            List<AddedCaloriesByProduct> addedProducts = addedResults
                     .stream()
                     .filter(addedCaloriesByProduct -> addedCaloriesByProduct.added)
+                    .toList();
+            String addedProductsString = addedProducts
+                    .stream()
                     .map(addedCaloriesByProduct -> addedCaloriesByProduct.text)
                     .collect(Collectors.joining("\n" + BORDER));
-            String notAddedProducts = addedResults
+            org.telegram.bot.domain.model.calories.Calories caloriesSum = caloricMapper.sum(addedProducts
+                    .stream()
+                    .map(AddedCaloriesByProduct::calories)
+                    .toList());
+            String caloriesSumString = buildAddedCaloriesString(caloriesSum);
+
+            String notAddedProductsString = addedResults
                     .stream()
                     .filter(addedCaloriesByProduct -> !addedCaloriesByProduct.added)
                     .map(addedCaloriesByProduct -> addedCaloriesByProduct.text)
@@ -273,7 +282,7 @@ public class Calories implements Command {
                 invalidInput = "\n" + BORDER + "<b>${command.calories.invalidinput}:</b> " + String.join("; ", notFoundCommands);
             }
 
-            return addedProducts + "\n" + BORDER + notAddedProducts + invalidInput;
+            return addedProductsString + "\n" + BORDER + caloriesSumString + "\n" + BORDER + BORDER + notAddedProductsString + invalidInput;
         }
 
         return getMatchedCommandResult(chat, user, commandArgument);
@@ -447,9 +456,11 @@ public class Calories implements Command {
             LocalDateTime dateTime = getUsersCurrentDateTime(chat, user);
             userCaloriesService.addCalories(user, dateTime, product, grams);
 
+            org.telegram.bot.domain.model.calories.Calories calories = caloricMapper.toCalories(product, grams);
             return new AddedCaloriesByProduct(
                     true,
-                    buildAddedCaloriesString(caloricMapper.toCalories(product, grams)) + "\n" + product.getName());
+                    buildAddedCaloriesString(calories) + "\n" + product.getName(),
+                    calories);
         } else {
             int intGrams = (int) grams;
             String foundProductsInfo = products
@@ -458,11 +469,12 @@ public class Calories implements Command {
                     .collect(Collectors.joining("\n"));
             return new AddedCaloriesByProduct(
                     false,
-                    "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo);
+                    "${command.calories.unknownproduct}: <b>" + name + "</b>\n\n" + foundProductsInfo,
+                    null);
         }
     }
 
-    private record AddedCaloriesByProduct(boolean added, String text) {}
+    private record AddedCaloriesByProduct(boolean added, String text, org.telegram.bot.domain.model.calories.Calories calories) {}
 
     private String buildFoundToAddCaloriesProduct(Product product, int grams) {
         double caloric = product.getCaloric() / 100 * grams;
