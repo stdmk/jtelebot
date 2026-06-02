@@ -22,6 +22,7 @@ import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TelegramUtils;
+import org.telegram.bot.utils.TextUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -160,7 +161,17 @@ public class Download implements Command, MessageAnalyzer {
             return null;
         }
 
-        return new File(FileType.FILE, fileFromUrl, DEFAULT_FILE_NAME);
+        return new File(FileType.FILE, fileFromUrl, getFileNameByUrl(url));
+    }
+
+    private String getFileNameByUrl(String url) {
+        String fileName;
+        fileName = TextUtils.getFileNameFromUrl(url);
+        if (fileName == null) {
+            fileName = DEFAULT_FILE_NAME;
+        }
+
+        return fileName;
     }
 
     @Override
