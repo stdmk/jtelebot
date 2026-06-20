@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.*;
@@ -17,6 +18,7 @@ import org.telegram.bot.exception.youtube.YtDlpBigFileException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
 import org.telegram.bot.providers.media.YtDlpProvider;
+import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
@@ -24,6 +26,7 @@ import org.telegram.bot.utils.NetworkUtils;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -41,6 +44,9 @@ public class Download implements Command, MessageAnalyzer {
     private final YtDlpProvider ytDlpProvider;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final CommandPropertiesService commandPropertiesService;
+
+    private final Set<String> downloadCommandNames = new HashSet<>();
 
     private Set<String> videoMediaTypes;
     private Set<String> audioMediaTypes;
@@ -51,6 +57,11 @@ public class Download implements Command, MessageAnalyzer {
     public void postConstruct() {
         videoMediaTypes = internationalizationService.getAllTranslations("command.download.videotype");
         audioMediaTypes = internationalizationService.getAllTranslations("command.download.audiotype");
+
+        CommandProperties command = commandPropertiesService.getCommand(this.getClass());
+        downloadCommandNames.add(command.getCommandName());
+        downloadCommandNames.add(command.getRussifiedName());
+        downloadCommandNames.add(command.getEnRuName());
     }
 
     @Override
@@ -178,6 +189,9 @@ public class Download implements Command, MessageAnalyzer {
     public List<BotResponse> analyze(BotRequest request) {
         Message message = request.getMessage();
         String text = message.getText();
+        if (TextUtils.containsStartWith(downloadCommandNames, text.toLowerCase())) {
+            return returnResponse();
+        }
 
         File file = null;
         MediaPlatform mediaPlatform = MediaPlatform.getByUrl(text);

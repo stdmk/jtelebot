@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.telegram.bot.Bot;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.File;
@@ -20,6 +21,7 @@ import org.telegram.bot.exception.youtube.YtDlpCallException;
 import org.telegram.bot.exception.youtube.YtDlpException;
 import org.telegram.bot.exception.youtube.YtDlpNoResponseException;
 import org.telegram.bot.providers.media.YtDlpProvider;
+import org.telegram.bot.services.CommandPropertiesService;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.InternationalizationService;
 import org.telegram.bot.services.SpeechService;
@@ -53,6 +55,8 @@ class DownloadTest {
     private SpeechService speechService;
     @Mock
     private CommandWaitingService commandWaitingService;
+    @Mock
+    private CommandPropertiesService commandPropertiesService;
 
     @InjectMocks
     private Download download;
@@ -203,6 +207,7 @@ class DownloadTest {
         Set<String> audioMediaTypes = Set.of("audio");
         when(internationalizationService.getAllTranslations("command.download.videotype")).thenReturn(Set.of());
         when(internationalizationService.getAllTranslations("command.download.audiotype")).thenReturn(audioMediaTypes);
+        when(commandPropertiesService.getCommand(Download.class)).thenReturn(new CommandProperties());
         ReflectionTestUtils.invokeMethod(download, "postConstruct");
 
         BotResponse response = download.parse(request).getFirst();
@@ -272,6 +277,23 @@ class DownloadTest {
         BotException botException = assertThrows(BotException.class, () -> download.analyze(request));
 
         assertEquals(errorText, botException.getMessage());
+    }
+
+    @Test
+    void analyzeMessageWithDownloadCommandTest() {
+        final String url = "https://youtube.com";
+        BotRequest request = getRequestFromGroup("Download " + url);
+
+        CommandProperties downloadCommand = new CommandProperties()
+                .setCommandName("download")
+                .setRussifiedName("скачать")
+                .setEnRuName("crfxfnm");
+        when(commandPropertiesService.getCommand(Download.class)).thenReturn(downloadCommand);
+        ReflectionTestUtils.invokeMethod(download, "postConstruct");
+
+        List<BotResponse> botResponses = download.analyze(request);
+
+        assertTrue(botResponses.isEmpty());
     }
 
     @Test
