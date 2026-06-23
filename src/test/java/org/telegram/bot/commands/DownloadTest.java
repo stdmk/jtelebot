@@ -280,6 +280,13 @@ class DownloadTest {
     }
 
     @Test
+    void analyzeMessageWithNullableCommandTest() {
+        BotRequest request = getRequestFromGroup(null);
+        List<BotResponse> botResponses = download.analyze(request);
+        assertTrue(botResponses.isEmpty());
+    }
+
+    @Test
     void analyzeMessageWithDownloadCommandTest() {
         final String url = "https://youtube.com";
         BotRequest request = getRequestFromGroup("Download " + url);

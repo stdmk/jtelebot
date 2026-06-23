@@ -189,7 +189,7 @@ public class Download implements Command, MessageAnalyzer {
     public List<BotResponse> analyze(BotRequest request) {
         Message message = request.getMessage();
         String text = message.getText();
-        if (TextUtils.containsStartWith(downloadCommandNames, text.toLowerCase())) {
+        if (text == null || TextUtils.containsStartWith(downloadCommandNames, text.toLowerCase())) {
             return returnResponse();
         }
 
