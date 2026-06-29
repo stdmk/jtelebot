@@ -11,9 +11,10 @@ import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.exception.ffmpeg.FfmpegException;
 import org.telegram.bot.providers.ffmpeg.FfmpegProvider;
+import org.telegram.bot.providers.media.YtDlpProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
@@ -30,6 +31,7 @@ public class Webcam implements Command {
     private final SpeechService speechService;
     private final FfmpegProvider ffmpegProvider;
     private final CommandWaitingService commandWaitingService;
+    private final YtDlpProvider ytDlpProvider;
 
     private static final int DEFAULT_VIDEO_DURATION_IN_SECONDS = 5;
     private static final int MAX_VIDEO_DURATION_IN_SECONDS = 20;
@@ -65,9 +67,14 @@ public class Webcam implements Command {
             bot.sendUploadVideo(message.getChatId());
 
             File videoFile;
+            MediaPlatform mediaPlatform = MediaPlatform.getByUrl(url);
             try {
-                videoFile = ffmpegProvider.getVideo(url, duration);
-            } catch (FfmpegException e) {
+                if (mediaPlatform != null) {
+                    videoFile = ytDlpProvider.getVideoFragment(mediaPlatform, url, Integer.parseInt(duration));
+                } else {
+                    videoFile = ffmpegProvider.getVideo(url, duration);
+                }
+            } catch (Exception e) {
                 throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE));
             }
 

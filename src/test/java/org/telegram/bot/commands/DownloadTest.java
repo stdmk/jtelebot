@@ -208,6 +208,7 @@ class DownloadTest {
         when(internationalizationService.getAllTranslations("command.download.videotype")).thenReturn(Set.of());
         when(internationalizationService.getAllTranslations("command.download.audiotype")).thenReturn(audioMediaTypes);
         when(commandPropertiesService.getCommand(Download.class)).thenReturn(new CommandProperties());
+        when(commandPropertiesService.getCommand(Webcam.class)).thenReturn(new CommandProperties());
         ReflectionTestUtils.invokeMethod(download, "postConstruct");
 
         BotResponse response = download.parse(request).getFirst();
@@ -296,6 +297,11 @@ class DownloadTest {
                 .setRussifiedName("скачать")
                 .setEnRuName("crfxfnm");
         when(commandPropertiesService.getCommand(Download.class)).thenReturn(downloadCommand);
+        CommandProperties webcamCommand = new CommandProperties()
+                .setCommandName("download")
+                .setRussifiedName("скачать")
+                .setEnRuName("crfxfnm");
+        when(commandPropertiesService.getCommand(Webcam.class)).thenReturn(webcamCommand);
         ReflectionTestUtils.invokeMethod(download, "postConstruct");
 
         List<BotResponse> botResponses = download.analyze(request);

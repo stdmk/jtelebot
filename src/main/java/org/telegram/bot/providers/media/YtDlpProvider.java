@@ -11,4 +11,6 @@ public interface YtDlpProvider {
 
     File getAudio(@NotNull MediaPlatform mediaPlatform, @NotNull String url) throws YtDlpException;
 
+    java.io.File getVideoFragment(MediaPlatform mediaPlatform, String url, int durationSeconds) throws YtDlpException;
+
 }

@@ -58,10 +58,15 @@ public class Download implements Command, MessageAnalyzer {
         videoMediaTypes = internationalizationService.getAllTranslations("command.download.videotype");
         audioMediaTypes = internationalizationService.getAllTranslations("command.download.audiotype");
 
-        CommandProperties command = commandPropertiesService.getCommand(this.getClass());
-        downloadCommandNames.add(command.getCommandName());
-        downloadCommandNames.add(command.getRussifiedName());
-        downloadCommandNames.add(command.getEnRuName());
+        CommandProperties downloadCommand = commandPropertiesService.getCommand(this.getClass());
+        downloadCommandNames.add(downloadCommand.getCommandName());
+        downloadCommandNames.add(downloadCommand.getRussifiedName());
+        downloadCommandNames.add(downloadCommand.getEnRuName());
+
+        CommandProperties webcamCommand = commandPropertiesService.getCommand(Webcam.class);
+        downloadCommandNames.add(webcamCommand.getCommandName());
+        downloadCommandNames.add(webcamCommand.getRussifiedName());
+        downloadCommandNames.add(webcamCommand.getEnRuName());
     }
 
     @Override

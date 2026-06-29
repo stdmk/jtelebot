@@ -22,6 +22,7 @@ import org.telegram.bot.utils.TextUtils;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -93,6 +94,65 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
 
         return new File(FileType.AUDIO, audioFile, new FileSettings().setDuration(duration));
+    }
+
+    @Override
+    public java.io.File getVideoFragment(MediaPlatform mediaPlatform, String url, int durationSeconds) throws YtDlpException {
+        VideoInfo videoInfo = getSuitableFormatId(mediaPlatform, url);
+
+        String fileName = getFileName(videoInfo.title, videoInfo.ext);
+
+        downloadFragment(mediaPlatform, url, videoInfo.formatId, fileName, durationSeconds);
+
+        java.io.File videoFile = temporaryFileManager.get(fileName);
+        if (videoFile == null) {
+            throw new YtDlpNoResponseException("Unable to download video fragment");
+        }
+
+        return videoFile;
+    }
+
+    private void downloadFragment(MediaPlatform mediaPlatform, String url, String formatId, String fileName, int durationSeconds) throws YtDlpCallException {
+        ProcessBuilder pb = new ProcessBuilder(getFragmentArguments(mediaPlatform, url, formatId, fileName, durationSeconds));
+
+        pb.inheritIO();
+
+        try {
+            Process process = pb.start();
+            process.waitFor();
+        } catch (InterruptedException | IOException e) {
+            throw new YtDlpCallException(e.getMessage());
+        }
+    }
+
+    private List<String> getFragmentArguments(MediaPlatform mediaPlatform, String url, String formatId, String fileName, int durationSeconds) {
+        List<String> args = new ArrayList<>();
+
+        args.add("yt-dlp");
+
+        if (mediaPlatform.isNeedsUserAgent()) {
+            args.add("--user-agent");
+            args.add(NetworkUtils.USER_AGENT);
+        }
+
+        args.add("--concurrent-fragments");
+        args.add("1");
+
+        args.add("-f");
+        args.add(formatId);
+
+        args.add("--downloader");
+        args.add("ffmpeg");
+
+        args.add("--downloader-args");
+        args.add("ffmpeg_i:-t " + durationSeconds);
+
+        args.add("-o");
+        args.add(fileName);
+
+        args.add(url);
+
+        return args;
     }
 
     private long getDuration(MediaPlatform mediaPlatform, String url) throws YtDlpCallException {

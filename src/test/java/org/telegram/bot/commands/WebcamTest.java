@@ -16,9 +16,11 @@ import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
+import org.telegram.bot.enums.yt_dlp.MediaPlatform;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.exception.ffmpeg.FfmpegException;
 import org.telegram.bot.providers.ffmpeg.FfmpegProvider;
+import org.telegram.bot.providers.media.YtDlpProvider;
 import org.telegram.bot.services.CommandWaitingService;
 import org.telegram.bot.services.SpeechService;
 
@@ -39,6 +41,8 @@ class WebcamTest {
     private FfmpegProvider ffmpegProvider;
     @Mock
     private CommandWaitingService commandWaitingService;
+    @Mock
+    private YtDlpProvider ytDlpProvider;
 
     @InjectMocks
     private Webcam webcam;
@@ -109,6 +113,51 @@ class WebcamTest {
         FileResponse fileResponse = TestUtils.checkDefaultFileResponseParams(botResponse, FileType.VIDEO);
 
         assertEquals(expectedVideoFile, fileResponse.getFiles().getFirst().getDiskFile());
+    }
+
+    @Test
+    void parseMediaPlatformTest() throws Exception {
+        final String url = "https://youtu.be/test";
+        final String duration = "5";
+
+        BotRequest request = TestUtils.getRequestFromGroup("webcam " + url + " " + duration);
+        Message message = request.getMessage();
+
+        File expectedVideoFile = TestUtils.getFileMock();
+
+        when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
+        when(ytDlpProvider.getVideoFragment(MediaPlatform.YOUTUBE, url, 5)).thenReturn(expectedVideoFile);
+
+        BotResponse botResponse = webcam.parse(request).getFirst();
+
+        FileResponse fileResponse =
+                TestUtils.checkDefaultFileResponseParams(botResponse, FileType.VIDEO);
+
+        assertEquals(expectedVideoFile, fileResponse.getFiles().getFirst().getDiskFile());
+
+        verify(ytDlpProvider).getVideoFragment(MediaPlatform.YOUTUBE, url, 5);
+        verify(ffmpegProvider, never()).getVideo(anyString(), anyString());
+    }
+
+    @Test
+    void parseMediaPlatformNoResponseTest() throws Exception {
+        final String expectedErrorText = "error";
+        final String url = "https://youtu.be/test";
+        final String duration = "5";
+
+        BotRequest request = TestUtils.getRequestFromGroup("webcam " + url + " " + duration);
+        Message message = request.getMessage();
+
+        when(commandWaitingService.getText(message)).thenReturn(message.getCommandArgument());
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NO_RESPONSE)).thenReturn(expectedErrorText);
+
+        when(ytDlpProvider.getVideoFragment(MediaPlatform.YOUTUBE, url, 5)).thenThrow(new RuntimeException());
+
+        BotException exception = assertThrows(BotException.class, () -> webcam.parse(request));
+
+        assertEquals(expectedErrorText, exception.getMessage());
+
+        verify(ffmpegProvider, never()).getVideo(anyString(), anyString());
     }
 
 }
