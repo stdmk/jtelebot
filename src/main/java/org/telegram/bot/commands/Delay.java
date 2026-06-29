@@ -2,14 +2,13 @@ package org.telegram.bot.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.CommandProperties;
-import org.telegram.bot.domain.entities.DelayCommand;
-import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.*;
+import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -18,7 +17,6 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.services.*;
 
-import jakarta.annotation.PostConstruct;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -54,6 +52,7 @@ public class Delay implements Command {
     private final InternationalizationService internationalizationService;
     private final CommandPropertiesService commandPropertiesService;
     private final DisableCommandService disableCommandService;
+    private final AliasService aliasService;
     private final DelayCommandService delayCommandService;
     private final UserService userService;
     private final UserCityService userCityService;
@@ -142,7 +141,15 @@ public class Delay implements Command {
     private void validateCommand(Chat chat, User user, String command) {
         CommandProperties commandProperties = commandPropertiesService.findCommandInText(command, bot.getBotUsername());
         if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            Alias alias = aliasService.get(chat, user, command);
+            if (alias == null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            commandProperties = commandPropertiesService.findCommandInText(alias.getValue(), bot.getBotUsername());
+            if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
         }
         
         if (!userService.isUserHaveAccessForCommand(user, commandProperties.getAccessLevel())) {

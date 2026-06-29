@@ -57,6 +57,8 @@ class DelayTest {
     @Mock
     private DelayCommandService delayCommandService;
     @Mock
+    private AliasService aliasService;
+    @Mock
     private UserService userService;
     @Mock
     private UserCityService userCityService;
@@ -300,6 +302,115 @@ class DelayTest {
         assertEquals(expectedErrorText, botException.getMessage());
 
         verify(bot).sendTyping(message.getChatId());
+    }
+
+    @Test
+    void parseWithAliasAsArgumentTest() throws JsonProcessingException {
+        final String command = "myalias";
+        final String aliasCommand = "echo";
+        final String expectedResponseText = "saved";
+        final String expectedRequestJson = "";
+
+        BotRequest request = TestUtils.getRequestFromGroup("delay 15s " + command);
+        Message message = request.getMessage();
+
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(null);
+
+        org.telegram.bot.domain.entities.Alias alias = new org.telegram.bot.domain.entities.Alias().setValue(aliasCommand);
+        when(aliasService.get(message.getChat(), message.getUser(), command)).thenReturn(alias);
+
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(1);
+        when(commandPropertiesService.findCommandInText(aliasCommand, "jtelebot")).thenReturn(commandProperties);
+
+        when(userService.isUserHaveAccessForCommand(message.getUser(), 1)).thenReturn(true);
+        when(objectMapper.writeValueAsString(request)).thenReturn(expectedRequestJson);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
+
+        BotResponse botResponse = delay.parse(request).getFirst();
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(botResponse);
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(delayCommandService).save(any());
+    }
+
+    @Test
+    void parseWithAliasToUnknownCommandTest() {
+        final String command = "myalias";
+        final String expectedErrorText = "error";
+
+        BotRequest request = TestUtils.getRequestFromGroup("delay 15s " + command);
+        Message message = request.getMessage();
+
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(null);
+
+        org.telegram.bot.domain.entities.Alias alias = new org.telegram.bot.domain.entities.Alias().setValue("unknown");
+        when(aliasService.get(message.getChat(), message.getUser(), command)).thenReturn(alias);
+
+        when(commandPropertiesService.findCommandInText("unknown", "jtelebot")).thenReturn(null);
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> delay.parse(request));
+
+        assertEquals(expectedErrorText, exception.getMessage());
+    }
+
+    @Test
+    void parseWithAliasToDisabledCommandTest() {
+        final String command = "myalias";
+        final String aliasCommand = "echo";
+        final String expectedErrorText = "error";
+
+        BotRequest request = TestUtils.getRequestFromGroup("delay 15s " + command);
+        Message message = request.getMessage();
+
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(null);
+
+        org.telegram.bot.domain.entities.Alias alias = new org.telegram.bot.domain.entities.Alias().setValue(aliasCommand);
+        when(aliasService.get(message.getChat(), message.getUser(), command)).thenReturn(alias);
+
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(1);
+        when(commandPropertiesService.findCommandInText(aliasCommand, "jtelebot")).thenReturn(commandProperties);
+
+        when(disableCommandService.get(message.getChat(), commandProperties))
+                .thenReturn(new DisableCommand());
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT))
+                .thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> delay.parse(request));
+
+        assertEquals(expectedErrorText, exception.getMessage());
+    }
+
+    @Test
+    void parseWithAliasAndNoAccessToCommandTest() {
+        final String command = "myalias";
+        final String aliasCommand = "echo";
+        final String expectedErrorText = "error";
+
+        BotRequest request = TestUtils.getRequestFromGroup("delay 15s " + command);
+        Message message = request.getMessage();
+
+        when(bot.getBotUsername()).thenReturn("jtelebot");
+        when(commandPropertiesService.findCommandInText(command, "jtelebot")).thenReturn(null);
+
+        org.telegram.bot.domain.entities.Alias alias = new org.telegram.bot.domain.entities.Alias().setValue(aliasCommand);
+        when(aliasService.get(message.getChat(), message.getUser(), command)).thenReturn(alias);
+
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(1);
+        when(commandPropertiesService.findCommandInText(aliasCommand, "jtelebot")).thenReturn(commandProperties);
+
+        when(userService.isUserHaveAccessForCommand(message.getUser(), 1)).thenReturn(false);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS)).thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> delay.parse(request));
+
+        assertEquals(expectedErrorText, exception.getMessage());
     }
 
 }
