@@ -1,12 +1,15 @@
 package org.telegram.bot.commands.setters;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.Bot;
 import org.telegram.bot.commands.Set;
 import org.telegram.bot.domain.entities.Alias;
 import org.telegram.bot.domain.entities.Chat;
+import org.telegram.bot.domain.entities.CommandProperties;
 import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
@@ -16,12 +19,8 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.Emoji;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 
-import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +57,10 @@ public class AliasSetter implements Setter<BotResponse> {
     private final AliasService aliasService;
     private final SpeechService speechService;
     private final CommandWaitingService commandWaitingService;
+    private final CommandPropertiesService commandPropertiesService;
+    private final DisableCommandService disableCommandService;
+    private final UserService userService;
+    private final Bot bot;
     private final InternationalizationService internationalizationService;
 
     @PostConstruct
@@ -247,6 +250,14 @@ public class AliasSetter implements Setter<BotResponse> {
                         .setResponseSettings(FormattingStyle.HTML);
             }
 
+            CommandProperties commandProperties = commandPropertiesService.findCommandInText(alias.getValue(), bot.getBotUsername());
+            if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+            if (!userService.isUserHaveAccessForCommand(user, commandProperties.getAccessLevel())) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
+            }
+
             aliasService.save(new Alias()
                     .setChat(chat)
                     .setUser(user)
@@ -292,6 +303,14 @@ public class AliasSetter implements Setter<BotResponse> {
             return new TextResponse(message)
                     .setText(speechService.getRandomMessageByTag(BotSpeechTag.DUPLICATE_ENTRY))
                     .setResponseSettings(FormattingStyle.HTML);
+        }
+
+        CommandProperties commandProperties = commandPropertiesService.findCommandInText(aliasValue, bot.getBotUsername());
+        if (commandProperties == null || disableCommandService.get(chat, commandProperties) != null) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+        if (!userService.isUserHaveAccessForCommand(user, commandProperties.getAccessLevel())) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS));
         }
 
         aliasService.save(new Alias().setChat(chat).setUser(user).setName(aliasName).setValue(aliasValue));
