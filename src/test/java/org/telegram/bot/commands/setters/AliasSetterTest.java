@@ -13,10 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
-import org.telegram.bot.domain.entities.Alias;
-import org.telegram.bot.domain.entities.Chat;
-import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.entities.*;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
@@ -26,10 +25,7 @@ import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.AccessLevel;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
-import org.telegram.bot.services.AliasService;
-import org.telegram.bot.services.CommandWaitingService;
-import org.telegram.bot.services.InternationalizationService;
-import org.telegram.bot.services.SpeechService;
+import org.telegram.bot.services.*;
 
 import java.util.List;
 import java.util.Set;
@@ -41,6 +37,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AliasSetterTest {
 
+    private static final String BOT_USERNAME = "jtelebot";
+
     @Mock
     private AliasService aliasService;
     @Mock
@@ -48,7 +46,15 @@ class AliasSetterTest {
     @Mock
     private CommandWaitingService commandWaitingService;
     @Mock
+    private CommandPropertiesService commandPropertiesService;
+    @Mock
+    private Bot bot;
+    @Mock
     private InternationalizationService internationalizationService;
+    @Mock
+    private DisableCommandService disableCommandService;
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private AliasSetter aliasSetter;
@@ -248,6 +254,13 @@ class AliasSetterTest {
         Alias selectedAlias = aliasEntityList.iterator().next();
         when(aliasService.get(aliasId)).thenReturn(selectedAlias);
         when(aliasService.getByChatAndUser(chat, user, 0)).thenReturn(aliasEntityList);
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.findCommandInText(selectedAlias.getValue(), BOT_USERNAME)).thenReturn(new CommandProperties());
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(AccessLevel.TRUSTED.getValue());
+        when(commandPropertiesService.findCommandInText(selectedAlias.getValue(), BOT_USERNAME)).thenReturn(commandProperties);
+        when(disableCommandService.get(chat, commandProperties)).thenReturn(null);
+
+        when(userService.isUserHaveAccessForCommand(user, AccessLevel.TRUSTED.getValue())).thenReturn(true);
 
         BotResponse response = aliasSetter.set(request, argument);
 
@@ -470,6 +483,14 @@ class AliasSetterTest {
         Message message = request.getMessage();
 
         when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED)).thenReturn(expectedResponseText);
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(AccessLevel.TRUSTED.getValue());
+        when(commandPropertiesService.findCommandInText("value", BOT_USERNAME)).thenReturn(commandProperties);
+        when(disableCommandService.get(message.getChat(), commandProperties)).thenReturn(null);
+        when(userService.isUserHaveAccessForCommand(message.getUser(), AccessLevel.TRUSTED.getValue())).thenReturn(true);
+
+        when(speechService.getRandomMessageByTag(BotSpeechTag.SAVED))
+                .thenReturn(expectedResponseText);
 
         BotResponse response = aliasSetter.set(request, argument);
 
@@ -478,6 +499,74 @@ class AliasSetterTest {
         assertEquals(expectedResponseText, textResponse.getText());
 
         verify(commandWaitingService).remove(message.getChat(), message.getUser());
+    }
+
+    @Test
+    void setCallbackWithSelectAliasWhenCommandNotFoundTest() {
+        final String expectedErrorText = "error";
+        final Long aliasId = 1L;
+        final String argument = "alias select " + aliasId;
+
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        Message message = request.getMessage();
+
+        Alias alias = getSomeAliasEntityList(message).iterator().next();
+
+        when(aliasService.get(aliasId)).thenReturn(alias);
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.findCommandInText(alias.getValue(), BOT_USERNAME)).thenReturn(null);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> aliasSetter.set(request, argument));
+
+        assertEquals(expectedErrorText, exception.getMessage());
+    }
+
+    @Test
+    void setCallbackWithSelectAliasWhenCommandDisabledTest() {
+        final String expectedErrorText = "error";
+        final Long aliasId = 1L;
+        final String argument = "alias select " + aliasId;
+
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        Message message = request.getMessage();
+
+        Alias alias = getSomeAliasEntityList(message).iterator().next();
+        CommandProperties commandProperties = new CommandProperties();
+
+        when(aliasService.get(aliasId)).thenReturn(alias);
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.findCommandInText(alias.getValue(), BOT_USERNAME)).thenReturn(commandProperties);
+        when(disableCommandService.get(message.getChat(), commandProperties)).thenReturn(new DisableCommand());
+        when(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT)).thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> aliasSetter.set(request, argument));
+
+        assertEquals(expectedErrorText, exception.getMessage());
+    }
+
+    @Test
+    void setCallbackWithSelectAliasWithoutAccessTest() {
+        final String expectedErrorText = "error";
+        final Long aliasId = 1L;
+        final String argument = "alias select " + aliasId;
+
+        BotRequest request = TestUtils.getRequestWithCallback("set " + argument);
+        Message message = request.getMessage();
+
+        Alias alias = getSomeAliasEntityList(message).iterator().next();
+
+        CommandProperties commandProperties = new CommandProperties().setAccessLevel(1);
+
+        when(aliasService.get(aliasId)).thenReturn(alias);
+        when(bot.getBotUsername()).thenReturn(BOT_USERNAME);
+        when(commandPropertiesService.findCommandInText(alias.getValue(), BOT_USERNAME)).thenReturn(commandProperties);
+        when(userService.isUserHaveAccessForCommand(message.getUser(), 1)).thenReturn(false);
+        when(speechService.getRandomMessageByTag(BotSpeechTag.NO_ACCESS)).thenReturn(expectedErrorText);
+
+        BotException exception = assertThrows(BotException.class, () -> aliasSetter.set(request, argument));
+
+        assertEquals(expectedErrorText, exception.getMessage());
     }
 
     private void assertAliasListKeyboard(List<List<KeyboardButton>> keyboardButtonsList, Page<Alias> aliasEntityList) {

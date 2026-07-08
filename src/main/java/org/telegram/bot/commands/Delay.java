@@ -168,8 +168,8 @@ public class Delay implements Command {
                     return new ArgumentAndDateTime(
                             matcher.group(),
                             getDateTimeFunction.apply(text.substring(matcher.start(), matcher.end()))
-                                    .atZone(ZoneId.systemDefault())
-                                    .withZoneSameInstant(zoneId)
+                                    .atZone(zoneId)
+                                    .withZoneSameInstant(ZoneId.systemDefault())
                                     .toLocalDateTime());
                 } catch (Exception e) {
                     log.error("Failed to parse dateTime from {}: {}", text, e.getMessage());
