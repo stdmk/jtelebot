@@ -23,7 +23,7 @@ public class TextUtils {
 
     private static final Pattern COMMAND_PATTERN = Pattern.compile("^[a-zA-Zа-яА-Я0-9Ёё]+", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern WORD_PATTERN = Pattern.compile("\\W$", Pattern.UNICODE_CHARACTER_CLASS);
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("/[\\w,\\s-]+\\.[A-Za-z]+$");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("/([^/]+\\.[A-Za-z]+)$");
     private static final Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
 
     public String cutCommandInText(String text) {
@@ -284,7 +284,7 @@ public class TextUtils {
         Matcher matcher = FILE_NAME_PATTERN.matcher(url);
 
         if (matcher.find()) {
-            return url.substring(matcher.start() + 1, matcher.end());
+            return matcher.group(1);
         }
 
         return null;
