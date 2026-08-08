@@ -57,11 +57,15 @@ public class Karma implements Command, MessageAnalyzer {
 
         String commandArgument = message.getCommandArgument();
         String responseText;
-
         if (commandArgument == null) {
             responseText = getKarmaStatsOfUser(message);
         } else {
-            responseText = changeKarmaOfUser(message, commandArgument);
+            UserAndKarmaValue userAndKarmaValue = getUserAndKarmaValue(commandArgument, message.getUser().getUserId());
+            if (userAndKarmaValue.value == null) {
+                responseText = getKarmaStatsOfUser(message, userAndKarmaValue.user);
+            } else {
+                responseText = changeKarmaOfUser(message, userAndKarmaValue);
+            }
         }
 
         return returnResponse(new TextResponse(message)
@@ -69,10 +73,51 @@ public class Karma implements Command, MessageAnalyzer {
                 .setResponseSettings(FormattingStyle.HTML));
     }
 
+    private UserAndKarmaValue getUserAndKarmaValue(String textMessage, Long currentUserId) {
+        int i = textMessage.indexOf(" ");
+        if (i < 0) {
+            return new UserAndKarmaValue(getUser(textMessage, currentUserId), null);
+        }
+
+        int value;
+        try {
+            value = Integer.parseInt(textMessage.substring(i + 1));
+        } catch (NumberFormatException e) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        if (value != 1 && value != -1) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return new UserAndKarmaValue(getUser(textMessage.substring(0, i), currentUserId), value);
+    }
+
+    private User getUser(String raw, Long currentUserId) {
+        User anotherUser;
+        try {
+            anotherUser = userService.get(Long.parseLong(raw));
+        } catch (NumberFormatException e) {
+            anotherUser = userService.get(raw);
+        }
+
+        if (anotherUser == null || anotherUser.getUserId().equals(currentUserId)) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        return anotherUser;
+    }
+
     private String getKarmaStatsOfUser(Message message) {
+        return getKarmaStatsOfUser(message, null);
+    }
+
+    private String getKarmaStatsOfUser(Message message, User user) {
         Message repliedMessage = message.getReplyToMessage();
         Chat chat = message.getChat();
-        User user = Objects.requireNonNullElse(repliedMessage, message).getUser();
+        if (user == null) {
+            user = Objects.requireNonNullElse(repliedMessage, message).getUser();
+        }
 
         log.debug("Request to get karma info for user {} and chat {}", user, chat);
         UserStats userStats = userStatsService.get(chat, user);
@@ -90,34 +135,9 @@ public class Karma implements Command, MessageAnalyzer {
                 Emoji.BROKEN_HEART.getSymbol() + "${command.karma.wickedness}: <b>" + userStats.getNumberOfWickedness() + "</b> (" + userStats.getNumberOfAllWickedness() + ")" + "\n";
     }
 
-    private String changeKarmaOfUser(Message message, String textMessage) {
-        int i = textMessage.indexOf(" ");
-        if (i < 0) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        int value;
-        try {
-            value = Integer.parseInt(textMessage.substring(i + 1));
-        } catch (NumberFormatException e) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        if (value != 1 && value != -1) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
-        User anotherUser;
-        try {
-            anotherUser = userService.get(Long.parseLong(textMessage.substring(0, i)));
-        } catch (NumberFormatException e) {
-            anotherUser = userService.get(textMessage.substring(0, i));
-        }
-
-        if (anotherUser == null || anotherUser.getUserId().equals(message.getUser().getUserId())) {
-            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
-        }
-
+    private String changeKarmaOfUser(Message message, UserAndKarmaValue userAndKarmaValue) {
+        User anotherUser = userAndKarmaValue.user;
+        Integer value = userAndKarmaValue.value;
         log.debug("Request to change karma {} of user {} ", value, anotherUser);
         Chat chat = new Chat().setChatId(message.getChatId());
         UserStats anotherUserStats = userStatsService.get(chat, anotherUser);
@@ -181,4 +201,8 @@ public class Karma implements Command, MessageAnalyzer {
 
         return returnResponse();
     }
+
+    private record UserAndKarmaValue(User user, Integer value) {
+    }
+
 }

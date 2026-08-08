@@ -300,7 +300,7 @@ class KarmaTest {
     }
 
     private static Stream<Arguments> provideMessageTexts() {
-        final String increaseKarmaCommand = "${command.karma.userskarma} <b><a href=\"tg://user?id=" + ANOTHER_USER_ID +"\">username</a></b> ${command.karma.increased} \uD83D\uDC4D ${command.karma.changedto} <b>34</b>";
+        final String increaseKarmaCommand = "${command.karma.userskarma} <b><a href=\"tg://user?id=" + ANOTHER_USER_ID + "\">username</a></b> ${command.karma.increased} \uD83D\uDC4D ${command.karma.changedto} <b>34</b>";
         final String decreaseKarmaCommand = "${command.karma.userskarma} <b><a href=\"tg://user?id=" + ANOTHER_USER_ID + "\">username</a></b> ${command.karma.reduced} \uD83D\uDC4E ${command.karma.changedto} <b>32</b>";
 
         Stream<Arguments> increaseArgumentsStream = Stream.of("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿", "+1", "++")
@@ -310,6 +310,111 @@ class KarmaTest {
                 .map(text -> Arguments.of(text, decreaseKarmaCommand));
 
         return Stream.concat(increaseArgumentsStream, decreaseArgumentsStream);
+    }
+
+    @Test
+    void getKarmaOfAnotherUserByUsernameTest() {
+        final String expectedResponseText = """
+                <b><a href="tg://user?id=1">username</a></b>
+                😇${command.karma.caption}: <b>33</b> (35)
+                ❤️${command.karma.kindness}: <b>36</b> (38)
+                💔${command.karma.wickedness}: <b>39</b> (41)
+                """;
+
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username");
+
+        when(userService.get("@username")).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
+        when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
+
+        BotResponse response = karma.parse(request).getFirst();
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userService).get("@username");
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void getKarmaOfUnknownUserByUsernameTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("karma @unknown");
+
+        when(userService.get("@unknown")).thenReturn(null);
+
+        assertThrows(BotException.class, () -> karma.parse(request));
+
+        verify(userService).get("@unknown");
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void getKarmaOfMyselfByUsernameTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username");
+
+        when(userService.get("@username")).thenReturn(TestUtils.getUser());
+
+        assertThrows(BotException.class, () -> karma.parse(request));
+
+        verify(userService).get("@username");
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideKarmaChangesByUsername")
+    void changeKarmaOfAnotherUserByUsernameTest(int value, String expectedResponseText) {
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username " + value);
+
+        when(userService.get("@username")).thenReturn(TestUtils.getUser(ANOTHER_USER_ID));
+        when(userStatsService.get(any(Chat.class), any(User.class))).thenReturn(getSomeUserStats());
+
+        BotResponse response = karma.parse(request).getFirst();
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+
+        assertEquals(expectedResponseText, textResponse.getText());
+
+        verify(userService).get("@username");
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    private static Stream<Arguments> provideKarmaChangesByUsername() {
+        return Stream.of(
+                Arguments.of(
+                        1,
+                        "${command.karma.userskarma} <b><a href=\"tg://user?id=2\">username</a></b> ${command.karma.increased} \uD83D\uDC4D ${command.karma.changedto} <b>34</b>"
+                ),
+                Arguments.of(
+                        -1,
+                        "${command.karma.userskarma} <b><a href=\"tg://user?id=2\">username</a></b> ${command.karma.reduced} \uD83D\uDC4E ${command.karma.changedto} <b>32</b>"
+                )
+        );
+    }
+
+    @Test
+    void changeKarmaOfUnknownUserByUsernameTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("karma @unknown 1");
+
+        when(userService.get("@unknown")).thenReturn(null);
+
+        assertThrows(BotException.class, () -> karma.parse(request));
+
+        verify(userService).get("@unknown");
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
+    }
+
+    @Test
+    void changeKarmaOfMyselfByUsernameTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("karma @username 1");
+
+        when(userService.get("@username")).thenReturn(TestUtils.getUser());
+
+        assertThrows(BotException.class, () -> karma.parse(request));
+
+        verify(userService).get("@username");
+        verify(speechService).getRandomMessageByTag(BotSpeechTag.WRONG_INPUT);
+        verify(bot).sendTyping(request.getMessage().getChatId());
     }
 
 }
