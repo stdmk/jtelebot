@@ -37,16 +37,55 @@ public class LogServiceImpl implements LogService {
         Message message = botRequest.getMessage();
         org.telegram.bot.domain.entities.User user = message.getUser();
 
-        String textOfMessage = message.getText();
-        Boolean spyMode = propertiesConfig.getSpyMode();
+        String textOfMessage = getText(message);
         Long chatId = message.getChatId();
         Long userId = user.getUserId();
         log.info("({}) From {} ({}-{}): {}", botRequest.getSource().getName(), chatId, user.getUsername(), userId, textOfMessage);
+
+        Boolean spyMode = propertiesConfig.getSpyMode();
         if (chatId > 0 && spyMode != null && spyMode) {
             reportToAdmin(user, textOfMessage);
         }
 
         emailNotifier.notify(botRequest);
+    }
+
+    private String getText(Message message) {
+        switch (message.getMessageContentType()) {
+            case TEXT -> {
+                return message.getText();
+            }
+            case STICKER -> {
+                return "sticker";
+            }
+            case PHOTO -> {
+                return "photo";
+            }
+            case ANIMATION -> {
+                return "animation";
+            }
+            case AUDIO -> {
+                return "audio";
+            }
+            case FILE -> {
+                return "file";
+            }
+            case VIDEO -> {
+                return "video";
+            }
+            case VIDEO_NOTE -> {
+                return "video note";
+            }
+            case VOICE -> {
+                return "voice";
+            }
+            case REACTION -> {
+                return message.getReactions().toString();
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 
     private void reportToAdmin(org.telegram.bot.domain.entities.User user, String textMessage) {
