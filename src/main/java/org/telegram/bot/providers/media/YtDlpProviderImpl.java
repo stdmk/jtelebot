@@ -20,9 +20,8 @@ import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -268,42 +267,138 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             throw new YtDlpNoResponseException(errorMessage);
         }
 
-        JsonNode bestFormat = null;
         long duration = root.path("duration").asLong(0);
-        long bestHeight = 0;
+        List<JsonNode> videoFormats = new ArrayList<>();
+        List<JsonNode> audioFormats = new ArrayList<>();
+
         for (JsonNode format : formats) {
             boolean hasAudio = !format.path("acodec").asText("").equals("none");
             boolean hasVideo = !format.path("vcodec").asText("").equals("none");
-            if (!hasAudio || !hasVideo) {
-                continue;
-            }
 
-            long size = extractSize(format, duration);
-            if (size > 0 && size <= TelegramUtils.MAX_FILE_LIMIT_BYTES) {
-                int height = format.path("height").asInt(0);
-                if (bestFormat == null || height > bestHeight) {
-                    bestFormat = format;
-                    bestHeight = height;
-                }
+            if (hasVideo && !hasAudio) {
+                videoFormats.add(format);
+            } else if (!hasVideo && hasAudio) {
+                audioFormats.add(format);
             }
         }
 
-        if (bestFormat == null) {
+        if (videoFormats.isEmpty() || audioFormats.isEmpty()) {
+            String errorMessage = "Unable to find video and audio formats";
+            log.info(errorMessage);
+            throw new YtDlpBigFileException(errorMessage);
+        }
+
+        videoFormats.sort(
+                Comparator
+                        .comparingInt((JsonNode format) -> format.path("height").asInt(0))
+                        .thenComparingInt(format -> format.path("fps").asInt(0))
+                        .thenComparingInt(format -> isPreferredVideoFormat(format) ? 1 : 0)
+                        .reversed()
+        );
+
+        audioFormats.sort(
+                Comparator
+                        .comparingInt((JsonNode format) -> isPreferredAudioFormat(format) ? 1 : 0)
+                        .thenComparingDouble(format -> format.path("abr").asDouble(0))
+                        .reversed()
+        );
+
+        JsonNode bestVideo = null;
+        JsonNode bestAudio = null;
+        long bestHeight = 0;
+
+        for (JsonNode video : videoFormats) {
+            long videoSize = extractSize(video);
+            if (videoSize <= 0) {
+                continue;
+            }
+
+            for (JsonNode audio : audioFormats) {
+                long audioSize = extractSize(audio);
+                if (audioSize <= 0) {
+                    continue;
+                }
+
+                long totalSize = videoSize + audioSize;
+
+                if (totalSize <= TelegramUtils.MAX_FILE_LIMIT_BYTES) {
+                    bestVideo = video;
+                    bestAudio = audio;
+                    bestHeight = video.path("height").asInt(0);
+                    break;
+                }
+            }
+
+            if (bestVideo != null) {
+                break;
+            }
+        }
+
+        if (bestVideo == null || bestAudio == null) {
             String errorMessage = "Unable to find best format";
             log.info(errorMessage);
             throw new YtDlpBigFileException(errorMessage);
         }
 
+        String formatId = bestVideo.get("format_id").asText()
+                + "+"
+                + bestAudio.get("format_id").asText();
+
         String fileName = TextUtils.sanitize(root.path("title").asText("video"));
 
-        return new VideoInfo(
-                bestFormat.get("format_id").asText(),
-                fileName,
-                bestFormat.get("ext").asText(),
-                duration,
-                bestFormat.path("width").asInt(0),
-                bestFormat.path("height").asInt(0)
+        String ext = getMergedExtension(bestVideo, bestAudio);
+
+        log.info(
+                "Selected formats: video={}, audio={}, videoSize={}, audioSize={}, totalSize={}, height={}, ext={}",
+                bestVideo.path("format_id").asText(),
+                bestAudio.path("format_id").asText(),
+                extractSize(bestVideo),
+                extractSize(bestAudio),
+                extractSize(bestVideo) + extractSize(bestAudio),
+                bestHeight,
+                ext
         );
+
+        return new VideoInfo(
+                formatId,
+                fileName,
+                ext,
+                duration,
+                bestVideo.path("width").asInt(0),
+                bestVideo.path("height").asInt(0)
+        );
+    }
+
+    private String getMergedExtension(JsonNode video, JsonNode audio) {
+        if (isPreferredVideoFormat(video) && isPreferredAudioFormat(audio)) {
+            return "mp4";
+        }
+
+        String videoExt = video.path("ext").asText("");
+        if ("webm".equalsIgnoreCase(videoExt)) {
+            return "webm";
+        }
+
+        String audioExt = audio.path("ext").asText("");
+        if ("webm".equalsIgnoreCase(audioExt)) {
+            return "webm";
+        }
+
+        return videoExt.isEmpty() ? "mp4" : videoExt;
+    }
+
+    private boolean isPreferredVideoFormat(JsonNode format) {
+        String ext = format.path("ext").asText("");
+        String vcodec = format.path("vcodec").asText("");
+
+        return "mp4".equalsIgnoreCase(ext) && vcodec.startsWith("avc1");
+    }
+
+    private boolean isPreferredAudioFormat(JsonNode format) {
+        String ext = format.path("ext").asText("");
+        String acodec = format.path("acodec").asText("");
+
+        return "m4a".equalsIgnoreCase(ext) || acodec.startsWith("mp4a");
     }
 
     private List<String> getFormatIdArguments(MediaPlatform mediaPlatform, String url) {
@@ -321,54 +416,22 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
     }
 
-    private static long extractSize(JsonNode format, long duration) {
+    private static long extractSize(JsonNode format) {
         if (format.has("filesize") && !format.get("filesize").isNull()) {
-            return format.get("filesize").asLong();
+            long filesize = format.get("filesize").asLong();
+            if (filesize > 0) {
+                return filesize;
+            }
         }
 
         if (format.has("filesize_approx") && !format.get("filesize_approx").isNull()) {
-            return format.get("filesize_approx").asLong();
-        }
-
-        if (format.has("tbr") && !format.get("tbr").isNull() && duration > 0) {
-            double tbr = format.get("tbr").asDouble();
-            double bytesPerSecond = (tbr * 1000) / 8;
-            return (long) (bytesPerSecond * duration);
-        }
-
-        if (format.has("url") && !format.get("url").isNull()) {
-            return resolveSizeViaHead(format);
+            long filesizeApprox = format.get("filesize_approx").asLong();
+            if (filesizeApprox > 0) {
+                return filesizeApprox;
+            }
         }
 
         return -1;
-    }
-
-    private static long resolveSizeViaHead(JsonNode format) {
-        try {
-            String videoUrl = format.get("url").asText();
-
-            HttpURLConnection connection = (HttpURLConnection) URI.create(videoUrl).toURL().openConnection();
-
-            connection.setRequestMethod("HEAD");
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
-
-            if (format.has("http_headers")) {
-                JsonNode headers = format.get("http_headers");
-                headers.fieldNames().forEachRemaining(name -> connection.setRequestProperty(name, headers.get(name).asText()));
-            } else {
-                connection.setRequestProperty("User-Agent", NetworkUtils.USER_AGENT);
-            }
-
-            connection.connect();
-
-            long contentLength = connection.getContentLengthLong();
-            connection.disconnect();
-
-            return contentLength > 0 ? contentLength : -1;
-        } catch (Exception e) {
-            return -1;
-        }
     }
 
     private String getFileName(String fileName, String ext) {
@@ -382,7 +445,19 @@ public class YtDlpProviderImpl implements YtDlpProvider {
 
         try {
             Process downloadProcess = downloadPb.start();
-            downloadProcess.waitFor();
+
+            int exitCode = downloadProcess.waitFor();
+
+            log.info("yt-dlp finished with exit code: {}", exitCode);
+            log.info("Expected output file: {}", new java.io.File(fileName).getAbsolutePath());
+            log.info("Expected output file exists: {}", new java.io.File(fileName).exists());
+
+            if (exitCode != 0) {
+                String errorMessage = "yt-dlp exited with code " + exitCode;
+                log.error(errorMessage);
+                botStats.incrementErrors(url, errorMessage);
+                throw new YtDlpCallException(errorMessage);
+            }
         } catch (InterruptedException | IOException e) {
             String errorMessage = "Failed to download youtube-video: " + e.getMessage();
             log.error(errorMessage);
