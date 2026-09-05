@@ -196,6 +196,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         if (kbps > 320) {
             kbps = 320;
         }
+
         if (kbps < 64) {
             kbps = 64;
         }
@@ -268,6 +269,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
 
         long duration = root.path("duration").asLong(0);
+        List<JsonNode> combinedFormats = new ArrayList<>();
         List<JsonNode> videoFormats = new ArrayList<>();
         List<JsonNode> audioFormats = new ArrayList<>();
 
@@ -275,10 +277,50 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             boolean hasAudio = !format.path("acodec").asText("").equals("none");
             boolean hasVideo = !format.path("vcodec").asText("").equals("none");
 
-            if (hasVideo && !hasAudio) {
+            if (hasVideo && hasAudio) {
+                combinedFormats.add(format);
+            } else if (hasVideo) {
                 videoFormats.add(format);
-            } else if (!hasVideo && hasAudio) {
+            } else if (hasAudio) {
                 audioFormats.add(format);
+            }
+        }
+
+        combinedFormats.sort(
+                Comparator
+                        .comparingInt((JsonNode format) -> format.path("height").asInt(0))
+                        .thenComparingInt(format -> format.path("fps").asInt(0))
+                        .thenComparingInt(format -> isPreferredVideoFormat(format) ? 1 : 0)
+                        .reversed()
+        );
+
+        for (JsonNode format : combinedFormats) {
+            long size = extractSize(format);
+            if (size <= 0) {
+                continue;
+            }
+
+            if (size <= TelegramUtils.MAX_FILE_LIMIT_BYTES) {
+                String formatId = format.path("format_id").asText();
+                String fileName = TextUtils.sanitize(root.path("title").asText("video"));
+                String ext = format.path("ext").asText("mp4");
+
+                log.info(
+                        "Selected combined format: format={}, size={}, height={}, ext={}",
+                        formatId,
+                        size,
+                        format.path("height").asInt(0),
+                        ext
+                );
+
+                return new VideoInfo(
+                        formatId,
+                        fileName,
+                        ext,
+                        duration,
+                        format.path("width").asInt(0),
+                        format.path("height").asInt(0)
+                );
             }
         }
 
@@ -391,14 +433,17 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         String ext = format.path("ext").asText("");
         String vcodec = format.path("vcodec").asText("");
 
-        return "mp4".equalsIgnoreCase(ext) && vcodec.startsWith("avc1");
+        return "mp4".equalsIgnoreCase(ext)
+                && (vcodec.startsWith("avc1") || vcodec.equalsIgnoreCase("h264"));
     }
 
     private boolean isPreferredAudioFormat(JsonNode format) {
         String ext = format.path("ext").asText("");
         String acodec = format.path("acodec").asText("");
 
-        return "m4a".equalsIgnoreCase(ext) || acodec.startsWith("mp4a");
+        return "m4a".equalsIgnoreCase(ext)
+                || acodec.startsWith("mp4a")
+                || acodec.equalsIgnoreCase("aac");
     }
 
     private List<String> getFormatIdArguments(MediaPlatform mediaPlatform, String url) {
