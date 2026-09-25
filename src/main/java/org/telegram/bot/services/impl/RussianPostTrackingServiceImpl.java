@@ -1,9 +1,7 @@
 package org.telegram.bot.services.impl;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import jakarta.xml.bind.annotation.XmlElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.xml.soap.*;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +16,8 @@ import org.telegram.bot.services.PostTrackingService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.TextUtils;
 
-import javax.xml.transform.*;
-import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -39,7 +36,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
     private final BotStats botStats;
     private final SpeechService speechService;
 
-    private final XmlMapper xmlMapper = new XmlMapper();
+    private final XmlMapper xmlMapper;
 
     @Override
     public List<TrackCodeEvent> getData(String barcode) {
@@ -55,8 +52,8 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         SOAPConnection connection = getSoapConnection();
         try {
             SOAPMessage message = getSoapMessage(russianPostLogin, russianPostPassword, barcode);
-            String xml = callApi(connection, message);
-            trackingData = parseTrackingData(xml);
+            SOAPMessage soapResponse = callApi(connection, message);
+            trackingData = parseTrackingData(soapResponse);
             checkForErrors(trackingData);
         } catch (BotException botException) {
             log.error("Failed to update TrackCodeEvents by {}", barcode);
@@ -125,34 +122,29 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         }
     }
 
-    private String callApi(SOAPConnection connection, SOAPMessage message) {
+    private SOAPMessage callApi(SOAPConnection connection, SOAPMessage message) {
         try {
             SOAPMessage soapResponse = connection.call(message, API_URL);
 
             botStats.incrementRussianPostRequests();
 
-            Source sourceContent = soapResponse.getSOAPPart().getContent();
-
-            Transformer t = TransformerFactory.newInstance().newTransformer();
-            t.setOutputProperty(OutputKeys.METHOD, "html");
-            t.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            StringWriter writer = new StringWriter();
-
-            StreamResult result = new StreamResult(writer);
-            t.transform(sourceContent, result);
-
-            return writer.toString();
-        } catch (SOAPException | TransformerException e) {
+            return soapResponse;
+        } catch (SOAPException e) {
             log.error("Failed to call api: ", e);
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
         }
     }
 
-    private TrackingData parseTrackingData(String xml) {
-        try {
-            return xmlMapper.readValue(xml, TrackingData.class);
-        } catch (JsonProcessingException e) {
+    private TrackingData parseTrackingData(SOAPMessage soapResponse) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            soapResponse.writeTo(out);
+            String xml = out.toString(StandardCharsets.UTF_8);
+            String sanitizedXml = removeNamespaces(xml);
+            Envelope envelope = xmlMapper.readValue(sanitizedXml, Envelope.class);
+            TrackingData trackingData = new TrackingData();
+            trackingData.setBody(envelope.getBody());
+            return trackingData;
+        } catch (SOAPException | java.io.IOException e) {
             log.error("Failed to parse TrackingData", e);
             throw new BotException(
                     speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR)
@@ -160,6 +152,12 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         }
     }
 
+
+    private String removeNamespaces(String xml) {
+        return xml
+                .replaceAll("xmlns(:[A-Za-z0-9_\\-]+)?=\"[^\"]*\"", "")
+                .replaceAll("(<\\/?)([A-Za-z0-9_\\-]+):", "$1");
+    }
 
     private List<TrackCodeEvent> mapTrackingDataToTrackCodeEventList(TrackingData trackingData) {
         List<HistoryRecord> historyRecords = Optional.ofNullable(trackingData.getBody())
@@ -243,20 +241,26 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
     }
 
     @Data
+    private static class Envelope {
+        @JacksonXmlProperty(localName = "Body")
+        private Body body;
+    }
+
+    @Data
     private static class TrackingData {
-        @XmlElement(name = "Body")
+        @JacksonXmlProperty(localName = "Body")
         private Body body;
     }
 
     @Data
     private static class Body {
-        @XmlElement(name = "getOperationHistoryResponse")
+        @JacksonXmlProperty(localName = "getOperationHistoryResponse")
         private OperationHistoryResponse operationHistoryResponse;
 
         /**
          * Ошибки.
          */
-        @XmlElement(name = "Fault")
+        @JacksonXmlProperty(localName = "Fault")
         private Fault fault;
     }
 
@@ -265,55 +269,55 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Код ошибки.
          */
-        @XmlElement(name = "Code")
+        @JacksonXmlProperty(localName = "Code")
         private Code code;
 
         /**
          * Причина ошибки
          */
-        @XmlElement(name = "Reason")
+        @JacksonXmlProperty(localName = "Reason")
         private Reason reason;
 
         /**
          * Описание ошибки
          */
-        @XmlElement(name = "Detail")
+        @JacksonXmlProperty(localName = "Detail")
         private Detail detail;
     }
 
     @Data
     private static class Code {
-        @XmlElement(name = "Value")
+        @JacksonXmlProperty(localName = "Value")
         private String value;
     }
 
     @Data
     private static class Reason {
-        @XmlElement(name = "Text")
+        @JacksonXmlProperty(localName = "Text")
         private String text;
     }
 
     @Data
     private static class Detail {
-        @XmlElement(name = "OperationHistoryFaultReason")
+        @JacksonXmlProperty(localName = "OperationHistoryFaultReason")
         private String operationHistoryFaultReason;
 
-        @XmlElement(name = "AuthorizationFaultReason")
+        @JacksonXmlProperty(localName = "AuthorizationFaultReason")
         private String authorizationFaultReason;
 
-        @XmlElement(name = "LanguageFaultReason")
+        @JacksonXmlProperty(localName = "LanguageFaultReason")
         private String languageFaultReason;
     }
 
     @Data
     private static class OperationHistoryResponse {
-        @XmlElement(name = "OperationHistoryData")
+        @JacksonXmlProperty(localName = "OperationHistoryData")
         private OperationHistoryData operationHistoryData;
     }
 
     @Data
     private static class OperationHistoryData {
-        @XmlElement(name = "historyRecord")
+        @JacksonXmlProperty(localName = "historyRecord")
         private List<HistoryRecord> historyRecord;
     }
 
@@ -322,31 +326,31 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Содержит адресные данные с операцией над отправлением.
          */
-        @XmlElement(name = "AddressParameters")
+        @JacksonXmlProperty(localName = "AddressParameters")
         private AddressParameters addressParameters;
 
         /**
          * Содержит финансовые данные, связанные с операцией над почтовым отправлением.
          */
-        @XmlElement(name = "FinanceParameters")
+        @JacksonXmlProperty(localName = "FinanceParameters")
         private FinanceParameters financeParameters;
 
         /**
          * Содержит данные о почтовом отправлении.
          */
-        @XmlElement(name = "ItemParameters")
+        @JacksonXmlProperty(localName = "ItemParameters")
         private ItemParameters itemParameters;
 
         /**
          * Содержит параметры операции над отправлением.
          */
-        @XmlElement(name = "OperationParameters")
+        @JacksonXmlProperty(localName = "OperationParameters")
         private OperationParameters operationParameters;
 
         /**
          * Содержит данные субъектов, связанных с операцией над почтовым отправлением.
          */
-        @XmlElement(name = "UserParameters")
+        @JacksonXmlProperty(localName = "UserParameters")
         private UserParameters userParameters;
     }
 
@@ -355,31 +359,31 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Содержит адресные данные места назначения пересылки отправления.
          */
-        @XmlElement(name = "DestinationAddress")
+        @JacksonXmlProperty(localName = "DestinationAddress")
         private Address destinationAddress;
 
         /**
          * Содержит адресные данные места проведения операции над отправлением.
          */
-        @XmlElement(name = "OperationAddress")
+        @JacksonXmlProperty(localName = "OperationAddress")
         private Address operationAddress;
 
         /**
          * Содержит данные о стране места назначения пересылки отправления.
          */
-        @XmlElement(name = "MailDirect")
+        @JacksonXmlProperty(localName = "MailDirect")
         private AddressParameter mailDirect;
 
         /**
          * Содержит данные о стране приема почтового отправления.
          */
-        @XmlElement(name = "CountryFrom")
+        @JacksonXmlProperty(localName = "CountryFrom")
         private AddressParameter countryFrom;
 
         /**
          * Содержит данные о стране проведения операции над почтовым отправлением.
          */
-        @XmlElement(name = "CountryOper")
+        @JacksonXmlProperty(localName = "CountryOper")
         private AddressParameter countryOper;
     }
 
@@ -392,31 +396,31 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Почтовый индекс места назначения. Не возвращается для зарубежных операций.
          */
-        @XmlElement(name = "Index")
+        @JacksonXmlProperty(localName = "Index")
         private String index;
 
         /**
          * Адрес и/или название места назначения. Пример значения.
          */
-        @XmlElement(name = "Description")
+        @JacksonXmlProperty(localName = "Description")
         private String description;
     }
 
     @Data
     private static class AddressParameter {
-        @XmlElement(name = "Id")
+        @JacksonXmlProperty(localName = "Id")
         private String id;
 
-        @XmlElement(name = "Code2A")
+        @JacksonXmlProperty(localName = "Code2A")
         private String code2A;
 
-        @XmlElement(name = "Code3A")
+        @JacksonXmlProperty(localName = "Code3A")
         private String code3a;
 
-        @XmlElement(name = "NameRU")
+        @JacksonXmlProperty(localName = "NameRU")
         private String nameRu;
 
-        @XmlElement(name = "NameEN")
+        @JacksonXmlProperty(localName = "NameEN")
         private String nameEn;
     }
 
@@ -425,43 +429,43 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Сумма наложенного платежа в копейках.
          */
-        @XmlElement(name = "Payment")
+        @JacksonXmlProperty(localName = "Payment")
         private Long payment;
 
         /**
          * Сумма объявленной ценности в копейках.
          */
-        @XmlElement(name = "Value")
+        @JacksonXmlProperty(localName = "Value")
         private Long value;
 
         /**
          * Общая сумма платы за пересылку наземным и воздушным транспортом в копейках.
          */
-        @XmlElement(name = "MassRate")
+        @JacksonXmlProperty(localName = "MassRate")
         private Long massRate;
 
         /**
          * Сумма платы за объявленную ценность в копейках.
          */
-        @XmlElement(name = "InsrRate")
+        @JacksonXmlProperty(localName = "InsrRate")
         private Long insrRate;
 
         /**
          * Выделенная сумма платы за пересылку воздушным транспортом из общей суммы платы за пересылку в копейках.
          */
-        @XmlElement(name = "AirRate")
+        @JacksonXmlProperty(localName = "AirRate")
         private Long airRate;
 
         /**
          * Сумма дополнительного тарифного сбора в копейках.
          */
-        @XmlElement(name = "Rate")
+        @JacksonXmlProperty(localName = "Rate")
         private Long rate;
 
         /**
          * Сумма таможенного платежа в копейках.
          */
-        @XmlElement(name = "CustomDuty")
+        @JacksonXmlProperty(localName = "CustomDuty")
         private Long customDuty;
     }
 
@@ -470,74 +474,74 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Идентификатор почтового отправления, текущий для данной операции.
          */
-        @XmlElement(name = "Barcode")
+        @JacksonXmlProperty(localName = "Barcode")
         private String barcode;
 
         /**
          * Служебная информация, идентифицирующая отправление, может иметь значение ДМ квитанции, связанной с отправлением или иметь значение <null>
          */
-        @XmlElement(name = "Internum")
+        @JacksonXmlProperty(localName = "Internum")
         private String internum;
 
         /**
          * Признак корректности вида и категории отправления для внутренней пересылки
          */
-        @XmlElement(name = "ValidRuType")
+        @JacksonXmlProperty(localName = "ValidRuType")
         private Boolean validRuType;
 
         /**
          * Признак корректности вида и категории отправления для международной пересылки
          */
-        @XmlElement(name = "ValidEnType")
+        @JacksonXmlProperty(localName = "ValidEnType")
         private Boolean validEnType;
 
         /**
          * Содержит текстовое описание вида и категории отправления.
          */
-        @XmlElement(name = "ComplexItemName")
+        @JacksonXmlProperty(localName = "ComplexItemName")
         private String complexItemName;
 
         //TOOD распарсить отметки в енаме
         /**
          * Содержит информацию о разряде почтового отправления.
          */
-        @XmlElement(name = "MailRank")
+        @JacksonXmlProperty(localName = "MailRank")
         private DictionaryElement mailRank;
 
         /**
          * Содержит информацию об отметках почтовых отправлений.
          */
-        @XmlElement(name = "PostMark")
+        @JacksonXmlProperty(localName = "PostMark")
         private DictionaryElement postMark;
 
         /**
          * Содержит данные о виде почтового отправления.
          */
-        @XmlElement(name = "MailType")
+        @JacksonXmlProperty(localName = "MailType")
         private DictionaryElement mailType;
 
         /**
          * Содержит данные о категории почтового отправления.
          */
-        @XmlElement(name = "MailCtg")
+        @JacksonXmlProperty(localName = "MailCtg")
         private DictionaryElement mailCtg;
 
         /**
          * Вес отправления в граммах.
          */
-        @XmlElement(name = "Mass")
+        @JacksonXmlProperty(localName = "Mass")
         private Long mass;
 
         /**
          * Значение максимально возможного веса для данного вида и категории отправления для внутренней пересылки.
          */
-        @XmlElement(name = "MaxMassRu")
+        @JacksonXmlProperty(localName = "MaxMassRu")
         private Long maxMassRus;
 
         /**
          * Значение максимально возможного веса для данного вида и категории отправления для международной пересылки.
          */
-        @XmlElement(name = "MaxMassEn")
+        @JacksonXmlProperty(localName = "MaxMassEn")
         private Long maxMassEn;
     }
 
@@ -546,13 +550,13 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Содержит информацию об операции над отправлением.
          */
-        @XmlElement(name = "OperType")
+        @JacksonXmlProperty(localName = "OperType")
         private DictionaryElement operType;
 
         /**
          * Содержит информацию об атрибуте операции над отправлением.
          */
-        @XmlElement(name = "OperAttr")
+        @JacksonXmlProperty(localName = "OperAttr")
         private DictionaryElement operAttr;
 
         /**
@@ -560,9 +564,8 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
          * <p>
          * Пример значения: 2015-01-08T14:50:00.000+03:00
          */
-        @XmlElement(name = "OperDate")
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm a z")
-        private Date operDate;
+        @JacksonXmlProperty(localName = "OperDate")
+                private Date operDate;
     }
 
     @Data
@@ -570,7 +573,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Содержит информацию о категории отправителя.
          */
-        @XmlElement(name = "SendCtg")
+        @JacksonXmlProperty(localName = "SendCtg")
         private DictionaryElement sendCtg;
 
         /**
@@ -578,7 +581,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
          * <p>
          * Пример значения: ИВАНОВ А Н
          */
-        @XmlElement(name = "Sndr")
+        @JacksonXmlProperty(localName = "Sndr")
         private String sndr;
 
         /**
@@ -586,7 +589,7 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
          * <p>
          * Пример значения: ПЕТРОВ И.К.
          */
-        @XmlElement(name = "Rcpn")
+        @JacksonXmlProperty(localName = "Rcpn")
         private String rcpn;
     }
 
@@ -595,13 +598,13 @@ public class RussianPostTrackingServiceImpl implements PostTrackingService {
         /**
          * Код отметки почтового отправления.
          */
-        @XmlElement(name = "Id")
+        @JacksonXmlProperty(localName = "Id")
         private String id;
 
         /**
          * Наименование отметки почтового отправления.
          */
-        @XmlElement(name = "Name")
+        @JacksonXmlProperty(localName = "Name")
         private String name;
     }
 }
