@@ -21,7 +21,7 @@ import org.telegram.bot.exception.speech.SpeechParseException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeNoApiResponseException;
 import org.telegram.bot.exception.speech.TooLongSpeechException;
-import org.telegram.bot.providers.sber.SpeechParser;
+import org.telegram.bot.providers.SpeechParser;
 import org.telegram.bot.providers.sber.impl.SaluteSpeechSynthesizerImpl;
 import org.telegram.bot.services.*;
 import org.telegram.bot.utils.ObjectCopier;

@@ -13,10 +13,10 @@ import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeException;
 import org.telegram.bot.exception.speech.SpeechSynthesizeNoApiResponseException;
+import org.telegram.bot.providers.SpeechSynthesizer;
 import org.telegram.bot.providers.sber.SaluteSpeechSynthesizer;
 import org.telegram.bot.providers.sber.SberApiProvider;
 import org.telegram.bot.providers.sber.SberTokenProvider;
-import org.telegram.bot.providers.sber.SpeechSynthesizer;
 
 import java.nio.charset.StandardCharsets;
 

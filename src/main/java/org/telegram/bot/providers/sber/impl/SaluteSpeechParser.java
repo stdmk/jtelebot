@@ -12,19 +12,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.bot.config.ConditionalOnPropertyNotEmpty;
 import org.telegram.bot.enums.SberScope;
 import org.telegram.bot.exception.GettingSberAccessTokenException;
 import org.telegram.bot.exception.speech.SpeechParseException;
 import org.telegram.bot.exception.speech.TooLongSpeechException;
+import org.telegram.bot.providers.SpeechParser;
 import org.telegram.bot.providers.sber.SberApiProvider;
 import org.telegram.bot.providers.sber.SberTokenProvider;
-import org.telegram.bot.providers.sber.SpeechParser;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@ConditionalOnPropertyNotEmpty("saluteSpeechSecret")
 public class SaluteSpeechParser implements SberApiProvider, SpeechParser {
 
     private static final Integer SPEECH_DURATION_LIMIT = 60;

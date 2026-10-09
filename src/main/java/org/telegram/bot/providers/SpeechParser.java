@@ -1,4 +1,4 @@
-package org.telegram.bot.providers.sber;
+package org.telegram.bot.providers;
 
 import org.telegram.bot.exception.speech.SpeechParseException;
 

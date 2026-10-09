@@ -224,7 +224,11 @@ To get a secret go to: https://developers.sber.ru/docs/ru/salutespeech/integrati
 
 **gigaChatSecret** (/gigachat command)  
 Gigachat API access secret.
-To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get/gigachat-api
+To get a secret go to: https://developers.sber.ru/studio/workspaces/my-space/get/gigachat-api  
+  
+**groqApiKey**  
+Speech recognizing.  
+Go to: https://console.groq.com/keys  
 
 **virusTotalApiKey** (/virus command)  
 Virus Total API key  

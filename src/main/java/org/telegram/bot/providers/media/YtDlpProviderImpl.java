@@ -40,15 +40,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         VideoInfo videoInfo = getSuitableFormatId(mediaPlatform, url);
         String fileName = getFileName(videoInfo.title, videoInfo.ext);
 
-        download(mediaPlatform, url, videoInfo.formatId, fileName);
-
-        java.io.File videoFile = temporaryFileManager.get(fileName);
-        if (videoFile == null) {
-            String errorMessage = "File " + fileName + " does not exists";
-            log.error("File {} does not exists", fileName);
-            botStats.incrementErrors(fileName, errorMessage);
-            throw new YtDlpNoResponseException(errorMessage);
-        }
+        java.io.File videoFile = download(mediaPlatform, url, videoInfo.formatId, fileName);
 
         return new File(
                 FileType.VIDEO,
@@ -340,7 +332,8 @@ public class YtDlpProviderImpl implements YtDlpProvider {
 
         audioFormats.sort(
                 Comparator
-                        .comparingInt((JsonNode format) -> isPreferredAudioFormat(format) ? 1 : 0)
+                        .comparingInt((JsonNode format) -> isOriginalAudioFormat(format) ? 1 : 0)
+                        .thenComparingInt(format -> isPreferredAudioFormat(format) ? 1 : 0)
                         .thenComparingDouble(format -> format.path("abr").asDouble(0))
                         .reversed()
         );
@@ -409,6 +402,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
                 bestVideo.path("width").asInt(0),
                 bestVideo.path("height").asInt(0)
         );
+    }
+
+    private boolean isOriginalAudioFormat(JsonNode format) {
+        String formatNote = format.path("format_note").asText("");
+        return formatNote.toLowerCase().contains("original");
     }
 
     private String getMergedExtension(JsonNode video, JsonNode audio) {
@@ -483,8 +481,15 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         return temporaryFileManager.addFile(fileName, "." + ext);
     }
 
-    private void download(MediaPlatform mediaPlatform, String url, String formatId, String fileName) throws YtDlpCallException {
-        ProcessBuilder downloadPb = new ProcessBuilder(getDownloadAguments(mediaPlatform, url, formatId, fileName));
+    private java.io.File download(MediaPlatform mediaPlatform, String url, String formatId, String fileName) throws YtDlpCallException {
+
+        ProcessBuilder downloadPb =
+                new ProcessBuilder(getDownloadAguments(
+                        mediaPlatform,
+                        url,
+                        formatId,
+                        fileName
+                ));
 
         downloadPb.inheritIO();
 
@@ -494,8 +499,6 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             int exitCode = downloadProcess.waitFor();
 
             log.info("yt-dlp finished with exit code: {}", exitCode);
-            log.info("Expected output file: {}", new java.io.File(fileName).getAbsolutePath());
-            log.info("Expected output file exists: {}", new java.io.File(fileName).exists());
 
             if (exitCode != 0) {
                 String errorMessage = "yt-dlp exited with code " + exitCode;
@@ -503,12 +506,60 @@ public class YtDlpProviderImpl implements YtDlpProvider {
                 botStats.incrementErrors(url, errorMessage);
                 throw new YtDlpCallException(errorMessage);
             }
-        } catch (InterruptedException | IOException e) {
+
+            java.io.File outputFile = findOutputFile(fileName);
+
+            if (outputFile == null) {
+                String errorMessage = "yt-dlp finished successfully, but output file was not found: " + fileName;
+
+                log.error(errorMessage);
+                botStats.incrementErrors(url, errorMessage);
+                throw new YtDlpNoResponseException(errorMessage);
+            }
+
+            log.info("Actual output file: {}", outputFile.getAbsolutePath());
+
+            return outputFile;
+        } catch (InterruptedException | IOException | YtDlpNoResponseException e) {
             String errorMessage = "Failed to download youtube-video: " + e.getMessage();
+
             log.error(errorMessage);
             botStats.incrementErrors(url, e, errorMessage);
             throw new YtDlpCallException(errorMessage);
         }
+    }
+
+
+    private java.io.File findOutputFile(String fileName) {
+        java.io.File expectedFile = new java.io.File(fileName);
+
+        if (expectedFile.exists()) {
+            return expectedFile;
+        }
+
+        java.io.File parent = expectedFile.getAbsoluteFile().getParentFile();
+
+        if (parent == null || !parent.exists()) {
+            return null;
+        }
+
+        String filePrefix = expectedFile.getName() + ".";
+
+        java.io.File[] files = parent.listFiles((dir, name) -> name.startsWith(filePrefix));
+
+        if (files == null || files.length == 0) {
+            return null;
+        }
+
+        if (files.length > 1) {
+            log.warn(
+                    "Multiple output files found for {}: {}",
+                    fileName,
+                    List.of(files)
+            );
+        }
+
+        return files[0];
     }
 
     private List<String> getDownloadAguments(MediaPlatform mediaPlatform, String url, String formatId, String fileName) {

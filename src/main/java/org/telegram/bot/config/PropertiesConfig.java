@@ -45,6 +45,7 @@ public class PropertiesConfig {
     private String xmlTvFileUrl;
     private String saluteSpeechSecret;
     private String gigaChatSecret;
+    private String groqApiKey;
     private String virusTotalApiKey;
     private String ftpBackupUrl;
     private Integer daysBeforeExpirationBackup;
