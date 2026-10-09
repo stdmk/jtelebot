@@ -18,9 +18,10 @@ class ResponseTelegramMapperTest {
     private final TelegramFileApiMethodMapper fileMapper = mock(TelegramFileApiMethodMapper.class);
 
     private final MediaGroupMapper mediaGroupMapper = mock(MediaGroupMapper.class);
+    private final DocumentMapper documentMapper = mock(DocumentMapper.class);
     private final BotStats botStats = mock(BotStats.class);
 
-    private final ResponseTelegramMapper responseTelegramMapper = new ResponseTelegramMapper(List.of(textMapper), List.of(fileMapper), mediaGroupMapper, botStats);
+    private final ResponseTelegramMapper responseTelegramMapper = new ResponseTelegramMapper(List.of(textMapper), List.of(fileMapper), mediaGroupMapper, documentMapper, botStats);
 
     @BeforeEach
     void init() {

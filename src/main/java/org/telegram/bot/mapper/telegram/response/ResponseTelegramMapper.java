@@ -21,6 +21,7 @@ public class ResponseTelegramMapper {
     private final List<TelegramTextApiMethodMapper> textApiMethodMappers;
     private final List<TelegramFileApiMethodMapper> fileApiMethodMappers;
     private final MediaGroupMapper mediaGroupMapper;
+    private final DocumentMapper documentMapper;
     private final BotStats botStats;
 
     private final Map<Class<? extends BotResponse>, TelegramTextApiMethodMapper> telegramTextApiMethodMapperMap = new ConcurrentHashMap<>();

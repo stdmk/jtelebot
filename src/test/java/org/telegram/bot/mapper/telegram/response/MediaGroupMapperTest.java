@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.telegram.bot.domain.model.response.File;
 import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.FileType;
+import org.telegram.bot.services.BotStats;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
@@ -14,7 +15,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MediaGroupMapperTest {
 
-    private final MediaGroupMapper mediaGroupMapper = new MediaGroupMapper();
+    private final MediaGroupMapper mediaGroupMapper = new MediaGroupMapper(List.of(
+            new InputMediaPhotoMapper(org.mockito.Mockito.mock(BotStats.class)),
+            new InputMediaVideoMapper(),
+            new InputMediaAudioMapper(),
+            new InputMediaDocumentMapper()
+    ));
 
     @Test
     void mapTest() {

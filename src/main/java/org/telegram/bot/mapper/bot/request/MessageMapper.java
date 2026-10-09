@@ -4,6 +4,7 @@ import jakarta.annotation.Nullable;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -158,7 +159,8 @@ public class MessageMapper {
         }
 
         String disposition = part.getDisposition();
-        String fileName = part.getFileName();
+        String encodedFileName = part.getFileName();
+        String fileName = encodedFileName == null ? null : MimeUtility.decodeText(encodedFileName);
 
         boolean isAttachment = Part.ATTACHMENT.equalsIgnoreCase(disposition)
                 || Part.INLINE.equalsIgnoreCase(disposition)
@@ -169,7 +171,7 @@ public class MessageMapper {
                 byte[] bytes = is.readAllBytes();
 
                 attachments.add(new Attachment()
-                        .setName(part.getFileName())
+                        .setName(fileName)
                         .setFile(bytes)
                         .setSize((long) part.getSize())
                         .setMimeType(part.getContentType()));

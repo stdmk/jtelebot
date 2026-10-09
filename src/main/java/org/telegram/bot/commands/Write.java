@@ -9,10 +9,12 @@ import org.telegram.bot.domain.entities.User;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.BotResponse;
+import org.telegram.bot.domain.model.response.FileResponse;
 import org.telegram.bot.domain.model.response.TextResponse;
 import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.enums.FormattingStyle;
 import org.telegram.bot.exception.BotException;
+import org.telegram.bot.mapper.email.response.FileMapper;
 import org.telegram.bot.services.ChatService;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserStatsService;
@@ -30,6 +32,7 @@ public class Write implements Command {
     private final SpeechService speechService;
     private final ChatService chatService;
     private final UserStatsService userStatsService;
+    private final FileMapper fileMapper;
     private final ObjectCopier objectCopier;
 
     @Override
@@ -73,6 +76,15 @@ public class Write implements Command {
         List<Long> usersOfChatIds = userStatsService.getUsersOfChat(chat).stream().map(User::getUserId).toList();
         if (!usersOfChatIds.contains(user.getUserId())) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+        }
+
+        Message message = botRequest.getMessage();
+        if (message.hasAttachment()) {
+            bot.sendDocument(new FileResponse()
+                    .setChatId(chatId)
+                    .setResponseSettings(FormattingStyle.HTML)
+                    .setText(TextUtils.getHtmlLinkToUser(user) + " (" + botRequest.getSource().getName() + "): " + text)
+                    .addFiles(fileMapper.toFiles(message.getAttachments())));
         }
 
         bot.sendMessage(new TextResponse()
