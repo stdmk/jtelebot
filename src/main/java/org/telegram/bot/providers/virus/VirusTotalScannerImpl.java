@@ -46,6 +46,7 @@ public class VirusTotalScannerImpl implements VirusScanner {
     private static final String REPORT_GUI_URL = "https://www.virustotal.com/gui";
     private static final String REPORT_GUI_FILE_PATH = "/file/";
     private static final String REPORT_GUI_URL_PATH = "/url/";
+    private static final int MAX_REPORT_ATTEMPTS = 20;
 
     @Value("${virusTotalReportWaitingDelayMillis:15000}")
     private Integer reportWaitingTimeMillis;
@@ -70,8 +71,7 @@ public class VirusTotalScannerImpl implements VirusScanner {
 
     private AnalysesResult getScanReport(String id) throws VirusScanException {
         AnalysesResult analysesResult = null;
-        boolean notCompleted = true;
-        while (notCompleted) {
+        for (int attempt = 0; attempt < MAX_REPORT_ATTEMPTS; attempt++) {
             try {
                 Thread.sleep(reportWaitingTimeMillis);
             } catch (InterruptedException e) {
@@ -83,11 +83,14 @@ public class VirusTotalScannerImpl implements VirusScanner {
 
             analysesResult = getAnalysesResult(id);
             if (AnalysesStatus.COMPLETED.equals(analysesResult.getStatus())) {
-                notCompleted = false;
+                return analysesResult;
             }
         }
 
-        return analysesResult;
+        String errorMessage = "VirusTotal analysis did not complete after " + MAX_REPORT_ATTEMPTS + " attempts";
+        log.error("{}: {}", errorMessage, id);
+        botStats.incrementErrors(id, errorMessage);
+        throw new VirusScanNoResponseException(errorMessage);
     }
 
     private String buildScanResponseText(AnalysesResult analysesResult, String link) throws VirusScanException {

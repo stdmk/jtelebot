@@ -68,12 +68,14 @@ public class NetworkUtils {
     }
 
     public String readStringFromURL(URL url, Charset encoding) throws IOException {
-        return IOUtils.toString(url, encoding);
+        try (InputStream inputStream = openStreamFromUrl(url.toString())) {
+            return IOUtils.toString(inputStream, encoding);
+        }
     }
 
     public SyndFeed getRssFeedFromUrl(String url) throws IOException, FeedException {
         SyndFeedInput syndFeedInput = new SyndFeedInput();
-        syndFeedInput.setAllowDoctypes(true);
+        syndFeedInput.setAllowDoctypes(false);
         return syndFeedInput.build(new XmlReader(URI.create(url).toURL()));
     }
 

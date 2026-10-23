@@ -8,7 +8,8 @@ import org.telegram.bot.services.TemporaryFileManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Component
@@ -17,7 +18,7 @@ public class FfmpegProviderImpl implements FfmpegProvider {
 
     private static final String FILE_NAME_PREFIX = "file";
     private static final String FILE_NAME_POSTFIX = ".mp4";
-    private static final String COMMAND_TEMPLATE = "ffmpeg -re -t {1} -i {0} -c:v copy -c:a copy -bsf:a aac_adtstoasc -t {1} {2}";
+    private static final long PROCESS_TIMEOUT_SECONDS = 60;
 
     private final TemporaryFileManager temporaryFileManager;
 
@@ -25,16 +26,24 @@ public class FfmpegProviderImpl implements FfmpegProvider {
     public File getVideo(String url, String duration) throws FfmpegException {
         String fileName = temporaryFileManager.addFile(FILE_NAME_PREFIX, FILE_NAME_POSTFIX);
 
-        String command = MessageFormat.format(COMMAND_TEMPLATE, url, duration, fileName);
+        List<String> command = List.of("ffmpeg", "-re", "-t", duration, "-i", url,
+                "-c:v", "copy", "-c:a", "copy", "-bsf:a", "aac_adtstoasc", "-t", duration, fileName);
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder().inheritIO().command(command.split(" "));
-
-            Process process = processBuilder.start();
-            process.waitFor();
-        } catch (IOException | InterruptedException e) {
-            log.error("Failed to call command {}: {}", command, e.getMessage());
+            Process process = new ProcessBuilder(command).inheritIO().start();
+            if (!process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                throw new FfmpegException("ffmpeg timed out after " + PROCESS_TIMEOUT_SECONDS + " seconds");
+            }
+            if (process.exitValue() != 0) {
+                throw new FfmpegException("ffmpeg exited with code " + process.exitValue());
+            }
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.error("Interrupted while waiting for ffmpeg", e);
+            throw new FfmpegException(e.getMessage());
+        } catch (IOException e) {
+            log.error("Failed to call ffmpeg {}: {}", command, e.getMessage());
             throw new FfmpegException(e.getMessage());
         }
 

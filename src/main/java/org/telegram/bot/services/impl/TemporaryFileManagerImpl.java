@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class TemporaryFileManagerImpl implements TemporaryFileManager {
     private Integer temporaryFileLifetimeSeconds;
 
     private static final AtomicInteger FILES_COUNTER = new AtomicInteger();
-    private static final Map<String, LocalDateTime> FILES = new HashMap<>();
+    private static final Map<String, LocalDateTime> FILES = new ConcurrentHashMap<>();
 
     private final BotStats botStats;
 

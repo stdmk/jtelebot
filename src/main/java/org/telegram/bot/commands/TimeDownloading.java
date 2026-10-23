@@ -1,5 +1,6 @@
 package org.telegram.bot.commands;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,6 @@ import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -106,7 +106,13 @@ public class TimeDownloading implements Command {
             double weighInBytes = fileWeight * weightMultiplier;
             double bytesInSecond = speedDownloading * speedMultiplier / 8;
 
-            long milliseconds = (long) (weighInBytes / bytesInSecond) * 1000;
+            if (!Double.isFinite(fileWeight) || fileWeight <= 0
+                    || !Double.isFinite(speedDownloading) || speedDownloading <= 0
+                    || !Double.isFinite(weighInBytes) || !Double.isFinite(bytesInSecond)) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.WRONG_INPUT));
+            }
+
+            long milliseconds = (long) (weighInBytes / bytesInSecond * 1000);
 
             if (milliseconds < 1000) {
                 responseText = "${command.timedownloading.file} <b>" + TextUtils.formatFileSize(weighInBytes) + "</b> ${command.timedownloading.willdownload} <b>${command.timedownloading.instantly}</b>";

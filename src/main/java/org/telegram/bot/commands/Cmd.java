@@ -3,6 +3,7 @@ package org.telegram.bot.commands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -19,6 +20,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class Cmd implements Command {
 
     private static final boolean IS_WIN_OS = System.getProperty("os.name").toLowerCase().contains("win");
     private static final int TIMEOUT_SECONDS = 60;
+    private static final int MAX_OUTPUT_CHARS = 3500;
 
     private final Bot bot;
     private final SpeechService speechService;
@@ -48,27 +51,52 @@ public class Cmd implements Command {
 
         try {
             Process process = processBuilder.start();
+            StringBuilder output = new StringBuilder();
+            AtomicBoolean truncated = new AtomicBoolean();
+            Thread outputReader = Thread.ofVirtual().start(() -> readOutput(process, output, truncated));
             boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!finished) {
                 process.destroyForcibly();
+                process.waitFor();
                 responseText = "timeout after " + TIMEOUT_SECONDS + "s";
             } else {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder output = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
+                outputReader.join();
                 responseText = output.toString();
+                if (truncated.get()) {
+                    responseText += "\n… output truncated";
+                }
                 if (StringUtils.isBlank(responseText)) responseText = "command executed";
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.debug("Command execution interrupted", e);
+            responseText = "command execution interrupted";
         } catch (Exception e) {
             log.debug("Error while executing command {}", commandArgument, e);
             responseText = e.getMessage();
         }
 
-        return returnResponse(new TextResponse(message).setText("<pre><code class=\"language-shell\">" + responseText + "</code></pre>").setResponseSettings(FormattingStyle.HTML));
+        return returnResponse(new TextResponse(message).setText("<pre><code class=\"language-shell\">" +
+                StringEscapeUtils.escapeHtml4(responseText) + "</code></pre>").setResponseSettings(FormattingStyle.HTML));
+    }
+
+    private void readOutput(Process process, StringBuilder output, AtomicBoolean truncated) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            char[] buffer = new char[1024];
+            int length;
+            while ((length = reader.read(buffer)) != -1) {
+                int remaining = MAX_OUTPUT_CHARS - output.length();
+                if (remaining > 0) {
+                    output.append(buffer, 0, Math.min(length, remaining));
+                }
+                if (length > remaining) {
+                    truncated.set(true);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to read command output", e);
+        }
     }
 
     private ProcessBuilder getProcessBuilder(String commandArgument) {

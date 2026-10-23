@@ -84,7 +84,7 @@ public class TextUtils {
     }
 
     public static String cutMarkdownSymbolsInText(String text) {
-        return text.replaceAll("[*_`\\[\\]()]", "").replace("<.*?>","");
+        return text.replaceAll("[*_`\\[\\]()]", "").replaceAll("<[^>]*>", "");
     }
 
     public static String reduceSpaces(String text) {
