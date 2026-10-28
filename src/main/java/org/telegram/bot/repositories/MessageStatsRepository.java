@@ -15,6 +15,6 @@ public interface MessageStatsRepository extends JpaRepository<MessageStats, Long
     MessageStats findByMessage(Message message);
     List<MessageStats> findByMessageChatAndDateAndRepliesGreaterThanEqualOrderByReactionsDesc(Chat chat, LocalDate date, int repliesCount, Pageable pageable);
     List<MessageStats> findByMessageChatAndDateAndReactionsGreaterThanEqualOrderByRepliesDesc(Chat chat, LocalDate date, int reactionsCount, Pageable pageable);
-    void deleteAllByMessageDateTimeGreaterThanEqual(LocalDateTime dateTime);
+    void deleteAllByMessageDateTimeLessThanEqual(LocalDateTime dateTime);
 }
 

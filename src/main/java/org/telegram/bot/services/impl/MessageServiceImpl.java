@@ -4,12 +4,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Message;
 import org.telegram.bot.domain.model.request.MessageKind;
 import org.telegram.bot.repositories.MessageRepository;
 import org.telegram.bot.services.MessageService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -24,6 +26,12 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public List<Message> get(Chat chat, LocalDateTime start, LocalDateTime end) {
+        return messageRepository.findByChatAndDateTimeGreaterThanEqualAndDateTimeLessThanOrderByDateTimeAsc(
+                chat, start, end);
+    }
+
+    @Override
     public void save(org.telegram.bot.domain.model.request.Message message) {
         if (message.hasReactions() || MessageKind.CALLBACK.equals(message.getMessageKind()) || message.getMessageId() == null) {
             return;
@@ -35,7 +43,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public void removeAll(LocalDateTime expirationDateTime) {
-        messageRepository.deleteAllByDateTimeGreaterThanEqual(expirationDateTime);
+        messageRepository.deleteAllByDateTimeLessThanEqual(expirationDateTime);
     }
 
     private Message toMessageEntity(org.telegram.bot.domain.model.request.Message message) {

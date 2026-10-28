@@ -56,6 +56,8 @@ class ReactionsTest {
     @Mock
     private SpeechService speechService;
     @Mock
+    private ChatGPT chatGPT;
+    @Mock
     private Bot bot;
 
     @InjectMocks
@@ -102,6 +104,27 @@ class ReactionsTest {
         assertEquals(expectedResponseText, textResponse.getText());
 
         verify(bot).sendTyping(chat.getChatId());
+    }
+
+    @Test
+    void parseWithoutTopMessageIncludesCurrentDigestTest() {
+        BotRequest request = TestUtils.getRequestFromGroup("today");
+        Chat chat = request.getMessage().getChat();
+
+        when(messageStatsService.getByRepliesCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of());
+        when(messageStatsService.getByReactionsCountTop(eq(chat), any(LocalDate.class))).thenReturn(List.of());
+        when(chatGPT.isConfigured()).thenReturn(true);
+        when(messageService.get(eq(chat), any(), any())).thenReturn(List.of());
+        when(chatGPT.getDailyDigest(eq(chat), anyList())).thenReturn("<topic & details>");
+
+        TextResponse response = TestUtils.checkDefaultTextResponseParams(reactions.parse(request).getFirst());
+
+        assertEquals("""
+                ${command.reactions.boringday}
+                
+                <b>${command.chatgpt.dailydigest.title}</b>
+                &lt;topic &amp; details&gt;""", response.getText());
+        verify(chatGPT).getDailyDigest(eq(chat), anyList());
     }
 
     @Test

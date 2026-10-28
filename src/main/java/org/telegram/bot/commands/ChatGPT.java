@@ -56,6 +56,8 @@ public class ChatGPT implements Command {
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/";
     private static final String DEFAULT_MODEL = "gpt-5-mini";
     private static final String RESPONSE_CAPTION = "ChatGPT";
+    private static final int DEFAULT_DAILY_DIGEST_TOKEN_LIMIT = 4000;
+    private static final int DAILY_DIGEST_REQUEST_OVERHEAD_TOKENS = 100;
 
     @Value("${chatGptApiUrl:#{null}}")
     private String chatGptApiUrl;
@@ -69,6 +71,7 @@ public class ChatGPT implements Command {
     private final CommandWaitingService commandWaitingService;
     private final ChatGPTMessageService chatGPTMessageService;
     private final ChatGPTSettingService chatGPTSettingService;
+    private final LanguageResolver languageResolver;
     private final InternationalizationService internationalizationService;
     private final ObjectMapper objectMapper;
     private final RestTemplate defaultRestTemplate;
@@ -266,6 +269,176 @@ public class ChatGPT implements Command {
         }
 
         return response.get();
+    }
+
+    public String getDailyDigest(Chat chat, List<org.telegram.bot.domain.entities.Message> chatMessages) {
+        String token = propertiesConfig.getChatGPTToken();
+        if (StringUtils.isBlank(token)) {
+            log.debug("Skipping daily chat digest because the ChatGPT token is not configured");
+            return null;
+        }
+
+        List<String> transcriptMessages = chatMessages
+                .stream()
+                .filter(message -> StringUtils.isNotBlank(message.getText()))
+                .map(message -> {
+                    String username = Optional.ofNullable(message.getUser().getUsername())
+                            .filter(StringUtils::isNotBlank)
+                            .orElse("user-" + message.getUser().getUserId());
+                    String time = message.getDateTime() == null
+                            ? ""
+                            : "[" + message.getDateTime().toLocalTime().withNano(0) + "] ";
+                    return time + username + ": " + message.getText().replaceAll("\\R", " ");
+                })
+                .toList();
+        if (transcriptMessages.isEmpty()) {
+            return null;
+        }
+
+        String language = Optional.ofNullable(languageResolver.getChatLanguageCode(chat))
+                .orElse(propertiesConfig.getDefaultLanguage());
+        String instructions = internationalizationService.internationalize(
+                "${command.chatgpt.dailydigest.prompt}", language);
+        String chunkInstructions = internationalizationService.internationalize(
+                "${command.chatgpt.dailydigest.chunkprompt}", language);
+        String model = getModel(chatGPTSettingService.get(chat));
+        int configuredTokenLimit = Optional.ofNullable(propertiesConfig.getChatGPTTokensSize()).orElse(0);
+        int tokenLimit = configuredTokenLimit > 0
+                ? configuredTokenLimit
+                : DEFAULT_DAILY_DIGEST_TOKEN_LIMIT;
+        String transcript = String.join("\n", transcriptMessages);
+
+        if (fitsDailyDigestRequest(transcript, instructions, tokenLimit)) {
+            return getDailyDigestResponse(instructions, transcript, model, token);
+        }
+
+        List<String> chunks = splitDailyDigestContent(transcriptMessages, chunkInstructions, tokenLimit);
+        List<String> summaries = chunks
+                .stream()
+                .map(chunk -> getDailyDigestResponse(chunkInstructions, chunk, model, token))
+                .toList();
+
+        for (int depth = 0; depth < 8; depth++) {
+            String combinedSummaries = String.join("\n", summaries);
+            if (fitsDailyDigestRequest(combinedSummaries, instructions, tokenLimit)) {
+                return getDailyDigestResponse(instructions, combinedSummaries, model, token);
+            }
+
+            List<String> summaryChunks = splitDailyDigestContent(summaries, chunkInstructions, tokenLimit);
+            List<String> shorterSummaries = summaryChunks.stream()
+                    .map(chunk -> getDailyDigestResponse(chunkInstructions, chunk, model, token))
+                    .toList();
+            if (shorterSummaries.equals(summaries)) {
+                break;
+            }
+            summaries = shorterSummaries;
+        }
+
+        throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_REQUEST));
+    }
+
+    private String getDailyDigestResponse(String instructions, String content, String model, String token) {
+        ChatResponse response = getResponse(new ChatRequest()
+                .setModel(model)
+                .setMessages(List.of(
+                        new Message().setRole(ChatGPTRole.SYSTEM.getName()).setContent(instructions),
+                        new Message().setRole(ChatGPTRole.USER.getName()).setContent(content))), token);
+        return getResponseText(response);
+    }
+
+    private boolean fitsDailyDigestRequest(String content, String instructions, int tokenLimit) {
+        return encoding.countTokens(instructions + "\n" + content)
+                + DAILY_DIGEST_REQUEST_OVERHEAD_TOKENS <= tokenLimit;
+    }
+
+    private List<String> splitDailyDigestContent(List<String> entries, String instructions, int tokenLimit) {
+        int contentLimit = tokenLimit - encoding.countTokens(instructions)
+                - DAILY_DIGEST_REQUEST_OVERHEAD_TOKENS;
+        if (contentLimit <= 0) {
+            throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_REQUEST));
+        }
+
+        List<String> chunks = new ArrayList<>();
+        StringBuilder currentChunk = new StringBuilder();
+        for (String entry : entries) {
+            for (String part : splitLongDailyDigestEntry(entry, contentLimit)) {
+                String candidate = currentChunk.isEmpty() ? part : currentChunk + "\n" + part;
+                if (!currentChunk.isEmpty() && encoding.countTokens(candidate) > contentLimit) {
+                    chunks.add(currentChunk.toString());
+                    currentChunk.setLength(0);
+                }
+                if (!currentChunk.isEmpty()) {
+                    currentChunk.append('\n');
+                }
+                currentChunk.append(part);
+            }
+        }
+        if (!currentChunk.isEmpty()) {
+            chunks.add(currentChunk.toString());
+        }
+        return chunks;
+    }
+
+    private List<String> splitLongDailyDigestEntry(String entry, int tokenLimit) {
+        if (encoding.countTokens(entry) <= tokenLimit) {
+            return List.of(entry);
+        }
+
+        List<String> parts = new ArrayList<>();
+        StringBuilder currentPart = new StringBuilder();
+        for (String word : entry.split("\\s+")) {
+            String candidate = currentPart.isEmpty() ? word : currentPart + " " + word;
+            if (!currentPart.isEmpty() && encoding.countTokens(candidate) > tokenLimit) {
+                parts.add(currentPart.toString());
+                currentPart.setLength(0);
+            }
+            if (encoding.countTokens(word) > tokenLimit) {
+                if (!currentPart.isEmpty()) {
+                    parts.add(currentPart.toString());
+                    currentPart.setLength(0);
+                }
+                parts.addAll(splitOversizedDailyDigestWord(word, tokenLimit));
+            } else {
+                if (!currentPart.isEmpty()) {
+                    currentPart.append(' ');
+                }
+                currentPart.append(word);
+            }
+        }
+        if (!currentPart.isEmpty()) {
+            parts.add(currentPart.toString());
+        }
+        return parts;
+    }
+
+    private List<String> splitOversizedDailyDigestWord(String word, int tokenLimit) {
+        int[] codePoints = word.codePoints().toArray();
+        List<String> parts = new ArrayList<>();
+        for (int start = 0; start < codePoints.length;) {
+            int low = start + 1;
+            int high = codePoints.length;
+            int best = start;
+            while (low <= high) {
+                int middle = (low + high) >>> 1;
+                String candidate = new String(codePoints, start, middle - start);
+                if (encoding.countTokens(candidate) <= tokenLimit) {
+                    best = middle;
+                    low = middle + 1;
+                } else {
+                    high = middle - 1;
+                }
+            }
+            if (best == start) {
+                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.TOO_BIG_REQUEST));
+            }
+            parts.add(new String(codePoints, start, best - start));
+            start = best;
+        }
+        return parts;
+    }
+
+    public boolean isConfigured() {
+        return StringUtils.isNotBlank(propertiesConfig.getChatGPTToken());
     }
 
     private ChatRequest buildRequest(List<ChatGPTMessage> chatGPTMessages, String text, String username, String model, String prompt) {

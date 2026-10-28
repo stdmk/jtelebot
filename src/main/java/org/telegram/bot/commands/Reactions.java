@@ -1,10 +1,13 @@
 package org.telegram.bot.commands;
 
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.bot.Bot;
 import org.telegram.bot.domain.entities.*;
@@ -23,8 +26,6 @@ import org.telegram.bot.services.*;
 import org.telegram.bot.utils.TelegramUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Set;
@@ -55,6 +56,7 @@ public class Reactions implements Command, MessageAnalyzer {
     private final CustomReactionDayStatsService customReactionDayStatsService;
     private final CustomReactionsStatsService customReactionsStatsService;
     private final SpeechService speechService;
+    private final ChatGPT chatGPT;
     private final Bot bot;
 
     @PostConstruct
@@ -89,11 +91,35 @@ public class Reactions implements Command, MessageAnalyzer {
             if (responseText == null) {
                 responseText = "${command.reactions.boringday}";
             }
+            responseText = appendCurrentDigest(responseText, chat);
         }
 
         return returnResponse(new TextResponse(message)
                 .setText(responseText)
                 .setResponseSettings(DEFAULT_RESPONSE_SETTINGS));
+    }
+
+    private String appendCurrentDigest(String responseText, Chat chat) {
+        if (!chatGPT.isConfigured()) {
+            return responseText;
+        }
+
+        LocalDate today = LocalDate.now();
+        try {
+            String digest = chatGPT.getDailyDigest(chat, messageService.get(
+                    chat,
+                    today.atStartOfDay(),
+                    today.plusDays(1).atStartOfDay()));
+            if (digest == null || digest.isBlank()) {
+                return responseText;
+            }
+
+            return responseText + "\n\n<b>${command.chatgpt.dailydigest.title}</b>\n"
+                    + StringEscapeUtils.escapeHtml4(digest);
+        } catch (Exception e) {
+            log.error("Failed to generate current chat digest for chat {}", chat.getChatId(), e);
+            return responseText;
+        }
     }
 
     @Nullable

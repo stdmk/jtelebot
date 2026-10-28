@@ -11,7 +11,6 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.Message;
 import org.telegram.bot.domain.entities.MessageStats;
 import org.telegram.bot.repositories.MessageStatsRepository;
-import org.telegram.bot.services.MessageService;
 import org.telegram.bot.services.MessageStatsService;
 
 import java.time.LocalDate;
@@ -24,7 +23,6 @@ import java.util.Optional;
 @Slf4j
 public class MessageStatsServiceImpl implements MessageStatsService {
 
-    private final MessageService messageService;
     private final MessageStatsRepository messageStatsRepository;
 
     @Value("${today.minRepliesToGetTheTop:2}")
@@ -66,7 +64,7 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     @Override
     @Transactional
     public void removeAll(LocalDateTime expirationDateTime) {
-        messageStatsRepository.deleteAllByMessageDateTimeGreaterThanEqual(expirationDateTime);
+        messageStatsRepository.deleteAllByMessageDateTimeLessThanEqual(expirationDateTime);
     }
 
     private Optional<MessageStats> getMessageStats(Message message) {

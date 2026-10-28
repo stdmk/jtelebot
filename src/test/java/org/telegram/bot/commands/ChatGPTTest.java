@@ -36,6 +36,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +64,8 @@ class ChatGPTTest {
     @Mock
     private ChatGPTSettingService chatGPTSettingService;
     @Mock
+    private LanguageResolver languageResolver;
+    @Mock
     private InternationalizationService internationalizationService;
     @Mock
     private ObjectMapper objectMapper;
@@ -76,6 +79,86 @@ class ChatGPTTest {
 
     @InjectMocks
     private ChatGPT chatGPT;
+
+    @Test
+    void dailyDigestUsesChatLanguageAndConfiguredModelTest() throws JsonProcessingException {
+        Chat chat = getChat();
+        org.telegram.bot.domain.entities.Message message = new org.telegram.bot.domain.entities.Message()
+                .setChat(chat)
+                .setUser(new User().setUserId(42L).setUsername("alice"))
+                .setDateTime(LocalDateTime.of(2026, 10, 28, 12, 30))
+                .setText("Discussed the release plan");
+        ChatGPT.ChatResponse apiResponse = getChatResponse("Main topic: release plan");
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(propertiesConfig.getChatGPTTokensSize()).thenReturn(0);
+        when(languageResolver.getChatLanguageCode(chat)).thenReturn("ru");
+        when(internationalizationService.internationalize("${command.chatgpt.dailydigest.prompt}", "ru"))
+                .thenReturn("Кратко перечисли темы");
+        when(chatGPTSettingService.get(chat)).thenReturn(new ChatGPTSettings().setModel("test-model"));
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        String digest = chatGPT.getDailyDigest(chat, List.of(message));
+
+        assertEquals("Main topic: release plan", digest);
+        ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(objectMapper).writeValueAsString(requestCaptor.capture());
+        ChatGPT.ChatRequest chatRequest = assertInstanceOf(ChatGPT.ChatRequest.class, requestCaptor.getValue());
+        assertEquals("test-model", chatRequest.getModel());
+        assertEquals("Кратко перечисли темы", chatRequest.getMessages().getFirst().getContent());
+        assertTrue(chatRequest.getMessages().getLast().getContent().contains("alice: Discussed the release plan"));
+    }
+
+    @Test
+    void dailyDigestSplitsLongTranscriptToFitConfiguredTokenLimitTest() throws JsonProcessingException {
+        Chat chat = getChat();
+        List<org.telegram.bot.domain.entities.Message> messages = java.util.stream.IntStream.range(0, 6)
+                .mapToObj(i -> new org.telegram.bot.domain.entities.Message()
+                        .setChat(chat)
+                        .setUser(new User().setUserId((long) i).setUsername("user" + i))
+                        .setDateTime(LocalDateTime.of(2026, 10, 28, 12, i))
+                        .setText("long discussion topic ".repeat(100)))
+                .toList();
+        ChatGPT.ChatResponse apiResponse = getChatResponse("A topic");
+
+        when(propertiesConfig.getChatGPTToken()).thenReturn("token");
+        when(propertiesConfig.getChatGPTTokensSize()).thenReturn(350);
+        when(languageResolver.getChatLanguageCode(chat)).thenReturn("en");
+        when(internationalizationService.internationalize("${command.chatgpt.dailydigest.prompt}", "en"))
+                .thenReturn("List the topics concisely.");
+        when(internationalizationService.internationalize("${command.chatgpt.dailydigest.chunkprompt}", "en"))
+                .thenReturn("Summarize this transcript segment concisely.");
+        when(chatGPTSettingService.get(chat)).thenReturn(new ChatGPTSettings().setModel("test-model"));
+        when(objectMapper.writeValueAsString(any(Object.class))).thenReturn("{}");
+        when(defaultRestTemplate.postForEntity(anyString(), any(HttpEntity.class), any()))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        String digest = chatGPT.getDailyDigest(chat, messages);
+
+        assertEquals("A topic", digest);
+        ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(objectMapper, atLeast(3)).writeValueAsString(requestCaptor.capture());
+        assertTrue(requestCaptor.getAllValues().size() > 2);
+        for (Object capturedRequest : requestCaptor.getAllValues()) {
+            ChatGPT.ChatRequest chatRequest = assertInstanceOf(ChatGPT.ChatRequest.class, capturedRequest);
+            String requestContent = chatRequest.getMessages().stream()
+                    .map(ChatGPT.Message::getContent)
+                    .collect(java.util.stream.Collectors.joining("\n"));
+            assertTrue(com.knuddels.jtokkit.Encodings.newDefaultEncodingRegistry()
+                    .getEncoding(com.knuddels.jtokkit.api.EncodingType.CL100K_BASE)
+                    .countTokens(requestContent) <= 350);
+        }
+    }
+
+    @Test
+    void dailyDigestSkipsWhenTokenIsNotConfiguredTest() {
+        when(propertiesConfig.getChatGPTToken()).thenReturn(" ");
+
+        assertNull(chatGPT.getDailyDigest(getChat(), List.of()));
+        verifyNoInteractions(defaultRestTemplate);
+    }
 
     @Test
     void unavailableTokenTest() {
@@ -450,6 +533,13 @@ class ChatGPTTest {
                 Arguments.of("", OPENAI_API_URL),
                 Arguments.of("new_url", "new_url")
         );
+    }
+
+    private ChatGPT.ChatResponse getChatResponse(String responseText) {
+        ChatGPT.Message message = new ChatGPT.Message().setContent(responseText);
+        ChatGPT.Choice choice = new ChatGPT.Choice();
+        choice.setMessage(message);
+        return new ChatGPT.ChatResponse().setChoices(List.of(choice));
     }
 
 }
