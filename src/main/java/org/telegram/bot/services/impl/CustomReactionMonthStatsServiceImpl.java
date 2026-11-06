@@ -42,7 +42,7 @@ public class CustomReactionMonthStatsServiceImpl implements CustomReactionMonthS
     @Override
     @Transactional
     public void removeAll() {
-        customReactionMonthStatsRepository.deleteAll();
+        customReactionMonthStatsRepository.deleteAllInBulk();
     }
 
 }

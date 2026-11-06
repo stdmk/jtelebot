@@ -64,7 +64,7 @@ public class MessageStatsServiceImpl implements MessageStatsService {
     @Override
     @Transactional
     public void removeAll(LocalDateTime expirationDateTime) {
-        messageStatsRepository.deleteAllByMessageDateTimeLessThanEqual(expirationDateTime);
+        messageStatsRepository.deleteExpiredAndOrphaned(expirationDateTime);
     }
 
     private Optional<MessageStats> getMessageStats(Message message) {

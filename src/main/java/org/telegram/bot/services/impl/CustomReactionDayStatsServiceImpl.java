@@ -42,7 +42,7 @@ public class CustomReactionDayStatsServiceImpl implements CustomReactionDayStats
     @Override
     @Transactional
     public void removeAll() {
-        customReactionDayStatsRepository.deleteAll();
+        customReactionDayStatsRepository.deleteAllInBulk();
     }
 
 }

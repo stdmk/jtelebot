@@ -43,7 +43,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public void removeAll(LocalDateTime expirationDateTime) {
-        messageRepository.deleteAllByDateTimeLessThanEqual(expirationDateTime);
+        messageRepository.deleteExpiredAndOrphaned(expirationDateTime);
     }
 
     private Message toMessageEntity(org.telegram.bot.domain.model.request.Message message) {

@@ -27,12 +27,18 @@ public class CommandPropertiesServiceImpl implements CommandPropertiesService {
         log.debug("Request to find commands in text {}", textOfMessage);
 
         int i = textOfMessage.indexOf("@");
-        if (i > 0 && textOfMessage.contains(botUsername)) {
-            if (!textOfMessage.substring(i + 1).equals(botUsername)) {
-                return null;
-            } else {
-                textOfMessage = textOfMessage.replace("@" + botUsername, "");
+        if (i > 0) {
+            int usernameEnd = i + 1;
+            while (usernameEnd < textOfMessage.length() && !Character.isWhitespace(textOfMessage.charAt(usernameEnd))) {
+                usernameEnd++;
             }
+
+            String addressedUsername = textOfMessage.substring(i + 1, usernameEnd);
+            if (!addressedUsername.equalsIgnoreCase(botUsername)) {
+                return null;
+            }
+
+            textOfMessage = textOfMessage.substring(0, i) + textOfMessage.substring(usernameEnd);
         }
 
         String potentialCommand = getPotentialCommandInText(textOfMessage);
