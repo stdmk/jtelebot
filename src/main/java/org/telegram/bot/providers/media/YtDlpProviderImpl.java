@@ -287,7 +287,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         );
 
         for (JsonNode format : combinedFormats) {
-            long size = extractSize(format);
+            long size = extractSize(format, duration);
             if (size <= 0) {
                 continue;
             }
@@ -341,20 +341,22 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         JsonNode bestVideo = null;
         JsonNode bestAudio = null;
         long bestHeight = 0;
+        long smallestEstimatedSize = Long.MAX_VALUE;
 
         for (JsonNode video : videoFormats) {
-            long videoSize = extractSize(video);
+            long videoSize = extractSize(video, duration);
             if (videoSize <= 0) {
                 continue;
             }
 
             for (JsonNode audio : audioFormats) {
-                long audioSize = extractSize(audio);
+                long audioSize = extractSize(audio, duration);
                 if (audioSize <= 0) {
                     continue;
                 }
 
                 long totalSize = videoSize + audioSize;
+                smallestEstimatedSize = Math.min(smallestEstimatedSize, totalSize);
 
                 if (totalSize <= TelegramUtils.MAX_FILE_LIMIT_BYTES) {
                     bestVideo = video;
@@ -369,8 +371,11 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             }
         }
 
-        if (bestVideo == null || bestAudio == null) {
-            String errorMessage = "Unable to find best format";
+        if (bestVideo == null) {
+            String errorMessage = smallestEstimatedSize == Long.MAX_VALUE
+                    ? "Unable to estimate video format sizes"
+                    : "No video format under " + TelegramUtils.MAX_FILE_LIMIT_BYTES
+                    + " bytes; smallest estimated size is " + smallestEstimatedSize + " bytes";
             log.info(errorMessage);
             throw new YtDlpBigFileException(errorMessage);
         }
@@ -387,9 +392,9 @@ public class YtDlpProviderImpl implements YtDlpProvider {
                 "Selected formats: video={}, audio={}, videoSize={}, audioSize={}, totalSize={}, height={}, ext={}",
                 bestVideo.path("format_id").asText(),
                 bestAudio.path("format_id").asText(),
-                extractSize(bestVideo),
-                extractSize(bestAudio),
-                extractSize(bestVideo) + extractSize(bestAudio),
+                extractSize(bestVideo, duration),
+                extractSize(bestAudio, duration),
+                extractSize(bestVideo, duration) + extractSize(bestAudio, duration),
                 bestHeight,
                 ext
         );
@@ -459,7 +464,7 @@ public class YtDlpProviderImpl implements YtDlpProvider {
         }
     }
 
-    private static long extractSize(JsonNode format) {
+    private static long extractSize(JsonNode format, long durationSeconds) {
         if (format.has("filesize") && !format.get("filesize").isNull()) {
             long filesize = format.get("filesize").asLong();
             if (filesize > 0) {
@@ -471,6 +476,16 @@ public class YtDlpProviderImpl implements YtDlpProvider {
             long filesizeApprox = format.get("filesize_approx").asLong();
             if (filesizeApprox > 0) {
                 return filesizeApprox;
+            }
+        }
+
+        // yt-dlp often cannot determine sizes for live or segmented streams. Estimate
+        // their size from the average bitrate (in kbit/s) and media duration instead.
+        double bitrateKbps = format.path("tbr").asDouble(0);
+        if (bitrateKbps > 0 && durationSeconds > 0) {
+            double estimatedSize = bitrateKbps * 1000 / 8 * durationSeconds;
+            if (estimatedSize < Long.MAX_VALUE) {
+                return (long) Math.ceil(estimatedSize);
             }
         }
 
