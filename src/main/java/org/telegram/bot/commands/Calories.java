@@ -50,6 +50,7 @@ public class Calories implements Command {
     private static final String NUMERIC_PARAMETER_TEMPLATE = "(?<!\\p{L})(\\d+[.,]?\\d*)\\s?[%s](?!\\p{L})";
     private static final String NEGATIVE_NUMERIC_PARAMETER_TEMPLATE = "-(\\d+[.,]?\\d*)\\s?[%s](?!\\p{L})";
     private static final DecimalFormat DF = new DecimalFormat("#.#");
+    private static final DecimalFormat PERCENT_DF = new DecimalFormat("#");
     private static final Pattern FULL_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})\\.(\\d{4})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile("(\\d{2})\\.(\\d{2})");
 
@@ -606,21 +607,21 @@ public class Calories implements Command {
                     leftItem = "${command.calories.left}";
                 }
 
-                caloriesOfTargetInfo = "(" + DF.format(getPercent(caloriesTarget, calories.getCaloric())) + "%)\n"
+                caloriesOfTargetInfo = "(" + PERCENT_DF.format(getPercent(caloriesTarget, calories.getCaloric())) + "%)\n"
                         + leftItem + ": <b>" + DF.format(caloriesLeft) + "</b> ${command.calories.kcal}\n";
             }
 
             if (userCaloriesTarget.getProteins() != null) {
-                proteinsOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getProteins(), calories.getProteins())) + "%)";
+                proteinsOfTargetInfo = "(" + PERCENT_DF.format(getPercent(userCaloriesTarget.getProteins(), calories.getProteins())) + "%)";
             }
             if (userCaloriesTarget.getFats() != null) {
-                fatsOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getFats(), calories.getFats())) + "%)";
+                fatsOfTargetInfo = "(" + PERCENT_DF.format(getPercent(userCaloriesTarget.getFats(), calories.getFats())) + "%)";
             }
             if (userCaloriesTarget.getCarbs() != null) {
-                carbsOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getCarbs(), calories.getCarbs())) + "%)";
+                carbsOfTargetInfo = "(" + PERCENT_DF.format(getPercent(userCaloriesTarget.getCarbs(), calories.getCarbs())) + "%)";
             }
             if (userCaloriesTarget.getFibers() != null) {
-                fibersOfTargetInfo = "(" + DF.format(getPercent(userCaloriesTarget.getFibers(), calories.getFibers())) + "%)";
+                fibersOfTargetInfo = "(" + PERCENT_DF.format(getPercent(userCaloriesTarget.getFibers(), calories.getFibers())) + "%)";
             }
         }
 
@@ -732,7 +733,7 @@ public class Calories implements Command {
         if (mealCaloric != 0D) {
             caloricInfo.append("<b>").append(DF.format(mealCaloric)).append(" ${command.calories.kcal}.</b> ");
             if (caloricTarget != null) {
-                caloricInfo.append("(").append(DF.format(getPercent(caloricTarget, mealCaloric))).append("%) ");
+                caloricInfo.append("(").append(PERCENT_DF.format(getPercent(caloricTarget, mealCaloric))).append("%) ");
             }
             caloricInfo.append("\n");
         }
@@ -765,7 +766,7 @@ public class Calories implements Command {
         if (mealParam != 0D) {
             buf.append(caption).append(": <b>").append(DF.format(mealParam)).append("</b> ${command.calories.gramssymbol}. ");
             if (targetParam != null) {
-                buf.append("(").append(DF.format(getPercent(targetParam, mealParam))).append("%) ");
+                buf.append("(").append(PERCENT_DF.format(getPercent(targetParam, mealParam))).append("%) ");
             }
             buf.append("\n");
         }

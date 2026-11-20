@@ -193,13 +193,13 @@ class CaloriesTest {
         final String expectedResponseText = """
                 <b><u>${command.calories.caption} 01.01.2000:</u></b>
                 ${command.calories.burned}: <b>1500</b> ${command.calories.kcal}.
-                ${command.calories.eaten}: <b>1097</b> ${command.calories.kcal}. (54,9%)
+                ${command.calories.eaten}: <b>1097</b> ${command.calories.kcal}. (55%)
                 ${command.calories.left}: <b>2403</b> ${command.calories.kcal}
                 
                 <b><u>${command.calories.caption2}:</u></b>
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
-                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36%)
                 ${command.calories.fibers}: <b>12</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>523</b> ${command.calories.gramssymbol}.\s
                 
@@ -208,8 +208,8 @@ class CaloriesTest {
                 
                 <u><b>22:00 — 22:30</b></u>: <b>17840 ${command.calories.kcal}.</b> (892%)\s
                 ${command.calories.proteins}: <b>2230</b> ${command.calories.gramssymbol}. (2230%)\s
-                ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6757,6%)\s
-                ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2432,7%)\s
+                ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6758%)\s
+                ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2433%)\s
                 ${command.calories.fibers}: <b>446</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>2100</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
@@ -227,8 +227,8 @@ class CaloriesTest {
                 
                 <u><b>23:20 — 23:50</b></u>: <b>1200 ${command.calories.kcal}.</b> (60%)\s
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
-                ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (454,5%)\s
-                ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (163,6%)\s
+                ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (455%)\s
+                ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (164%)\s
                 ${command.calories.fibers}: <b>30</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>500</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
@@ -281,14 +281,14 @@ class CaloriesTest {
                 <b><u>${command.calories.caption2}:</u></b>
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
-                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36%)
                 ${command.calories.fibers}: <b>13</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>666</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>23:30 — 23:50</b></u>: <b>560 ${command.calories.kcal}.</b> (28%)\s
                 ${command.calories.proteins}: <b>70</b> ${command.calories.gramssymbol}. (70%)\s
-                ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}. (212,1%)\s
-                ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}. (76,4%)\s
+                ${command.calories.fats}: <b>140</b> ${command.calories.gramssymbol}. (212%)\s
+                ${command.calories.carbs}: <b>210</b> ${command.calories.gramssymbol}. (76%)\s
                 ${command.calories.fibers}: <b>14</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>300</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
@@ -335,20 +335,20 @@ class CaloriesTest {
         final LocalDate expectedDate = LocalDate.of(2000, 2, 2);
         final String expectedResponseText = """
                 <b><u>${command.calories.caption} 02.02.2000:</u></b>
-                ${command.calories.eaten}: <b>1097</b> ${command.calories.kcal}. (54,9%)
+                ${command.calories.eaten}: <b>1097</b> ${command.calories.kcal}. (55%)
                 ${command.calories.left}: <b>903</b> ${command.calories.kcal}
                 
                 <b><u>${command.calories.caption2}:</u></b>
                 ${command.calories.proteins}: <b>100</b> ${command.calories.gramssymbol}. (100%)
                 ${command.calories.fats}: <b>33</b> ${command.calories.gramssymbol}. (50%)
-                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36,4%)
+                ${command.calories.carbs}: <b>100</b> ${command.calories.gramssymbol}. (36%)
                 ${command.calories.fibers}: <b>14</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>523</b> ${command.calories.gramssymbol}.\s
                 
                 <u><b>22:00 — 22:30</b></u>: <b>17840 ${command.calories.kcal}.</b> (892%)\s
                 ${command.calories.proteins}: <b>2230</b> ${command.calories.gramssymbol}. (2230%)\s
-                ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6757,6%)\s
-                ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2432,7%)\s
+                ${command.calories.fats}: <b>4460</b> ${command.calories.gramssymbol}. (6758%)\s
+                ${command.calories.carbs}: <b>6690</b> ${command.calories.gramssymbol}. (2433%)\s
                 ${command.calories.fibers}: <b>446</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>2100</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
@@ -363,8 +363,8 @@ class CaloriesTest {
                 
                 <u><b>22:40 — 23:10</b></u>: <b>6960 ${command.calories.kcal}.</b> (348%)\s
                 ${command.calories.proteins}: <b>870</b> ${command.calories.gramssymbol}. (870%)\s
-                ${command.calories.fats}: <b>1740</b> ${command.calories.gramssymbol}. (2636,4%)\s
-                ${command.calories.carbs}: <b>2610</b> ${command.calories.gramssymbol}. (949,1%)\s
+                ${command.calories.fats}: <b>1740</b> ${command.calories.gramssymbol}. (2636%)\s
+                ${command.calories.carbs}: <b>2610</b> ${command.calories.gramssymbol}. (949%)\s
                 ${command.calories.fibers}: <b>174</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>1300</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
@@ -379,8 +379,8 @@ class CaloriesTest {
                 
                 <u><b>23:20 — 23:50</b></u>: <b>1200 ${command.calories.kcal}.</b> (60%)\s
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
-                ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (454,5%)\s
-                ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (163,6%)\s
+                ${command.calories.fats}: <b>300</b> ${command.calories.gramssymbol}. (455%)\s
+                ${command.calories.carbs}: <b>450</b> ${command.calories.gramssymbol}. (164%)\s
                 ${command.calories.fibers}: <b>30</b> ${command.calories.gramssymbol}.\s
                 ${command.calories.weight}: <b>500</b> ${command.calories.gramssymbol}.\s
                 -----------------------------
