@@ -13,6 +13,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.model.request.BotRequest;
@@ -28,6 +29,7 @@ import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,10 +51,10 @@ public class Kinopoisk implements Command {
     private final BotStats botStats;
 
     private static final Pattern YEAR_PARAM = Pattern.compile("\\((\\d{4})\\)");
-    private static final String API_URL = "https://api.kinopoisk.dev/v1.3/movie";
+    private static final String API_URL = "https://api.poiskkino.dev/v1.5/movie";
+    private static final String SEARCH_URL = API_URL + "/search";
     private static final String KINOPOISK_URL = "https://www.kinopoisk.ru/";
-    private static final String SEARCH_PATH = "?";
-    private static final String RANDOM_MOVIE_PATH = "random";
+    private static final String RANDOM_MOVIE_PATH = "/random";
 
     @Override
     public List<BotResponse> parse(BotRequest request) {
@@ -96,28 +98,39 @@ public class Kinopoisk implements Command {
     }
 
     private MovieData getMovieSearchResult(String token, String textMessage) {
-        String url;
         Matcher yearMatcher = YEAR_PARAM.matcher(textMessage);
+        String movieName = textMessage;
+        Integer year = null;
         if (yearMatcher.find()) {
-            int year;
-            try {
-                year = Integer.parseInt(yearMatcher.group(1));
-            } catch (NumberFormatException e) {
-                throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.INTERNAL_ERROR));
-            }
-
-            String movieName = textMessage.replaceAll(YEAR_PARAM.pattern(), "").trim();
-            url = API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + year;
-        } else {
-            url = API_URL + SEARCH_PATH + "name=" + textMessage;
+            movieName = YEAR_PARAM.matcher(textMessage).replaceAll("").trim();
+            year = Integer.parseInt(yearMatcher.group(1));
         }
 
-        MovieSearchResult movieSearchResult = getData(url, token, MovieSearchResult.class);
+        URI uri = UriComponentsBuilder.fromUriString(SEARCH_URL)
+                .queryParam("page", 1)
+                .queryParam("limit", 250)
+                .queryParam("query", movieName)
+                .build()
+                .encode(StandardCharsets.UTF_8)
+                .toUri();
+        MovieSearchResult movieSearchResult = getData(uri, token, MovieSearchResult.class);
+
+        if (movieSearchResult.getDocs() != null) {
+            if (year != null) {
+                Integer requestedYear = year;
+                List<Movie> yearMatches = movieSearchResult.getDocs().stream()
+                        .filter(movie -> requestedYear.equals(movie.getYear()))
+                        .toList();
+                movieSearchResult.setDocs(yearMatches.stream().limit(10).toList()).setTotal(yearMatches.size());
+            } else {
+                movieSearchResult.setDocs(movieSearchResult.getDocs().stream().limit(10).toList());
+            }
+        }
 
         Integer total = movieSearchResult.getTotal();
-        if (total == 0) {
+        if (CollectionUtils.isEmpty(movieSearchResult.getDocs()) || (total != null && total == 0)) {
             throw new BotException(speechService.getRandomMessageByTag(BotSpeechTag.FOUND_NOTHING));
-        } else if (total == 1) {
+        } else if (movieSearchResult.getDocs().size() == 1) {
             Movie movie = movieSearchResult.getDocs().getFirst();
 
             Long id = movie.getId();
@@ -143,12 +156,12 @@ public class Kinopoisk implements Command {
     }
 
     private MovieData getMovieById(String token, Long id) {
-        Movie movie = getData(API_URL + "/" + id, token, Movie.class);
+        Movie movie = getData(URI.create(API_URL + "/" + id), token, Movie.class);
         return getResponseTextAndPhotoFromMovie(movie);
     }
 
     private MovieData getRandomMovie(String token) {
-        Movie movie = getData(API_URL + RANDOM_MOVIE_PATH, token, Movie.class);
+        Movie movie = getData(URI.create(API_URL + RANDOM_MOVIE_PATH), token, Movie.class);
         return getResponseTextAndPhotoFromMovie(movie);
     }
 
@@ -259,10 +272,10 @@ public class Kinopoisk implements Command {
                 .orElse(null);
     }
 
-    private <T> T getData(String url, String token, Class<T> dataType) {
+    private <T> T getData(URI uri, String token, Class<T> dataType) {
         ResponseEntity<T> responseEntity;
         try {
-            responseEntity = botRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(getDefaultHeaders(token)), dataType);
+            responseEntity = botRestTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getDefaultHeaders(token)), dataType);
         } catch (HttpClientErrorException hcee) {
             String response = hcee.getResponseBodyAsString(StandardCharsets.UTF_8);
 

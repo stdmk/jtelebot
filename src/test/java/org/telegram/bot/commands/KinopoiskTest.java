@@ -10,6 +10,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.telegram.bot.Bot;
 import org.telegram.bot.TestUtils;
 import org.telegram.bot.config.PropertiesConfig;
@@ -23,6 +24,7 @@ import org.telegram.bot.services.BotStats;
 import org.telegram.bot.services.SpeechService;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +36,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class KinopoiskTest {
 
-    private static final String API_URL = "https://api.kinopoisk.dev/v1.3/movie";
-    private static final String SEARCH_PATH = "?";
+    private static final String API_URL = "https://api.poiskkino.dev/v1.5/movie";
+    private static final String SEARCH_URL = API_URL + "/search";
     private static final String RANDOM_MOVIE_PATH = "random";
     private static final String TOKEN = "token";
     private static final HttpHeaders DEFAULT_HEADERS = new HttpHeaders(CollectionUtils.toMultiValueMap(
@@ -70,7 +72,7 @@ class KinopoiskTest {
         String apiErrorResponse = "{\"statusCode\":403,\"message\":\"" + expectedErrorText + "\",\"error\":\"Forbidden\"}";
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + RANDOM_MOVIE_PATH), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenThrow(
                         new HttpClientErrorException(
                                 HttpStatus.FORBIDDEN,
@@ -90,7 +92,7 @@ class KinopoiskTest {
     void parseRandomMovieWithRestClientExceptionTest() {
         BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + RANDOM_MOVIE_PATH), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenThrow(new RestClientException("error"));
 
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
@@ -103,7 +105,7 @@ class KinopoiskTest {
     void parseRandomMovieWithEmptyResponseTest() {
         BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + RANDOM_MOVIE_PATH), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
@@ -139,7 +141,7 @@ class KinopoiskTest {
                 <a href="https://www.kinopoisk.ru//film/123">${command.kinopoisk.movieinfo.towebsite}</a>""";
         BotRequest request = TestUtils.getRequestFromGroup();
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + RANDOM_MOVIE_PATH, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + RANDOM_MOVIE_PATH), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
         BotResponse response = kinopoisk.parse(request).getFirst();
@@ -190,7 +192,7 @@ class KinopoiskTest {
         BotRequest request = TestUtils.getRequestFromGroup("movie_" + MOVIE_ID);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + MOVIE_ID), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
         BotResponse response = kinopoisk.parse(request).getFirst();
@@ -208,7 +210,7 @@ class KinopoiskTest {
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(0);
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
+        when(botRestTemplate.exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
         assertThrows(BotException.class, () -> kinopoisk.parse(request));
@@ -249,9 +251,9 @@ class KinopoiskTest {
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(getSomeMovie()));
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + movieYear, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
+        when(botRestTemplate.exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
-        when(botRestTemplate.exchange(API_URL + "/" + MOVIE_ID, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + MOVIE_ID), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
                 .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
 
         BotResponse response = kinopoisk.parse(request).getFirst();
@@ -294,7 +296,7 @@ class KinopoiskTest {
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(1).setDocs(List.of(foundMovie));
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName + "&year=" + movieYear, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
+        when(botRestTemplate.exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
         BotResponse response = kinopoisk.parse(request).getFirst();
@@ -303,6 +305,28 @@ class KinopoiskTest {
 
         verify(bot).sendTyping(request.getMessage().getChatId());
         verify(botStats).incrementKinopoiskRequests();
+    }
+
+    @Test
+    void parseSearchMovieWithOneDocumentLoadsFullMovieEvenWhenTotalIsGreaterTest() {
+        final String movieName = "movie name";
+        BotRequest request = TestUtils.getRequestFromGroup("movie " + movieName);
+        Kinopoisk.MovieSearchResult searchResult = getSomeMovieSearchResult()
+                .setTotal(5)
+                .setDocs(List.of(getSomeMovie()));
+
+        when(propertiesConfig.getKinopoiskToken()).thenReturn(TOKEN);
+        when(botRestTemplate.exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
+                .thenReturn(new ResponseEntity<>(searchResult, HttpStatus.OK));
+        when(botRestTemplate.exchange(URI.create(API_URL + "/" + MOVIE_ID), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class))
+                .thenReturn(new ResponseEntity<>(getSomeMovie(), HttpStatus.OK));
+
+        BotResponse response = kinopoisk.parse(request).getFirst();
+
+        assertEquals(FileResponse.class, response.getClass());
+        verify(botRestTemplate).exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class);
+        verify(botRestTemplate).exchange(URI.create(API_URL + "/" + MOVIE_ID), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.Movie.class);
+        verify(botStats, times(2)).incrementKinopoiskRequests();
     }
 
     @Test
@@ -325,7 +349,7 @@ class KinopoiskTest {
         Kinopoisk.MovieSearchResult movieSearchResult = getSomeMovieSearchResult().setTotal(2).setDocs(List.of(foundMovie1, foundMovie2));
 
         when(propertiesConfig.getKinopoiskToken()).thenReturn("token");
-        when(botRestTemplate.exchange(API_URL + SEARCH_PATH + "name=" + movieName, HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
+        when(botRestTemplate.exchange(searchUri(movieName), HttpMethod.GET, new HttpEntity<>(DEFAULT_HEADERS), Kinopoisk.MovieSearchResult.class))
                 .thenReturn(new ResponseEntity<>(movieSearchResult, HttpStatus.OK));
 
         BotResponse response = kinopoisk.parse(request).getFirst();
@@ -342,6 +366,16 @@ class KinopoiskTest {
                 .setLimit(100)
                 .setPages(10)
                 .setDocs(List.of());
+    }
+
+    private URI searchUri(String query) {
+        return UriComponentsBuilder.fromUriString(SEARCH_URL)
+                .queryParam("page", 1)
+                .queryParam("limit", 250)
+                .queryParam("query", query)
+                .build()
+                .encode(StandardCharsets.UTF_8)
+                .toUri();
     }
 
     private Kinopoisk.Movie getSomeMovie() {
