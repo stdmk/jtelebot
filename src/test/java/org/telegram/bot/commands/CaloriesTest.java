@@ -3,6 +3,7 @@ package org.telegram.bot.commands;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -22,6 +23,7 @@ import org.telegram.bot.enums.BotSpeechTag;
 import org.telegram.bot.exception.BotException;
 import org.telegram.bot.mapper.caloric.CaloricMapper;
 import org.telegram.bot.services.InternationalizationService;
+import org.telegram.bot.services.LanguageResolver;
 import org.telegram.bot.services.SpeechService;
 import org.telegram.bot.services.UserCityService;
 import org.telegram.bot.services.calories.*;
@@ -50,6 +52,8 @@ class CaloriesTest {
 
     @Mock
     private InternationalizationService internationalizationService;
+    @Mock
+    private LanguageResolver languageResolver;
     @Mock
     private SpeechService speechService;
     @Mock
@@ -105,6 +109,34 @@ class CaloriesTest {
         assertEquals(expectedResponseText, textResponse.getText());
     }
 
+    @ParameterizedTest
+    @CsvSource({"ru, ред", "en, edit"})
+    void parseWithEditModeArgumentTest(String language, String editArgument) {
+        BotRequest request = TestUtils.getRequestFromGroup("/calories " + editArgument);
+        Message message = request.getMessage();
+        Chat chat = message.getChat();
+        User user = message.getUser();
+
+        setUpInternationalization();
+        setUpClock(chat, user);
+        when(languageResolver.getChatLanguageCode(message, user)).thenReturn(language);
+        when(internationalizationService.internationalize("${command.calories.editargument}", language))
+                .thenReturn(editArgument);
+        UserCalories userCalories = new UserCalories()
+                .setUser(user)
+                .setDate(DATE)
+                .setEatenProducts(new HashSet<>())
+                .setActivities(Set.of(getSomeActivity(1L, new UserCalories().setUser(user))));
+        when(userCaloriesService.get(user, DATE)).thenReturn(userCalories);
+        when(caloricMapper.sum(anyCollection()))
+                .thenReturn(new org.telegram.bot.domain.model.calories.Calories(0, 0, 0, 0, 0, 0));
+
+        BotResponse response = calories.parse(request).getFirst();
+
+        TextResponse textResponse = TestUtils.checkDefaultTextResponseParams(response);
+        assertTrue(textResponse.getText().contains("/calories_del_activity_1"));
+    }
+
     @Test
     void parseWithoutArgumentsAllDataWithoutTargetsTest() {
         final String expectedResponseText = """
@@ -126,13 +158,10 @@ class CaloriesTest {
                 -----------------------------
                 • productName3 (150 ${command.calories.gramssymbol}.) — 360 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 45 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 90${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 135${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 9${command.calories.gramssymbol}.\s
-                 /calories_del_3
                 • productName2 (100 ${command.calories.gramssymbol}.) — 160 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 20 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 40${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 60${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 4${command.calories.gramssymbol}.\s
-                 /calories_del_2
                 • productName1 (50 ${command.calories.gramssymbol}.) — 40 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 5 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 10${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 15${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 1${command.calories.gramssymbol}.\s
-                 /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
@@ -176,7 +205,6 @@ class CaloriesTest {
                 
                 <u><b>22:20</b></u>:
                 • activity_name10 — -1000 ${command.calories.kcal}.
-                 /calories_del_activity_10
                 
                 <u><b>22:00 — 22:30</b></u>: <b>17840 ${command.calories.kcal}.</b> (892%)\s
                 ${command.calories.proteins}: <b>2230</b> ${command.calories.gramssymbol}. (2230%)\s
@@ -187,20 +215,15 @@ class CaloriesTest {
                 -----------------------------
                 • productName12 (600 ${command.calories.gramssymbol}.) — 5760 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 720 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1440${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 2160${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 144${command.calories.gramssymbol}.\s
-                 /calories_del_12
                 • productName11 (550 ${command.calories.gramssymbol}.) — 4840 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 605 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1210${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1815${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 121${command.calories.gramssymbol}.\s
-                 /calories_del_11
                 • productName10 (500 ${command.calories.gramssymbol}.) — 4000 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 500 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1000${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1500${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 100${command.calories.gramssymbol}.\s
-                 /calories_del_10
                 • productName9 (450 ${command.calories.gramssymbol}.) — 3240 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 405 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 810${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1215${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 81${command.calories.gramssymbol}.\s
-                 /calories_del_9
                 
                 <u><b>23:10</b></u>:
                 • activity_name5 — -500 ${command.calories.kcal}.
-                 /calories_del_activity_5
                 
                 <u><b>23:20 — 23:50</b></u>: <b>1200 ${command.calories.kcal}.</b> (60%)\s
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
@@ -211,16 +234,12 @@ class CaloriesTest {
                 -----------------------------
                 • productName4 (200 ${command.calories.gramssymbol}.) — 640 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 80 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 160${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 240${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 16${command.calories.gramssymbol}.\s
-                 /calories_del_4
                 • productName3 (150 ${command.calories.gramssymbol}.) — 360 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 45 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 90${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 135${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 9${command.calories.gramssymbol}.\s
-                 /calories_del_3
                 • productName2 (100 ${command.calories.gramssymbol}.) — 160 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 20 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 40${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 60${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 4${command.calories.gramssymbol}.\s
-                 /calories_del_2
                 • productName1 (50 ${command.calories.gramssymbol}.) — 40 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 5 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 10${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 15${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 1${command.calories.gramssymbol}.\s
-                 /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
@@ -275,13 +294,10 @@ class CaloriesTest {
                 -----------------------------
                 • productName3 (150 ${command.calories.gramssymbol}.) — 360 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 45 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 90${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 135${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 9${command.calories.gramssymbol}.\s
-                 /calories_del_3
                 • productName2 (100 ${command.calories.gramssymbol}.) — 160 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 20 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 40${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 60${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 4${command.calories.gramssymbol}.\s
-                 /calories_del_2
                 • productName1 (50 ${command.calories.gramssymbol}.) — 40 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 5 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 10${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 15${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 1${command.calories.gramssymbol}.\s
-                 /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories");
         Message message = request.getMessage();
@@ -338,16 +354,12 @@ class CaloriesTest {
                 -----------------------------
                 • productName12 (600 ${command.calories.gramssymbol}.) — 5760 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 720 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1440${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 2160${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 144${command.calories.gramssymbol}.\s
-                 /calories_del_12
                 • productName11 (550 ${command.calories.gramssymbol}.) — 4840 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 605 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1210${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1815${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 121${command.calories.gramssymbol}.\s
-                 /calories_del_11
                 • productName10 (500 ${command.calories.gramssymbol}.) — 4000 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 500 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 1000${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1500${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 100${command.calories.gramssymbol}.\s
-                 /calories_del_10
                 • productName9 (450 ${command.calories.gramssymbol}.) — 3240 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 405 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 810${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 1215${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 81${command.calories.gramssymbol}.\s
-                 /calories_del_9
                 
                 <u><b>22:40 — 23:10</b></u>: <b>6960 ${command.calories.kcal}.</b> (348%)\s
                 ${command.calories.proteins}: <b>870</b> ${command.calories.gramssymbol}. (870%)\s
@@ -358,16 +370,12 @@ class CaloriesTest {
                 -----------------------------
                 • productName8 (400 ${command.calories.gramssymbol}.) — 2560 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 320 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 640${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 960${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 64${command.calories.gramssymbol}.\s
-                 /calories_del_8
                 • productName7 (350 ${command.calories.gramssymbol}.) — 1960 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 245 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 490${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 735${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 49${command.calories.gramssymbol}.\s
-                 /calories_del_7
                 • productName6 (300 ${command.calories.gramssymbol}.) — 1440 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 180 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 360${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 540${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 36${command.calories.gramssymbol}.\s
-                 /calories_del_6
                 • productName5 (250 ${command.calories.gramssymbol}.) — 1000 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 125 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 250${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 375${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 25${command.calories.gramssymbol}.\s
-                 /calories_del_5
                 
                 <u><b>23:20 — 23:50</b></u>: <b>1200 ${command.calories.kcal}.</b> (60%)\s
                 ${command.calories.proteins}: <b>150</b> ${command.calories.gramssymbol}. (150%)\s
@@ -378,16 +386,12 @@ class CaloriesTest {
                 -----------------------------
                 • productName4 (200 ${command.calories.gramssymbol}.) — 640 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 80 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 160${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 240${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 16${command.calories.gramssymbol}.\s
-                 /calories_del_4
                 • productName3 (150 ${command.calories.gramssymbol}.) — 360 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 45 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 90${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 135${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 9${command.calories.gramssymbol}.\s
-                 /calories_del_3
                 • productName2 (100 ${command.calories.gramssymbol}.) — 160 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 20 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 40${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 60${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 4${command.calories.gramssymbol}.\s
-                 /calories_del_2
                 • productName1 (50 ${command.calories.gramssymbol}.) — 40 ${command.calories.kcal}.
                 ${command.calories.proteinssymbol}: 5 ${command.calories.gramssymbol}. ${command.calories.fatssymbol}: 10${command.calories.gramssymbol}. ${command.calories.carbssymbol}: 15${command.calories.gramssymbol}. ${command.calories.fiberssymbol}: 1${command.calories.gramssymbol}.\s
-                 /calories_del_1
                 """;
         BotRequest request = TestUtils.getRequestFromGroup("/calories " + argument);
         Message message = request.getMessage();
