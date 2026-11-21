@@ -54,7 +54,13 @@ public class LogServiceImpl implements LogService {
     }
 
     private String getText(Message message) {
-        String name = Optional.of(message).map(Message::getAttachments).map(List::getFirst).map(Attachment::getName).orElse("");
+        String name = Optional.of(message)
+                .map(Message::getAttachments)
+                .filter(attachments -> !attachments.isEmpty())
+                .map(List::getFirst)
+                .map(Attachment::getName)
+                .orElse("");
+
         switch (message.getMessageContentType()) {
             case TEXT -> {
                 return message.getText();
