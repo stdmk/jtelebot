@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.bot.Bot;
 import org.telegram.bot.config.PropertiesConfig;
 import org.telegram.bot.domain.entities.User;
+import org.telegram.bot.domain.model.request.Attachment;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
 import org.telegram.bot.domain.model.response.ResponseSettings;
@@ -16,7 +17,9 @@ import org.telegram.bot.services.LogService;
 import org.telegram.bot.utils.TextUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -51,33 +54,34 @@ public class LogServiceImpl implements LogService {
     }
 
     private String getText(Message message) {
+        String name = Optional.of(message).map(Message::getAttachments).map(List::getFirst).map(Attachment::getName).orElse("");
         switch (message.getMessageContentType()) {
             case TEXT -> {
                 return message.getText();
             }
             case STICKER -> {
-                return "sticker";
+                return "sticker" + name;
             }
             case PHOTO -> {
-                return "photo";
+                return "photo" + name;
             }
             case ANIMATION -> {
-                return "animation";
+                return "animation" + name;
             }
             case AUDIO -> {
-                return "audio";
+                return "audio" + name;
             }
             case FILE -> {
-                return "file";
+                return "file" + name;
             }
             case VIDEO -> {
-                return "video";
+                return "video" + name;
             }
             case VIDEO_NOTE -> {
-                return "video note";
+                return "video note" + name;
             }
             case VOICE -> {
-                return "voice";
+                return "voice" + name;
             }
             case REACTION -> {
                 return message.getReactions().toString();

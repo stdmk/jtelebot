@@ -90,7 +90,15 @@ public class AttachmentMapper {
     }
 
     private Attachment toAttachment(String mimeType, String fileUniqueId, String fileId, String name, Long size, Integer duration, String text) {
-        return new Attachment(mimeType, fileUniqueId, fileId, null, name, size, duration, text);
+        return new Attachment()
+                .setMimeType(mimeType)
+                .setFileUniqueId(fileUniqueId)
+                .setFileId(fileId)
+                .setFile(null)
+                .setName(name)
+                .setSize(size)
+                .setDuration(duration)
+                .setText(text);
     }
 
 }
