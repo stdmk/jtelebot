@@ -1,5 +1,6 @@
 package org.telegram.bot.mapper.email.response;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -8,6 +9,7 @@ import org.telegram.bot.domain.entities.Chat;
 import org.telegram.bot.domain.entities.UserEmail;
 import org.telegram.bot.domain.model.request.BotRequest;
 import org.telegram.bot.domain.model.request.Message;
+import org.telegram.bot.domain.model.request.MessageContentType;
 import org.telegram.bot.domain.model.response.BotResponse;
 import org.telegram.bot.domain.model.response.EmailResponse;
 import org.telegram.bot.domain.model.response.File;
@@ -15,7 +17,6 @@ import org.telegram.bot.services.ChatService;
 import org.telegram.bot.utils.DateUtils;
 import org.telegram.bot.utils.TextUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +110,9 @@ public class ResponseEmailMapper {
 
     private String buildText(Message message, String additional) {
         String messageText;
-        if (message.getText() == null) {
+        if (MessageContentType.REACTION.equals(message.getMessageContentType())) {
+            messageText = message.getReactions().toString();
+        } else if (message.getText() == null) {
             messageText = additional;
         } else {
             messageText = message.getText() + "<br>" + additional;
